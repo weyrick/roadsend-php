@@ -1,0 +1,3 @@
+<?PHP
+print "foo";
+?>

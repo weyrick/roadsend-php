@@ -1,0 +1,50 @@
+CC=@CC@
+INCLUDE=-I../include @INCLUDE@
+BIN=../bin
+LIBDIR=@LIBDIR@
+MINGW32=@MINGW32@
+
+OBJS= clientinfo.o server.o client.o gethandler.o socket.o memory.o outstream.o weblog.o utils.o fnmatch.o outgif.o error.o
+ifeq ($(MINGW32),yes)
+DLL=libwebserver.dll
+LIBS=-lws2_32
+WIN_OBJS= dirent.o flock.o
+WIN_LINKCMD=-export-all-symbols -Wl,--out-implib,$(DLL).a
+DEFINES=@DEFS@ -D_SERVER_VERSION="\"@VERSION@\"" -DWIN32
+CFLAGS=@CFLAGS@ -I ../Win32 -O2 -fomit-frame-pointer -Wall
+else
+CFLAGS=@CFLAGS@ -fPIC -O2 -fomit-frame-pointer -Wall
+DLL=libwebserver.so
+LIBS=@LIBS@
+DEFINES=@DEFS@ -D_SERVER_VERSION="\"@VERSION@\""
+endif
+
+all: $(OBJS) $(WIN_OBJS)
+	$(CC) $(WIN_LINKCMD) $(OBJS) $(WIN_OBJS) $(LIBS) $(LIBDIR) -shared -o $(DLL)
+	ar -r libwebserver.a *.o
+	ranlib libwebserver.a  
+#ifeq ($(MINGW32),no)
+#	mkdir -p $(BIN);
+#	cp libwebserver.a $(DLL) $(BIN)
+#endif
+
+
+.c.o:
+	$(CC) -c $< $(CFLAGS) $(DEFINES) $(INCLUDE)
+
+
+
+
+
+clean:
+	@echo "Cleaning...";	
+	@rm -f *.o 
+	@rm Makefile
+	@rm -f libwebserver.so
+	@rm -f libwebserver.a
+ifeq ($(MINGW32),no)
+	@rm -rf $(BIN)
+endif
+
+distclean: clean
+	@rm -f Makefile

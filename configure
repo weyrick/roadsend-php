@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# a ridiculously simple script to try to get an
+# appropriate Makefile.config in place for a build
+#
+
+if [ -e Makefile.config ] 
+then
+    echo "Makefile.config already exists"
+    exit 1
+fi
+
+OS=`uname -o`
+if [ $OS == "GNU/Linux" ]
+then
+    echo "configuring Roadsend PCC for Linux"
+    ln -s Makefile.linux Makefile.config
+elif [ $OS == "FreeBSD" ]
+then
+    echo "configuring Roadsend PCC for FreEBSD"
+    ln -s Makefile.freebsd Makefile.config
+elif [ $OS == "MINGW32" ]
+then
+    echo "configuring Roadsend PCC for Windows/mingw"
+    ln -s Makefile.mingw Makefile.config
+else
+    echo "unable to determine platform: please create Makefile.config by hand"
+    exit 1
+fi
+echo "please verify Makefile.config has the correct options for your system"

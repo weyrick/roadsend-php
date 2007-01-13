@@ -1,0 +1,67 @@
+Name         : roadsend-pcc
+Summary      : The Roadsend PCC Compiler for PHP
+Version      : PCC_VERSION_HERE
+Release      : 1
+License      : Proprietary/Non-Free
+Group        : Development/Languages
+Source       : roadsend-pcc
+URL          : http://www.roadsend.com
+Distribution : Roadsend PCC
+Vendor       : Roadsend, Inc.
+Packager     : Roadsend PCC Team <support@roadsend.com>
+BuildRoot    : BUILD_ROOT_HERE
+Requires     : roadsend-pcc-prereqs = PCC_VERSION_HERE
+
+%description
+
+PCC is the Roadsend PHP Compiler. It compiles PHP code into
+high performance stand-alone binaries  and  libraries.  PHP
+code compiled by PCC can be used with or without the Apache
+webserver.
+
+%prep
+
+# prepare the software for building (nothing to do)
+
+%build
+
+# build the software (done from makefile)
+
+%install
+
+# install the software (done from makefile)
+
+%files
+
+## simply include everything in the build root
+/
+
+%pre
+
+## license agreement taken care of by makeself wrapper
+
+## backup /etc/pcc.conf if it's there
+if [ -f "/etc/pcc.conf" ]; then
+  cp -f /etc/pcc.conf /etc/.pcc.conf.installer.backup
+fi
+
+%post
+
+## check if we need to restore /etc/pcc.conf
+if [ -f "/etc/.pcc.conf.installer.backup" ]; then
+  mv -f /etc/.pcc.conf.installer.backup /etc/pcc.conf
+fi
+
+## try to install the web module if apxs is installed
+APXS=`which apxs 2>&1`
+if [ -n "$APXS" ]; then
+  if [ -e "$APXS" ]; then
+    $APXS -i -a -n "pcc" /usr/lib/roadsend/mod_pcc.so
+  fi
+fi
+
+ldconfig
+
+%postun
+
+ldconfig

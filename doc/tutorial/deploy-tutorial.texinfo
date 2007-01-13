@@ -1,0 +1,217 @@
+\input texinfo   @c -*-texinfo-*-
+@c %**start of header
+@setfilename deploy-tutorial.info
+@settitle PHP-GTK: The Roadsend Way
+@c %**end of header
+
+@set EDITION 0.1
+@settitle PHP-GTK: The Roadsend Way
+
+@ifnottex
+
+@titlepage
+@title
+@end titlepage
+
+@node Top
+@comment  node-name,  next,  previous,  up
+@top Contents
+
+@menu
+* Introduction::                
+* Creating Your Program::       
+* Testing Your Program::        
+* Deploying Your Program::      
+* Deploying Your Program on Linux::  
+@end menu
+
+@end ifnottex
+
+@node Introduction
+@comment  node-name,  next,  previous,  up
+@chapter Introduction
+
+In this tutorial you'll create a PHP-GTK program, compile it, and
+deploy it for Windows and Linux systems.
+
+@node Creating Your Program
+@comment  node-name,  next,  previous,  up
+@chapter Creating Your Program
+
+In this section we use the Roadsend Studio IDE to write a PHP-GTK
+program called ``scribble''.  If you are not using a Windows system,
+just grab the source code of ``scribble'' below, then skip ahead to
+@ref{Deploying Your Program on Linux}.
+
+@section Starting a New Project
+
+In the Roadsend Studio IDE, select ``New'' from the ``Project'' menu.
+This will open the ``Project Properties'' window.  Choose a name for
+your project, for example ``scribble''.  In the ``Project Type''
+pull-down menu, select ``Windowed Application''.  Finally, choose a
+folder for the project's ``Install Path''.  That is the path that your
+project files will be copied to when you deploy them.  Now click on
+``OK'' to finish creating the project.
+
+@image{project-properties}
+
+@section Writing Code
+
+Now we're ready to start writing code.  From the ``File'' menu, select
+``New''.  An editor pane will be opened for you to enter PHP code
+into.  You can paste the source code below into it.
+n
+
+The scribble application is one of the original code samples from GTK
+1.2 tutorial for C programmers, which can be found here:
+@url{http://www.gtk.org/tutorial1.2/}.  The PHP version was written by
+the PHP-GTK team.  Their webpage is here: @url{http://gtk.php.net}.
+We won't go into the details of GTK programming in this tutorial, but
+both of those websites are good places for learning more about it.
+
+@cartouche
+@smallexample
+@verbatiminclude scribble.php
+@end smallexample
+@end cartouche
+
+After entering that source code into the new file, select ``Save''
+from the ``File'' menu, and choose a name for the file, for example
+@file{scribble.php}.  After saving, the IDE will ask you if you want
+to add this file to the current project.  Choose ``Yes''.
+
+@image{scribble-source-entered}
+
+@node Testing Your Program
+@comment  node-name,  next,  previous,  up
+@chapter Testing Your Program
+
+Now we're ready to make some magic happen.  There's green button with
+an arrow on it in the toolbar.  You can use this button to run the
+application that you're working on.  Give it a try with scribble to
+make sure that everything is working okay.
+
+You should get a popup window that you can scribble in.  If it worked,
+feel free to skip ahead and read about @ref{Deploying Your Program}.
+Otherwise, read further for an explanation of some of the possible
+problems that could come up.
+
+@section Reasons Why Scribble Might Not Run
+
+The first thing to know is that the bottom of the IDE shows the output
+of the compiler, and of programs that you run.  That's the place to
+look for errors.
+
+@subsection License Error
+
+@smallexample
+License C:/roadsend/ROADSEND.lic was invalid: can't open file
+Please visit http://www.roadsend.com/license for more information.
+@end smallexample
+
+You will get this error if you have not downloaded a license for the
+compiler.  By selecting ``License'' from the ``Tools'' menu, you can
+start the license tool which will download an active license for you.
+
+
+@subsection Parse Error or Runtime Error
+
+A parse error normally means that there is a typo in your source code,
+for example a missing curly brace "@}", or semicolon ";".  
+
+A runtime error is normally caused when the program tries to do
+something that makes no sense, for example call a function that
+doesn't exist (perhaps because there is a typo in the name of it).
+
+For both kinds of errors, the Roadsend Studio will highlight the line
+that the error is on in your source code, and you will be able to see
+the error, as well as some additional information about function calls
+leading up to the error, if any, in the ``Build'' pane at the bottom
+of the IDE window.
+
+@subsection Other Error
+
+Any other type of error probably shouldn't happen, so please let us
+know about the problem so we can fix it!  You can save the error by
+right-clicking in the ``Build'' pane, and selecting ``Save Output''.
+Please email the output file to us at @email{support@@roadsend.com},
+and we'll take care of it.
+
+
+@node Deploying Your Program
+@comment  node-name,  next,  previous,  up
+@chapter Deploying Your Program
+
+Okay, if you've gotten this far, you should have a working scribble
+program.  But now you might like to sell it, or share it with friends.
+(Humor me here).  To make it easier to distribute your applications,
+you can deploy them.
+
+To deploy an application, select ``Build Optimized'' from the
+``Project'' menu.  This will compile your project to be faster.  (The
+``Build Development'' option compiles your project in a way that makes
+it easier to find errors in the code, but doesn't run as fast.)
+
+After compiling, select ``Deploy'' from the ``Project'' menu.  This
+will create a special version of your application that doesn't depend
+on any parts of the Roadsend Compiler, and copy it as well as any
+DLL's that it uses into the project's install path.
+
+(Please note, applications compiled using a trial license cannot be
+distributed.)
+
+@section Creating an Installer
+
+You can now zip up the scribble application using WinZip, or tar and
+gzip from the Roadsend Commandline, for example. @footnote{If the
+install path is c:\scribble-deploy, then you can use the command
+
+@example 
+tar czvf scribble.tar.gz "c:\scribble-deploy"
+@end example
+
+in the Roadsend Commandline to make a tarball of your application.
+Note that you must quote the path. } Or, if you would like to create
+an installer, we recommend the
+@uref{http://www.jrsoftware.org/isinfo.php, Inno Setup} program.
+
+
+
+@node Deploying Your Program on Linux
+@comment  node-name,  next,  previous,  up
+@chapter Deploying Your Program on Linux
+
+For this section, you will require a computer running Linux, with the
+Roadsend Compiler installed on it.
+
+Create a file called @file{scribble.php}, perhaps by copying the
+source code over from your Windows computer, or pasting it into your
+favorite text editor.  Run the command:
+
+@example
+  pcc -u php-gtk -f scribble.php
+@end example
+
+to interpret your file.  The @code{"-u php-gtk"} tells pcc that you'd
+like to use the GTK library. @footnote{This library can also be
+enabled by default, using the @code{default-commandline-lib} option in
+your @file{/etc/pcc.conf} file, or be loaded from within PHP programs
+using the @code{dl()} function.} The @code{"-f scribble.php"} means to
+interpret the file @file{scribble.php}.  If you can scribble okay,
+then we're ready to compile it.  To compile and statically link the
+scribble program, use the command:
+
+@example
+  pcc -u php-gtk --static scribble.php
+@end example
+
+Note that @code{"-f"} is gone.  Without @code{"-f"}, pcc will compile
+your program instead of interpreting it.  The additional flag
+@code{"--static"} means to link statically.  A statically linked
+program will work on computers without the Roadsend Compiler runtime
+package installed.  
+
+Congratulations!  Your compiled and ready to be distributed program is
+called ``scribble'', and you've now completed this tutorial.
+
+@bye

@@ -1,0 +1,9 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Roadsend	/support@roadsend.com/
+!_TAG_PROGRAM_NAME	Roadsend Tags	//
+!_TAG_PROGRAM_URL	http://roadsend.com	/Roadsend site/
+!_TAG_PROGRAM_VERSION	5.5	//
+delete_event	C:\roadsend\projects\gtk-project\gtk-main.php	32;"	f	parameters:()	end-line:35
+destroy	C:\roadsend\projects\gtk-project\gtk-main.php	23;"	f	parameters:()	end-line:26
+hello_world	C:\roadsend\projects\gtk-project\gtk-main.php	41;"	f	parameters:()	end-line:47

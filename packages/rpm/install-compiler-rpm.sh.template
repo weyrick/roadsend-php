@@ -1,0 +1,62 @@
+#!/bin/sh
+###########################################################
+# 
+# makeself embedded installer for the compiler rpm package
+#
+###########################################################
+
+###
+### require root
+### ============
+
+me=`id -u`
+if [ "$me" -ne 0 ]
+then
+  echo "You must be root to run installer"
+  exit 1
+fi
+
+###
+### make sure user agrees to license
+### ================================
+
+# cat <<EOF | more
+# LICENSE_HERE
+# EOF
+
+# agreed=
+# while [ x$agreed = x ]; do
+#   echo
+#   echo "Do you agree to the above license terms? [yes or no] "
+#   read reply leftover
+#   case $reply in
+#     y* | Y*)
+#       agreed=1;;
+#     n* | N*)
+#       echo "If you don't agree to the license you can't install this software";
+#       exit 1;;
+#   esac
+# done
+
+###
+### install files
+### =============
+
+while true; do
+  echo
+  echo "Would you like to install the roadsend-pcc rpm package now? [yes or no] "
+  read reply leftover
+  case $reply in
+    y* | Y*)
+       echo -n "Installing Roadsend PCC Compiler for PHP... ";
+       rpm -i roadsend-pcc-*.rpm;
+       echo "Done.";
+       exit 0;;
+    n* | N*)
+       echo "Roadsend PCC Compiler for PHP not installed.";
+       exit 1;;
+  esac
+done
+
+
+

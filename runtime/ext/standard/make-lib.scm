@@ -1,0 +1,17 @@
+(module __make-phpstd-lib
+   (import
+    (php-string-lib "php-strings.scm")
+    (php-math-lib "php-math.scm")
+    (php-files-lib "php-files.scm")
+    (php-time-lib "php-time.scm")
+    (php-core-lib "php-core.scm")
+    (php-array-lib "php-array.scm")
+    (php-variable-lib "php-variable.scm")
+    (php-eregexp-lib "php-eregexp.scm")
+    (php-output-control-lib "php-output-control.scm")
+    (php-network-lib "php-network.scm")
+    (php-posix-lib "php-posix.scm")
+    (php-session-lib "php-session.scm")
+    (php-streams-lib "php-streams.scm")
+    (php-image-lib "php-image.scm")
+    ))

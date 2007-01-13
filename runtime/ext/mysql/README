@@ -1,0 +1,20 @@
+TEST SUITE INSTRUCTIONS
+-----------------------
+
+To run the MySQL test suite, you'll need the following database setup:
+
+1) database server name: dbserver (throw it in /etc/hosts)
+          database name: test
+              user name: develUser
+              pass word: d3v3lpa55
+
+   you can use this to add the user: 
+   GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP ON test.* TO develUser@localhost IDENTIFIED BY "d3v3lpa55"
+   GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP ON test.* TO develUser@% IDENTIFIED BY "d3v3lpa55"
+
+(both are needed because of the localhost entry with no username which mysql finds first).
+
+2) create the test tables by running the following command (make sure test db exists first):
+
+   cat schema.sql | mysql -u develUser -pd3v3lpa55 test
+

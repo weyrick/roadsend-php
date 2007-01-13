@@ -1,0 +1,51 @@
+Name         : roadsend-pcc-prereqs
+Summary      : The Roadsend PCC Compiler for PHP - Prerequisites
+Version      : PCC_VERSION_HERE
+Release      : 1
+License      : GPL
+Group        : Development/Languages
+Source       : roadsend-pcc-prereqs
+URL          : http://www.roadsend.com
+Distribution : Roadsend PCC
+Vendor       : Roadsend, Inc.
+Packager     : Roadsend PCC Team <support@roadsend.com>
+BuildRoot    : BUILD_ROOT_HERE
+
+%description
+
+PCC is the Roadsend PHP Compiler. It compiles PHP code into
+high performance stand-alone binaries  and  libraries.  PHP
+code compiled by PCC can be used with or without the Apache
+webserver.
+
+This package provides the prerequisite packages required by
+PCC.
+
+%prep
+
+# prepare the software for building (nothing to do)
+
+%build
+
+# build the software (done from makefile)
+
+%install
+
+# install bigloo and bigloo-lib (done from makefile)
+
+%files
+
+###
+### bigloo files
+### ============
+
+## simply include everything in the build root
+/
+
+%post
+
+ldconfig
+
+%postun
+
+ldconfig

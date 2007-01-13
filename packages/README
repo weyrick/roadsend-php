@@ -1,0 +1,50 @@
+10/16/06: XXX this is out of date
+------------------------------
+
+Quick and Dirty Guide to Package Building
+-----------------------------------------
+
+0. If you're building packages for the first time in a new environment, you
+   will have to uncomment the lines in scripts/install-bigloo*.sh which
+   configure/build bigloo/lib.
+1. Configure/Compile/Patch bigloo and bigloo-lib
+2. Edit packages.mk and point BIGLOO_SOURCE to the bigloo directory and
+   BIGLIB_SOURCE to the bigloo-lib directory
+3. Type "make" in this directory
+
+You should have an rpm, a deb, and a self-installer for each of compiler,
+runtime, and prereqs, for a total of 9 packages. Where they end up is decided 
+by the variables RPM_OUT_DIR, DEB_OUT_DIR, and SELF_OUT_DIR in packages.mk.
+At the time of this writing, they all get created in the packages directory.
+
+Make targets for the packages are as follows:
+
+all	      - creates all the packages
+clean	      - cleans up everything
+debs	      - creates the deb packages for compiler, runtime, and prereqs
+rpms	      - creates the rpm packages for compiler, runtime, and prereqs
+selfs	      - creates the self-installers for compiler, runtime, and prereqs
+compiler      - creates the deb, rpm and self-installer compiler packages
+runtime       - creates the deb, rpm and self-installer runtime packages
+prereqs       - creates the deb, rpm and self-installer prereqs packages
+compiler-deb  - creates just the compiler deb package
+compiler-rpm  - creates just the compiler rpm package
+compiler-self - creates just the compiler self-installer package
+runtime-deb   - creates just the runtime deb package
+runtime-rpm   - creates just the runtime rpm package
+runtime-self  - creates just the runtime self-installer package
+prereqs-deb   - creates just the prereqs deb package
+prereqs-rpm   - creates just the prereqs rpm package
+prereqs-self  - creates just the prereqs self-installer package
+
+In each of the subdirs - deb, rpm, self - the targets are as follows:
+
+all	 - creates all the packages of this type
+clean	 - cleans up anything created by this makefile
+compiler - creates just the compiler package of this type
+runtime  - creates just the runtime package of this type
+prereqs  - creates just the prereqs package of this type
+
+That should be all you need to know as a "user" of the packages directory.
+Anyone who will be attempting to change or fix anything should go first read
+the next section.

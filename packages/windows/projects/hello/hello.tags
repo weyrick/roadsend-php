@@ -1,0 +1,13 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Roadsend	/support@roadsend.com/
+!_TAG_PROGRAM_NAME	Roadsend Tags	//
+!_TAG_PROGRAM_URL	http://roadsend.com	/Roadsend site/
+!_TAG_PROGRAM_VERSION	5.5	//
+$height	C:\roadsend\projects\hello\main.php	62;"	v	class:myClass
+$size	C:\roadsend\projects\hello\main.php	61;"	v	class:myClass
+classFunc	C:\roadsend\projects\hello\main.php	78;"	m	class:myClass	parameters:()	end-line:80
+includeFunc	C:\roadsend\projects\hello\inc.php	18;"	f	parameters:($a)	end-line:20
+myClass	C:\roadsend\projects\hello\main.php	64;"	m	class:myClass	parameters:()	end-line:75
+myClass	C:\roadsend\projects\hello\main.php	59;"	c	end-line:82
+my_function	C:\roadsend\projects\hello\main.php	43;"	f	parameters:($adjective)	end-line:48

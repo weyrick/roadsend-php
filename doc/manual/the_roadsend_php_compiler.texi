@@ -1,0 +1,4977 @@
+\input texinfo
+@setfilename the_roadsend_php_compiler.info
+@documentencoding us-ascii
+@settitle Roadsend PHP 2.1.x Beta
+
+@copying
+Copyright @copyright{} 2006 Roadsend, Inc.
+@end copying
+
+@c only in printable formats
+@titlepage
+@title Roadsend PHP 2.1.x Beta
+@subtitle User Manual
+
+@page
+@c @vskip Opt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@node Top, Introduction, (dir), (dir)
+
+@insertcopying
+
+@documentlanguage en
+@top Roadsend PHP
+
+@menu
+* Introduction::                
+* Installation and Configuration::  
+* Features::                    
+* Language Reference::          
+* Command Line Use::            
+* Roadsend Studio IDE::         
+* Reference::                   
+* Acknowledgments::             
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Introduction
+
+* What Is PHP?::                
+* What Is Roadsend PHP?::       
+* The Future of Roadsend PHP::  
+
+Installation and Configuration
+
+* Requirements::                
+* Installing Roadsend PHP on Unix::  
+* Installing Roadsend PHP on Windows::  
+* Installing A License File::   
+* Configuration::               
+* Uninstalling::                
+
+Features
+
+* Project Type Overview::       
+* Interpreting and Compiling::  
+* Online Web Applications::     
+* Stand Alone Web Applications (MicroServer)::  
+* Desktop GUI Applications::    
+* Console Applications::        
+* Libraries::                   
+* Debugging::                   
+* Profiling::                   
+* Optimization::                
+* Shared vs Static::            
+
+Language Reference
+
+* Differences Between Roadsend And Open Source PHP::  
+* Writing Portable PHP Code::   
+* Extensions Provided::         
+
+Differences Between Roadsend And Open Source PHP
+
+* INI File Entries::            
+* Handling Include Files::      
+* Semantic Differences::        
+
+Semantic Differences
+
+* Pass-By-Reference Parameters::  
+
+Extensions Provided
+
+* New Extensions::              
+
+Command Line Use
+
+* Working With Web Applications::  
+* Working With Console Applications::  
+* Working With Desktop GUI Applications::  
+* Working With Libraries::      
+* Using The Step Debugger::     
+* Using The Profiler::          
+
+Working With Web Applications
+
+* Installing FastCGI ::         
+* Using The Web Interpreter::   
+* Building and Using Compiled Web Applications::  
+* Deploying on Apache::         
+* Deploying On lighttpd::       
+* Starting Web Applications Manually ::  
+* Working With MicroServer Applications::  
+
+Using The Web Interpreter
+
+* Installing the Roadsend PHP Web Interpreter::  
+* Developing With The Interpreter::  
+
+Compiling Libraries
+
+* Installing Libraries::        
+* Using Libraries::             
+
+Roadsend Studio IDE
+
+* Roadsend Studio Introduction::  
+* Obtaining A License::         
+* IDE Layout::                  
+* IDE Basics::                  
+* IDE Configuration::           
+* Editor Configuration::        
+* Working With Projects::       
+
+IDE Layout
+
+* IDE Layout - Editor Tabs::    
+* IDE Layout - Project File List::  
+* IDE Layout - File Code Browser::  
+* IDE Layout - Project Code Browser::  
+* IDE Layout - Build Output::   
+* IDE Layout - Program Output::  
+* IDE Layout - HTML Output::    
+
+Basics
+
+* Roadsend Studio IDE - Project Types::  
+* What is Tagging?::            
+
+IDE Configuration
+
+* IDE Configuration - General::  
+* IDE Configuration - Compiler::  
+* IDE Configuration - File Extensions::  
+* IDE Configuration - Paths::   
+* IDE Configuration - Libraries::  
+* IDE Configuration - Web Applications::  
+* IDE Configuration - INI Settings::  
+
+Editor Configuration
+
+* Editor Configuration - Display::  
+* Editor Configuration - Options::  
+* Editor Configuration - Keystrokes::  
+* Editor Configuration - Colors::  
+
+Working With Projects
+
+* Creating a new project::      
+* Project Main File::           
+* Project Properties::          
+* Building Your Project::       
+* Running Your Project::        
+* Debugging Your Project::      
+* Deploying Your Project::      
+
+Project Properties
+
+* Project Properties - Project Options::  
+* Project Properties - Project Files::  
+* Project Properties - Compiler Options::  
+* Project Properties - Search Paths::  
+* Project Properties - Libraries::  
+* Project Properties - Linked Projects::  
+* Project Properties - Library Creation::  
+* Project Properties - Web Application::  
+* Project Properties - MicroServer App::  
+
+Debugging Your Project
+
+* Debugging Overview::          
+* Running Your Project In The Debugger::  
+* Breakpoints::                 
+* Debug Window - Local Variables::  
+* Debug Window - Call Stack ::  
+
+Reference
+
+* Command Line Options::        
+* Environment Variables : Environment Variables.  
+
+@end detailmenu
+@end menu
+
+@node Introduction, Installation and Configuration, Top, Top
+@chapter Introduction
+
+@menu
+* What Is PHP?::                
+* What Is Roadsend PHP?::       
+* The Future of Roadsend PHP::  
+@end menu
+
+@node What Is PHP?, What Is Roadsend PHP?, Introduction, Introduction
+@section What Is PHP?
+
+PHP is a popular computer programming language with the following major features:
+
+@table @var
+@item Easy to Learn and Use
+PHP draws its syntax from other well known languages such as C, Java
+and Perl 
+@item General Purpose
+PHP is suitable for a wide range of projects including online web applications, 
+desktop GUI applications, interactive console programs, server side scripting, 
+and stand alone web applications (distributed on a CD).
+@item Ideal for Web Applications
+PHP can be embedded in HTML and includes support for
+interfacing with multiple Web Servers and Databases
+@item Support
+The popularity of PHP ensures the availability of a great deal of
+documentation, instructional articles and a helpful development community 
+@end table
+
+@subheading Language Features
+
+@table @var
+@item Dynamically Typed
+Variable types (string, int, array, etc) do not have to be declared
+before use and any variable can hold any type
+@item Automatic Memory Management
+Memory will automatically be allocated as needed and freed when no longer in use 
+@item Extensive Runtime API
+PHP includes an extensive runtime library for working with strings,
+arrays, files, math, networks, and databases to name a few. 
+@item Multiple Programming Styles
+Supports both the
+@url{http://en.wikipedia.org/wiki/Object-oriented_programming,Object
+Oriented} and
+@url{http://en.wikipedia.org/wiki/Procedural_programming,Procedural}
+programming paradigms
+@end table
+
+@node What Is Roadsend PHP?, The Future of Roadsend PHP, What Is PHP?, Introduction
+@section What Is Roadsend PHP?
+
+Roadsend PHP is a complete implementation of the PHP
+language and runtime environment, and is independent of
+the original open source version. 
+
+The Roadsend PHP implementation extends the original design of PHP to
+allow for features that are not possible with the open source version.
+Roadsend PHP is syntactically and semantically compatible
+with the PHP 4.x series.
+
+
+@subheading How Is Roadsend PHP different from the Open Source version?
+
+The original PHP implementation was designed as a server side web
+scripting language. All code is interpreted at runtime and source code
+is (generally) stored as clear text and read by the web server when a
+request is served to a client.
+
+While the original design of PHP ideally suited it for server side web
+applications, its use for commercial projects in other areas is limited.
+
+Roadsend PHP enables programmers to take advantage of the power and
+flexibility of the PHP language to create a wide variety commercial
+applications (for the web and otherwise), while drawing on a large
+repository of code, documentation, and community support.
+
+Because Roadsend PHP is compatible with Open Source PHP, developers can
+apply their existing knowledge of the language and use much of their current
+code base unchanged.
+
+@strong{For more information on the major features offered by Roadsend
+PHP, }@pxref{Features}.
+
+@c @menu
+@c * Major Feature Overview::      
+@c @end menu
+
+@c @node Major Feature Overview,  , What Is Roadsend PHP?, What Is Roadsend PHP?
+@c @subsection Major Feature Overview
+
+@c @itemize 
+
+@c @item
+@c Native Compiler
+
+@c Roadsend PHP can @emph{natively compile} your application. This means
+@c your PHP source code will be transformed from a clear text file
+@c (source code) to a binary file (executable or .EXE) that is optimized
+@c for running directly by the CPU. This often results in faster
+@c execution times and always protects your source code because it is
+@c impossible to reverse engineer the original PHP source code from the resulting executable. 
+
+@c Roadsend PHP can compile executables and libraries for Windows, Linux
+@c and FreeBSD.
+
+@c For more detailed information on Compiling, visit this
+@c @url{http://en.wikipedia.org/wiki/Compile,Wikipedia entry}.
+
+@c @item
+@c Interpreter
+
+@c Although Roadsend PHP excels at compilation, it also allows you
+@c interpret your PHP code directly without compilation (in the same
+@c manner as open source PHP). You can also use a hybrid of interpretation and
+@c compilation, as interpreted scripts can make use of compiled libraries.
+
+@c The included web module allows for running purely interpreted
+@c PHP sites (the the same manner as open source PHP), for running sites
+@c completely compiled by Roadsend PHP, and for running interpreted sites
+@c that use compiled libraries.
+
+@c For more detailed information on Interpreting, visit this
+@c @url{http://en.wikipedia.org/wiki/Interpreter_%28computer_software%29,Wikipedia entry}.
+
+@c @item
+@c Compile Stand Alone Applications
+
+@c Roadsend PHP allows you to compile your PHP source into stand alone
+@c applications, no interpreter required. Your source is compiled into an
+@c optimized machine executable program.  The
+@c program is distributable with or without the source code and cannot be
+@c decompiled back into it's original PHP source. Distribution or sale of
+@c your compiled program is @emph{royalty free}.
+
+@c Your compiled file will be a stand alone .EXE file in Windows, or an
+@c executable binary on Unix. 
+
+@c For more information on see @pxref{Console Applications}
+
+@c @item
+@c Compile Web Applications
+
+@c Roadsend PHP allows you to compile your PHP source into optimized web
+@c applications. Your web applications may make use of precompiled libraries,
+@c and may include a mix of interpreted and compiled PHP
+@c code. Distribution or sale of your web applications is @emph{royalty free}.
+
+@c Roadsend PHP compiled web applications interface with standard web servers,
+@c such as Apache or Microsoft IIS, through the @url{http://www.fastcgi.com/,FastCGI} interface.
+
+@c For more information on see @pxref{Online Web Applications}
+
+@c @item
+@c Compile Stand Alone, Offline Web Applications
+
+@c Most Web Applications run on a dedicated web server connected to the
+@c Internet 24x7. Roadsend PHP allows you to compile the same code used
+@c on your web server into a stand alone application that can be run
+@c offline.
+
+@c In this mode, Roadsend PHP compiles your code into a single executable
+@c with a small, embeded web server. When the program is run on the
+@c client machine, the user connects to the local program with a standard
+@c web browser (which can be launched automatically) and interacts with the 
+@c application as if it were online.
+
+@c This allows you to distribute your web application on a CD for offline use.
+
+@c For more information on see @pxref{Stand Alone Web Applications (MicroServer)}
+
+@c @item
+@c Compile GUI Applications
+
+@c Roadsend PHP allows you to make multiplatform GUI applications through the use
+@c of the PHP-GTK extension. The included Glade user interface builder
+@c makes it easy to create dialogs and windows that you can use in your
+@c application. Compile your PHP-GTK application to a single executable
+@c that does not require any interpreter to be installed on your
+@c clients machine.
+
+@c PHP-GTK applications can be compiled and run on Windows, Linux and
+@c FreeBSD with no changes to the source.
+
+@c For more information on see @pxref{GUI Applications}
+
+@c @item
+@c Compile Libraries
+
+@c Roadsend PHP allows you to compile your PHP source into
+@c binary (shared or static) libraries. You can then create applications that
+@c make use of the libraries to avoid rewriting similar
+@c routines, or sell your libraries as a product for others to use.
+@c The libraries may be used with stand alone programs,
+@c web applications, or on the fly in interpreted mode. 
+@c Distribution (or sale) of your compiled libraries is @emph{royalty free}. 
+
+@c This means that with Roadsend PHP you can build your own .DLL (Windows) or .so (Unix) library
+@c files from your PHP source.
+
+@c For more information on see @pxref{Libraries}
+
+@c @item
+@c Debugger
+
+@c Roadsend PHP includes a fully featured step-debugger. The debugger is
+@c integrated into the Roadsend Studio IDE on Windows, and a command line version
+@c is available for Unix.
+
+@c You can step through your code, set breakpoints, view local variables
+@c and their values, view the call stack and more.
+
+@c For more information on see @pxref{Debugging}
+
+@c @item
+@c Preserve Compatibility With Existing Code
+
+@c Roadsend PHP is syntactically and, wherever possible,
+@c semantically compatible with Open Sourc PHP version 4.x.  A major
+@c goal of Roadsend PHP is that your existing code should run either
+@c unchanged, or with as few changes as possible.
+@c @end itemize
+
+@c @node How It Works, The Future of Roadsend PHP, What Is Roadsend PHP?, Introduction
+@c @section How It Works
+
+@c There are several parts that make up the complete Roadsend Compiler
+@c system. A summary of these parts follows.
+
+@c @itemize 
+
+@c @item
+@c Runtime System
+
+@c This system provides the environment in which a PHP program
+@c executes. It provides PHP hashes (arrays), objects, arithmetic
+@c operators, automatic type conversion and the rest of the core
+@c PHP runtime features.
+
+@c @item
+@c Extensions
+
+@c This modular, extendable system provides the library of
+@c built in, user callable functions. The "Standard" extension provides
+@c most of the basic functions available in PHP. Other
+@c extensions may provide additional functionality such as PCRE
+@c for Perl Compatible Regular Expressions or MySQL which
+@c provides access to a MySQL database server.
+
+@c @item
+@c Interpreter      
+
+@c The Interpreter will read and execute PHP source files immediately, using
+@c the Runtime and Extension systems. Files that need to be included will
+@c be searched for in the Include Path.  
+
+@c @item
+@c Compiler
+
+@c The Compiler will convert PHP source code to machine code (binary) format, suitable
+@c for direct execution by the operating system. Other tools (including Bigloo and the C 
+@c compiler and linker) will be used during the compilation and linking
+@c phases.
+
+@c @item
+@c Apache Module
+
+@c The Apache module connects an Apache request to the Runtime
+@c and Interpreter systems so that both interpreted and compiled
+@c code can be executed and redirected to a web client.
+
+@c @item
+@c Microserver
+
+@c This is a small embeddable web server that will be included in your
+@c compiled application when compiled as a Stand Alone Offline Web
+@c Application.  
+
+@c @end itemize
+
+
+@node The Future of Roadsend PHP,  , What Is Roadsend PHP?, Introduction
+@section The Future of Roadsend PHP
+
+Roadsend PHP is continually growing based on the needs of our
+customers. Some features we have planned for the future include:  
+
+
+@itemize 
+
+@item
+Continued compatibility with Open Source PHP including version 5
+features which will offer significant improvements to PHP's Object framework.
+
+@item 
+Cross compile applications into Unix executables from within the
+Roadsend Studio IDE in Windows
+
+@item
+Increased accessibility to the Windows API 
+
+@item
+Java and .NET interoperability with the ability to compile
+your PHP to Java or .NET byte code
+
+@item
+More platform support including MacOS X and more flavors of Unix
+
+@item
+Ability to easily create your own extensions that interface with
+existing C libraries
+
+@item
+Continued optimization of compiler and runtime libraries for more speed
+@end itemize
+
+@c @node Terms Used In This Manual,  , The Future of Roadsend PHP, Introduction
+@c @section Terms Used In This Manual
+
+@c The following terms are used throughout the manual. You may refer back to this section if you encounter
+@c a term that needs clarification.
+@c @subheading Roadsend PHP Term List
+
+@c @table @asis
+
+@c @anchor{application}@item Application
+
+@c See Stand Alone Application
+
+@c @anchor{bigloo}@item Bigloo
+@c An implementation of the Scheme programming language, and
+@c one of the tools used by Roadsend PHP in the creation of a compiled PHP
+@c program. You can find more information on the @uref{http://www-sop.inria.fr/mimosa/fp/Bigloo/, homepage}
+
+@c @anchor{compile}@item Compile
+@c To transform source code into a format suitable for
+@c expeditious consumption by your CPU.
+
+@c @anchor{extension}@item Extension
+@c A precompiled library that provides functionality (functions and objects) for use by your PHP code. Extensions
+@c are written in Scheme and usually provide access to an existing C library.
+@c They will generally require a certain library to exist on the system for proper compilation
+@c and running. An example of an extension is the MySQL extension, which requires libmysqlclient
+@c to operate, and provides a set of routines for accessing a MySQL database from Roadsend PHP.
+
+@c @anchor{interpret}@item Interpret
+@c Immediate execution of a script without the intermediate process of compilation.
+
+@c @anchor{library}@item Library
+@c A compiled set of PHP source files that provides functionality (functions and objects) to multiple projects. Similar
+@c to an Extension, but Libraries are generated from your PHP code while Extensions are created in 
+@c Scheme.
+
+@c See also Extension
+
+@c @anchor{module}@item Module
+@c A single source file
+
+@c See also Source File
+
+@c @anchor{pcc}@item Roadsend PHP Compiler
+@c @itemx Roadsend PHP
+@c Roadsend PHP software, which transforms PHP source code into
+@c machine executable binaries.
+
+@c @anchor{script}@item Script
+
+@c See Source File
+
+@c @anchor{source}@item Source File
+@c A plain text file containing PHP source code.
+
+@c @anchor{standalone}@item Stand Alone Application
+@c A stand alone program (requiring no interpreter) that has been compiled from one or more source files and
+@c possibly linked with extension and user libraries.
+
+@c @anchor{webapp}@item Web Application
+@c A compiled application meant to be accessed and run by means of a web server.
+
+@c @anchor{zend}@item Zend PHP
+@c Original open source implementation of the interpreted PHP language. 
+@c While not technically called "Zend PHP", Zend is nevertheless the company that wrote and still maintains the
+@c Zend Engine, which is the core of this PHP implementation. The term "Zend PHP" will be used to distinguish
+@c between the Roadsend PHP implementation and the original PHP implementation.
+@c See @uref{http://www.php.net} for more information.
+@c @end table
+
+@node Installation and Configuration, Features, Introduction, Top
+@chapter Installation and Configuration
+
+
+@menu
+* Requirements::                
+* Installing Roadsend PHP on Unix::  
+* Installing Roadsend PHP on Windows::  
+* Installing A License File::   
+* Configuration::               
+* Uninstalling::                
+@end menu
+
+@node Requirements, Installing Roadsend PHP on Unix, Installation and Configuration, Installation and Configuration
+@section Requirements
+
+
+Roadsend PHP supports 32 bit x86 architecture. Native 64 bit (ie AMD64
+and IA64) and non-Intel architectures are not yet supported.
+
+@strong{Supported Platforms}
+
+@multitable @columnfractions 0.5 0.5
+@item
+Linux
+@tab 
+Kernel >= 2.4 GLIBC 2.3.2
+@item
+FreeBSD
+@tab 
+6.x
+@item
+Windows
+@tab 
+XP/NT/2000
+@end multitable
+
+@subheading Required Development Environment
+
+@strong{Unix}: To compile on Unix platforms, Roadsend PHP requires the following 
+software to be preinstalled on the host system:
+
+@itemize 
+
+@item
+GNU LIBC (GLIBC) >= 2.3.4
+
+@item
+GNU C Compiler (gcc) >= 2.95
+
+@item
+GNU LD linker (ld)
+
+@item
+GNU C/C++ Development Libraries and Headers
+
+@end itemize
+
+@strong{Windows}: A full C development environment is included in the Windows package.
+No additional software it needed.
+
+@subheading Optional Libraries
+
+The following libraries are optional, but if available may be used with the appropriate extensions.
+Those marked with an * are included in the Roadsend PHP Windows package. 
+
+@itemize 
+
+@item
+( ) MySQL 4.0.x (@uref{http://www.mysql.com,www.mysql.com})
+
+@item
+( ) MySQL 4.1.x (@uref{http://www.mysql.com,www.mysql.com})
+
+@item
+(*) MySQL 5.0.x (@uref{http://www.mysql.com,www.mysql.com})
+
+@item
+(*) PCRE >= 4.1
+
+@item
+(*) libxml2 >= 2.6.3
+
+@item
+(*) curl >= 7.15.x
+
+@item
+(*) gtk+ = 1.2.x
+
+@item
+(*) libglade 0.17 (@uref{http://ftp.gnome.org/pub/GNOME/sources/libglade/0.17/libglade-0.17.tar.gz,www.gnome.org})
+
+@end itemize
+
+@subheading Web Applications
+
+If you wish to use the Roadsend PHP Web Interpreter or run compiled
+web applications then your web server will need FastCGI support. See
+@ref{Installing FastCGI}. 
+
+@node Installing Roadsend PHP on Unix, Installing Roadsend PHP on Windows, Requirements, Installation and Configuration
+@section Installing Roadsend PHP on Unix
+
+First, make sure your system meets the Minimum @ref{Requirements}.
+
+Roadsend PHP comes in two packages on Unix platforms. @strong{Both packages are required for compiling.} 
+
+@strong{Packages}
+
+@multitable @columnfractions 0.5 0.5
+@item
+pcc
+@tab 
+This package installs the main compiler executables and documentation.
+It depends on the runtime package.
+@item
+runtime
+@tab 
+This is the freely distributable runtime package. It contains the
+runtime libraries needed to compile and run dynamically linked
+applications.  It also contains the FastCGI interpreter web
+interface. This package may be installed on client machines to run
+deployed applications.
+@end multitable
+
+The Unix packages are self installing executables.  The self installer
+packages do not require a particular type of packaging system (such as
+rpm or deb) - only the standard Unix shell (/bin/sh) and the standard
+Unix 'tar' command are required.  @strong{You must be root to run the
+installer.}
+
+Simply run each self installer package to install:
+
+@example
+
+$ ./roadsend-pcc-2.1.0.bin
+Verifying archive integrity... All good.
+Uncompressing The Roadsend PCC Compiler for PHP......
+
+......
+
+$ ./roadsend-pcc-runtime-2.1.0.bin
+Verifying archive integrity... All good.
+Uncompressing The Roadsend PCC Compiler for PHP  - Runtime Environment......
+  
+@end example
+
+
+@subheading Installation Location
+
+All files are installed to @file{/opt/roadsend/pcc}, except the config file 
+which is located in @file{/etc/pcc.conf}
+
+@subheading Adding Files to System Path 
+
+When installing the packages, you will be asked to make symbolic links for certain files to 
+standard locations on the system. This is a convenience intended to reduce installation time.
+
+If you do not wish to make symbolic links, you will have to adjust your system paths:
+
+@itemize 
+
+@item
+@file{/opt/roadsend/pcc/lib} needs to be added to the system dynamic library load path 
+(on Linux this is usually set in @file{/etc/ld.so.conf})
+
+@item
+@file{/opt/roadsend/pcc/bin} needs to be added to the system executable PATH 
+
+@end itemize
+
+@c @node Using the Debian packages, Using the RPM packages, Using the Self Installer, Installing Roadsend PHP [Unix]
+@c @subsubsection Using the Debian packages
+
+@c The debian packages may be used on any system that supports the .deb packaging architecture.
+
+@c @strong{Debian Packages}
+
+@c @multitable @columnfractions 1
+@c @item
+@c Package Name
+@c @item
+@c roadsend-pcc-1.6.0.deb
+@c @item
+@c roadsend-pcc-runtime-1.6.0.deb
+@c @item
+@c roadsend-pcc-prereqs-1.6.0.deb
+@c @end multitable
+
+@c Typical usage:
+
+@c @example
+
+@c     sh> dpkg -i roadsend-pcc-1.6.0.deb
+  
+@c @end example
+
+@c @node Using the RPM packages,  , Using the Debian packages, Installing Roadsend PHP [Unix]
+@c @subsubsection Using the RPM packages
+
+@c The RPM packages may be used on any system that supports the
+@c .rpm packaging architecture.
+
+@c @strong{RPM Packages}
+
+@c @multitable @columnfractions 1
+@c @item
+@c Package Name
+@c @item
+@c roadsend-pcc-1.6.0-1.i386.rpm
+@c @item
+@c roadsend-pcc-runtime-1.6.0-1.i386.rpm
+@c @item
+@c roadsend-pcc-prereqs-1.6.0-1.i386.rpm
+@c @end multitable
+
+@c Typical usage:
+
+@c @example
+
+@c     sh> rpm -ivH roadsend-pcc-prereqs-1.6.0-1.i386.rpm
+@c     sh> rpm -ivH roadsend-pcc-1.6.0-1.i386.rpm
+  
+@c @end example
+
+@node Installing Roadsend PHP on Windows, Installing A License File, Installing Roadsend PHP on Unix, Installation and Configuration
+@section Installing Roadsend PHP on Windows
+
+Run the installation file (@file{roadsend-pcc-x.x.x.exe}). Follow the
+directions given by the installation wizard.  
+
+The installer will create Start Menu items and optionally desktop
+shortcuts to the Roadsend Studio IDE and Roadsend Commandline
+Terminal from which you can run the compiler from the command line.
+
+For help with the Roadsend Studio IDE, @pxref{Roadsend Studio IDE}.
+
+For help using Roadsend PHP in the Roadsend Commandline Terminal,
+@pxref{Command Line Use}.
+
+@c @node Installing The Apache Module, Installing the FastCGI Interpreter, Installing Roadsend PHP [Windows], Installation and Development Environment
+@c @subsection Installing The Apache Module
+
+@c @menu
+@c * Apache Module Overview::      
+@c * Apache Configuration::        
+@c @end menu
+
+@c @node Apache Module Overview, Apache Configuration, Installing The Apache Module, Installing The Apache Module
+@c @subsubsection Apache Module Overview
+
+@c @subheading What the Roadsend PHP Apache Module is for
+
+@c The Roadsend PHP Apache module is used to load and execute web
+@c applications that have been compiled with the Roadsend PHP
+@c Compiler. The module allows the compiled pages contained in the
+@c library to be served by the Apache web server.
+
+@c Web applications compiled by Roadsend PHP will have the file extension @file{.DLL}
+@c (on Windows) or @file{.so} in Unix.   
+
+@c The module can also be used to run normal (uncompiled) PHP webites by interpreting them
+@c much like the open source PHP Apache module (@file{mod_php}), and in
+@c this regard may be used as a drop in replacement for @file{mod_php}. 
+
+@c @subheading When to use the Roadsend PHP Apache Module
+
+@c The Roadsend PHP Apache module (@file{mod_pcc}) is needed to run web applications
+@c compiled with the Roadsend Compiler.
+
+@c @strong{If you are a developer}, you will want to install this module
+@c in order to test your compiled web applications.
+
+@c @strong{If you are an end user}, you will need to install this module
+@c to run an application that has been compiled with Roadsend PHP.
+
+@c @subheading When NOT to use the Roadsend PHP Apache Module
+
+@c You @emph{do not need} to install the Apache module if you will only be
+@c running a stand alone or GUI application.
+
+@c @subheading 
+
+@c @node Apache Configuration,  , Apache Module Overview, Installing The Apache Module
+@c @subsubsection Apache Configuration
+
+@c @subheading Loading the module
+
+@c To configure the Roadsend PHP Apache module, you will need to edit
+@c your web server configuration.
+
+@c The directions below assume the default installation directories.
+
+@c Add the following lines to your @file{httpd.conf} file (Unix):
+
+@c @example
+
+@c     LoadModule pcc_module /usr/lib/roadsend/mod_pcc.so
+@c     AddModule mod_pcc.c
+  
+@c @end example
+
+@c @noindent
+@c or Windows:
+
+@c @example
+
+@c     LoadModule pcc_module C:\roadsend\libs\mod_pcc.so
+@c     AddModule mod_pcc.c
+  
+@c @end example
+
+@c The LoadModule line should be located with the other LoadModule lines in
+@c @file{httpd.conf}.  
+
+@c The AddModule line may not be necessary, depending on your build of
+@c Apache. If used, it must come after any line that says
+@c ClearModuleList. Consult the 
+@c @url{http://httpd.apache.org/docs/,Apache Documentation} or your
+@c system documentation for more information.
+
+@c @subheading Enabling the Interpreter
+
+@c If you want Roadsend PHP to run the non-compiled PHP code on your
+@c server (in the same way as open source PHP), then you need to
+@c associate it with a file extension (generally @file{.php}).  
+
+@c This is done by adding a document type mapping, using the
+@c @file{mod_mime} Apache module. For example, the AddType line below will cause Roadsend PHP 
+@c to handle all files ending in
+@c @file{.php}.  You can also use a different extension, or more than one.
+
+@c @example
+
+@c     <IfModule mod_mime.c>
+@c       AddType application/x-httpd-pcc .php
+@c     </IfModule>
+  
+@c @end example
+
+@c The AddType directive is only used for interpreting scripts. To run a compiled web application, @pxref{Web Applications}.
+
+@c @quotation
+
+@c @strong{Note}
+
+@c @noindent
+@c After you make the changes, make sure you restart the Apache server.
+@c @end quotation
+
+@c @quotation
+
+@c @strong{Note}
+
+@c @noindent
+@c It is possible to use Zend PHP at the same time as Roadsend PHP, however they cannot share the same extension for
+@c interpretation. Also, as Roadsend PHP provides compatibility with Zend PHP's @code{php_flag} and @code{php_value}
+@c Apache options, they may conflict if you attempt to use both modules at the same time.
+@c @end quotation
+
+@node Installing A License File, Configuration, Installing Roadsend PHP on Windows, Installation and Configuration
+@section Installing A License File
+
+Compiling applications and libraries with the Roadsend Compiler requires
+an appropriate license from Roadsend.
+
+Windows users can use the Roadsend Compiler Studio IDE to retrieve a
+license (@pxref{Obtaining A License}).
+
+Unix users can obtain a license from our website:
+
+@enumerate
+@item 
+Go To: @url{http://www.roadsend.com/license}
+@item
+Login to the website if necessary
+@item
+Enter the machine name or host name of the computer you are installing on
+@item
+You will be presented with a list of authorized licenses
+@item
+Select an appropriate license
+@item
+A license file will be generated that you can save to your system
+@end enumerate
+
+If you have obtained a
+license from the website, you should have a file named
+@file{ROADSEND.lic}.  Copy this file into your
+Roadsend directory (this defaults to @file{/opt/roadsend/pcc} on Unix, 
+@file{C:\roadsend} on Windows) 
+
+This file includes information about it's owner.  Do not permit unlicensed persons to
+obtain a copy of @file{ROADSEND.lic}. 
+
+@quotation
+
+@strong{Note}
+
+@noindent
+You will need a separate license file for each platform you use Roadsend PHP on.
+@end quotation
+
+For more help on obtaining or installing a license, please contact Roadsend at
+@uref{mailto: sales@@roadsend.com,sales@@roadsend.com}
+
+@node Configuration, Uninstalling, Installing A License File, Installation and Configuration
+@section Configuration
+
+The configuration file determines how Roadsend PHP runs and tells it where to find runtime files. You may edit
+the configuration file by hand, or (in Windows) use the Roadsend Compiler Studio IDE to maintain it.
+
+On Unix, the configuration file is located at @file{/etc/pcc.conf}. On Windows, this file is 
+located in @file{c:\roadsend\etc\pcc.conf}.
+
+On Windows the configuration file can be edited from within the
+Roadsend Studio IDE. @xref{IDE Configuration}.
+
+A sample configuration file is listed below.
+
+@example
+
+; Roadsend PCC Configuration File
+;;
+;; lines starting with a semicolon are considered comments
+;;
+
+;; DIRECTIVE: home 
+(home "/opt/roadsend/pcc/lib")
+
+;; DIRECTIVE: include
+(include "./" "/usr/local/lib/php/")
+
+;; DIRECTIVE: library
+;Library directives add directories to the dynamic-load search path.
+(library "./" "/usr/local/pcclibs/")
+
+;; DIRECTIVE: web-libs
+; these libraries will be loaded by the web modules and
+; the interpreter before the script is run
+
+; the default enables all extensions
+(web-libs php-std php-pcre php-xml php-mysql php-curl php-sqlite)
+
+;; DIRECTIVE: default-commandline-lib
+; these libraries will be used as if with -u on the commandline
+
+; the default enables all extensions
+(default-commandline-lib php-std php-pcre php-xml php-mysql php-curl php-sqlite)
+
+;; DIRECTIVE: ini
+; this directive sets PHP ini flags
+
+; this is an ini entry to tell the mysql lib where the socket is
+(ini 
+  (mysql.default_socket  "/var/run/mysqld/mysqld.sock"))
+
+; session configuration
+(ini 
+   (session.cookie_lifetime   0)
+   (session.cookie_path       "/")
+   (session.cookie_domain     "")
+   (session.cookie_secure     #f)
+   (session.save_path         "/tmp")
+   (session.name              "PHPSESSID")
+   (session.auto_start        0)
+   (session.use_cookies       1) 
+   (session.use_only_cookies  0) 
+   (session.referer_check     "")
+   (session.cache_limiter     "nocache")
+   (session.cache_expire      180)
+   (session.use_trans_id      0)
+   (url_rewriter.tags         "a=href,area=href,frame=src,input=src,form=fakeentry")
+   (session.gc_probability    1)
+   (session.gc_divisor        100)
+   (session.gc_maxlifetime    1440))
+
+; file uploads
+(ini
+   (file_uploads		1)
+   ; leave this unset for the system default
+   ;(upload_tmp_dir		"/tmp")
+   ; note this is specified in bytes
+   (upload_max_filesize		2048000))
+
+;; DIRECTIVE: debug-level
+; a level of 0 will turn off all debugging messages.
+; set to 1 to receive verbose errors and warnings while
+; compiling and running 
+
+; debug level
+(debug-level 1)
+                        
+@end example
+
+Configuration directives are in the form:
+
+@example
+
+    (directive-name [value1 value2 .. valueN])
+  
+@end example
+
+@noindent
+Each value will be either a literal (unquoted) or a string (quoted):
+
+@example
+
+    (literal-directive value)
+    (string-directive "a value")
+  
+@end example
+
+@noindent
+Any line starting with a semicolon is considered a comment and ignored.
+
+A list of valid directives and how to use them follows.
+
+@strong{Configuration Directives}
+
+@multitable @columnfractions 0.20 0.20 0.60
+@headitem
+Directive
+@tab 
+Examples
+@tab 
+Description
+@item
+@var{debug-level}  
+@tab 
+(debug-level 0)
+@tab
+Set the debug level. A value of 0 turns off all debug messages. A value of 1 or 2 will display
+debugging information you may find helpful if you are having a problem compiling or interpreting. It
+will produce output to STDERR for command line compiling or to the web server error log for interpreting
+or running web applications.
+@item
+@var{home}
+@tab 
+(home "/opt/roadsend/pcc/lib")
+@tab
+This is the "base" directory for Roadsend PHP. 
+@item
+@var{include}
+@tab 
+(include "./" "/usr/local/lib/php/") 
+@tab
+This is the list of paths for searching for include files, and is analogous to the PHP @var{include_path}.
+@item
+@var{library}
+@tab 
+(library "./" "/usr/local/roadsend/pcc/lib/")
+@tab
+This is the list of paths to search for extensions and user created libraries.
+Library directives add directories to the dynamic-load search path.
+@item
+@var{web-libs}
+@tab 
+(web-libs "testlib")
+@tab
+These libraries will be loaded by the web module and the interpreter before the script is run.
+If a library depends on other libraries, it should be listed after them in the configuration file.
+@item
+@var{default-commandline-lib}
+@tab 
+(default-commandline-lib php-std php-pcre php-xml php-mysql)
+@tab
+These libraries will be used as if with -u on the commandline. This means they will always be loaded
+and linked to applications built on the command line. You may remove those that are unnecessary, or add
+others you would always like included. You should never remove php-std.
+@item
+@var{ini}
+@tab 
+(ini (mysql.default_socket  "/var/run/mysqld/mysqld.sock"))
+@tab
+This creates an "ini entry".  An ini entry is a key/value pair that
+adjusts the behavior of your programs.  Each supported entry has a
+similar effect to the entry of the same name in the @file{php.ini}
+configuration file for Open Source PHP. (See
+@url{http://www.php.net/configuration} for more about @file{php.ini}
+for Open Source PHP).
+@end multitable
+
+@quotation
+
+@strong{Note}
+
+@noindent
+If you are changing a value that needs to be reflected in your web server, you may need
+to restart it for the changes to take effect.
+@end quotation
+
+@node Uninstalling,  , Configuration, Installation and Configuration
+@section Uninstalling
+
+@subheading Windows
+
+To uninstall Roadsend PHP under Windows, use the Add/Remove Software feature located in the Control Panel.
+
+@subheading Unix
+
+Roadsend PHP provides an uninstallation script for each package that you installed. 
+Running the uninstall script will remove all files installed by the respective installation script. 
+
+@strong{Uninstallation Scripts}
+
+@multitable @columnfractions 0.5 0.5
+@item
+Package@tab Uninstallation Script
+@item
+pcc
+@tab 
+@file{/opt/roadsend/pcc/bin/roadsend-pcc-uninstall.sh}
+@item
+runtime
+@tab 
+@file{/opt/roadsend/pcc/bin/roadsend-pcc-runtime-uninstall.sh}
+@end multitable
+
+@node Features, Language Reference, Installation and Configuration, Top
+@chapter Features
+
+The following section is an overview of the major features offered by
+the Roadsend PHP Compiler, and an introduction to the concepts used
+throughout the manual.  
+
+@menu
+* Project Type Overview::       
+* Interpreting and Compiling::  
+* Online Web Applications::     
+* Stand Alone Web Applications (MicroServer)::  
+* Desktop GUI Applications::    
+* Console Applications::        
+* Libraries::                   
+* Debugging::                   
+* Profiling::                   
+* Optimization::                
+* Shared vs Static::            
+@end menu
+
+@node Project Type Overview, Interpreting and Compiling, Features, Features
+@section Project Type Overview
+
+Roadsend PHP allows developers to take full advantage of the PHP
+language to create a wide variety of software products. 
+
+Products built with Roadsend PHP interact with the end user through
+one of the following user interfaces:
+
+@itemize
+
+@item 
+@strong{Online Web Application} (Interface: HTML)
+
+This is the interface most commonly associated with the PHP
+language. All PHP code in the project (including mixed PHP/HTML but
+excluding images and other static content) is compiled to a binary
+file. The library is interfaced to a web server through the FastCGI
+module. Requests for PHP ``pages'' (usually with a @file{.php}
+extension) are forwarded to the compiled binary, which runs the
+compiled code for that page and returns the results to the user in the
+form of a web page.
+
+Online Web Applications generally run on a dedicated web server.
+
+@xref{Online Web Applications}.
+
+@item
+@strong{Stand Alone Web Application (MicroServer)} (Interface: HTML)
+
+This interface is very similar to the Online Web Application
+interface, in that all PHP files in the project are compiled to a
+binary which will be used to serve HTML web pages.
+
+However a MicroServer project takes the additional step of compiling an
+embedded web server directly into the finished product. Thus, a
+separate web server is not required by the end user to run the
+application. 
+
+This option allows the developer to compile a web application as a
+stand alone product for offline use. When the binary is run, a web
+browser is automatically launched so that the user can interact with the
+local web application.
+
+@xref{Stand Alone Web Applications (MicroServer)}.
+
+@item
+@strong{Desktop GUI Application} (Interface: Graphical)
+
+This interface uses the GTK library to provide a GUI interface
+(windows, dialogs, icons and the like) to the end user. All project
+files are compiled to a single executable. Only the @var{main file} of
+the application is run at program start up, which may call code from
+other parts of the project.
+
+The Glade library is supported, which allows for visual development of
+dialog boxes and other graphical elements.
+
+@xref{Desktop GUI Applications}.
+
+@item
+@strong{Console} (Interface: Text)
+
+This interface is often used for command line or server
+applications. All files in the PHP project are compiled to a single
+executable. Only the @var{main file} of the application is run at
+program start up, which may call code from other parts of the
+project. Output from the program is in basic ASCII text which shows up
+in the Unix console or DOS window.
+
+@xref{Console Applications}.
+
+@item
+@strong{Libraries} (Interface: None)
+
+This project type has no @emph{user interface}, but rather provides a
+@emph{developer interface} (through an API). It allows the developer to compile a set
+of PHP functions and/or classes which are intended to be accessed from
+other project types. This is an efficient method of sharing common
+code between different projects.
+
+@xref{Libraries}.
+
+@end itemize
+
+
+@node Interpreting and Compiling, Online Web Applications, Project Type Overview, Features
+@section Interpreting and Compiling
+
+Roadsend PHP stands out from open source PHP and all other PHP ``compilers'', encoders, and caches because of its ability
+to produce native machine code from PHP source code.
+
+However, for development purposes it is often convenient to run PHP code immediately, without compiling. 
+This method of running PHP code is also supported by Roadsend PHP. 
+
+@itemize 
+
+@item
+@strong{Interpreting Pros}
+
+@itemize 
+
+@item
+No rebuild process after each edit
+
+@item
+See effects of code changes immediately
+
+@item
+Can still use compiled library functions
+
+@item
+Can always compile at a later date
+@end itemize
+
+@item
+@strong{Interpreting Cons}
+
+@itemize 
+
+@item
+Code runs many times slower than after being compiled
+@end itemize
+@end itemize
+
+Luckily, you don't have to choose between using your code with the interpreter or the compiler. 
+Even if you develop with the interpreter, you are still able to compile it at a later date. 
+
+@strong{Interpreting vs. Compiling}
+
+@image{resources/compile-vs-interpret,,,,png}
+
+@subheading Mixed Interpreting/Compiling
+
+It is possible to run compiled and interpreted code at the same
+time. This happens when a compiled program includes one or more
+uncompiled source files.  In this case the compiled program will
+search the @ref{Configuration,include path} and interpret the included
+source file at runtime if it is found.
+
+@strong{TIP}: You can leave PHP configuration files that your project uses
+uncompiled. They will be interpreted at runtime, and allow the end
+user to customize your application.
+
+@strong{Interpreting Include Files at Runtime}
+
+@image{resources/app-runtime-include,,,,png}
+
+This may also occur if a compiled library is in use. In this case, if an interpreted source file calls code that has been compiled
+into the included library, then the faster, compiled code will execute during the interpretation of the original script.
+
+@strong{Running Compiled Code From An Interpreted Web page}
+
+@image{resources/interp-lib-include,,,,png}
+
+For more information, @pxref{Handling Include Files}.
+
+@node Online Web Applications, Stand Alone Web Applications (MicroServer), Interpreting and Compiling, Features
+@section Online Web Applications
+
+@subheading What are they?
+
+Online Web Applications are dynamic web site applications powered by a dedicated
+web server, such as Apache or Microsoft IIS. The source files in the project are compiled ``pages''
+that are accessed by the end user through their web browser. 
+
+Roadsend PHP compiled web applications can interface to a wide range
+of web servers on many platforms through the standard CGI or FastCGI
+interface. 
+
+@url{http://www.fastcgi.com,FastCGI} provides a scalable, high
+performance alternative to standard CGI. Roadsend PHP can generate native FastCGI binaries.
+
+@subheading When should I use them?
+
+Build an Online Web Application when you want to create a PHP
+powered, dynamic web application that will run on a dedicated web server and
+handle a high volume of traffic. The compiled web application may
+be distributed without source code.
+
+@subheading How are the project files organized? 
+
+Web Application projects may contain any number of source files,
+including files from multiple directories under the project root.
+All source files with the @file{.php} extension are considered
+@dfn{pages} and can be accessed publicly through a URL. The project
+may also contain source files that @emph{do not} have the @file{.php}
+extension (such as @file{.inc} files) - these files will not be accessible
+publicly and so are suitable as private include files.
+
+Any of the compiled PHP source files may contain embedded HTML.
+
+Static files, such as images and static HTML files @emph{are not}
+compiled into the web application binary. These files must exist on
+disk in the web document directory to be served by the web server in
+the normal fashion.
+
+A typical source tree for a web application project may look like this:
+@example
+/web-app
+  index.php
+  about.php
+  forum.php
+  support.php
+  library/
+    functions.inc
+    classes.inc
+@end example
+
+Because web applications generally make use of images and other files
+that are not PHP source code (and thus not compiled), they generally
+also have a corresponding @dfn{web document tree}:
+
+@example
+/web-app
+  images/
+    logo.gif
+    header.gif
+  flash/
+    example.swf
+  static/
+    aboutus.html
+@end example
+
+During development, it is common to have the source files and the
+static files in the same directory tree.
+
+After the project is compiled and the binary is installed, only the project's @dfn{web document
+tree} needs to be installed into the document root directory of the web
+server (e.g., @file{/var/www}). The source code files will exist in the
+binary in compiled form and need not also exist in the web document tree.
+
+@subheading How do I create online web applications?
+
+If you are compiling from the command line, @pxref{Building and Using
+Compiled Web Applications}.  If you are using the Roadsend Studio IDE, set the
+project type to ``Compiled Web Application'' in @pxref{Project Properties -
+Project Options}.
+
+@node Stand Alone Web Applications (MicroServer), Desktop GUI Applications, Online Web Applications, Features
+@section Stand Alone Web Applications (MicroServer)
+
+@subheading What are they?
+
+Stand Alone Web Applications are very similar to @ref{Online Web
+Applications}. Both types of projects use a web browser for interacting with the
+application. Both contain compiled web pages that use HTML to present
+the application to the user. 
+
+However, Online Web Applications require an external web server (such
+as Apache or Microsoft IIS) and run on a dedicated server in a
+central location, which is accessed by potentially hundreds or
+thousands of users over a network.
+
+Stand Alone Web Applications, or MicroServer Applications, are compiled
+web applications that @emph{include an embedded web server}. This
+small web server runs as a stand alone program and its only job is to
+serve pages from the one web application it was compiled with. 
+
+To the end user, the application appears to be a fully functioning
+web application, but the site is served from their local
+computer. No external web server or network connectivity is needed.
+
+The end user runs the MicroServer application as they would any other
+program on their system. In Windows, for example, this means double
+clicking on the icon. The MicroServer server is started, and a web
+browser is automatically launched for the user to start interacting
+with the program.
+
+@subheading When should I use them?
+
+Build a Stand Alone Web Application when you want to:
+
+@enumerate
+@item
+Compile an Online Web Application for offline, stand alone use
+@item
+Create a stand alone application that uses HTML and a web browser to
+interact with the user
+@end enumerate
+
+@subheading How are the project files organized? 
+
+Project files are organized exactly like @ref{Online Web
+Applications}. This is convenient because it allows for easy compilation
+to both online and offline applications.
+
+As with Online Web Applications, static files such as images are not
+compiled into binary. They should exist in the application directory tree and be
+distributed with the compiled application. 
+
+@node Desktop GUI Applications, Console Applications, Stand Alone Web Applications (MicroServer), Features
+@section Desktop GUI Applications
+
+@subheading What are they?
+
+Desktop GUI Applications use the @url{http://www.gtk.org,GTK} toolkit
+to create cross platform, professional looking graphical
+applications. Rather than using HTML and a web browser to render the
+user interface, GUI programs present the end user with all the
+graphical elements they are familiar with such as Windows, Toolbars,
+Icons, Dialog Boxes and Wizards.
+
+Roadsend PHP supports the @url{http://glade.gnome.org,Glade User
+Interface Builder}, which allows you to graphically design windows,
+dialog boxes and other graphical elements. These are saved as XML and
+then loaded into your application at runtime. 
+
+@subheading When should I use them?
+
+Create a Desktop GUI Application when you want to use PHP to create a
+desktop application that interacts with the end user through a familiar
+graphical user interface.
+
+@subheading How are the project files organized? 
+
+Desktop GUI Applications may contain any number of source files,
+including files from multiple directories under the project root. All
+source files will compile to a single executable binary. 
+
+One source file is designated the
+@var{main file}. Top level code in this file will execute when
+the binary starts. It should initialize the program and execute the core
+program code.
+
+@subheading How do I create desktop GUI applications?
+
+If you are compiling from the command line, @pxref{Working With
+Desktop GUI Applications}.  If you are using the Roadsend Studio IDE, set the
+project type to ``Desktop GUI Application'' in @pxref{Project Properties -
+Project Options}.
+
+@node Console Applications, Libraries, Desktop GUI Applications, Features
+@section Console Applications
+
+@subheading What are they?
+
+Console Applications are stand alone binary applications that are
+designed to be run in text mode or that don't require a user
+interface. 
+
+@subheading When should I use them?
+
+Typical uses for console applications include server side maintenance
+programs, utility programs, Windows services, and server daemons.
+
+@subheading How are the source files organized? 
+
+Console application projects may contain any number of source files,
+including files from multiple directories under the project root. All
+source files will compile to a single executable binary. 
+
+Unlike compiled Web Applications, the individual source files of the
+project are not accessed directly. One file is designated the
+@var{main file}. Top level code in this file will execute when
+the binary starts. It should initialize the program and execute the core
+program code.
+
+A typical source tree for a simple command line project may look like this:
+@example
+/console-project
+  main.php
+  functions.inc
+  classes/
+    serverclass.inc
+@end example
+
+In this theoretical project, @file{main.php} would be the @dfn{main
+file}. If this project were compiled on the command line, it would be
+listed as the first source file. In the IDE it would be selected as
+the Main File.
+
+@file{main.php} would likely call @code{include('functions.inc')} and
+@code{include('classes/serverclass.inc')}, run initialization code as
+necessary, and then execute the core program code.
+
+@subheading How do I create console applications?
+
+If you are compiling from the command line, @pxref{Working With
+Console Applications}.  If you are using the Roadsend Studio IDE, set the
+project type to ``Console Application'' in @pxref{Project Properties -
+Project Options}.
+
+
+@node Libraries, Debugging, Console Applications, Features
+@section Libraries
+
+@subheading What are they?
+
+Libraries allow you to compile a set of PHP functions and/or
+classes which are intended to be accessed from other projects through
+a specified Application Programming Interface (API). 
+
+@subheading When should I use them?
+
+Build a Library project when you want to:
+
+@enumerate
+@item 
+Share compiled code between multiple projects
+@item
+Sell or distribute a compiled library that others may use in their own projects
+@end enumerate
+
+@subheading How are the project files organized?
+
+Library projects may contain any number of source files,
+including files from multiple directories under the project root. All
+source files will compile to two main library files: a static and a dynamic
+library.
+
+On Windows, the files will have the extensions @file{.a} (static) and
+@file{.dll} (dynamic).
+
+On Unix, the files will have the extensions @file{.a} (static) and
+@file{.so} (dynamic).
+
+There are other files created during a library build. See   
+ @pxref{Working With Libraries} for more information on compiling,
+ using and deploying libraries.
+
+@subheading How do they work?
+
+The source files in a library project should contain functions and
+classes that implement the functionality that should be available to
+the end developer (or that is to be shared between projects). Normally a
+list of classes and functions (along with their arguments) are made
+available in the documentation that accompanies the library.
+
+Using a compiled library is transparent in Roadsend PHP code. To
+``load'' a compiled library, simply @var{include} the source code file
+from the compiled library as if it were a normal include file on disk. 
+
+Roadsend PHP will search the compiled libraries that are loaded in the
+current environment for the requested source file, and use it in its
+compiled form if found.
+
+Loading a compiled library to the current environment can be done in a
+number of ways:
+@enumerate
+@item
+On the command line, you can use the ``-u'' argument and then the
+library name:
+@example
+pcc -u my-library application.php
+@end example 
+@item
+You can add the library to @var{default-commandline-libs}: @pxref{Configuration}.
+@item
+In the Roadsend Studio IDE, you can add custom libraries in the
+@ref{Project Properties - Libraries}.
+@end enumerate
+
+
+@node Debugging, Profiling, Libraries, Features
+@section Debugging
+
+Roadsend PHP includes a powerful debugger to help pinpoint source
+level problems in your projects. 
+
+On Unix platforms, a command line tool is provided. In the Roadsend
+Studio IDE, a fully integrated step debugger is available. 
+
+Debugger Features Include:
+@itemize
+@item
+Step into or over code, line by line
+@item
+Breakpoints on function and line numbers
+@item
+Pause a running program
+@item
+Show call stack
+@item
+Display current local variables and their values
+@item
+Display variable from the current symbol table
+@end itemize
+
+For more on the @strong{command line debugger}, @pxref{Using The Step Debugger}.
+
+For more on the @strong{Integrated Step Debugger in the Roadsend IDE}, @pxref{Running Your Project In The Debugger}.  
+
+
+@node Profiling, Optimization, Debugging, Features
+@section Profiling
+
+Roadsend PHP includes profiling abilities to help you determine where
+your code is spending its time and allow you to optimize efficiently.
+
+Binaries compiled with profiling enabled will generate information on:
+@itemize
+@item
+Total time spent in function
+@item
+Number of times function was called
+@item
+Average time per function call
+@item 
+Function call graph
+@end itemize
+
+The output is in a human readable text format. Advanced users can also use
+the available brof/gprof profiling mode.
+
+For more on using the profiler, @pxref{Using The Profiler}.
+
+@node Optimization, Shared vs Static, Profiling, Features
+@section Optimization
+
+While the compiler always performs some optimizations during a build,
+it can perform additional ones by turning on Optimized mode.
+
+Optimized mode can be turned on using the -O switch on the
+commandline, or by enabling it in the project properties in the IDE.
+Optimized mode can be used for any project type.
+
+Enabling optimization in the Roadsend compiler will make your programs
+run faster at the expense of making them a little bit harder to debug.
+For example, in optimized mode, backtraces will be much less accurate
+-- most functions won't be included. For this reason, we recommend that
+you leave it off until your program ready to be deployed.
+
+@node Shared vs Static,  , Optimization, Features
+@section Shared vs Static
+
+By default, in both optimized and unoptimized mode, stand alone
+binaries created by Roadsend PHP are dynamically linked.  Dynamically
+linked programs save disk space and memory by sharing the same
+libraries with other programs.  
+
+However, dynamically linked programs are hard to distribute because
+they depend on many system libraries.  On Linux, these might be
+different from computer to computer.  On Windows, they will be
+additional DLLs that need to be distributed with your application.  To
+solve this problem, you can use static linking.
+
+Static linking can be enabled with the @code{--static} commandline switch, or
+in the project properties dialog in the IDE.  When a program is linked
+statically, the parts of libraries that it depends on are incorporated
+into the program itself.  That way, the program is no longer dependent
+on any external libraries and is therefore easier to distribute.  
+
+@node Language Reference, Command Line Use, Features, Top
+@chapter Language Reference
+
+@menu
+* Differences Between Roadsend And Open Source PHP::  
+* Writing Portable PHP Code::   
+* Extensions Provided::         
+@end menu
+
+@node Differences Between Roadsend And Open Source PHP, Writing Portable PHP Code, Language Reference, Language Reference
+@section Differences Between Roadsend And Open Source PHP
+
+Programs compiled with the Roadsend Compiler should behave the same as
+programs run in Open Source PHP version 4.4.x.  The only expected
+compatibility problem is if your program uses extensions that the
+Roadsend Compiler does not yet support.  We are constantly expanding
+the repertoire of supported extensions, so please visit our
+@url{http://www.roadsend.com,website} to check if the one you need is
+available.  Should you encounter any compatibility issues, please let
+us know by emailing support@@roadsend.com with an example of the
+problem.  An updated release containing a fix will usually be
+available in the first week of each month.
+
+The original implementation of PHP was designed to be interpreted and
+run from inside of a web server. The Roadsend Compiler provides many
+features, such as a built-in interpreter, that help ensure that your
+PHP code will work no matter what.  But there are many new features,
+such as separate compilation, an integrated standalone web server
+(@pxref{Online Web Applications}), etc., which provide significant
+advantages, and help move PHP toward the new paradigm of a
+general-purpose compiled language.
+
+@menu
+* INI File Entries::            
+* Handling Include Files::      
+* Semantic Differences::        
+@end menu
+
+@node INI File Entries, Handling Include Files, Differences Between Roadsend And Open Source PHP, Differences Between Roadsend And Open Source PHP
+@subsection INI File Entries
+
+Various settings that affect the way that your programs behave can be
+changed using the INI configuration directive in the configuration
+file @file{pcc.conf}. @xref{Configuration}.
+
+When you compile a standalone program with the Roadsend Compiler, the
+INI entries from @file{pcc.conf} will be stored in the compiled
+program.  This allows you to distribute the program without
+@file{pcc.conf}.  
+
+
+@node Handling Include Files, Semantic Differences, INI File Entries, Differences Between Roadsend And Open Source PHP
+@subsection Handling Include Files
+
+PHP provides a method for including code from other source files into
+a single source file through the @code{include}, @code{require},
+@code{include_once} and @code{require_once} functions. In Open Source
+PHP, this always happens at runtime as each script is interpreted.
+
+The include functionality changes slightly when compiling a source
+file into an executable (or library), however.
+
+At compile time, if Roadsend PHP encounters one of the @code{include}
+functions, it will attempt to find the source file to be included
+(searching the current INCLUDE_PATH) for inclusion in the build. If it
+finds the file, that file will also be compiled and will be included
+as part of the resulting binary (or library).
+
+If the file was not found, however, it is not a fatal error. When the
+compiled code is run, the file to be included will be searched for at
+runtime (based on the current runtime INCLUDE_PATH), and if found will
+be interpreted on the fly.  While this may be convenient and useful in
+some situations, please keep in mind that interpreting code at runtime
+is always slower than compiling the code into the binary.
+
+If your program uses variables to name include files, for example:
+@code{include($proj . "/foo.php");}, then the compiler may be unable
+to automatically compile those files into your program.  You can add
+the files manually by listing them on the compile commandline after
+your main file, for example @code{pcc myprog.php project/foo.php}, or
+by adding the include files to your project in the Roadsend IDE.
+
+The Roadsend Compiler provides a new PHP function,
+@code{lib_include_exists()}, which can be used to determine whether
+the compiled or interpreted version of an include file is being used.
+Simply call it with the name of the file, as you would call
+@code{include()}.  It returns true if the compiled version of the
+include file was found, and false if not.
+
+
+@node Semantic Differences,  , Handling Include Files, Differences Between Roadsend And Open Source PHP
+@subsection Semantic Differences
+
+@menu
+* Pass-By-Reference Parameters::  
+@end menu
+
+@node Pass-By-Reference Parameters,  , Semantic Differences, Semantic Differences
+@subsubsection Pass-By-Reference Parameters
+
+Pass-by-reference parameters must be declared when the
+function is declared, by placing an & before the
+parameter's name, as in the example below.
+
+@strong{Declaring a Pass-By-Reference Parameter}
+
+@example
+
+<?php
+  function foo(&$param) @{
+    print("$param is passed by reference.\n");
+  @}
+?>
+	  
+@end example
+
+Passing a parameter by reference when it has not been declared
+as a reference parameter, called @code{call-time
+pass-by-reference} has been deprecated in Open Source PHP for
+several years now.  As such, it is not supported by Roadsend PHP.
+
+@node Writing Portable PHP Code, Extensions Provided, Differences Between Roadsend And Open Source PHP, Language Reference
+@section Writing Portable PHP Code
+
+One goal of Roadsend PHP is to maintain compatibility with code written for Open Source PHP. However
+there may be times when you will need to have your code run differently in the two different environments.
+
+Roadsend PHP defines a constant (@var{ROADSEND_PHP}) that you can use
+in your code to determine which PHP environment is executing in.
+
+@example
+
+<?php
+       
+if (defined('ROADSEND_PHP')) @{
+   echo "I am running under Roadsend PHP!\n";
+@}
+else @{ 
+   echo "I am running under Open Source PHP!\n";
+@}
+
+?>
+    
+@end example
+
+@node Extensions Provided,  , Writing Portable PHP Code, Language Reference
+@section Extensions Provided
+
+The following extensions are available as of 2.1.0
+
+@itemize 
+
+@item
+Standard (php-std)
+
+@item
+MySQL (php-mysql)
+
+@item
+PCRE (php-pcre)
+
+@item
+XML (based on libxml2) (php-xml)
+
+@item
+CURL (php-curl)
+
+@item
+PHP-GTK (php-gtk)
+
+@item
+SQLite (php-sqlite)
+
+@item
+ODBC (php-odbc)
+
+@item
+Windows API (windows only) (pcc-win)
+
+@end itemize
+
+@c @noindent
+@c The various extensions can be included with the @code{-u} command line switch (@pxref{Precompiled Extensions}).
+
+@menu
+* New Extensions::              
+@end menu
+
+@node New Extensions,  , Extensions Provided, Extensions Provided
+@subsection New Extensions
+
+@subheading Roadsend Windows Extension
+
+Roadsend PHP offers a new Windows only extension that is not available
+in Open Source PHP.
+
+The Windows extension can be used to:
+@itemize
+@item
+Access the Windows registry
+@item
+Run programs through Windows explorer with the @code{ShellExecute}
+Windows API function
+@item
+Create a popup MessageBox
+@end itemize
+
+@c XXX url needs to change with new versions
+You can find the API documentation here:
+@url{http://www.roadsend.com/doc/pcc/2.x.x/API/Windows.html} 
+
+@node Command Line Use, Roadsend Studio IDE, Language Reference, Top
+@chapter Command Line Use
+
+
+@menu
+* Working With Web Applications::  
+* Working With Console Applications::  
+* Working With Desktop GUI Applications::  
+* Working With Libraries::      
+* Using The Step Debugger::     
+* Using The Profiler::          
+@end menu
+
+@node Working With Web Applications, Working With Console Applications, Command Line Use, Command Line Use
+@section Working With Web Applications
+
+There are two methods of powering a Web Application with Roadsend
+PHP:
+
+@strong{Interpreted Web Applications} are executed directly from the
+application source code - this is the way Open Source PHP
+works. Roadsend can power interpreted web sites by installing the Roadsend
+PHP FastCGI interpreter.
+
+@strong{Compiled Web Applications} are converted to optimized machine
+code before they are run. The source code is no longer necessary
+and the application runs faster. Compiled web applications can be
+targeted for online, dedicated server use (via FastCGI) or stand alone,
+desktop use (via MicroServer).
+
+
+@menu
+* Installing FastCGI ::         
+* Using The Web Interpreter::   
+* Building and Using Compiled Web Applications::  
+* Deploying on Apache::         
+* Deploying On lighttpd::       
+* Starting Web Applications Manually ::  
+* Working With MicroServer Applications::  
+@end menu
+
+@node Installing FastCGI , Using The Web Interpreter, Working With Web Applications, Working With Web Applications
+@subsection Installing FastCGI
+
+The @ref{Using The Web Interpreter, Roadsend PHP Web Interpretor} and
+@ref{Building and Using Compiled Web Applications,Compiled Web
+Applications} use the
+@url{http://www.fastcgi.com, FastCGI} interface. FastCGI is an
+extension to the industry standard Common Gateway Interface (CGI) that
+was developed as a superior solution for interfacing web servers
+to high performance applications.
+
+FastCGI support must be available in your web server before installing
+the Roadsend PHP web interpreter or compiled web applications. FastCGI is
+available for many web servers on a variety of platforms. The most
+popular are listed below. Please see the FastCGI website if your web
+server is not listed.
+
+@subheading Acquiring FastCGI for your web server 
+
+Unix users should check their system distribution for a prepackaged
+version of @var{mod_fastcgi}, @uref{http://www.lighttpd.net/,
+lighttpd}, or use one of the links below.  
+
+Windows users should use one of the links provided below.
+
+Check the main @url{http://www.fastcgi.com, FastCGI} website for
+support for other web servers and platforms.
+
+@itemize 
+
+@item
+Apache 1.x/2.x [Unix] (@uref{http://www.fastcgi.com/dist/mod_fastcgi-2.4.2.tar.gz,mod_fastcgi 2.4.2 source})
+@c @item
+@c Apache 2.x.x [Unix] (@uref{http://fastcgi.coremail.cn/mod_fcgid.1.08.tar.gz,mod_fcgid 1.08})
+@item
+Apache 1.3.x [Windows] (@uref{http://www.fastcgi.com/dist/mod_fastcgi-2.4.2-AP13.dll,mod_fastcgi 2.4.2})
+@item
+Apache 2.0.x [Windows] (@uref{http://www.fastcgi.com/dist/mod_fastcgi-2.4.2-AP20.dll,mod_fastcgi 2.4.2})
+@item
+Microsoft IIS (@uref{http://www.caraveo.com/fastcgi/fastcgi-0.6.zip,fastcgi 2.2.2 IIS/.6})
+@item
+@uref{http://www.lighttpd.net/, lighttpd} (for Unix and Windows) has built in FastCGI support
+@end itemize
+
+
+@subheading Notes on FastCGI for Apache
+
+@url{http://httpd.apache.org,Apache} has two modules that provide
+FastCGI support. In this manual we have documented the standard
+@var{mod_fastcgi} available from the main @url{http://www.fastcgi.com,
+FastCGI website}. The
+other module, @var{mod_fcgid} is available at
+@url{http://fastcgi.coremail.cn/}. This module is compatible but
+requires different Apache settings which are not documented here.  
+
+@subheading Enabling FastCGI In Apache
+
+On Windows, start by renaming @file{mod_fastcgi-2.4.2-APnn.dll} to
+@file{mod_fastcgi.so} and place it in your @file{c:\Program
+Files\Apache Group\Apache\modules} directory.
+
+Load the module by adding @file{mod_fastcgi.so} to your Apache
+configuration. Associate it with the @file{.fcgi} extension.
+        
+@example
+        <IfModule !mod_fastcgi.c>
+                LoadModule fastcgi_module     modules/mod_fastcgi.so
+        </IfModule>
+
+        <IfModule mod_fastcgi.c>
+                AddHandler fastcgi-script .fcgi
+                FastCgiConfig -initial-env PATH
+        </IfModule>
+@end example
+
+Additional directives for mod_fastcgi are documented at
+@url{http://www.fastcgi.com/mod_fastcgi/docs/mod_fastcgi.html}.
+
+You must restart Apache after making these changes. 
+
+@subheading Enabling FastCGI In lighttpd
+
+Add @file{mod_fastcgi} to the server modules:
+@example 
+server.modules += ("mod_fastcgi")
+@end example
+
+This may already be done for you in the @file{mod_fastcgi.conf} file,
+which you can @var{include} from @file{lighttpd.conf}
+
+For more detailed documentation on FastCGI support in lighttpd, see
+@url{http://www.lighttpd.net/documentation/fastcgi.html}.
+
+@subheading Installation Conclusion
+
+Please note, the instructions above merely enable FastCGI support in
+your web server.
+@itemize
+@item
+@strong{To enable interpreting of .php files in your web root
+directory}, @pxref{Installing the Roadsend PHP Web Interpreter}
+@item
+@strong{To install a Compiled Web Application}, @pxref{Building
+and Using Compiled Web Applications}
+@end itemize
+
+@node Using The Web Interpreter, Building and Using Compiled Web Applications, Installing FastCGI , Working With Web Applications
+@subsection Using The Web Interpreter
+
+You can use the Roadsend PHP Interpreter to run your web applications
+directly from the application source without compilation. In this way
+Roadsend PHP functions as a drop in replacement for the Open Source
+PHP interpreter.
+
+You can also use the interpreter to develop your web
+application and then compile and deploy at a later date.
+
+@menu
+* Installing the Roadsend PHP Web Interpreter::  
+* Developing With The Interpreter::  
+@end menu
+
+@node Installing the Roadsend PHP Web Interpreter, Developing With The Interpreter, Using The Web Interpreter, Using The Web Interpreter
+@subsubsection Installing the Roadsend PHP Web Interpreter
+
+First, make sure you have @ref{Installing FastCGI,installed FastCGI}.
+
+The process of installing the Roadsend PHP Web Interpreter is
+different depending on your platform, web server software, and local
+server settings. Use the instructions below as a guide but keep in
+mind your server settings may vary.
+
+The Roadsend web interpreter is named @file{pcc.fcgi}. On Unix, the
+@file{roadsend-pcc-runtime} package includes the web interpreter in
+@file{/opt/roadsend/pcc/modules/fastcgi/}. On Windows, the interpreter
+is included in the main package and is located in
+@file{c:\roadsend\local\bin}.  
+
+@subheading Installing pcc.fcgi on Apache with mod_fastcgi
+
+First, copy @file{pcc.fcgi} to your server's @file{cgi-bin}
+directory. You can look in your Apache configuration file for the
+@var{ScriptAlias} directive if you are unsure where your
+@file{cgi-bin} directory is.
+
+You can associate all @file{.php} files by adding the following global
+directives to your Apache configuration file:
+
+@example
+AddHandler pcc-handler .php
+Action pcc-handler /cgi-bin/pcc.fcgi
+@end example
+
+You can also add these directives to a <Directory> block to limit
+interpretation to the specified directory: 
+
+@example
+<Directory "/var/www/localhost/htdocs/php-project">
+AddHandler pcc-handler .php
+Action pcc-handler /cgi-bin/pcc.fcgi
+</Directory>
+@end example
+
+You must restart Apache after making these changes.
+
+See the
+@url{http://httpd.apache.org/docs/2.0/mod/core.html#directory,Apache
+Documentation} for more information.
+
+@c @subheading Installing pcc.fcgi on Apache with mod_fcgid (Unix Apache 2.x.x Users)
+
+@c Add the following <Directory> block for each project you wish to
+@c interpret:
+
+@c @example
+@c <Directory /var/www/localhost/project-dir>
+@c     SetHandler fcgid-script
+@c     FCGIWrapper /opt/roadsend/pcc/modules/fastcgi/pcc.fcgi .php
+@c     Options ExecCGI
+@c     allow from all
+@c </Directory>
+@c @end example
+
+@c Other options to @file{mod_fcgid} are documented @url{http://fastcgi.coremail.cn/doc.htm,here}.
+
+@subheading Installing pcc.fcgi On lighttpd
+
+Use the following settings in @file{mod_fastcgi.conf} in Unix:
+
+@example
+fastcgi.server = ( ".php" =>
+                    ( "localhost" =>
+                        (
+                          "host"        =>     "127.0.0.1",
+                          "port"        =>     1026,
+                          "bin-path"    =>     "/opt/roadsend/pcc/modules/fastcgi/pcc.fcgi",
+                        )
+                    )
+                 )
+@end example
+
+More help with fastcgi on lighttpd is
+@url{http://www.lighttpd.net/documentation/fastcgi.html, available here}.
+
+@subheading Testing The Interpreter
+
+After configuring your web server to use the Roadsend PHP Interpreter,
+make sure you restart the server to load the new configuration. Try
+running a simple test script in your web directory to confirm the
+interpreter is configured correctly:
+
+@file{/var/www/localhost/htdocs/index.php:}
+@example
+<? phpinfo(); ?>
+@end example
+
+This test page should show the server version, environment variables
+and other diagnostic information.
+
+If you are still having a problem, review the above instructions and
+check the documentation for your platform. You can also request support from
+@url{http://www.roadsend.com/,Roadsend online}.
+
+@node Developing With The Interpreter,  , Installing the Roadsend PHP Web Interpreter, Using The Web Interpreter
+@subsubsection Developing With The Interpreter
+
+Now that the interpreter is installed you can interpret your project
+directly from the source code. Any changes you make to the code
+will be immediately visible by reloading the web page. 
+
+@subheading Include Path
+
+You may need to configure the @var{include} path so that your
+application can find all the files it needs to interpret. @xref{Configuration}.
+
+@subheading Web Interpreter Debugging
+If you have a problem interpreting your project, try adjusting the @var{debug-level} in the
+@ref{Configuration} and checking the error log of your web server for
+verbose debugging information.   
+
+You can also interpret the individual files of your project from the
+command line. Use the @var{-f} parameter:
+
+@example
+$ cd /var/www/localhost/htdocs/project
+$ pcc -d 2 -f index.php 
+@end example
+
+@subheading Using Compiled Libraries From Interpreted Applications
+
+Interpreted web applications can make use of @ref{Libraries,compiled
+libraries}. To load a compiled library, use the @code{web-libs} directive
+in the @file{pcc.conf} configuration file. In Windows, you can use the
+Roadsend Studio IDE to edit the list of @ref{IDE Configuration - Web Applications,web libraries}. 
+
+To use a library, it first needs to be installed into one of your
+@code{library} paths as specified in your @file{pcc.conf} file.  
+
+@example
+    
+    ; library load path
+    (library "/usr/lib/roadsend" "/usr/local/pcc")
+
+    ; load the library test-lib
+    (web-libs "test-lib")
+  
+@end example
+
+When a new @file{pcc.fcgi} process is spawned it will load the
+libraries listed in the @code{web-libs} section. 
+
+Any time the interpreter encounters a @code{require()} or
+@code{include()} it will search the loaded
+@var{web-libs} for a compiled version of the requested file.
+
+If the requested file is found then the compiled version is executed.
+
+If the requested file is @emph{not} found in a compiled library then
+the include path is searched. The source file is interpreted if
+found or else a runtime error occurs. 
+
+@node Building and Using Compiled Web Applications, Deploying on Apache, Using The Web Interpreter, Working With Web Applications
+@subsection Building and Using Compiled Web Applications
+
+In this section we will see how to turn a PHP website into a compiled
+web application that can be distributed without source code.
+
+@subheading Compiling Overview
+
+To compile your website into a web application, call the compiler,
+@code{pcc} with the @code{--fastcgi} switch, the name of the
+application, and a list of all the PHP source files:
+
+@example
+pcc --fastcgi myapp index.php include/foo.inc include/bar.inc
+@end example
+
+Roadsend PHP will create a binary object file (.o) for each source
+file in the web application. If you change a source file and wish to
+rebuild, Roadsend PHP will only recompile those files that have
+changed. You can force a full rebuild with the @code{--force-rebuild}
+option.
+
+The only files that are necessary when for
+deployment are the FastCGI stub (@file{myapp.fcgi}) and -- when linked dynamically, which
+is done by default -- the
+application library (@file{libmyapp_u.so} on Unix,
+@file{libmyapp_u.dll} on Windows).  You should copy these two files to
+your FastCGI binary directory:
+
+@example
+cp myapp.fcgi libmyapp_u.so /usr/lib/cgi-bin/
+@end example
+
+The web server must now be configured to start the web application and
+rewrite requests so that they will be sent to it.  For an in-depth
+explanation of configuring the Apache web server to work with compiled
+web applications, @pxref{Deploying on Apache}.
+
+@subheading Statically Linked Web Applications
+
+Web applications can also be linked statically by adding the
+@code{--static} switch to the compile commandline:  
+
+@example
+pcc --static --fastcgi myapp index.php include/foo.inc include/bar.inc
+@end example
+
+Statically linked web applications do not require any external
+libraries, as all required code is compiled into the FastCGI binary
+(@file{myapp.fcgi}). This means you @emph{do not} need to copy the @file{.so} or
+@file{.dll} file into the @file{cgi-bin} directory when linked statically.
+
+@subsection Tips For Listing Source Files 
+
+For advanced users of the Unix shell, a convenient way to pass a list of
+files to @code{pcc} is using @code{find} in conjunction with
+back quotes.  So, for example, this would compile all files with the
+extension @file{.php} or @file{.inc} below the current directory:
+
+@example
+pcc --fastcgi <libname> `find . -name '*.php' -or -name '*.inc'`
+@end example
+
+Note the use of @emph{backticks} around the @code{find} command.
+
+Another alternative is to pre-generate a list of all files that you want to
+compile (e.g., into @file{my-file-list.txt}), then use the shell to
+access this list (also using backticks, this time around the
+@code{cat} command): 
+
+@example
+pcc --fastcgi <libname> `cat my-file-list.txt`
+@end example
+
+
+@node Deploying on Apache, Deploying On lighttpd, Building and Using Compiled Web Applications, Working With Web Applications
+@comment  node-name,  next,  previous,  up
+@subsection Deploying on Apache
+
+These instructions explain how to deploy a compiled web application
+on the Apache web server.  It is applicable to both Apache 1.3 and
+Apache 2.0.
+
+Before following these instructions, please make sure that @file{mod_fastcgi}
+is enabled in Apache, as described here: @ref{Installing
+FastCGI}.
+
+@subheading Enabling mod_rewrite
+
+You will need @file{mod_rewrite}, which is a standard module
+distributed with Apache, enabled in your Apache server to deploy the
+compiled web application.  While Apache installations vary, you will
+definitely need a @code{LoadModule} line (the path might need to be
+changed):
+
+@example
+LoadModule rewrite_module /usr/lib/apache2/modules/mod_rewrite.so
+@end example
+
+And you might also need an AddModule line (take a look to see if the
+other modules have one):
+
+@example
+AddModule rewrite_module
+@end example
+
+@subheading Copying the Web Application to the FastCGI Binary Directory
+
+It is typical to use the cgi-bin directory for FastCGI binaries.  To
+find your cgi-bin directory, look for a line like the following in
+your Apache configuration.  In this case, the cgi-bin directory would
+be @file{/usr/lib/cgi-bin/}:
+
+@example
+ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
+@end example  
+
+The default cgi-bin directory for Apache 2 on Windows is
+@file{C:/Program Files/Apache Group/Apache2/cgi-bin/}. You will want
+to copy your compiled binary (and possibly the application library
+@file{.dll} file if you linked dynamically) to this directory.
+
+On Unix you can use the @file{cp} command to copy the web application
+files to the cgi-bin directory:
+
+@example
+cp myapp.fcgi libmyapp_u.so /usr/lib/cgi-bin/
+@end example
+
+@strong{TIP}: If you are updating a web application that is already running, you
+may need to remove the previous version first, because your operating
+system won't let you change the contents of an executable that is
+currently running.
+
+@subheading Adding the Web Application to the Apache Configuration
+
+Your web application will need a ``web root'' directory where the
+static content such as images are stored. Even if your application
+has no static content, Apache requires that the directory be present.
+In the first example, we will use the directory @file{/var/www/myapp/}. If you 
+are using Apache 2 in Windows, the directory would be, e.g. @file{C:/Program Files/Apache Group/Apache2/htdocs/myapp/}
+
+We use the mod_rewrite module to grab all requests for PHP files in
+the application's web root directory and re-route them to the FastCGI
+binary.  We also allow for an index.php file. This is an example
+Apache configuration section which says roughly ``pass all requests
+for files that end in @file{.php} in the directory
+@file{/var/www/myapp/} on to @file{/cgi-bin/myapp.fcgi}'':
+
+@example
+<Directory /var/www/myapp/>
+        RewriteEngine On
+        RewriteRule ^(.+\.php)$  /cgi-bin/myapp.fcgi/$1
+        RewriteRule ^$  /cgi-bin/myapp.fcgi/index.php
+</Directory>
+@end example
+
+A similar example for Apache on Windows:
+
+@example
+<Directory "C:/Program Files/Apache Group/Apache2/htdocs/myapp" >
+        RewriteEngine On
+        RewriteRule ^(.+\.php)$  /cgi-bin/myapp.fcgi/$1
+        RewriteRule ^$  /cgi-bin/myapp.fcgi/index.php
+</Directory>
+@end example
+
+@subsubheading Technical Note About mod_rewrite  
+
+The first argument to @code{RewriteRule} is a regular expression which
+will be matched against the request URL starting after the directory
+in the @code{Directory} tag. The second argument to @code{RewriteRule}
+can use back references which expand into parenthesized sections of the
+first argument.  In the first example above, @code{$1} is a
+back reference which expands to the PHP filename that was requested.
+
+For more on mod_rewrite, please see the
+@url{http://httpd.apache.org/docs/2.0/mod/mod_rewrite.html, Apache
+mod_rewrite documentation}.  
+
+@subsubheading Adding the Application Itself
+
+Finally, the most important step.  This configuration section will
+tell Apache to start your web application, and will tell the web
+application where its web root is:
+
+@example
+<IfModule mod_fastcgi.c>
+FastCgiServer cgi-bin/myapp.fcgi -initial-env PATH -initial-env WEB_DOC_ROOT=/var/www/myapp
+</IfModule>
+@end example
+
+A similar example for Apache on Windows:
+
+@example
+<IfModule mod_fastcgi.c>
+FastCgiServer cgi-bin/myapp.fcgi -initial-env PATH -initial-env "WEB_DOC_ROOT=C:/Program Files/Apache Group/Apache2/htdocs/myapp"
+</IfModule> 
+@end example
+
+For more detailed information about mod_fastcgi configuration,
+including additional options, please see
+@url{http://www.fastcgi.com/mod_fastcgi/docs/mod_fastcgi.html}.
+
+After making these changes, you are now ready to restart Apache and
+visit access your compiled application at, e.g. @file{http://localhost/myapp/index.php}.
+
+@subheading Troubleshooting
+
+If you're having trouble, first try adjusting the ``LogLevel''
+directive in your Apache configuration to ``info''. Then, rerun the
+application and check your error log.
+
+One common error message that occurs is ``premature end of script
+headers''.  If you're getting this error, it
+may mean that Apache is trying to run the application with
+normal CGI and not FastCGI.
+
+Please review the steps above and make sure that the directories are
+all correct. Visit the @url{http://www.fastcgi.com/mod_fastcgi/docs/mod_fastcgi.html, the mod_fastcgi site}
+for more information on configuration and troubleshooting FastCGI applications.
+
+@node Deploying On lighttpd, Starting Web Applications Manually , Deploying on Apache, Working With Web Applications
+@subsection Deploying On lighttpd
+
+These instructions explain how to deploy a compiled web application
+on the lighttpd web server.  
+
+Before following these instructions, please make sure that @file{mod_fastcgi}
+is enabled in lighttpd, as described here: @ref{Installing FastCGI}.
+
+@subheading Enabling mod_rewrite
+
+You will need @file{mod_rewrite}, which is a standard module
+distributed with lighttpd, enabled in your lighttpd server to deploy the
+compiled web application. To enable @file{mod_rewrite}, make sure it
+is listed in the @var{server.modules} section of your @file{lighttpd.conf}
+
+@subheading Copying the Web Application to the FastCGI Binary Directory
+
+It is typical to use a cgi-bin directory for FastCGI binaries. This
+may be any suitable place on your server, but should not be a
+directory underneith your web document root (for security reasons).
+
+@example
+cp myapp.fcgi libmyapp_u.so /usr/lib/cgi-bin/
+@end example
+
+@strong{TIP}: If you are updating a web application that is already running, you
+may need to remove the previous version first, because your operating
+system won't let you change the contents of an executable that is
+currently running.
+
+@subheading Adding the Web Application to the Configuration File
+
+Your web application will need a ``web root'' directory where the
+static content such as images are stored. In the first example, we
+will use the directory @file{/var/www/myapp/}. 
+
+We use the mod_rewrite module to grab all requests for PHP files in
+the application's web root directory and re-route them to the FastCGI
+binary.  We also allow for an index.php file. This is an example
+Apache configuration section which says roughly ``pass all requests
+for files that end in @file{.php} in the directory
+@file{/var/www/myapp/} on to @file{/cgi-bin/myapp.fcgi}'':
+
+@example
+
+# serve index pages
+url.rewrite-once = ( "^/myapp/$" => "/myapp/index.php" )
+
+# main fastcgi entry
+$HTTP["url"] =~ "^/myapp/.+\.php$" @{
+
+        fastcgi.server = (
+                 "/myapp" =>
+                             ( "localhost" =>
+                                        ( "bin-path" => "/var/www/localhost/cgi-bin/myapp.fcgi",
+                                           "docroot" => "/var/www/localhost/htdocs/myapp",
+                                           "host"               =>              "127.0.0.1",
+                                           "port"               =>              1026,
+                                           "check-local" => "disable"
+                                        )
+                                )
+                        )
+
+@} # HTTP[url]
+
+@end example
+
+For more information and options on configuring the application,
+including load balancing and number of processes, consult the
+@url{http://www.lighttpd.net/documentation/fastcgi.html,lighttpd
+FastCGI documentation}.
+
+@node  Starting Web Applications Manually , Working With MicroServer Applications, Deploying On lighttpd, Working With Web Applications
+@comment  node-name,  next,  previous,  up
+@subsection Starting Web Applications Manually 
+
+Web applications built using FastCGI are normally started by the
+webserver.  If you would like to start your web application by hand,
+perhaps because you want to run it under a profiler like callgrind, or
+you want to start it from a script, etc., that is possible too.
+
+To start your web application by hand, set it up as an ``external
+server'' in your webserver's configuration file.  For Apache, it would
+look like this:
+
+@example
+<IfModule mod_fastcgi.c>
+FastCgiExternalServer /usr/lib/cgi-bin/myapp.fcgi -host localhost:9000
+</IfModule>
+@end example
+
+The @code{-host} option is a hostname and port where the web
+application will be running.  After restarting your webserver, start
+your web application using the commandline options to specify the port
+and web document root:
+
+@example
+./myapp.fcgi --web-doc-root /var/www/myapp --external 9000
+@end example
+
+Any FastCGI web application compiled using Roadsend PHP can be started
+as an external server.
+
+
+
+@node Working With MicroServer Applications,  , Starting Web Applications Manually , Working With Web Applications
+@subsection Working With MicroServer Applications
+
+In this section we will see how to turn a PHP website into a compiled
+web application that includes an embedded web server, allowing you to
+distribute the web application as a stand alone program.
+
+@subheading Coding for the MicroServer
+
+The MicroServer defines two new PHP symbols:
+
+@itemize
+@item
+@code{RE_MHTTPD_PORT} - a constant defining the current port that the MicroServer is running on
+@item
+@code{re_mhttpd_stop()} - a function that, when called, stops execution of the MicroServer and exits the application
+@end itemize
+
+The MicroServer runs on port 8000 by default. This value can be
+changed at compile time, using the @code{--port} command line
+options. It can also be changed at runtime, using the @code{-p} option.
+
+@strong{TIP}: You should offer a way for your client to end the
+MicroServer application by calling @code{re_mhttpd_stop} when they are
+ready to quit. For example:
+@example
+if ($_GET['quit'] == 1)
+    re_mhttpd_stop();
+
+echo '<a href="'.$_SERVER['PHP_SELF'].'?quit=1">Click Here To Exit</a>';
+@end example
+
+If the user does not quit the application, the MicroServer will
+continue to reside in memory.
+
+@subheading Index Pages
+
+If your project contains a file named ``index.php'' in any of the directories of
+your source tree, then that file will be served if the client requests
+the directory in which is resides.
+
+For example, if your source tree contains:
+
+@example
+/index.php
+/home.php
+/foo/index.php
+/foo/about.php
+@end example
+
+and the client requests @code{http://localhost:8000/} or
+@code{http://localhost:8000/foo/} then the MicroServer will
+automatically serve @file{/index.php} or @file{/foo/index.php} respectively.
+
+@subheading Automatic Startup Page
+
+If you need to run code when the application starts
+(for example, to launch a web browser automatically pointing to the
+MicroServer location) you can do this by including in your project a
+specially named PHP file: @file{mhttpd_startup.inc}
+
+If this file exists it will be executed once when the application starts.
+
+Here is an example @file{mhttpd_startup.inc} file that automatically
+launches a web browser on Windows:
+@example
+<?
+
+// This text runs on start and shows up in the command window
+echo "Sample MicroServer App Started at: http://localhost:".RE_MHTTPD_PORT."/\n";
+
+// launch a browser using the windows ShellExecute function
+win_shellexecute("open", 'http://localhost:'.RE_MHTTPD_PORT.'/', '', '', SW_RESTORE);
+
+?>
+@end example
+
+@subheading Compiling Overview
+
+To compile your website into a web application, call the compiler
+@code{pcc} with the @code{--microserver} switch, the name of the
+application, and a list of all the PHP source files. You can also
+specify the default port the MicroServer should use. 
+
+@example
+pcc --microserver myapp --port 8080 index.php include/foo.inc include/mhttpd_startup.inc
+@end example
+
+@strong{Note}: All files on the commandline will be compiled, but only
+files with a @file{.php} extension will be served as web pages. This
+prevents web clients from accessing or running code that is only
+intended to be accessed internally with @code{include} and not served directly. 
+
+Roadsend PHP will create a binary object file (.o) for each source
+file in the web application. If you change a source file and wish to
+rebuild, Roadsend PHP will only recompile those files that have
+changed. You can force a full rebuild with the @code{--force-rebuild}
+option.
+
+The two important files necessary for
+deployment are the executable file (@file{myapp} on Unix,
+@file{myapp.exe} on Windows) and the library file
+(@file{libmyapp_u.so} on Unix, @file{libmyapp_u.dll} on Windows).
+
+@subheading Serving Static Files
+
+Static files (such as images, static HTML, javascript, etc.) are
+@strong{not} compiled into MicroServer applications. They must exist
+in the web root directory that the MicroServer application is run
+from.
+
+The embedded MicroServer will serve the static files that exist in its
+root directory. This allows you your web application to serve the normal array of
+static items that comprise a full web application.
+
+When you deploy your application, you should include the static files
+as part of your package.
+
+@subheading MicroServer Binary Commandline Arguments
+
+The binary file created during a MicroServer build will automatically
+accept a few command line arguments:
+
+@example
+   -h,--help This help message
+   -d LEVEL  Debug level
+   -l LOG    Log all requests to the specfied file
+   -p PORT   Server port number
+@end example 
+
+You may use these options at runtime to change how the MicroServer operates.
+
+@subheading Deploying
+
+When you are ready to deploy your MicroServer application, you should
+include the following files in your package:
+
+@itemize
+@item
+MicroServer binary (e.g., @file{myapp.exe})
+@item
+MicroServer library (e.g., @file{libmyapp_u.dll}), if dynamically
+linked
+@item
+Required runtime libraries, if dynamically linked
+@item
+Required static files such as images
+@end itemize
+
+The layout of your distribution may look like this:
+@example
+/
+  myapp.exe
+  libmyapp_u.dll
+  static/
+    info.html
+    about.html
+  images/
+    logo.gif
+    icon1.gif
+  styles/
+    theme.css
+@end example
+
+If you have dynamically linked your MicroServer application (the
+default), then you may also have to include the runtime libraries in
+your package. You can use the Linux command ``@code{ldd myapp}'' to get a
+list of dependent libraries. On Window, you can use the Deploy
+functionality of the IDE to identify and include dependent libraries.
+
+If you have compiled the MicroServer application with the
+@code{--static} option, you do not need the supporting libraries.
+
+@node Working With Console Applications, Working With Desktop GUI Applications, Working With Web Applications, Command Line Use
+@section Working With Console Applications
+
+@subheading Command Line Interpreter
+
+You can execute a PHP script immediately by running it through the
+Roadsend PHP interpreter:
+
+@example
+pcc -f myscript.php
+@end example
+
+The interpreter will use include and library paths from
+@file{pcc.conf}. 
+
+In Unix, you can create stand alone PHP shell scripts:
+@example
+
+$ cat script.php
+#!/opt/roadsend/pcc/bin/pcc -f
+<?
+
+echo "this is an example of an interpreted shell script\n";
+
+?>
+$ ./script.php
+this is an example of an interpreted shell script
+$
+@end example
+
+@subheading Compiling
+
+Roadsend PHP can compile a single source file (script), or several source files, into a stand alone application. 
+
+@example
+
+  <?php
+    
+    for ($i = 0; $i < 10; $i++) @{
+        $text[] = "My First Compiled PHP Program: $i\n";
+    @}
+
+    foreach ($text as $op) @{
+        echo $op;
+    @}
+
+  ?>
+    
+@end example
+
+This program can be compiled with the following command:
+
+@example
+
+$ pcc -v first.php
+Compiling standalone target:
+  output-path: first
+  source-files: (first.php)
+  libraries: ()
+
+compiling...
+creating console binary: first (dynamically linked)
+  
+@end example
+
+@noindent
+By default, this will generate an executable named "first". Running the executable produces the following output:
+
+@example
+
+    $ ./first
+My First Compiled PHP Program: 0
+My First Compiled PHP Program: 1
+My First Compiled PHP Program: 2
+My First Compiled PHP Program: 3
+My First Compiled PHP Program: 4
+My First Compiled PHP Program: 5
+My First Compiled PHP Program: 6
+My First Compiled PHP Program: 7
+My First Compiled PHP Program: 8
+My First Compiled PHP Program: 9
+  
+@end example
+
+@subheading Deploying
+
+For instructions on deploying with the Roadsend Studio IDE on Windows,
+@pxref{Deploying Your Project}
+
+On Unix, you may either @ref{Shared vs Static,link statically} or
+include the necessary runtime libraries.
+
+The appropriate Roadsend runtime libraries can be found in the
+@file{runtime} package, freely available on the roadsend.com website.
+
+
+@c @menu
+@c * Precompiled Extensions::      
+@c @end menu
+
+@c @node Multiple Source Files, Compiling With a Library, Working With Console Applications, Working With Console Applications
+@c @subsection Multiple Source Files
+
+@c Larger applications will almost certainly make use of multiple source files. To compile a stand alone application
+@c with multiple source files, simply use the PHP @code{include} or @code{require}  functions
+@c as you normally would. By default, the compiler will compile all files that are included from your main source
+@c file.
+
+
+@c @strong{Multiple Source Files}
+
+@c @image{resources/multi-source-app,,,,png}An illustration of a stand alone application built from multiple source files
+
+@c @strong{Multiple Source Files}
+
+@c @noindent
+@c @file{support1.inc}
+
+@c @example
+
+@c     <?php
+
+@c     function main_function() @{
+
+@c         echo "this function is defined in support1.inc\n";
+    
+@c     @}
+
+@c     ?>
+    
+@c @end example
+
+@c @noindent
+@c @file{support2.inc}
+
+@c @example
+
+@c     <?php
+
+@c     function other_function() @{
+
+@c         echo "this other function is defined in support2.inc\n";
+    
+@c     @}
+
+@c     ?>
+    
+@c @end example
+
+@c @noindent
+@c @file{my_app.php}
+
+@c @example
+
+@c     <?php
+
+@c         require("support1.inc");
+@c 	require("support2.inc");
+
+@c 	// defined in support1.inc
+@c 	main_function();
+
+@c 	// defined in support2.inc
+@c 	other_function();
+
+@c     ?>
+    
+@c @end example
+
+@c @noindent
+@c To compile the script into a stand alone application, including compiling the source files @file{support1.inc}
+@c and @file{support2.inc}, simply use the command line:
+
+@c @example
+
+@c     $ pcc my_app.php
+  
+@c @end example
+
+@c @noindent
+@c Roadsend PHP will compile the source from both included files, as well as all top level code in the main file, into one
+@c resulting binary @file{my_app}.
+
+@c @example
+
+@c $ ./my_app
+@c this function is defined in support1.inc
+@c this other function is defined in support2.inc
+  
+@c @end example
+
+@c @node Using a Compiled Library, Precompiled Extensions, Working With Console Applications, Working With Console Applications
+@c @subsection Using a Compiled Library
+
+@c You can tell the compiler to use a library with the @code{-u} or @code{--use} switch. Roadsend PHP
+@c will load the libraries before it compiles so it knows which routines are available. If your script calls @code{include}
+@c on a file that is available in the library, the library version will be used instead.
+
+@c For example, suppose you have obtained a library file @file{php-lib.so} 
+@c that contains the function @code{foo()}, originally existing in a source file named 
+@c @file{routines.php} (if you created the library yourself you would have this information, if you obtained
+@c it from a third party it should be given to you as part of the documentation).
+@c You have placed the library in the appropriate library directory (see 
+@c (@pxref{Installing Libraries})) and now wish to use the function in a stand alone
+@c application. Your source file might look like this (@file{my_app.php})
+
+@c @example
+
+@c       <?php
+          
+@c           // even though this file is compiled into our library, we need
+@c 	  // to initialize it and tell the compiler where to find it
+@c           include('routines.php');
+
+@c 	  // call the library function
+@c 	  foo('some value');
+
+@c       >?>
+    
+@c @end example
+
+@c @noindent
+@c Notice that even though @file{routines.php} is coming from a library, we still do the standard 
+@c @code{include} call to tell the compiler where to find the routine we are looking for.
+
+@c To compile this stand alone application properly, we need to tell Roadsend PHP at compile time that it should
+@c be using the @file{php-lib} library, and that it should check there first if it encounters
+@c any @code{include} statements (which in our example it will).
+
+@c @example
+
+@c       $ pcc -u php_lib my_app.php
+    
+@c @end example
+
+@c @node Precompiled Extensions,  , Working With Console Applications, Working With Console Applications
+@c @subsection Precompiled Extensions
+
+@c The following precompiled extension libraries are included with the distribution. These are used the
+@c same way as libraries (with the @code{-u} flag) however they may already be included in
+@c the default compile, depending on your @file{pcc.conf} settings. (see note below).
+
+@c @itemize 
+
+@c @item
+@c php-std
+
+@c The standard library which includes all basic PHP functions. You always want this.
+
+@c @item
+@c php-pcre
+
+@c The Perl Compatible Regular Expression library
+
+@c @item
+@c php-xml
+
+@c The XML library based on libxml2
+
+@c @item
+@c php-mysql
+
+@c The MySQL database library
+
+@c @item
+@c php-curl
+
+@c The cURL networking library
+
+@c @item
+@c php-gtk
+
+@c The PHP-GTK GUI library
+@c @end itemize
+
+@c @quotation
+
+@c @strong{Note}
+
+@c @noindent
+@c There are several libraries that are included in the compile by default, such as the Standard
+@c extension library. These are specified in the configuration
+@c file with the @code{default-command line-lib} directive. In order to avoid adding the same
+@c set of common libraries to every command line, you can add them to this directive instead. See 
+@c (@pxref{Configuration}).  
+@c @end quotation
+
+@node Working With Desktop GUI Applications, Working With Libraries, Working With Console Applications, Command Line Use
+@section Working With Desktop GUI Applications (PHP-GTK)
+
+@subheading Compiling
+
+Compiling a Desktop GUI Application in Unix is the same as compiling a
+normal console application, with the addition of the @var{--gui}
+command line option. This option ensures the correct libraries are
+linked into the final executable. 
+
+You should specify the project @var{main file} as the first source
+file on the command line, then list all additional source files to be compiled. 
+
+@example
+pcc --gui gtkmain.php pfile1.php pfile2.php
+@end example
+
+On Windows you can also use the @var{--resource} option to specify a
+Windows Resource file that can be compiled in with the project. In
+this way an icon can be compiled into the resulting @file{.EXE} file. 
+
+Assuming the following example resource file @file{sample.rc} contains:
+
+@code{
+1 ICON "C:\\roadsend\\projects\\php_file.ico"
+}
+
+You can use the following command in the Roadsend Commandline to
+produce a desktop GUI application with an icon in Windows:
+@example
+pcc --gui --resource sample.rc gtkmain.php
+@end example
+
+The Roadsend Studio IDE does this automatically when you select an
+icon file in the @ref{Project Properties - Project Options}.
+
+@subheading Deploying
+
+For instructions on deploying with the Roadsend Studio IDE on Windows,
+@pxref{Deploying Your Project}
+
+On Unix, you may either @ref{Shared vs Static,link statically} or
+include the necessary runtime libraries.
+
+The appropriate Roadsend runtime libraries can be found in the
+@file{runtime} package, freely available on the roadsend.com website.
+
+Other possible libraries required for a PHP-GTK application include the GTK,
+Glade and/or related graphics libraries for your distribution.
+
+@node Working With Libraries, Using The Step Debugger, Working With Desktop GUI Applications, Command Line Use
+@section Working With Libraries
+
+Compiling a library enables you to modularize your code by putting
+common routines in one place so that different applications may make
+use of them without reimplementing the same functionality. In Open
+Source PHP, this is normally done through the use of the
+@code{include} and @code{require} directives. Roadsend PHP emulates
+this behavior but also allows those included files
+to be precompiled libraries rather than interpreted scripts.
+
+@image{resources/using-libs,,,,png}
+
+@subheading Compiling Libraries
+
+To create a compiled library, call @file{pcc} with the @code{-l}
+switch, followed by a library name, then the list of source files to
+be included in the library.
+
+@example
+pcc -l libraryname <file1 file2 ... fileN>
+@end example
+
+@noindent
+For example, to make a library named @file{test-lib} call
+
+@example
+pcc -l test-lib libfile1.php libfile2.php libfile3.php
+@end example
+
+@noindent
+This would produce a binary library file (such as "@file{libtest-lib.so}" on Linux) that would contain
+the compiled routines from the source files @file{libfile1.php}, @file{libfile2.php} and
+@file{libfile3.php}.
+
+@c Instead of specifying a list of source files, you may instead specify a directory. Roadsend PHP will search the
+@c directory for all files matching the extensions listed in the @code{default-compile-ext} directive in @file{pcc.conf},
+@c or matching the list of extensions passed on the command line via the @code{--extensions} option. For example:
+
+@c @example
+@c $ pcc -l test-lib ./
+@c using files from directory ./ with extensions from list (php inc) found: (./libfile1.php ./libfile2.php ./libfile3.inc)
+@c preprocessing ./libfile1.php (1 of 3)
+@c preprocessing ./libfile2.php (2 of 3)
+@c preprocessing ./libfile3.inc (3 of 3)
+@c ...
+@c @end example
+
+Roadsend PHP will create a binary object file (.o) for each source
+file in the library. If you change a source file and wish to rebuild
+the library, Roadsend PHP will only recompile those files that have
+changed. You can force a full rebuild with the @code{--force-rebuild} option.
+
+The files important for installation and deployment generated during a
+library build include:
+@itemize
+@item
+@file{liblibname_u.so} - The dynamically linked library
+@item
+@file{liblibname_u.a} - The statically linked library
+@item
+@file{libname.heap} - Library helper file
+@item
+@file{libname.sch} - Library helper file
+@end itemize
+
+@menu
+* Installing Libraries::        
+* Using Libraries::             
+@end menu
+
+@node Installing Libraries, Using Libraries, Working With Libraries, Working With Libraries
+@subsection Installing Libraries
+
+The library files that Roadsend PHP generates need to be installed in a directory where they can be accessed
+at runtime by programs which were built to use them.  This directory is configurable via the @file{pcc.conf} 
+configuration file with the @code{library} directive (@pxref{Configuration}).
+
+The Roadsend Studio IDE allows installation of libraries
+@ref{Deploying Your Project,directly from the IDE}. 
+
+
+Roadsend PHP also provides a command line a mechanism for installing libraries into the proper directory. 
+To use it, specify the @code{--install} command line option, in addition to the library name:
+
+@example
+
+      $ pcc --install -l test-lib
+      Roadsend PHP Compiler
+      [1] /usr/local/lib/pcc-lib/
+      [2] /usr/lib/roadsend/
+      select an install directory:
+    
+@end example
+
+@noindent
+Roadsend PHP will give you the option of installing into any of the directories listed in your @file{pcc.conf} file. After
+selecting a directory for installation, the proper files will be copied and the library will be available
+for use.
+
+@node Using Libraries,  , Installing Libraries, Working With Libraries
+@subsection Using Libraries
+
+To use the functions and classes from a compiled library, you must:
+@itemize
+@item
+Ensure the library is available in the @ref{Installing Libraries,library path}
+@item 
+Ensure the library is loaded by the compiler
+@item
+@code{include} the library source file in your project
+@end itemize
+
+The compiler must know that you want to make use a compiler
+library. You can accomplish this in two ways. The first is to specify
+the library on the command line with the @code{-u} option.
+
+This example assumes a library named @file{mylib} was built and
+installed to the library path, and the @file{main.php} program wishes to use functions
+from the library.
+
+@example
+$ pcc -u mylib main.php
+@end example
+
+Alternatively, if you want to include @file{mylib} as one of the
+default libraries used during all builds, you can add it to
+@var{default-commandline-lib} in the @ref{Configuration,configuration file}.
+
+Finally, the project that wants to make use of a library must still
+@code{include} or @code{require} the source file from the library that
+it wants to use.
+
+For example, if the @file{mylib} example library above included a source file
+@file{foobar.php} that contains function @code{library_function} that @file{main.php}
+wishes to use, it must call:
+
+@example
+<?
+
+// include from compiled library
+include('foobar.php');
+
+// now we can run a function from the compiled library mylib 
+library_function();
+
+?>
+@end example
+
+@c @node Library Command Line Options,  , Installing Libraries, Working With Libraries
+@c @subsection Library Command Line Options
+
+@c There are several command line options related to the creation of libraries. They are explained below.
+
+@c @itemize 
+
+@c @item
+@c --clean
+
+@c This option will cause Roadsend PHP to clean all build files (@file{*.o}) associated with the specified library.
+@c This is useful to keep your source tree tidy, or to rebuild all source files in a library. 
+@c Note this option requires both
+@c a -l specifying the library name, and a list of source files. 
+@c See also --force-rebuild
+
+@c @item
+@c --force-rebuild
+
+@c This option will cause Roadsend PHP to rebuild all source files in a library, even if a current object file is found
+@c each source file. Note this option requires both
+@c a -l specifying the library name, and a list of source files. 
+
+@c @item
+@c --extensions
+
+@c This options specifies a comma delimited list of extensions that Roadsend PHP will use to automatically find source files
+@c for a library. If you specify a directory instead of a list of library files, Roadsend PHP will search the directory specified
+@c and compile all files that match the extensions into the library.
+
+@c @example
+
+@c 	$ ls
+@c 	lib1.inc lib2.php
+@c 	$ pcc --extensions inc,php -l my-lib ./
+@c 	using files from directory ./ with extensions from list (inc php)
+@c 	...
+      
+@c @end example
+
+@c @noindent
+@c You may also specify the list in the configuration file with the @code{default-compile-ext}
+@c directive. See  (@pxref{Configuration}).
+
+@c @item
+@c --strip-path
+
+@c This advanced option can be used to strip internal paths from certain library source files. Normally
+@c to access a library file from an application, you must call @code{include} on its filename as it was relative to
+@c its root directory in the library. For example, assume a library consisted of the following files:
+
+@c @example
+
+@c 	$ ls -R
+
+@c 	.:
+@c 	main-lib.php
+
+@c 	./admin:
+@c 	lib-file1.php lib-file2.php
+
+@c 	./admin/support:
+@c 	lib-support1.php
+      
+@c @end example
+
+@c @noindent
+@c To get access to the routines in @file{lib-support1.php} 
+@c (which is in the @file{admin/support/} directory) from an application you would have to
+@c call:
+
+@c @example
+
+@c 	include('admin/support/lib-support1.php');
+      
+@c @end example
+
+@c @noindent
+@c However if you create the library with "--strip-path admin/support/" you would instead be able to call simply:
+
+@c @example
+
+@c 	include('lib-support1.php');
+      
+@c @end example
+
+@c @noindent
+@c Unless you are sure you need this option, it's best left unused.
+@c @end itemize
+
+
+@node Using The Step Debugger, Using The Profiler, Working With Libraries, Command Line Use
+@section Using The Step Debugger
+
+This part of the manual describes the command line debugger. To use
+the Integrated Step Debugger in the Roadsend Studio IDE,
+@pxref{Debugging Your Project}.
+
+To begin a debugging session, call pcc with the @code{-g} argument,
+along with the file you wish to debug (the @emph{main file} of your
+project).
+
+@example
+$ pcc -g main.php
+@end example
+
+You will be given the debugger prompt. At this point, your program is
+in Pause mode and has not yet been executed. Use the @code{h} command
+to get a list of debugging commands available:
+
+@example
+(pdb) h
+Most commands can be abbreviated.  When single-stepping,
+hitting enter is the same as the command 's', or 'step'.
+Commands available:
+help, quit, step, next, continue, reset, backtrace, list,
+$<var>, break <function>, clear <function>, clearall, locals.
+@end example
+
+@subheading Debugging Command Overview
+
+@table @var
+@item help
+Display the command list
+@item quit
+Quit the debugging session
+@item run
+Run the program
+@item step
+Step a single line of source code (tracing into functions)
+@item next
+Step a single line of source code (stepping over functions)
+@item continue
+Continue running the program until it finishes, a breakpoint is
+reached, or an error occurs
+@item reset
+Reset the program to it's initial state
+@item backtrace
+View the current function call stack
+@item list
+Show the current position in the source code
+@item $<var>
+View the current value of variable <var>
+@item break <function>
+Set a breakpoint on function <function>
+@item clear <function>
+Clear breakpoint on function <function>
+@item clearall
+Clear all breakpoints
+@item locals
+Show the current list of local variables
+@end table
+
+Pressing enter at the prompt will execute the last command issued. You
+can press Ctrl-Break while the program is running to pause the program
+at its current execution point.
+
+@node Using The Profiler,  , Using The Step Debugger, Command Line Use
+@section Using The Profiler
+
+To use the Source Level Profiler, add the @code{--profile} command
+line option to your build:
+
+@example
+$ pcc --profile myapp.php
+@end example
+
+When you run the resulting binary file (@file{myapp} on Unix,
+@file{myapp.exe} on Windows), a human readable text file named
+@file{myapp.profile} will be generated.
+
+@example
+$ ./myapp
+$ cat myapp.profile
+Time            Calls           Time/call               Sig
+30.157857       30              1.0052619               sleep
+8.87            30              2.9566666               foo
+3.21            1               3.21                    myapp.php
+2.63            10              2.63                    bar
+
+
+Edge                    Calls
+foo  ->  php-sleep      (30)
+bar  ->  foo            (20)
+myapp.php  ->  bar      (10)
+myapp.php  ->  foo      (10)
+@end example
+
+The first section describes which functions were called, how many
+times, the total time spent in that function and the average time per call.
+
+The second section describes which functions called which other
+functions, and how many times. 
+
+@c ----------------------------------------
+
+@node Roadsend Studio IDE, Reference, Command Line Use, Top
+@chapter Roadsend Studio IDE
+
+@menu
+* Roadsend Studio Introduction::  
+* Obtaining A License::         
+* IDE Layout::                  
+* IDE Basics::                  
+* IDE Configuration::           
+* Editor Configuration::        
+* Working With Projects::       
+@end menu
+
+@node Roadsend Studio Introduction, Obtaining A License, Roadsend Studio IDE, Roadsend Studio IDE
+@section Introduction
+
+The Roadsend Compiler Studio is an Integrated Development Environment
+(IDE) for the Roadsend Compiler for PHP. It offers:
+
+@itemize
+@item
+Programmer's text editor
+@item 
+Project management
+@item 
+Code complete
+@item 
+Integrated compiling
+@item
+Step debugging
+@item
+Deployment
+@end itemize
+
+The editor includes features such as syntax highlighting, auto indent,
+line numbering, multiple undo/redo, find, and search and replace.
+
+The @ref{What is Tagging?,tagging system} provides fast visual access to all of the
+constants, functions, and class methods and variables defined in your project, as well as a list of built
+in functions. It also
+provides auto-completion of class methods and properties, and
+parameter completion of functions and methods.
+
+The project manager maintains project files, sets up compiler options,
+and handles building the project files into executables, libraries, or
+web applications.
+
+The @ref{Debugging Overview,integrated step debugger} allows you to step line by line through
+your source code. You can see the current list of local variables
+(with their values) and the call stack updated in real time. You can
+set breakpoints in your program which will pause the program on the
+specified line.
+
+When you're ready to deploy, the project manager will help you package
+your finished product.
+
+@node Obtaining A License, IDE Layout, Roadsend Studio Introduction, Roadsend Studio IDE
+@section Obtaining A License
+
+Before interpreting or compiling a project, you must obtain and install
+a license file.
+
+If you have not installed a license yet, the IDE will allow you to do
+so when the program starts. You may also click on Tools -> License (in
+the main menu) to get to the license request form. Alternatively, you
+can request a license online by
+@uref{http://www.roadsend.com/p/licenseManager/licenseRequestForm.php, clicking here}.
+
+The license system works by contacting the Roadsend license server and
+requesting a license based on your member account. If you have not
+already done so, you just create a member and either request a trial
+version or purchase a license. You can access the Roadsend web site by
+@uref{http://www.roadsend.com/home/index.php?pageID=purchase, clicking here}.
+
+Once you have a username and password, you may proceed with the
+license request.
+
+@image{resources/lic-1,,,,png}
+
+Enter your roadsend.com Username and Password, then click Login.
+
+@image{resources/lic-2,,,,png}
+
+After successfully logging in you will be presented with a list of
+licenses that your account is authorized for. Simply select a license
+and click Install to proceed with the license installation.
+
+After the license is installed you will be able to build, debug and
+deploy your projects.
+
+@node IDE Layout, IDE Basics, Obtaining A License, Roadsend Studio IDE
+@section IDE Layout
+ 
+@menu
+* IDE Layout - Editor Tabs::    
+* IDE Layout - Project File List::  
+* IDE Layout - File Code Browser::  
+* IDE Layout - Project Code Browser::  
+* IDE Layout - Build Output::   
+* IDE Layout - Program Output::  
+* IDE Layout - HTML Output::    
+@end menu
+
+@image{resources/main-1,,,,png}
+
+@node IDE Layout - Editor Tabs, IDE Layout - Project File List, IDE Layout, IDE Layout
+@subsection IDE Layout - Editor Tabs
+
+This is the area for editing multiple source files, each in its own
+tab. Select which source file to edit by clicking on its tab, or close a tab by clicking on the
+tab's close (X) icon.
+
+Open a file through the File menu, the Toolbar, or by selecting
+a file in the Project File List (@pxref{IDE Layout - Project File
+List}). 
+
+An editor may also be opened automatically if:
+@itemize
+@item
+A syntax or runtime error was detected by the compiler
+@item
+If you "step" into the file with the debugger. 
+@end itemize
+
+In these cases, the editor will open to the line that is active or that caused the error.
+
+@node IDE Layout - Project File List, IDE Layout - File Code Browser, IDE Layout - Editor Tabs, IDE Layout
+@subsection IDE Layout - Project File List
+
+@image{resources/pfile-browse-1,,,,png}
+
+This area displays a tree view of the files in the current
+project. Clicking on the + and - icons will open or close different
+directories in the source tree.
+
+Right clicking on the file tree allows you to:
+
+@itemize @bullet
+@item
+Open the selected file for editing
+@item
+Add a project file
+@item
+Remove selected project file
+@item
+Set the selected file to be the @ref{Project Main File}
+@item
+Expand or collapse the entire source tree
+@end itemize
+
+@node IDE Layout - File Code Browser, IDE Layout - Project Code Browser, IDE Layout - Project File List, IDE Layout
+@subsection IDE Layout - File Code Browser
+
+@image{resources/file-browse-1,,,,png}
+
+This area displays a tree view of the @ref{What is Tagging?,tags} for
+all source files that are currently open. Each file will be listed as
+a root item with its tags underneath, in alphabetical order.
+
+Double clicking on a tag will jump to the line in the project source where
+that symbol was defined, opening the file into a new editor tab if necessary.
+
+Note: If tagging is disabled, this area will be blank. 
+
+@node IDE Layout - Project Code Browser, IDE Layout - Build Output, IDE Layout - File Code Browser, IDE Layout
+@subsection IDE Layout - Project Code Browser
+
+@image{resources/code-browse-1,,,,png}
+
+This area displays a tree view of all the @ref{What is Tagging?,tags}
+for:
+
+@itemize
+@item
+Current project
+@item
+@ref{Project Properties - Linked Projects, Linked projects}
+@item
+Built in functions and classes from the various runtime extensions
+@end itemize
+
+This includes all classes (with their methods and properties), global
+functions, and constant definitions.
+
+Double clicking on a tag will open the file to the line where the
+symbol was defined, or if it is a tag from a built in extension the
+tag will be inserted into the current editor.
+
+Note: If tagging is disabled, this area will only list built in extension tags. 
+
+@node IDE Layout - Build Output, IDE Layout - Program Output, IDE Layout - Project Code Browser, IDE Layout
+@subsection IDE Layout - Build Output
+
+This area displays:
+@itemize
+@item
+Compiler debug output during a project build
+@item
+Output to @code{stderr} (standard error port) from projects when they
+are executed in the IDE
+@end itemize
+
+If there are any @strong{compile time errors} during a build, the
+error will be highlighted and an editor will be opened to the source
+file that the error occurred in. If there are any @strong{runtime errors}
+while your program is running or being debugged, they will also show
+up in the build window.
+
+Double clicking on an error line will open an editor to the selected
+source file.
+
+You may increase the amount of debug output shown in this window by
+adjusting the Debug Level option in the IDE Configuration (@pxref{IDE Configuration}).
+
+@subsubheading Saving Build Output
+
+Right clicking on the build output will allow you to clear or save the output to a file. 
+
+@node IDE Layout - Program Output, IDE Layout - HTML Output, IDE Layout - Build Output, IDE Layout
+@subsection IDE Layout - Program Output
+
+This area displays:
+@itemize
+@item
+Compiler progress during a project build
+@item
+@code{stdout} (standard output) from a running program when it is
+executed in the IDE
+@end itemize
+
+You can also view the program output as a web page. @xref{IDE Layout - HTML Output}. 
+
+@node IDE Layout - HTML Output,  , IDE Layout - Program Output, IDE Layout
+@subsection IDE Layout - HTML Output
+
+This window allows you to view the output from your program as a web
+page by displaying it in an integrated Internet Explorer window.
+
+If you wish to view the raw text output from your program instead, use
+the Output Window.
+
+@strong{NOTE:} Output displayed in this page is static. You will not be
+able to click on any HTML links that may be displayed. The HTML output is
+only for viewing and is not interactive.
+
+If you wish to work with a web project interactively, you can make a
+@ref{Stand Alone Web Applications (MicroServer),stand alone web
+application project}.
+
+@node IDE Basics, IDE Configuration, IDE Layout, Roadsend Studio IDE
+@section Basics
+
+
+@menu
+* Roadsend Studio IDE - Project Types::  
+* What is Tagging?::            
+@end menu
+
+@c @node What can I do with Roadsend Studio and Compiler?, What is Tagging?, IDE Basics, IDE Basics
+@c @subsection What can I do with Roadsend Studio and Compiler?
+
+@c # Sell stand-alone applications compiled from your PHP code  does not require an interpreter
+@c # compile entire source tree to one executable
+@c # allows you to distribute easily
+@c # once compiled, irreversible to original PHP source code
+
+@c Compile libraries
+@c # create dynamic shared reusable libraries (.so / .dll)
+@c # multiple applications can share same libraries
+@c # support multiple library versions
+@c # support for static libraries
+@c # libraries usable by stand-alone, web, and interpreted applications
+
+@c Compile web applications
+@c # run compiled code directly from Apache
+@c # web server code is secure from unauthorized view
+@c # simplify website application distribution and backup
+
+@c Interpreted mode
+@c # execute PHP directly from source code without compiling
+@c # save time during development
+@c # allows you to debug easily
+@c # distribute library to clients without requiring them to compile
+@c # integrate existing PHP code with compiled code
+@c # access compiled library directly from the command line
+
+@c Debug
+@c # Integrated step debugger
+@c # Breakpoints, Step Into, Step Over
+@c # Pause running program
+@c # View Local Variables and Call Stack
+@c # Mouse-over variable inspection 
+
+@c Compatibility
+@c # runtime and extension API are compatible with Open Source PHP 4.3.x
+@c # includes Standard, MySQL, PCRE, XML, Posix, and GTK/Glade extensions
+
+@c Royalty Free distribution
+@c # sell or give away unlimited, untimed copies of your compiled application
+
+@c Profile Mode
+@c # built-in source level profiler helps you optimize your code
+
+@node Roadsend Studio IDE - Project Types, What is Tagging?, IDE Basics, IDE Basics
+@subsection Roadsend Studio IDE - Project Types
+
+The Roadsend Studio IDE can build all of the following project types
+to run on Microsoft Windows NT/2000/XP:
+
+@itemize
+@item Console Applications
+@item Online Web Applications (FastCGI)
+@item Desktop GUI Applications (PHP-GTK)
+@item Stand Alone Web Applications (MicroServer)
+@item Libraries
+@end itemize
+
+Note that some project types are inaccessible in the Personal version
+of the Roadsend Compiler.
+
+For more information on the project types, @xref{Project
+Type Overview}.
+
+@node What is Tagging?,  , Roadsend Studio IDE - Project Types, IDE Basics
+@subsection What is Tagging?
+
+A "tag" is a PHP symbol (such as a class name, global function name,
+or constant variable) along with information such as which source file and line
+number the symbol was defined on.
+
+When tagging is enabled, Roadsend Studio will collect this information
+for all project files and all files opened in the editor. This allows
+the IDE to automatic help while you code, such as parameter completion
+and class/method auto completion. 
+
+Tags are also used to generate the @ref{IDE Layout - File Code
+Browser,File Code Browsing} and @ref{IDE Layout - Project Code
+Browser, Project Code Browsing} trees. These trees display an
+alphabetical list of the symbols used in your project so that you can
+easily navigate to the various parts of a project.
+
+@subheading Searching For Tags
+
+Navigating the source code of a large project can take a great deal of
+time, especially if you are unfamiliar with the code. 
+
+Roadsend Studio allows you to search for a PHP symbol and jump
+directly to the source file where the symbol was defined.
+
+To search for a symbol, right click on it in the editor and select
+``Find <symbol>''. If there are multiple places in your project where
+the same symbol name is defined, you can jump to the next definition
+by again right clicking and selecting ``Find Next <symbol>''.
+
+@subheading Syntax Checking
+
+In addition to maintaining a list of symbols, tagging can spot syntax
+errors in your code before you interpret or compile it. When tagging
+is enabled, if you save a file with a syntax error in it you will be
+notified of the line where the syntax error occurs. The line will be
+highlighted in red.
+
+@c @node Code Autocomplete,  , What is Tagging?, IDE Basics
+@c @subsection Code Autocomplete
+
+
+@c @node Stand Alone Applications (IDE), Web Applications (IDE), Code Autocomplete, IDE Basics
+@c @subsection Stand Alone Applications
+
+@c Stand alone applications (otherwise known as Command Line Applications)
+@c are those that do not create a graphical window when they are
+@c run. They are usually run from a Command Prompt or as part of a system
+@c batch file. They may accept input on the command line, or may just
+@c generate output.
+
+@c Stand alone applications can be run from within the IDE. The output
+@c from the application will show up in the Output Window (@pxref{IDE Layout - Program Output})
+
+@c @node Web Applications (IDE), Windowed (GUI) Applications, Stand Alone Applications (IDE), IDE Basics
+@c @subsection Web Applications
+
+@c Web applications are projects that are compiled into a loadable
+@c library (.DLL) file which will be loaded from the Roadsend Apache
+@c module and used to serve web pages.
+
+
+@c @node Windowed (GUI) Applications, Libraries (IDE), Web Applications (IDE), IDE Basics
+@c @subsection Windowed (GUI) Applications
+
+@c GUI applications are Windows programs that use the GTK library to handle windowing functionality. Users
+@c interact with the program through standard Windows features such as Forms, Buttons, Check Boxes, 
+@c Input Boxes and the like.
+
+
+@c @node Libraries (IDE),  , Windowed (GUI) Applications, IDE Basics
+@c @subsection Libraries
+
+@c Libraries do not have any functionality on their own, but can provide
+@c a set of common functionality to other projects. For example, a
+@c library may contain a set of common routines (classes or global
+@c functions) that are used by multiple Stand Alone Applications, GUI
+@c Applications or Web Applications.
+
+@node IDE Configuration, Editor Configuration, IDE Basics, Roadsend Studio IDE
+@section IDE Configuration
+
+This section of the manual describes the options found in the IDE
+Configuration dialog. It is opened by selecting Tools -> IDE Options
+from the main menu.
+
+These settings define how the IDE interacts with the Roadsend
+compiler, tagger and debugger. It also provides a means of changing
+the options that affects how these facilities function.
+
+@menu
+* IDE Configuration - General::  
+* IDE Configuration - Compiler::  
+* IDE Configuration - File Extensions::  
+* IDE Configuration - Paths::   
+* IDE Configuration - Libraries::  
+* IDE Configuration - Web Applications::  
+* IDE Configuration - INI Settings::  
+@end menu
+
+@node IDE Configuration - General, IDE Configuration - Compiler, IDE Configuration, IDE Configuration
+@subsection IDE Configuration - General
+
+@image{resources/idec-1,,,,png}
+
+The General options tab of the IDE configuration allows you to configure basic options related to the IDE. 
+
+@subheading Options
+
+
+@table @var
+@item Show Splash Screen
+Allows you to determine whether the splash screen is displayed when the IDE is loaded.
+
+@item Create Backups 
+When checked a backup file will be created every time an editor file is
+saved. It will be in the format @file{filename.ext~}
+
+@item Remember Workspace 
+When checked, Roadsend Studio will automatically save which project
+and source files you were editing when the project or the IDE was
+closed. These files will be reopened the next time the IDE is started
+or the project is opened.
+
+@end table
+
+@subheading Defaults
+
+@table @var
+@item Debug Level 
+This setting affects the verbosity level of the compiler while
+building a project. Higher values will cause more verbose debug output to be
+displayed in the @ref{IDE Layout - Build Output, Build Output} window.
+
+@itemize
+@item 0
+No debug output
+@item 1
+Show detailed view of files being compiled and some informational messages
+@item 2
+Show detailed view of files being compiled, more informational messages, and external command output
+@end itemize
+
+
+@end table
+
+@subheading Compiler Configuration File
+
+@table @var
+@item pcc.conf 
+This file is the main configuration file for the Roadsend
+Compiler. Click Browse to choose a file already on disk. The compiler
+and interpreter will both use the options found in this file.
+
+@end table
+
+@subheading Project Defaults
+
+@table @var
+@item Project Directory 
+The default project directory. When you create a new
+project, it will be located here by default. Click Browse to find a
+directory on disk, or create a new directory.
+
+@end table
+
+@node IDE Configuration - Compiler, IDE Configuration - File Extensions, IDE Configuration - General, IDE Configuration
+@subsection IDE Configuration - Compiler
+
+@image{resources/idec-2,,,,png}
+
+@subheading General Options
+
+@table @var
+@item Enable Tagging 
+Check this box to enable @ref{What is Tagging?,Tagging}.
+
+@item Enable Debugging 
+Check this box to enable @ref{Debugging Overview,Debugging}.
+
+@end table
+
+@subheading Compiler Programs
+
+@table @var
+@item Compiler  
+The Roadsend Compiler executable. You shouldn't need to adjust this.
+@item Tagger   
+The Roadsend Compiler tagger executable. You shouldn't need to adjust this.
+@end table
+
+To verify the compiler has been found, click the Test Settings button. 
+
+@node IDE Configuration - File Extensions, IDE Configuration - Paths, IDE Configuration - Compiler, IDE Configuration
+@subsection IDE Configuration - File Extensions
+
+@image{resources/idec-3,,,,png}
+
+Use this form to add/remove file extensions for the three main file
+types that Roadsend Studio supports (PHP, HTML, XML).
+
+To add a file extension:
+
+@enumerate
+@item 
+Click Add next to the file type you wish to add to
+@item 
+Enter a file extension without a period, i.e. "php"
+@end enumerate
+
+To remove a file extension:
+
+@enumerate
+@item
+Select the extension from the list you wish to remove from
+@item
+Click that list's associated Remove button
+@end enumerate
+
+@subheading Associate/Disassociate PHP Files:
+
+This option allows you to associate the list of PHP extensions in the
+Windows Explorer so that the Roadsend IDE is the default program for opening
+the specified file types.
+
+@node IDE Configuration - Paths, IDE Configuration - Libraries, IDE Configuration - File Extensions, IDE Configuration
+@subsection IDE Configuration - Paths
+
+@image{resources/idec-4,,,,png}
+
+Specify the paths the Roadsend Compiler will use to find libraries and
+include files.
+
+The @strong{Home Directory} is the installation directory of the compiler.
+
+The @strong{Include} list is a list of directories that will be
+searched when a file needs to be found for the @code{require} or
+@code{include} PHP functions. It is analogous to the
+@code{include_path} in Open Source PHP.  You may click Browse to add a
+directory on disk, or double click a current entry to edit.
+
+The @strong{Library} list is a list of directories that will be searched for
+when an extension library is to be loaded. You may click Browse to add
+a directory on disk, or double click a current entry to edit.
+
+To remove an entry from the Include or Library directory list, select
+the directory and click Remove.
+
+@node IDE Configuration - Libraries, IDE Configuration - Web Applications, IDE Configuration - Paths, IDE Configuration
+@subsection IDE Configuration - Libraries
+
+@image{resources/idec-5,,,,png}
+
+Use this form to define the list of Default Extension Libraries used by the
+Roadsend Compiler to interpret and compile your projects.
+
+The list of available libraries is compiled by scanning your Library Path
+and searching for valid PHP extension libraries. You may add your own
+libraries to this list by @ref{Deploying Your Project,deploying} them into a directory in your
+@ref{IDE Configuration - Paths,Library path}. Click refresh to update the list.
+
+@strong{Note:} A library must be included in this list (on the right side of
+the form) for your programs to access the functions from that
+library. For example, if you wish to use MySQL functions, then the
+"php-mysql" extension must be added to the list on the right (if it is
+not already). Otherwise you will receive a "Function Not Defined"
+error when you attempt to use a function from a library that is not
+included.
+
+Conversely, if you do not have MySQL installed and you will not be
+using it, you would remove "php-mysql" from the list so that you do
+not receive linker warning messages for a non-existent library.
+
+@node IDE Configuration - Web Applications, IDE Configuration - INI Settings, IDE Configuration - Libraries, IDE Configuration
+@subsection IDE Configuration - Web Applications
+
+@image{resources/idec-6,,,,png}
+
+This form defines the list of extension libraries loaded by the
+@ref{Working With Web Applications,FastCGI module} when serving
+interpreted and compiled web applications. It is analogous to the
+Library list, but is used by the FastCGI interpreter module instead of
+the compiler.
+
+All libraries that are used by your web applications should be added
+to the right side of the form.
+
+@node IDE Configuration - INI Settings,  , IDE Configuration - Web Applications, IDE Configuration
+@subsection IDE Configuration - INI Settings
+
+@image{resources/idec-7,,,,png}
+
+This form allows you to define and maintain PHP INI options. These are a list
+of key/value pairs used by the Roadsend Compiler for compatibility
+with the corresponding options used by Open Source PHP.
+
+The values are used by interpreted console applications, interpreted web
+applications, and compiled web applications.
+
+@subheading To edit a value:
+
+Double click on the value to edit
+
+@subheading To remove an INI value:
+
+Select the key/value to remove by clicking on it, then click Remove Option
+
+@subheading To add a new INI value:
+
+Click New Option. A new, blank line will be added to the bottom of the list. Enter a key and value. 
+
+@node Editor Configuration, Working With Projects, IDE Configuration, Roadsend Studio IDE
+@section Editor Configuration
+
+This section of the manual describes the options found in the Editor
+Configuration dialog. It is opened by selecting Tools -> Editor Options
+from the main menu.
+
+These settings define how the text editor appears and functions.
+
+@menu
+* Editor Configuration - Display::  
+* Editor Configuration - Options::  
+* Editor Configuration - Keystrokes::  
+* Editor Configuration - Colors::  
+@end menu
+
+@node Editor Configuration - Display, Editor Configuration - Options, Editor Configuration, Editor Configuration
+@subsection Editor Configuration - Display
+
+@image{resources/editorc-1,,,,png}
+
+This tab controls the overall appearance and functionality of the editor.
+
+@subheading Gutter
+
+This group controls options related to the "gutter". This is the vertical panel that shows up next to each text editor.
+
+@table @var
+@item Visible
+Controls the visibility of the gutter
+@item Show line numbers 
+When checked, line numbers will be shown
+@item Start at zero
+When showing line numbers, this determines whether they start at 0 or 1
+@item Show leading zeros 
+When showing line numbers, whether to show leading zeros as in 001, 002
+@item Use Gutter Font 
+Whether to specify the font used in the gutter, or to use the default
+@item Gutter Color  
+The color of the gutter panel
+@end table 
+
+@subheading Right Edge
+
+The Right Edge is a line drawn in the editor to denote a certain column in the editor.
+
+@table @var
+@item Edge Column
+The column (character position) to draw the line at
+@item Edge Color
+The color of the edge column line
+@end table
+
+@subheading Line Spacing / Tab Spacing
+
+This group allows you to control tab and line spacing.
+
+@table @var
+@item Extra Lines
+Number of extra lines to include per line break
+@item Tab Width  
+Number of characters a tab represents  
+@end table
+
+@subheading Bookmarks
+
+Bookmarks can be used to rapidly return to a position in your editor
+window. Hole down @code{Shift-Ctrl-0} to set the first bookmark,
+and @code{Ctrl-0} to jump to the first bookmark. Use numbers 0-9 to
+set the respective bookmark. 
+
+Each editor tab has its own set of bookmarks. The key strokes can be
+customized in the @ref{Editor Configuration - Keystrokes, Keystrokes}
+section.
+
+@table @var
+@item Bookmark keys 
+Must be checked to allow the setting and navigating of bookmarks
+@item Bookmarks visible 
+When checked, and icon will appear in the editor denoting the location of a bookmark 
+@end table
+ 
+@subheading Editor Font
+
+Allows you to select the font used in the editor
+
+@node Editor Configuration - Options, Editor Configuration - Keystrokes, Editor Configuration - Display, Editor Configuration
+@subsection Editor Configuration - Options
+
+@image{resources/editorc-2,,,,png}
+
+An array of options that determine exactly how the editor functions.
+
+@table @var
+@item Auto Indent   
+Automatically indent lines based on source context
+@item Drag and drop editing  
+Drag and drop selected text within the editor
+@item Drag and drop files  
+Open files by dragging and dropping them from Windows into the editor
+@item Alt sets column mode  
+Holding Alt while selecting text will select in a rectangle instead of line by line
+@item Maintain caret column  
+When moving up/down, caret stays in the same column
+@item Block Indent/Unindent  
+When a block of text is highlighted, use Tab/Shift-Tab to indent/unindent the selected code 
+@item Right mouse moves cursor 
+Whether a right mouse click will move the caret or keep its position
+@item Enhance home key  
+Attempt intelligent guess at where to place caret when pressing Home
+@item Half page scroll  
+Scroll by a half page instead of a full page when pressing Page Up/Page Down
+@item Scroll past end of line  
+Allow scrolling past end of line
+@item Scroll past end of file  
+Allow scrolling past end of file
+@item Show scroll hint  
+Show a scroll hint
+@item Scroll follows mouse  
+Scrolling follows movement of mouse
+@item Tabs to spaces   
+Whether to use real tabs or convert to spaces
+@item Trim trailing spaces  
+Whether to trim trailing spaces from end of line
+@item Group undo   
+Group actions together so undo will reverse a "group" action
+@item Disable scroll arrows  
+Don't allow scroll arrows
+@item Show special chars  
+Display "special" characters in the editor 
+@end table
+
+@node Editor Configuration - Keystrokes, Editor Configuration - Colors, Editor Configuration - Options, Editor Configuration
+@subsection Editor Configuration - Keystrokes
+
+@image{resources/editorc-3,,,,png}
+
+Configure the keystrokes used in the text editor. The current keystrokes are shown in the list.
+
+@subheading To Modify a Keystroke:
+
+@enumerate
+@item
+Select the keystroke to modify from the list. It will appear in the "Keystroke Options" section
+@item
+Click on the Keystroke box
+@item
+Type the keystroke you wish to use on your keyboard
+@item
+Click Update
+@end enumerate
+
+@subheading To Clear A Keystroke:
+
+@enumerate
+@item
+Select the keystroke to modify
+@item
+Click on the Clear button next to the keystroke you wish to clear
+@item 
+Click Update
+@end enumerate
+
+@subheading To Reset All Keystrokes:
+
+Click on the Reset To Defaults. This will reset all keystrokes to their default values.
+
+@node Editor Configuration - Colors,  , Editor Configuration - Keystrokes, Editor Configuration
+@subsection Editor Configuration - Colors
+
+@image{resources/editorc-4,,,,png}
+
+
+Configure the colors used to syntax highlight PHP files
+
+Colors are broken out into different syntax groups such as Comments,
+Identifiers and Keywords. Select a syntax group, then configure the
+Foreground, Background and Font Attributes for that group. Your
+changes will be immediately visible in the sample code shown on the
+lower portion of the page.
+
+To reset all colors to the defaults, click Reset. 
+
+@node Working With Projects,  , Editor Configuration, Roadsend Studio IDE
+@section Working With Projects
+
+@menu
+* Creating a new project::      
+* Project Main File::           
+* Project Properties::          
+* Building Your Project::       
+* Running Your Project::        
+* Debugging Your Project::      
+* Deploying Your Project::      
+@end menu
+
+@node Creating a new project, Project Main File, Working With Projects, Working With Projects
+@subsection Creating a new project
+
+To create a new project, select Project -> New from the Main Menu. If
+there is an open project or unsaved files, you will be prompted to
+save them first.
+
+You will be presented with the main Project Properties screen. 
+
+Enter at least:
+@itemize
+@item
+Project Name (only lowercase letters and @code{-} (dash))
+@item
+Project Configuration File
+@item
+Project Root Directory
+@item
+@ref{Project Type Overview,Project Type} 
+@end itemize
+
+Once you enter a project name, the project file and project directory
+will automatically update.
+
+Now you can @ref{Project Properties, configure project options} and
+@ref{Project Properties - Project Files, add source files}.
+
+@node Project Main File, Project Properties, Creating a new project, Working With Projects
+@subsection Project Main File
+
+The Main File of a project is the entry point into the program. This
+source file is executed first, and may @code{include} other source
+files. It should contain top level code that initializes the
+application and executes the main program logic.
+
+Not all project types require a main file (@pxref{Project Type Overview}).
+
+@node Project Properties, Building Your Project, Project Main File, Working With Projects
+@subsection Project Properties
+
+@menu
+* Project Properties - Project Options::  
+* Project Properties - Project Files::  
+* Project Properties - Compiler Options::  
+* Project Properties - Search Paths::  
+* Project Properties - Libraries::  
+* Project Properties - Linked Projects::  
+* Project Properties - Library Creation::  
+* Project Properties - Web Application::  
+* Project Properties - MicroServer App::  
+@end menu
+
+@node Project Properties - Project Options, Project Properties - Project Files, Project Properties, Project Properties
+@subsubsection Project Properties - Project Options
+
+@image{resources/projc-options,,,,png}
+
+This form allows you to edit properties that affect the way the project will be built.
+
+@subheading Project Configuration
+
+@table @var
+@item Project Name  
+Project name should be unique and contain only lowercase characters and - (dash)
+@item Project Directory 
+The directory where the project source tree is located
+@item Project File  
+The name of the project configuration/make file
+@item Project Type  
+Type of project to build. See Project Types
+@item Icon   
+Icon used for stand alone programs and GUI applications
+@item Install Path  
+Also know as Deploy Path, this is the directory where the project will
+be installed when the Deploy option is chosen from the Main Menu
+@end table
+
+@node Project Properties - Project Files, Project Properties - Compiler Options, Project Properties - Project Options, Project Properties
+@subsubsection Project Properties - Project Files
+
+@image{resources/projc-files,,,,png}
+
+Maintain the list of files included in a project and set the project Main File.
+
+
+@subheading To add files by selecting them individually from disk:
+@enumerate
+@item
+Click Add and select one or more files
+@end enumerate
+
+@subheading To add an entire source tree by extension:
+@enumerate
+@item
+Click Add Tree
+@item
+Select a root directory
+@item
+Set the list of extensions to add, or keep the default
+@item
+Click Add Matching Files
+@end enumerate
+
+@subheading To remove a file or files:
+
+@enumerate
+@item 
+Select one or more files go remove from the list
+@item
+Click Remove
+@end enumerate
+
+@subheading To set the project Main File:
+
+Select a file from the pull down list of current files. Click Reset to
+clear the current Main File.
+
+@strong{Note:} You may add any file type to the project including PHP, HTML,
+XML, Image Files, Glade dialogs, etc. The compiler will only tag and compile those
+files with extensions found in the PHP Extension List.
+
+@node Project Properties - Compiler Options, Project Properties - Search Paths, Project Properties - Project Files, Project Properties
+@subsubsection Project Properties - Compiler Options
+
+@image{resources/projc-comp-options,,,,png}
+
+@subheading Compile Options
+
+@strong{Build Type: Development or Optimized}
+
+This selects Development or Optimized build mode. In general, use 
+@var{Development} builds while developing your application, and
+@var{Optimized} builds when you are ready to Deploy.
+
+For a more detailed discussion on the difference between the builds, @pxref{Optimization}.
+
+@table @var
+@item Link Statically 
+When checked, the resulting binary will be statically
+linked. This results in a larger binary, but will not require certain
+runtime libraries (DLL's) that a dynamic build would (@pxref{Shared
+vs Static}).
+@item Generate Code for Source Level Profiling 
+When checked, the compiled binary will generate text files in the
+execution directory containing human readable source profiling information. 
+@end table
+
+@node Project Properties - Search Paths, Project Properties - Libraries, Project Properties - Compiler Options, Project Properties
+@subsubsection Project Properties - Search Paths
+
+@image{resources/projc-search-paths,,,,png}
+
+On this page you can specify per-project Include and Library path
+settings. These will be used in addition to the @ref{IDE Configuration
+- Paths,global settings}.
+
+
+@node Project Properties - Libraries, Project Properties - Linked Projects, Project Properties - Search Paths, Project Properties
+@subsubsection Project Properties - Libraries
+
+@image{resources/projc-libs,,,,png}
+
+On this page you can specify per-project extension Libraries. If your
+project uses a custom library (created by the Roadsend Compiler with a
+Library project), you should select it here.
+
+The list of libraries is compiled automatically by searching the global
+and per-project Library Paths. After you Deploy your library to a
+Library Path, press Refresh and select it for inclusion in this project.
+
+@node Project Properties - Linked Projects, Project Properties - Library Creation, Project Properties - Libraries, Project Properties
+@subsubsection Project Properties - Linked Projects
+
+@image{resources/projc-linked,,,,png}
+
+Use a Linked Project when your project depends on another (usually
+a library, such as PEAR). This allows you to use the tag files generated by the
+other project so that parameter completion and method proposal work
+with tags from the required library.
+
+For example, if your project uses the PEAR PHP library, you can create
+a separate project of the PEAR library files, then include it as a
+Linked Project for your own applications. This will allow you to
+browse the PEAR classes and get auto-complete help.
+
+To add a linked project, click Add and select a Project File.
+
+To remove a linked project, select it from the list and click Remove.
+
+Once a project has been linked, the tags from the linked project will
+show up in the Project Code Browser.
+
+@strong{Note}: The IDE will not refresh the tags from a linked projects. If the linked
+project has source changes that do not take place in the IDE itself
+(for example, the source files are edited directly with a text editor)
+then you should load the project directly into the IDE so that the
+source files will be retagged. 
+
+@node Project Properties - Library Creation, Project Properties - Web Application, Project Properties - Linked Projects, Project Properties
+@subsubsection Project Properties - Library Creation
+
+@image{resources/projc-lib-creation,,,,png}
+
+Settings required to produce a Library. This form only appears when
+the Project Type is Library.
+
+@table @var
+@item Library Name 
+Library file name, defaults to project name. Only lowercase letters
+and dashes allowed.
+@item Strip Path 
+This is an advanced option used to strip internal path names from a
+library source tree.
+@end table
+
+@node Project Properties - Web Application, Project Properties - MicroServer App, Project Properties - Library Creation, Project Properties
+@subsubsection Project Properties - Web Application
+
+@image{resources/projc-webapp,,,,png}
+
+Settings required to produce a Web Application. This form only appears when
+the Project Type is Web Application.
+
+@table @var
+@item Library Name 
+Web Application Library file name, defaults to project name. Only lowercase letters
+and dashes allowed.
+@item Strip Path 
+This is an advanced option used to strip internal path names from a
+library source tree.
+@end table
+
+
+@node Project Properties - MicroServer App,  , Project Properties - Web Application, Project Properties
+@subsubsection Project Properties - MicroServer App
+
+@image{resources/projc-micro,,,,png}
+
+Settings required to produce a MicroServer Stand Alone Web Application. 
+This form only appears when the Project Type is MicroServer Application.
+
+@table @var
+@item Library Name 
+Web Application Library file name, defaults to project name. Only lowercase letters
+and dashes allowed.
+@item Server Port 
+This is the port the embedded web server will use when the
+application is run. This can be overridden later with the @var{-p} argument.
+@end table
+
+@node Building Your Project, Running Your Project, Project Properties, Working With Projects
+@subsection Building Your Project
+
+Building a project entails compiling all of the project source files
+into a binary format. The format of the binary file that is generated
+will depend on the Project Type.
+
+Console Applications and Desktop GUI Applications will produce a standard
+Windows executable file (@file{.EXE}) by compiling all project
+files. When the compiled binary is run, the program begins execution
+at the @ref{Project Main File}.
+
+Other project types (Libraries, FastCGI applications) will create
+other binary files that need to be deployed before being used.
+
+You can Build the project at any time by selecting ``Build'' from the
+Project menu. The project may also be built automatically when the
+green Go button on the toolbar is pressed, if the IDE decides a rebuild is
+needed before running.
+
+When a project is built it will use the compilation and debug
+settings from the @ref{Project Properties - Compiler Options,Project Properties}. You can follow the progress of
+the build by watching the @ref{IDE Layout - Program Output, Output
+window}. The @ref{IDE Layout - Build Output, Build window} will
+contain verbose build information if the @ref{IDE Configuration - General,Debug Level} is greater than 0
+
+@node Running Your Project, Debugging Your Project, Building Your Project, Working With Projects
+@subsection Running Your Project
+
+Only Console Applications, Desktop GUI Applications and MicroServer
+applications can be Run from the IDE.
+
+To run a project, select Project -> Run Project from the Main Menu, or
+press the green Go button on the Toolbar. If there are any unsaved
+files you will be prompted to save them first. If necessary, the project
+will be built before it is run.
+
+Note that running your project in this way (compiled) does not allow you to use
+the features of the debugger.
+
+@strong{TIP:}
+
+To run your project in the Integrated Debugger so that you can step
+through a program or stop at breakpoints, use the "Run In Debugger"
+icon in the toolbar, or select Debug -> Run from the main menu.
+
+@subheading Interpreting Your Project
+
+To run your project interpreted instead of compiled, select ``Interpret
+Main File'' from the main menu, or run it in the Integrated Debugger.
+
+@subheading Program Output
+
+Output from projects that are executed in the IDE (e.g., from
+@code{print}, @code{echo}, @code{var_dump}, etc) will show in the
+@ref{IDE Layout - Program Output, Program Output window}.
+
+@subheading Program Arguments
+
+@image{resources/arg-1,,,,png}
+
+You may define Program Arguments that will be available to your
+program when it is run through the $argv, $_GET and $_POST variables.
+Select ``Program Arguments'' from the Project menu.
+
+@node Debugging Your Project, Deploying Your Project, Running Your Project, Working With Projects
+@subsection Debugging Your Project
+
+@menu
+* Debugging Overview::          
+* Running Your Project In The Debugger::  
+* Breakpoints::                 
+* Debug Window - Local Variables::  
+* Debug Window - Call Stack ::  
+@end menu
+
+@node Debugging Overview, Running Your Project In The Debugger, Debugging Your Project, Debugging Your Project
+@subsubsection Debugging Overview
+
+@image{resources/debug-toolbar-1,,,,png}
+
+There are various methods you can use to debug your project. One
+simple method is to place code in the project source that will display
+useful information (such as the value of a variable using @code{var_dump}) at a critical
+point in time during program execution. However this can be cumbersome,
+especially in larger projects, where it may be difficult to follow the
+flow of the program execution.
+
+A superior alternative is to use the Integrated Step Debugger. It
+allows you to step line by line through your project as it executes
+and easily determine program execution flow. You can inspect the values of
+variables while the program is paused (with mouse over). You
+can set breakpoints so that the program will be Paused when execution
+reaches the source file and line you specify. You can also Pause a
+running program and begin stepping where execution left off. 
+
+Note that the debugger operates in Interpreted mode. This means your
+project is not running as a compiled binary while it runs in the
+debugger.
+
+@node Running Your Project In The Debugger, Breakpoints, Debugging Overview, Debugging Your Project
+@subsubsection Running Your Project In The Debugger
+
+@image{resources/debug-toolbar-1,,,,png}
+
+@subheading Debugger States
+
+There are three states the debugger can be in: Stopped, Paused, and
+Running. While you are editing your source code, the debugger is in
+the Stopped state. If you are running the program in the debugger, it
+will be in the Running state. If the debugger hits an error, a
+Breakpoint, or you Pause the program then the debugger will be in the
+Paused state.
+
+Note that you cannot edit your source code while the debugger is in
+the Paused or Running states. You must Reset the debugger first (see
+below) before editing your code again.
+
+@subheading Run and Pause
+
+You can execute the program in the debugger by clicking Debug
+Run in the debug toolbar, or Debug -> Run from the main menu.
+
+If you have set a breakpoint or are receiving an error, you can Run
+the program in the debugger so that it continues execution at full
+speed until it reaches the breakpoint or the error. At that point the
+debugger enters the Paused state and allows you to begin Stepping.
+
+If a program is running you can also enter the Paused state by
+clicking Pause in the Debug Toolbar or Debug -> Program Pause from the
+main menu.
+
+@subheading Paused Mode and Stepping
+
+Once the debugger is Paused you can examine the state of the program
+at the current execution point. The source line that will be executed
+next will be highlighted in blue.
+
+There are two ways to execute the next source line: Step Into and Step
+Over. Step Into will trace into any functions that are called on that
+source line (if possible). Step Over will execute the current source
+line without going into any functions that are called.
+
+While the program is Paused you can view Local Variables and the Call
+Stack.
+
+To continue running the program at full speed while in the Paused
+state, click the Debug Run button again. Execution will begin at the
+current highlighted source line.
+
+If you wish to Reset the program so that you start running it from the
+beginning then click the Reset button in the debug toolbar, or Debug
+-> Program Reset from the main menu.
+
+@subheading Run To Cursor
+
+Use Run To Cursor as a convenient way of running the program in the
+debugger up to the line the cursor is on. Once execution reaches the
+specified line, the debugger will stop execution and be in the Paused state.
+
+@node Breakpoints, Debug Window - Local Variables, Running Your Project In The Debugger, Debugging Your Project
+@subsubsection Breakpoints
+
+Use a Breakpoint to specify a location in your program where execution
+should be paused while running in the debugger. Once execution is
+paused, you can examine Local Variables and their values, view the
+Call Stack, and continue stepping through your program line by line.
+
+@image{resources/breakpoint-1,,,,png}
+
+You may set a breakpoint on any line in your source files that is
+Executable. A line is executable if it has a blue dot next to it in
+the gutter. Set the breakpoint by clicking on that line in the gutter
+or by clicking the Toggle Breakpoint icon in the toolbar. Once a
+breakpoint is set, the line will be highlighted red. Click it again to
+unset the breakpoint.
+
+@image{resources/breakpoint-2,,,,png}
+
+To view the current list of breakpoints in your project, select Debug
+-> Debug Windows -> Breakpoints from the Main Menu. You can right
+click on an item in this list to clear that breakpoint, or optionally
+Clear All.
+
+@node Debug Window - Local Variables, Debug Window - Call Stack , Breakpoints, Debugging Your Project
+@subsubsection Debug Windows - Local Variables
+
+@image{resources/local-vars-1,,,,png}
+
+While your program is in the Paused state (if you are Stepping or have
+hit a Breakpoint) you can view the current local variables and their
+values.
+
+To bring up the Local Variables window, select Debug -> Debug Windows
+-> Local Variables from the Main Menu.
+
+Each time you step through your program, the Local Variables window
+will be refreshed.
+
+@strong{TIP:} Mouse Over Inspect
+
+You can also inspect the value of a variable (while the program is
+Paused) by hovering the mouse over the variable you wish to
+inspect. The value of the variable will be displayed in a tool tip.
+
+@node Debug Window - Call Stack ,  , Debug Window - Local Variables, Debugging Your Project
+@subsubsection Debug Window - Call Stack 
+
+@image{resources/call-stack-1,,,,png}
+
+While your program is in the Paused state (if you are Stepping or have
+hit a Breakpoint) you can view the current Call Stack. This is the
+list of functions that have been run to get to the current execution
+location.
+
+To bring up the Call Stack window, select Debug -> Debug Windows ->
+Call Stack from the Main Menu.
+
+Each time you step through your program, the Call Stack window will be
+refreshed.
+
+@node Deploying Your Project,  , Debugging Your Project, Working With Projects
+@subsection Deploying Your Project
+
+@c When you are ready to deploy a project you will have to consider the following factors:
+
+@c @enumerate
+@c @item
+@c What are the files required to distribute to the end user for the application to function?
+
+@c Required files may include:
+@c @enumerate
+@c @item
+@c the executable (.EXE) or library/web application (.DLL) files
+@c @item
+@c required 3rd party libraries (such as libmysqlclient.dll if you use the MySQL extension)
+@c @item
+@c help files
+@c @item
+@c image files
+@c @end enumerate
+
+@c @item
+@c How will you package the required files?
+@c @enumerate
+@c @item
+@c We recommend using an installer creator such as the free InnoSetup
+@c which you can find at @url{http://www.jrsoftware.org/isinfo.php}
+@c @end enumerate
+@c @end enumerate
+
+@c Remember to check the license on any 3rd party library files you intend to
+@c distribute, to make sure you are in compliance with their licensing
+@c terms.
+
+@c @subheading Deploying Through The IDE
+
+@image{resources/deploy-1,,,,png}
+
+You can use the IDE to help you deploy your software. 
+
+Roadsend Studio will copy the compiled binary and dependent libraries
+to a deployment directory of your choice. You may then create an
+installer based on the files in the deployment directory, using an
+installer creator such as the free InnoSetup which you can find at
+@url{http://www.jrsoftware.org/isinfo.php}
+
+@enumerate
+@item
+Make sure you have setup an Install Path in @ref{Project Properties -
+Project Options, Project Properties}
+@item
+Select the @ref{Project Properties - Compiler Options, Optimized}
+build type. Optionally select @ref{Shared vs Static, Static Linking}.
+@item 
+@ref{Building Your Project,Build} your project. Make sure there are no errors.
+@item
+Select Project->Deploy from the Main Menu
+@item
+A window will open allowing you to view all libraries that your
+project depends on. You may remove items from the list by clicking the
+checkmark next to the library.  
+@item
+Click Ok. Your library files will be copied to the Install Path.  
+@item 
+A window will open listing the files in the Install Path.
+@end enumerate
+
+@strong{NOTE:} 
+
+Remember to check the license on any third party library files you
+intend to distribute. It is the your responsibility to make sure
+you are in compliance with all licensing terms.
+
+@c --------------------------------------------------
+
+@node Reference, Acknowledgments, Roadsend Studio IDE, Top
+@chapter Reference
+
+@menu
+* Command Line Options::        
+* Environment Variables : Environment Variables.  
+@end menu
+
+@node Command Line Options, Environment Variables, Reference, Reference
+@section Command Line Options
+
+@example
+Usage: pcc [options] <input-files> [-- script args]
+see pcc -h for help with command line options
+
+
+Help:
+   -h,--help                      This help message
+   -v                             Verbose output
+   --version                      Current version information
+
+Compiler Options:
+   -O,--optimize                  Generate optimized dynamically linked binary
+   --static                       Generate optimized statically linked binary
+   -m,--make-file FILE            Build using specified project make file
+   --resource FILE                Compile and use the specified windows resource file
+   --port PORT                    Set the default port that the MicroServer should use
+   -u,--use LIB-NAME              Use specified PCC library when compiling and linking
+   -o,--output-file FILE          The output file
+   -c CONFIG-FILE                 Use the specified config file
+   -I,--include-path DIR          Add a directory to the include file search path
+   -L,--library-path LIB-PATH     Add lib-path to library search path
+
+Compile Mode (default: generate console application):
+   -i,-f,--interpret SCRIPT       Execute code immediately, instead of compiling
+   --fastcgi FASTCGI-NAME         Generate stand alone FastCGI application
+   -s,--microserver SERVER-NAME   Generate stand alone MicroServer application
+   --gui                          Generate desktop GUI application (PHP-GTK)
+   --cgi                          Generate stand alone (normal) CGI application
+   -l,--library-mode LIBRARY-NAME Generate a library instead of an executable.
+
+Library Related Options (requires -l, --fastcgi, or --microserver):
+   --strip-path STRIP-PATH        Strip leading path from source files when compiling a library
+   --install                      Install library to PCC library directory
+   --force-rebuild                Force rebuild of all source files in a library
+
+Debugging:
+   -d,--debug-level LEVEL         Set the debug level (0=None/1=Med/2=High)
+   -g,--debugger                  Run file in the PCC step debugger
+   -P,--profile                   Generate code for PHP source level profiling
+   -R                             Generate code suitable for profiling with gprof/bprof
+   --GET GVAR                     Add this key/value pair to _GET superglobal (form: key=val)
+   --POST GVAR                    Add this key/value pair to _POST superglobal (form: key=val)
+   --COOKIE GVAR                  Add this key/value pair to _COOKIE superglobal (form: key=val)
+   --SERVER GVAR                  Add this key/value pair to _SERVER superglobal (form: key=val)
+@end example
+
+@node Environment Variables,  , Command Line Options, Reference
+@section  Environment Variables 
+
+Roadsend PHP makes use of several environment variables (when available) that will affect the build and run process.
+
+@strong{Environment Variables}
+
+@multitable @columnfractions 0.5 0.5
+@item
+BIGLOO
+@tab 
+bigloo executable
+@item
+LD
+@tab 
+ld linker executable
+@item
+AR
+@tab 
+ar archive executable
+@item
+PCC_HOME
+@tab Roadsend PHP home directory
+@item
+LD_LIBRARY_PATH
+@tab Current library load path
+@item
+PCC_CONF
+@tab Roadsend PHP config file to use
+@end multitable
+
+
+@node Acknowledgments,  , Reference, Top
+@chapter Acknowledgments
+
+Roadsend thanks the many authors of the original open source PHP programming
+language. The open source version is available from the PHP Group at
+@uref{http://www.php.net}.
+
+Roadsend PHP is written in Bigloo Scheme and C. Bigloo is
+an open source Scheme implementation available at
+@uref{http://www-sop.inria.fr/mimosa/fp/Bigloo/}.
+
+Some parts of Roadsend PHP use code from
+@uref{http://bigloo-lib.sourceforge.net/,bigloo-lib} and
+@uref{http://libwebserver.sourceforge.net/,libwebserver}.
+
+The Windows edition of the Roadsend Compiler makes use of the MinGW
+Development environment, available at @url{http://www.mingw.org}.
+
+The Windows edition of the Roadsend Compiler includes the Glade User
+Interface Builder for GTK, available at @url{http://glade.gnome.org}.
+
+The Roadsend PHP Apache modules includes software developed 
+by the @url{http://www.apache.org/,Apache Software Foundation}.
+
+
+@bye

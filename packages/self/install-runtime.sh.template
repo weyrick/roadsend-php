@@ -1,0 +1,145 @@
+#!/bin/sh
+######################################################
+# 
+# makeself embedded installer for the runtime package
+#
+######################################################
+
+INSTALL_ROOT=install-root
+# XXX make this templated
+TARGET_ROOT=/opt/roadsend/pcc
+UNINSTALLER=$TARGET_ROOT/bin/roadsend-pcc-runtime-uninstall.sh
+
+###
+### require root
+### ============
+
+me=`id -u`
+if [ "$me" -ne 0 ]
+then
+    echo "You must be root to run installer"
+    exit 1
+fi
+
+###
+### make sure user agrees to license
+### ================================
+
+# cat <<EOF | more
+# LICENSE_HERE
+# EOF
+
+# agreed=
+# while [ x$agreed = x ]; do
+#     echo
+#     echo "Do you agree to the above license terms? [yes or no] "
+#     read reply leftover
+#     case $reply in
+#         y* | Y*)
+#             agreed=1;;
+#         n* | N*)
+#     echo "If you don't agree to the license you can't install this software";
+#     exit 1;;
+#     esac
+# done
+
+###
+### start the uninstaller script
+### ============================
+
+mkdir -p $TARGET_ROOT/bin
+cat <<EOF > $UNINSTALLER
+#/bin/sh
+#
+# This is an automatically generated uninstaller script for the
+# Roadsend PHP Compiler package
+# 
+
+## require root
+me=\`id -u\`
+if [ "\$me" -ne 0 ]
+then
+    echo "You must be root to run uninstaller"
+    exit 1
+fi
+
+echo "Uninstalling Roadsend Compiler Runtime..."
+
+EOF
+
+###
+### install files
+### =============
+
+echo "Roadsend Compiler for PHP"
+echo "http://www.roadsend.com/"
+echo
+echo "Installing Runtime Environment... "
+echo "The installation root directory is $TARGET_ROOT"
+
+cd $INSTALL_ROOT && 
+for dir in `find . -type d`; do mkdir -p /$dir; done && 
+for file in `find . -not -type d`; do 
+  cp -Pp $file /$file; 
+  echo "rm -f /$file" >> $UNINSTALLER
+done
+
+###
+### symlink libs?
+###
+
+ agreed=
+ while [ x$agreed = x ]; do
+     echo
+     echo -n "Do you want to symlink the Roadsend runtime libraries to the system library path? [y/n/?]: "
+     read reply leftover
+     case $reply in
+         y* | Y*)
+             agreed=y;;
+         n* | N*)
+             agreed=n;;
+         ?)
+	     echo "Your system will need to know where to find the Roadsend runtime libraries.";
+	     echo "If you plan to manually add $TARGET_ROOT/libs to your system's dynamic";
+	     echo "library load path, you should say N here.";
+	     echo "";
+	     echo "If in doubt, say Y";;
+     esac
+ done
+
+if test "$agreed" = y; then
+    echo "making library symlinks to /usr/lib ..."
+    ## /usr/lib links
+    lib_dir=$TARGET_ROOT/libs
+    old_dir=`pwd`
+    cd $lib_dir
+    for lib in *.so *.a
+    do
+      libname=`basename $lib`
+      ln -fs $lib_dir/$libname /usr/lib/$libname
+      echo "rm -f /usr/lib/$libname" >> $UNINSTALLER
+    done
+    cd $old_dir
+
+    if [ -f "/sbin/ldconfig" ]; then
+	echo "running ldconfig ..."
+	/sbin/ldconfig
+    fi
+
+else
+    echo "Please add $TARGET_ROOT/libs to your system's dynamic library load path."
+fi
+
+
+cat <<EOF >> $UNINSTALLER
+    if [ -f "/sbin/ldconfig" ]; then
+	echo "running ldconfig ..."
+	/sbin/ldconfig
+    fi
+EOF
+
+echo "rm -f $UNINSTALLER" >> $UNINSTALLER
+chmod 755 $UNINSTALLER
+
+echo "You can uninstall this package by running $UNINSTALLER"
+echo "Done."

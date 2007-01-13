@@ -1,0 +1,63 @@
+
+extension functions (defined with defbuiltin) should document
+themselves using their docstring in texinfo format:
+
+(defbuiltin (some_function arg1 arg2)
+"
+A description of the function goes here
+
+@subheading Parameters
+
+@table @var
+
+@item arg1 [string]
+Description of argument one, which is a string.
+
+@item arg2 [int]
+Description of argument two, which is an integer.
+
+@end table
+
+@subheading Return Value [mixed]
+Description of the return value
+
+@subheading Example
+@example
+$retval = some_function(\"test\", 25);
+@end example
+"
+(body...))
+
+----------------------------------
+
+NOTES:
+
+- The docstring should be left aligned in the source code, not indented to match the scheme code
+
+- You have to escape double quoted strings, backslashes and curly braces in the docstring
+  Curly braces are escaped with @{ and @}
+
+- Function argument descriptions should start with a capital letter and end with a period.
+
+- Function arguments and return values should specify one of the following types:
+  string
+  int
+  float
+  array
+  object
+  mixed
+  constant
+  resource
+
+- Link to an external URL with:
+  @uref{http://foo.com/someurl.html, URL Link Text}
+
+- Warnings and such should use @strong:
+  @strong{Warning: using this function may seriously endanger your life}
+
+- Whenever referring to a function argument in any of the descriptions, use @var:
+  Sample description talking about the @var{arg1} parameter
+
+- Use @code for other references, such as:
+  This function will return @code{true} on success
+

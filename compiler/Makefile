@@ -1,0 +1,91 @@
+PCC_ROOT = ..
+include $(PCC_ROOT)/bigloo-rules.mk
+
+BCOMMONFLAGS	=  -L ../libs -I ../libs 
+CCOMMONFLAGS	= -I. -I$(BGL_DEFAULT_LIB_DIR) 
+
+# for pcc
+SOURCE_LIST	= ast lexers parser driver evaluate commandline containers \
+	         generate basic-blocks declare cfa target config include
+
+SOURCE_FILES     := $(patsubst %,%.scm,$(SOURCE_LIST))
+POPULATION       := $(patsubst %,%_$(SU).o,$(SOURCE_LIST))
+STATIC_POPULATION       := $(patsubst %,%_$(SU)$(STATIC_SUFFIX).o,$(SOURCE_LIST))
+
+C_SOURCE_LIST   = registry
+
+C_POPULATION     := $(patsubst %,%_$(SU).o,$(C_SOURCE_LIST))
+C_STATIC_POPULATION     := $(patsubst %,%_$(SU)$(STATIC_SUFFIX).o,$(C_SOURCE_LIST))
+
+# for libphpeval
+EVAL_SOURCE_LIST = ast lexers parser driver evaluate containers generate basic-blocks \
+	            declare cfa debugger target config include synhighlight
+EVAL_SOURCE_FILES 		= $(patsubst %,%.scm,$(EVAL_SOURCE_LIST))
+EVAL_POPULATION 		:= $(patsubst %,%_$(SU).o,$(EVAL_SOURCE_LIST))
+EVAL_STATIC_POPULATION       := $(patsubst %,%_$(SU)$(STATIC_SUFFIX).o,$(EVAL_SOURCE_LIST))
+
+CLEFTOVERS	 := $(patsubst %.o,%.c,$(POPULATION)) $(patsubst %.o,%.c,$(STATIC_POPULATION)) \
+		    $(patsubst %.o,%.c,$(EVAL_POPULATION)) $(patsubst %.o,%.c,$(EVAL_STATIC_POPULATION))
+
+PHPEVAL_LIBS	= ../libs/libphpeval_$(SUV).a ../libs/libphpeval_$(SUV).$(SOEXT) 
+
+all: $(PHPEVAL_LIBS) pcc pcctags
+
+debugger: $(PHPEVAL_LIBS) pdb 
+
+#-L/usr/local/lib is necessary for mingw and shouldn't hurt on unix
+pcc: $(PHPEVAL_LIBS) $(C_POPULATION)  commandline_$(SU).o
+	bigloo $(SAFETY) $(PCC_LINK_OPTIONS) $(BCOMMONFLAGS) -ldopt -L/usr/local/lib -o pcc commandline_$(SU).o -library php-runtime -library profiler -library webconnect -library phpeval 
+
+../libs/libphpeval_$(SUV).$(SOEXT) : ../libs/phpeval.heap $(EVAL_POPULATION) $(C_POPULATION) 
+	$(call dllcmd,../libs/libphpeval_$(SUV).$(SOEXT)) $(EVAL_POPULATION) $(C_POPULATION) $(COMPILER_DLL_LIBS)
+
+../libs/libphpeval_$(SUV).a : ../libs/phpeval.heap $(EVAL_STATIC_POPULATION) $(C_STATIC_POPULATION)
+	ar ruv ../libs/libphpeval_$(SUV).a $(EVAL_STATIC_POPULATION) $(C_STATIC_POPULATION)
+
+../libs/phpeval.heap : ast.scm lexers.scm parser.scm driver.scm evaluate.scm containers.scm generate.scm include.scm
+	$(BIGLOO) $(BHEAPFLAGS) -heap-library phpeval make-lib.scm -addheap ../libs/phpeval.heap
+	-cp *.init ../libs/
+
+lexers_$(SU).o: ../runtime/php-runtime.sch ast_$(SU).o
+
+containers_$(SU).o: declare_$(SU).o ast_$(SU).o ../runtime/php-runtime.sch
+
+#this is to override -O3 with -O for parser.scm, since -O3 takes perversely long.
+parser_$(SU).o: ast_$(SU).o parser.scm
+	$(BIGLOO) $(BSAFEFLAGS) -mkaddlib -unsafe -saw -copt -fPIC -c parser.scm -o parser_$(SU).o
+
+#parser_$(SU)t.o: ast_$(SU).o parser.scm
+#	$(BIGLOO) -static-bigloo $(BUNSAFEFLAGS) -c parser.scm -o parser_$(SU)t.o
+
+
+evaluate_$(SU).o: ast_$(SU).o declare_$(SU).o ../runtime/php-runtime.sch
+
+debugger_$(SU).o: ast_$(SU).o declare_$(SU).o ../runtime/php-runtime.sch
+
+driver_$(SU).o: declare_$(SU).o containers_$(SU).o evaluate_$(SU).o ast_$(SU).o parser_$(SU).o lexers_$(SU).o basic-blocks_$(SU).o cfa_$(SU).o debugger_$(SU).o # generate_$(SU).o
+
+generate_$(SU).o: declare_$(SU).o containers_$(SU).o ast_$(SU).o ../runtime/php-runtime.sch
+
+commandline_$(SU).o: lexers_$(SU).o #driver_$(SU).o  ast_$(SU).o
+
+cfa_$(SU).o: ast_$(SU).o declare_$(SU).o basic-blocks_$(SU).o
+
+basic-blocks_$(SU).o: ast_$(SU).o declare_$(SU).o
+
+declare_$(SU).o: ast_$(SU).o
+
+signatures_$(SU).o: php-hash_$(SU).o
+
+signatures.o: php-hash.o
+
+clean : 
+	-rm -rf pcc.cgi pcc pcctags pcc.exe pcc_u.exe pcc_p.exe testoutput $(CLEFTOVERS)
+	-rm -f *_$(SU).o *.so
+
+pcctags: tags_$(SU).o $(PHPEVAL_LIBS)
+	bigloo -ldopt -L/usr/local/lib $(SAFETY) $(BCOMMONFLAGS) -O6 -o pcctags tags_$(SU).o -library phpeval -library php-runtime -library profiler -library webconnect
+
+pdb: pdb_$(SU).o $(PHPEVAL_LIBS)
+	bigloo -ldopt -L/usr/local/lib $(SAFETY) $(BCOMMONFLAGS) -O6 -o pdb pdb_$(SU).o -library phpeval -library php-runtime -library profiler -library webconnect -library mhttpd -lwebserver
+

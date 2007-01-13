@@ -1,0 +1,292 @@
+\input texinfo   @c -*-texinfo-*-
+@c %**start of header
+@setfilename glade-tutorial.info
+@settitle Glade/GTK and the Roadsend Studio 
+@c %**end of header
+
+@set EDITION 0.1
+@settitle Glade/GTK and the Roadsend Studio
+
+@ifnottex
+
+@titlepage
+@title
+@end titlepage
+
+@node Top
+@comment  node-name,  next,  previous,  up
+@top Contents
+
+@menu
+* Introduction::                
+* The MP3 Manager Application::  
+* Designing a GUI with Glade::  
+* Connecting Buttons to Code::  
+* Making an Installer::         
+@end menu
+
+@end ifnottex
+
+@node Introduction
+@comment  node-name,  next,  previous,  up
+@chapter Introduction
+
+In this tutorial we'll use Glade, a tool for building user interfaces
+quickly, to create an application that manages a list of MP3 files.
+Then we'll use Inno Setup, a free program for creating Windows
+installers to create an installer for the MP3 Manager.
+
+This tutorial builds on @url{http://www.gtk.org/tutorial1.2/}, so you
+may want to take a look at that if you haven't yet.
+
+@node The MP3 Manager Application
+@comment  node-name,  next,  previous,  up
+@chapter The MP3 Manager Application
+
+
+@node Designing a GUI with Glade
+@comment  node-name,  next,  previous,  up
+@chapter Designing a GUI with Glade
+
+Glade allows you to almost paint a GUI.  You select components from a
+palette and add them to windows and other components that you've
+already built up.  Once you've gotten it where you want it, Glade
+allows you to save the GUI to an XML file that can be loaded from PHP,
+bringing your masterpiece to life.
+
+Our application has two important interfaces that we need to design:
+The main overview, which lists all the songs, and the ``song details''
+window, where a song can be entered. 
+
+@section Creating the Main Window
+
+Start Glade by selecting ``Glade GUI Designer'' from the Tools menu.
+(Or by using the ``glade'' command at the prompt).
+
+At first you'll be presented with three windows: Glade's main window,
+the tool palette, and the widget properties window.  Select ``window''
+from the tool palette to create a window.  You should see the new
+window appear, and its properties show up in the widget properties
+window.
+
+Now, in the widget properties window, enter the window's title, ``MP3
+Collection'', and make sure the window's name is @code{window}.  Also,
+I recommend setting the default width to 800, default height to 350,
+shrink to true and grow to true.
+
+@subsection Packing Boxes
+
+We'll be using boxes to organize things on the screen.  A @code{VBox}
+allows you to align things vertically, and an @code{HBox} allows you
+to align things horizontally.  For our main interface, let's start
+with a @code{VBox}, so we can put the a logo on top of the window, the
+song list in the middle, and some buttons on the bottom.  
+
+Select @code{VBox} from the widget palette.  Place it in the window
+and enter 3 when prompted for the size.
+
+@subsection The Logo
+
+For our logo, let's use some simple text.  Choose @code{label} from
+the widget palette and then click in the top row of the new
+VBox. Then, in the widget properties window, set the label to some
+text you like.  I chose ``Welcome to a Glade New World!''.  To make
+the logo stand out a little more, use the widget properties window to
+set the padding to 10.
+
+@subsection The Song List
+
+Select ``Columned List'' (CList) from the widget palette, and drop it
+in the middle row of our VBox.  This will be the list of songs.  When
+prompted for a size, choose 2.  In the widget properties window, set
+the name of the CList to @code{songlist}.
+
+Click in the leftmost column header, then use the widget properties
+window to set its name to @code{artist}.  Now do the same for the
+rightmost column header, setting its name to @code{title}.
+
+Drag the center divider of the song list to about the middle, perhaps
+giving a little more room to the title.  When we save our project,
+this will be the default placement.
+
+@subsection The Buttons
+
+We want to have three buttons next to each other, so we'll use a
+horizontal box to align them. Choose HBox from the widget palette, and
+place it in the bottom row of the VBox.  Choose 3 when prompted for
+the size.  
+
+Now add one button to each column of the new HBox by selecting Button
+from the widget palette, and then clicking on the column.  ed: perhaps
+I should have them drag 'em? Name them, from left to right,
+@code{newSong}, @code{deleteSong}, and @code{quit}.  Also, set expand
+to false and fill to true.
+
+@subsection The Widget Tree
+
+Perhaps it would look a little nicer if we added a little space around
+our new buttons.  To do that, we could increase the border width of
+the HBox that they're in.  But how do we get back to the widget
+properties for the HBox?  One way to get there is to use the widget
+tree.
+
+In the main Glade window, in the View menu, select Show Widget Tree.
+A window pops up showing the hierarchy of widgets that we have built
+so far.  Using the widget tree, browse down to the HBox around the
+buttons, and select it.  Now you can use the widget properties window
+to increase the border width.  I chose 4.
+
+@section Creating the Song Details Window
+
+The main interface should look basically finished now.  Save it by
+select Save As from the File menu in the main Glade window, and call
+the new file mp3-manager.  Now choose New Project from the File menu,
+so we can build the song details window.
+
+You can think of the song details window just like an HTML form for
+entering a new song.  Once again, we'll start with a window, so click
+on Window in the widget palette.  In the widget properties window, set
+the name to @code{details}, title to ``Edit Song'', type to dialog,
+and set modal to true.  A modal dialog is one that prevents
+interacting with any other windows in an application until it closes.
+Also, set shrink, grow, and auto shrink all to true. That way we don't
+have to worry about the window's size -- it'll always shrink to fit
+what's in it.
+
+Add a VBox to the window, choosing size 5.  Set its border width and
+spacing both to 4, to space things out a little bit.
+
+Add a Label to the first row of the VBox, and set its label to ``Enter
+Song Details''.
+
+To the second row, add an HBox of size 2.  Set its border to 4 and
+spacing to 4.  On its left side, add a Label that says ``Title:''.  On
+its right side, add an Entry.  Set the entry's name to @code{title}.
+
+Add an HBox of size 2 to the third row.  Set its border to 4 and
+spacing to 4.  On its left, add a Label that says ``Artist:''.  On its
+right, add an Entry named @code{artist}.
+
+On the fourth row, we'll have the user set the filename for the song.
+This is not displayed in the main song list, but each song listed will
+have one.  Add an HBox of size 3 to the fourth row.  Set its border
+and spacing to 4.  On its left, add a Label that says ``Filename:''.
+In the middle, add an Entry named @code{filename}.  On the right, add
+a Button.  Set the button's name to @code{browse}, and set its label
+to ``Browse...''.
+
+Finally, on the fifth (bottom) row, add an HBox of size 2. Set its
+border and spacing both to 4.  On the left side, add a Button named
+@code{ok}, and labelled ``Ok''.  On the right, add a Button named
+@code{cancel} and labelled ``Cancel''.
+
+
+
+
+@node Connecting Buttons to Code
+@comment  node-name,  next,  previous,  up
+@chapter Connecting Buttons to Code
+
+In this section we take a brief tour of our example source code.  If
+you are already comfortable with GTK programming there shouldn't be
+any surprises.
+
+@section Loading PHP-GTK
+
+Before using any of the GTK functions, we first have to make sure that
+the GTK library is loaded.  The most portable way to do this (it's the
+same for PHP and the Roadsend Compiler) is to use the @code{dl()}
+function.
+
+@cartouche
+@smallexample
+@verbatim
+if (!extension_loaded('gtk')) {
+    dl( 'php_gtk.' . PHP_SHLIB_SUFFIX);
+}
+@end verbatim
+@end smallexample
+@end cartouche
+
+@section Working with GladeXML
+
+This is perhaps the most important thing in this entire tutorial.
+This one line of code loads the Glade interface description that we
+created above.
+
+@cartouche
+@smallexample
+@verbatim
+$gladexml =& new GladeXML('mp3-manager.glade');
+@end verbatim
+@end smallexample
+@end cartouche
+
+Just creating the @code{GladeXML} object is enough to load the
+interface description file, @file{mp3-manager.glade}.  We save a
+reference to it though, so that we can connect callback functions to
+different parts of the GUI.  
+
+We can use the names that we chose while working with Glade to access
+the widgets using the @code{GladeXML::get_widget()} method.
+
+@cartouche
+@smallexample
+@verbatim
+$window =& $gladexml->get_widget('window');
+@end verbatim
+@end smallexample
+@end cartouche
+
+@cartouche
+@smallexample
+@verbatim
+$newSong =& $gladexml->get_widget('newSong');
+$newSong->connect('clicked', 'handleNewSong');
+@end verbatim
+@end smallexample
+@end cartouche
+
+@cartouche
+@smallexample
+@verbatim
+$songList =& new SongList($gladexml->get_widget('songList'));
+
+$deleteSong =& $gladexml->get_widget('deleteSong');
+$deleteSong->connect_object('clicked', array($songList, 'deleteSelected'));
+
+$quitButton =& $gladexml->get_widget('quit');
+$quitButton->connect_object('clicked', array($window, 'destroy'));
+
+$window->connect_object('destroy', array('gtk', 'main_quit'));
+$window->connect_object('destroy', array($songList, 'save'));
+$window->connect_object('delete-event', array('gtk', 'false'));
+Gtk::main();
+@end verbatim
+@end smallexample
+@end cartouche
+
+If you recall, @code{window} is the main window, and @code{newSong},
+@code{deleteSong}, and @code{quit} are buttons.  The @code{songList}
+is the columned list (CList) widget that we put in the center.
+
+@node Making an Installer
+@comment  node-name,  next,  previous,  up
+@chapter Making an Installer
+
+One really nice way to make an installer for your application is using
+Inno Setup (@url{http://www.jrsoftware.org/isinfo.php}).  Inno Setup
+is free, easy to use, and will turn your application into a
+@emph{single EXE}.
+
+To make an installer, the first step is to deploy your application
+using the Roadsend Studio.  Simply select ``Deploy'' from the
+``Project'' menu, and choose a directory.  The Roadsend Studio will
+compile your application ``statically'', so that it needs fewer DLL
+files, and copy it as well as its remaining DLL dependencies into the
+directory you have chosen.
+
+Now open Inno Setup and select the
+
+
+@bye

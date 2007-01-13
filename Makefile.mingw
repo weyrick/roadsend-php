@@ -1,0 +1,94 @@
+# -*- Mode: Makefile; -*-
+
+# this is a constant for #ifdefs and such
+PCC_OS = PCC_MINGW
+SOEXT = dll
+BIGLOOVERSION = 2.8b
+STATIC_SUFFIX = t
+BIGLOO_PIC = 
+C_PIC =
+
+
+# put $(1) twice
+dllcmd = gcc -shared -o $(1) -Wl,--enable-auto-import,--enable-auto-image-base,--out-implib,$(1).a 
+dllcmd_i = gcc -shared -o $(1) -Wl,--enable-auto-import,--enable-auto-image-base,--out-implib,$(1).a 
+
+# funky import stuff for pcc.exe
+PCC_LINK_OPTIONS =  -ldopt " -Wl,--enable-auto-import "
+
+#on windows, the DLLs cannot have unresolved symbols
+RUNTIME_DLL_LIBS = -L$(BGL_DEFAULT_LIB_DIR) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloogc-$(BIGLOOVERSION) -lws2_32 -liberty
+COMPILER_DLL_LIBS = -L../libs/ -lphp-runtime_$(SU)-$(BIGLOOVERSION) -lprofiler_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -lwebconnect_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloogc-$(BIGLOOVERSION)  -lws2_32 
+WEBCONNECT_DLL_LIBS = -L../libs/ -lphp-runtime_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloogc-$(BIGLOOVERSION)  -lws2_32 
+FASTCGI_DLL_LIBS = -L../../libs/ -lphp-runtime_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -lwebconnect_$(SU)-$(BIGLOOVERSION) -lphpeval_$(SU)-$(BIGLOOVERSION) -lprofiler_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloogc-$(BIGLOOVERSION) -lws2_32 -L/usr/local/lib -lfcgi
+CGI_DLL_LIBS = -L../../libs/ -lphp-runtime_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -lwebconnect_$(SU)-$(BIGLOOVERSION) -lphpeval_$(SU)-$(BIGLOOVERSION) -lprofiler_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloogc-$(BIGLOOVERSION)  -lws2_32 
+MHTTPD_DLL_LIBS = -L../../libs/ -lphp-runtime_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -L/usr/local/lib -lprofiler_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloogc-$(BIGLOOVERSION) -lwebconnect_$(SU)-$(BIGLOOVERSION) -lphpeval_$(SU)-$(BIGLOOVERSION) -lws2_32 -lwebserver
+EXTENSION_DLL_LIBS = -L$(LIB)  -lphpeval_$(SU)-$(BIGLOOVERSION) -lphp-runtime_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloogc-$(BIGLOOVERSION) -lws2_32 -lm
+PROFILER_DLL_LIBS = $(BIGLOO_LIBS) -L/usr/local/lib -lgw32c -lole32 -luuid
+DOTEST_LIBS = -L /usr/local/lib -lgw32c -lws2_32 
+
+RESOLVER_LIBRARY = 
+
+WINDOWS_C_SUPPORT	= windows-time\
+			  windows-flock
+
+LIBCRYPTO	= /usr/local/lib/libcrypto.a  c:/mingw/lib/libgdi32.a  /usr/local/lib/libgw32c.a
+
+
+#this apache stuff is pretty ugly
+APACHE_INC	= c:/Progra~1/Apache~1/apache/include
+APACHE_CFLAGS = -mms-bitfields
+APACHE_BFLAGS = -rm -copt -mms-bitfields -copt "-I c:/Progra~1/Apache~1/apache/include"
+
+APACHE2_INC	= c:/Progra~1/Apache~1/apache2/include
+APACHE2_CFLAGS = -mms-bitfields
+APACHE2_BFLAGS = -rm -copt -mms-bitfields -copt "-I c:/Progra~1/Apache~1/apache2/include"
+
+# apache portable runtime, used in apache 2
+APR_INC	= c:/Progra~1/Apache~1/apache2/include
+APR_LINK = -L/usr/local/lib -lapr-c -lapr-s -lhttpd-c -lhttpd-s
+
+#these two are particularly bad
+LINK_APACHE_MODULE = gcc -D$(PCC_OS) $(APACHE_CFLAGS) -DSHARED_MODULE -D_FILE_OFFSET_BITS=64 -I$(BGL_DEFAULT_LIB_DIR) -I$(APACHE_INC) mod_pcc.c $(MOD_OBJS) -shared -o mod_pcc_s.so -I/usr/local/include/libxml2  -s   -L../../libs -L. -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_$(SU)-$(BIGLOOVERSION)  -lphp-runtime_$(SU)-$(BIGLOOVERSION) -lphpeval_$(SU)-$(BIGLOOVERSION) -lwebconnect_$(SU)-$(BIGLOOVERSION)  $(BIGLOO_LIBS) -L/usr/local/lib -lApacheCore
+
+LINK_APACHE_MODULE_UNSAFE = gcc -D$(PCC_OS)  $(APACHE_CFLAGS) -DSHARED_MODULE -D_FILE_OFFSET_BITS=64 -I$(BGL_DEFAULT_LIB_DIR) -I$(APACHE_INC) mod_pcc.c $(MOD_OBJS) -shared -o mod_pcc_u.so -I/usr/local/include/libxml2  -s   -L../../libs -L. -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_u  -lphp-runtime_u -lphpeval_u -lwebconnect_u  $(BIGLOO_LIBS) -L/usr/local/lib -lApacheCore
+
+
+# APACHE 2
+COMPILE_APACHE2_MODULE = gcc -O2 -I$(APACHE2_INC) -I$(BGL_DEFAULT_LIB_DIR) -c mod_pcc2.c  -DPIC -o mod_pcc2.o
+LINK_APACHE2_MODULE = gcc -shared -Wl,--out-implib,mod_pcc2_$(SU).so.a  -o mod_pcc2_$(SU).so apache2.o mod_pcc2.o apache_request.o apache_multipart_buffer.o apache_cookie.o -L../../libs -L$(BGL_DEFAULT_LIB_DIR) $(APR_LINK)  -L. -lprofiler_$(SU)-$(BIGLOOVERSION)  -lphp-runtime_$(SU)-$(BIGLOOVERSION) -lphpeval_$(SU)-$(BIGLOOVERSION) -lwebconnect_$(SU)-$(BIGLOOVERSION)  $(BIGLOO_LIBS)
+WINDOWS_LIBTOOL_HELP = libtool --mode=compile gcc -g -D_MINGW_VER -mms-bitfields -I c:/Progra~1/Apache~1/apache2/include -I c:/Progra~1/Apache~1/apache2/include -I c:/Progra~1/Apache~1/apache2/include -DBIGLOO_MAIN=phpoo_initialize -DBIGLOO_EXIT=BUNSPEC, -D_MINGW_VER -c -I. -I../../libs -I. -I$(BGL_DEFAULT_LIB_DIR) apache2.c -o apache2.o
+
+
+# mysql
+MYSQL_INCLUDE = -Ic:/mysql/include
+MYSQL_LIBRARY = -L/usr/local/lib
+
+# odbc
+ODBC_INCLUDE = -I/usr/include
+ODBC_LIBRARY_PATH = -L/usr/lib
+ODBC_LIBRARY = -lodbc32
+
+# sqlite
+SQLITE_INCLUDE = -I/usr/local/include
+SQLITE_LIBRARY_PATH = -L/usr/local/lib
+
+# curl
+CURL_INCLUDE = -Ic:/msys/1.0/local/include
+CURL_STATICFLAG = -DCURL_STATICLIB
+
+# xml
+XML_SCHEME_CFLAGS = -copt "-I/usr/local/include/libxml2"
+XML_CFLAGS = -I/usr/local/include/libxml2
+XML_LIBS = -L/usr/local/lib -lxml2
+
+# pcre
+PCRE_INCLUDE = -I/usr/local/include
+PCRE_STATICFLAG = -DPCRE_STATIC
+
+# gtk
+GLADE_INCLUDE = -copt -I/usr/local/include/libglade-1.0 
+
+# libwebserver
+LIBWS_INCLUDE = -copt -I/usr/local/include 
+LIBWS_LIBRARY = -copt -L/usr/local/lib

@@ -1,0 +1,20 @@
+;*---------------------------------------------------------------------*/
+;*    Addition includes                                                */
+;*---------------------------------------------------------------------*/
+;(set! *additional-include-foreign*
+;      (cons "libxml/parser.h" *additional-include-foreign*))
+
+;(set! *cc-options*
+;      (string-append *cc-options*
+;		     (let ((libxml-include-path
+;					; ask pkg-config what it thinks
+;			    (system->string "pkg-config --silence-errors --cflags libxml-2.0")))
+;					;			(fprint (current-error-port) "I got: " libxml-include-path)
+;		       (if (zero? (string-length libxml-include-path))
+;					;no answer? this is a reasonable default
+;			   " -I/usr/include/libxml2 "
+;					;make sure there are no newlines
+;			   (string-append " " 
+;					  (pregexp-replace* "\n" libxml-include-path "")
+;					  " ")))))
+

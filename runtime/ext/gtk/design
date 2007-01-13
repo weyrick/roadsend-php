@@ -1,0 +1,42 @@
+GTK's datatypes can be divided into objects and non-objects.  
+
+* Objects
+
+Objects have runtime type information, a reference count, and a
+property list.  
+
+We would like to preserve a 1 to 1 correspondence between GTK objects
+and the PHP objects that wrap them ("wrappers").  So we store the PHP
+object on the GTK object's property list, with a "destroy notify"
+callback.  
+
+When a wrapper is created, we add a reference to the GTK object, to
+prevent it from being destroyed.  This is done in gtk-object-init! for
+objects we create (in constructors), and in gtk-object-wrapper-new for
+GTK objects that are returned from GTK.
+
+When the GTK object is destroyed (because of a 0 reference count,
+presumably), the "destroy notify" callback notifies us to dereference
+the wrapper so it can (potentially) be destroyed too.  Perhaps this is
+an erroneous condition?
+
+GTK objects are leaked currently.  We need to register finalizers for
+the wrappers so we can dereference the GTK objects.
+
+** Wrinkles
+
+This scheme is complicated by the fact that we use a tracing
+collector.  Whenever we store a (Scheme) object in GTK, we must also
+store it in a hashtable on the Scheme side.  Whenever the object is
+then dereferenced by GTK, our destroy callback should remove it from
+that hashtable.
+
+
+* Non-objects
+
+Non-object GTK types are boxed or immediate.  Neither has runtime type
+information, a reference count, or property lists.  The boxed types
+require special copy functions to convert from a PHP object to a GTK
+object and back.  The immediates (enums, strings, etc.) are trivially
+copied by bigloo's FFI.
+

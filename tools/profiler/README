@@ -1,0 +1,39 @@
+This tool will produce profiles of PHP code.  You'll get a list of how
+much time each function took, and how many times each was called, as
+well as a list of the most frequent calls.  (i.e. A -> B means a
+called B).
+
+You'll need to tweak the paths in build.sh, and change BCOMMONFLAGS from
+
+BCOMMONFLAGS	=  -mkaddlib -fsharing $(PHPOO_INC) $(PHPOO_LIBS)  -copt -D_ISOC99_SOURCE
+
+to
+
+BCOMMONFLAGS	=  -mkaddlib -fsharing -library profiler $(PHPOO_INC) $(PHPOO_LIBS)  -copt -D_ISOC99_SOURCE
+
+(add -library profiler) in runtime/Makefile, compiler/Makefile,
+webconnect/Makefile, runtime/ext/extensions.mk, and wherever else you
+get an error from when you try to compile.  You probably also need to
+add it to the hairy commandlines at the end of the webconnect Makefile.
+
+Change BIGLOO-ARGS in commandline.scm to:
+
+(define BIGLOO-ARGS '(" -library profiler +rm"))
+
+Copy the bigloorc to ~/.bigloorc, make clean, make safe, and you'll
+get profile files in /tmp from everything you do.  To disable
+profiling, remove ~/.bigloorc, or comment out the *user-pass* in it,
+and make clean.
+
+This is kind of ad-hoc, but it's enough to get some useful info.
+
+Trying to run a sitemanager site with this will segfault for some
+reason.  To get around it, first build the compiler with profiling
+enabled, then comment out the *user-pass* in .bigloorc, and make clean
+in runtime/ext/standard, runtime/ext/pcre, and maybe runtime/ext/xml.
+Then make at the toplevel.  That effectively disables profiling for
+those three extensions, which fixes the problem for some reason.
+
+-Tim
+
+

@@ -1,0 +1,16 @@
+I'm using Apache 2, mod_fastcgi (not mod_fcgi), and mod_actions.
+
+<IfModule mod_fastcgi.c>
+  AddHandler fastcgi-script .fcgi
+  #FastCgiWrapper /usr/lib/apache2/suexec2
+  FastCgiIpcDir /var/lib/apache2/fastcgi
+</IfModule>
+
+and
+
+AddHandler pcc-handler .php
+Action pcc-handler /cgi-bin/pcc.fcgi
+
+pcc.fcgi has to be copied to /usr/lib/cgi-bin, or wherever your
+cgi-bin dir is.  Or make a symlink.
+

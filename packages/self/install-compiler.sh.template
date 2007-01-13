@@ -1,0 +1,168 @@
+#!/bin/sh
+#######################################################
+# 
+# makeself embedded installer for the compiler package
+#
+#######################################################
+
+INSTALL_ROOT=install-root
+# XXX make this templated
+TARGET_ROOT=/opt/roadsend/pcc
+UNINSTALLER=$TARGET_ROOT/bin/roadsend-pcc-uninstall.sh
+
+###
+### require root
+### ============
+
+me=`id -u`
+if [ "$me" -ne 0 ]
+then
+    echo "You must be root to run installer"
+    exit 1
+fi
+
+###
+### make sure user agrees to license
+### ================================
+
+# cat <<EOF | more
+# LICENSE_HERE
+# EOF
+
+# agreed=
+# while [ x$agreed = x ]; do
+#     echo
+#     echo "Do you agree to the above license terms? [yes or no] "
+#     read reply leftover
+#     case $reply in
+#         y* | Y*)
+#             agreed=1;;
+#         n* | N*)
+#     echo "If you don't agree to the license you can't install this software";
+#     exit 1;;
+#     esac
+# done
+
+###
+### start the uninstaller script
+### ============================
+
+mkdir -p $TARGET_ROOT/bin
+cat <<EOF > $UNINSTALLER
+#!/bin/sh
+#
+# This is an automatically generated uninstaller script for the
+# Roadsend PHP Compiler package
+
+## require root
+me=\`id -u\`
+if [ "\$me" -ne 0 ]
+then
+    echo "You must be root to run uninstaller"
+    exit 1
+fi
+
+echo "Uninstalling Roadsend Compiler Binaries..."
+
+EOF
+
+###
+### install files
+### =============
+
+echo "Roadsend Compiler for PHP"
+echo "http://www.roadsend.com/"
+echo
+echo "Installing Compiler binaries... "
+echo "installation root directory is $TARGET_ROOT"
+
+## backup /etc/pcc.conf if it's there
+if [ -f "/etc/pcc.conf" ]; then
+  cp -f /etc/pcc.conf /etc/.pcc.conf.installer.backup
+fi
+
+# save a copy of pcc.conf
+echo "cp /etc/pcc.conf /etc/pcc.conf.backup" >> $UNINSTALLER
+
+cd $INSTALL_ROOT && 
+for dir in `find . -type d`; do mkdir -p /$dir; done && 
+for file in `find . -not -type d`; do 
+  cp -Pp $file /$file; 
+  echo "rm -f /$file" >> $UNINSTALLER
+done
+
+## check if we need to restore /etc/pcc.conf
+if [ -f "/etc/.pcc.conf.installer.backup" ]; then
+  mv -f /etc/.pcc.conf.installer.backup /etc/pcc.conf
+fi
+
+###
+### symlink bin files?
+###
+
+ agreed=
+ while [ x$agreed = x ]; do
+     echo
+     echo -n "Do you want to symlink the Roadsend binaries to the system path? [y/n/?]: "
+     read reply leftover
+     case $reply in
+         y* | Y*)
+             agreed=y;;
+         n* | N*)
+             agreed=n;;
+         ?)
+	     echo "Your system will need to know where to find the Roadsend binaries.";
+	     echo "If you plan to manually add $TARGET_ROOT/bin to your system's PATH";
+	     echo "then you should say N here.";
+	     echo "";
+	     echo "If in doubt, say Y";;
+     esac
+ done
+
+if test "$agreed" = y; then
+    echo "making binary symlinks to /usr/bin ..."
+    ## /usr/bin links
+    bin_dir=$TARGET_ROOT/bin
+    old_dir=`pwd`
+    cd $bin_dir
+    for bin in pcc* bigloo
+    do
+      binname=`basename $bin`
+      ln -fs $bin_dir/$binname /usr/bin/$binname
+      echo "rm -f /usr/bin/$binname" >> $UNINSTALLER
+    done
+    cd $old_dir
+else
+    echo "Please add $TARGET_ROOT/bin to your system PATH"
+fi
+
+
+echo "rm -f $UNINSTALLER" >> $UNINSTALLER
+chmod 755 $UNINSTALLER
+
+echo "The configuration file is located in /etc/pcc.conf"
+echo "You can uninstall this package by running $UNINSTALLER"
+
+# check for a bad (home ...) setting
+grep 'home' /etc/pcc.conf |grep -q /opt
+if [ -z $? ]; then 
+
+cat <<EOF
+
+WARNING: The Roadsend Compiler has been installed in
+/opt/roadsend/pcc, but your configuration file is from an older
+version of the compiler that was previously installed elsewhere.  
+Please update the home directive in /etc/pcc.conf to:
+
+    (home "/opt/roadsend/pcc"), 
+
+Thank you.
+
+EOF
+
+fi
+
+
+echo "Done."
+
+[ -d "$TARGET_ROOT/libs" ] || echo "NOTE: You will also need to install the pcc-runtime package before using the compiler!"

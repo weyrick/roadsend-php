@@ -1,0 +1,63 @@
+LIBRARY libhttpd.dll
+EXPORTS
+ap_allow_methods
+ap_allow_standard_methods
+ap_bucket_type_eoc DATA
+ap_bucket_type_error DATA
+ap_byterange_filter
+ap_byterange_filter_handle DATA
+ap_chunk_filter_handle DATA
+ap_conftree DATA
+ap_content_length_filter
+ap_content_length_filter_handle DATA
+ap_core_input_filter_handle DATA
+ap_core_output_filter_handle DATA
+ap_core_translate
+ap_default_loglevel DATA
+ap_extended_status DATA
+ap_filter_flush
+ap_fprintf
+ap_fputstrs
+ap_http_header_filter
+ap_http_header_filter_handle DATA
+ap_http_input_filter_handle DATA
+ap_limit_section
+ap_listeners DATA
+ap_loaded_modules DATA
+ap_log_cerror
+ap_log_error
+ap_log_perror
+ap_log_rerror
+ap_method_list_do
+ap_my_generation DATA
+ap_net_time_filter_handle DATA
+ap_old_write_filter
+ap_old_write_func DATA
+ap_prelinked_modules DATA
+ap_preloaded_modules DATA
+ap_rprintf
+ap_rvputs
+ap_scan_script_header_err_strs
+ap_scoreboard_fname DATA
+ap_scoreboard_image DATA
+ap_send_http_trace
+ap_server_argv0 DATA
+ap_server_config_defines DATA
+ap_server_post_read_config DATA
+ap_server_pre_read_config DATA
+ap_server_root DATA
+ap_set_deprecated
+ap_set_file_slot
+ap_set_flag_slot
+ap_set_int_slot
+ap_set_string_slot
+ap_set_string_slot_lower
+ap_sub_req_output_filter
+ap_subreq_core_filter_handle DATA
+ap_top_module DATA
+core_module DATA
+http_module DATA
+mpm_winnt_module DATA
+real_exit_code DATA
+so_module DATA
+win32_module DATA

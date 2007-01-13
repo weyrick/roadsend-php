@@ -1,0 +1,14 @@
+LIBRARY libapr.dll
+EXPORTS
+apr_app_init_complete DATA
+apr_day_snames DATA
+apr_dbg_log
+apr_file_printf
+apr_month_snames DATA
+apr_os_level DATA
+apr_pool_cleanup_null
+apr_psprintf
+apr_pstrcat
+apr_snprintf
+apr_table_do
+apr_terminate

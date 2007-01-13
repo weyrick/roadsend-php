@@ -1,0 +1,15 @@
+Package: roadsend-pcc-prereqs
+Priority: optional
+Section: devel
+Maintainer: Roadsend PCC Team <support@roadsend.com>
+Architecture: i386
+Suggests: libmysqlclient10, libpcre3, libxml2
+Version: PCC_VERSION_HERE
+Description: The Roadsend PCC Compiler for PHP - Prerequisites
+  PCC is the Roadsend PHP Compiler. It compiles PHP code into
+  high performance stand-alone binaries  and  libraries.  PHP
+  code compiled by PCC can be used with or without the Apache
+  webserver.
+  .
+  This package provides the prerequisite packages required by
+  PCC.

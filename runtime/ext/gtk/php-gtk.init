@@ -1,0 +1,10 @@
+;(set! *cc-options*
+;	(string-append *cc-options*
+;	 " -I/usr/local/include "))
+
+(set! *ld-options*
+      (string-append *ld-options*
+	;;output of gtk-config --libs
+	;;hardcoded so it doesn't have to be in the path on windows
+	" -L/usr/local/lib"))
+

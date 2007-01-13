@@ -1,0 +1,86 @@
+\input texinfo
+@setfilename api-main.info
+@documentencoding us-ascii
+@settitle Roadsend PHP Compiler
+
+@copying
+Copyright @copyright{} 2006 Roadsend, Inc.
+@end copying
+
+@c only in printable formats
+@titlepage
+@title Roadsend PHP Compiler API Documentation
+
+@page
+@vskip Opt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@node Top, Extensions, (dir), (dir)
+
+@insertcopying
+
+@documentlanguage en
+@top Roadsend PHP Compiler API
+
+@menu
+* Extensions::                  
+@end menu
+
+@node Extensions,  , Top, Top
+@chapter Extensions
+
+@menu
+* cURL::                        
+* MySQL::                       
+* ODBC::                        
+* PCRE::                        
+* SQLite::                      
+* Standard::                    
+* Windows::                     
+* XML::                         
+@end menu
+
+@node cURL, MySQL, Extensions, Extensions
+@section cURL
+
+@include ext-php-curl.texi
+
+@node MySQL, ODBC, cURL, Extensions
+@section MySQL
+
+@include ext-php-mysql.texi
+
+@node ODBC, PCRE, MySQL, Extensions
+@section ODBC
+
+@include ext-php-odbc.texi
+
+@node PCRE, SQLite, ODBC, Extensions
+@section PCRE
+
+@include ext-php-pcre.texi
+
+@node SQLite, Standard, PCRE, Extensions
+@section SQLite
+
+@include ext-php-sqlite.texi
+
+@node Standard, Windows, SQLite, Extensions
+@section Standard
+
+@include ext-php-std.texi
+
+@node Windows, XML, Standard, Extensions
+@section Windows
+
+@include ext-pcc-win.texi
+
+@node XML,  , Windows, Extensions
+@section XML
+
+@include ext-php-xml.texi
+
+@bye

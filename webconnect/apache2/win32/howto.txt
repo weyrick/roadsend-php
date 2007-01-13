@@ -1,0 +1,38 @@
+1) include\os.h has a problem with the real_exit stuff. i commented it out. needed?
+/*
+AP_DECLARE_DATA extern int real_exit_code;
+
+#define exit(status) ((exit)((real_exit_code==2) ? (real_exit_code = (status)) \
+                                                 : ((real_exit_code = 0), (status))))
+*/
+
+2) include\apr.h has a problem with __attribute__ ...
+//#ifndef __attribute__
+//#define __attribute__(__x)
+//#endif
+
+3) include\http_log.h has a problem with the export definition of log_error and log_rerror
+   i had to change AP_DECLARE to AP_DECLARE_NONSTD
+
+AP_DECLARE_NONSTD(void) ap_log_error(const char *file, int line, int level, 
+AP_DECLARE_NONSTD(void) ap_log_rerror(const char *file, int line, int level, 
+
+3) make def file from dll files. need to seperate stdcall from cdecl
+
+   pexports libapr.dll > libapr-s.def
+
+   cut and paste cdecl functions (the ones without _) into libapr-c.def
+   remove initial from remaining functions, but leave @n info
+   add header to libapr-c.def:
+     LIBRARY libapr.dll
+     EXPORTS
+
+   dlltool.exe -U -d libapr-s.def -l libapr-s.dll.a
+   dlltool.exe -d libapr-c.def -l libapr-c.dll.a
+
+3) repeat this procedure for libhttpd.dll
+
+4) all four libs need to be on link line:
+gcc -shared -Wl,--out-implib,mod_pcc2_s.so.a  -o mod_pcc2_s.so apache2.o mod_pcc2.o apache_request.o apache_multipart_buffer.o apache_cookie.o -L../../li
+bs -Lc:/msys/1.0/home/weyrick/bigloo/2.6e/lib/bigloo/2.6e -L/usr/local/lib -lapr-s -lapr-c -lhttpd-s -lhttpd-c -L. -lprofiler_s  -lphp-runtime_s -lphpeval_
+s -lwebconnect_s  -Lc:/msys/1.0/home/weyrick/bigloo/2.6e/lib/bigloo/2.6e -lbigloo_s-2.6e -lbigloogc-2.6e -lcommon_s

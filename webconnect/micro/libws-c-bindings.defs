@@ -1,0 +1,148 @@
+(module libws-c-bindings
+;    (library common)
+    (extern
+     (include "web_server.h")
+;     (type handler-func
+;	   (function void ()) "void (*)()")
+     (web-log::void (format::string . rest::cobj) "web_log")
+;     (type file* (opaque) "FILE*")
+     (type time-t long "time_t")
+     (type web-client* (opaque) "struct web_client*")
+     (type gethandler* (opaque) "struct gethandler*")
+     (macro ws-local::int "WS_LOCAL")
+     (macro ws-usessl::int "WS_USESSL")
+     (macro ws-useextconf::int "WS_USEEXTCONF")
+     (macro ws-dynvar::int "WS_DYNVAR")
+     (macro ws-uselen::int "WS_USELEN")
+     (type webserver
+	   (struct
+	    (socket::int "socket")     
+	    (port::uint "port")    
+	    (logfile::string "logfile")      
+	    (conffile::string "conffile")
+	    (conffiletime::time-t "conffiletime")
+	    (mimefile::string "mimefile")     
+	    (dataconf::string "dataconf")
+;	    (weblog::file* "weblog")
+	    (flags::int "flags") 
+	    (gethandler::gethandler* "gethandler")
+	    (client::web-client* "client")
+	    (usessl::int "usessl"))
+;	    (pad::void* "pad[2]"))
+	   "struct web_server")
+     (type const-string string "const char *")     
+     )
+   )
+
+;;;; data types
+
+; (define-object (webserver "struct web_server*") ()
+;    (fields
+;     (int socket)     
+;     (uint port)    
+;     (string logfile)      
+;     (string conffile)
+;     (time_t conffiletime)
+;     (string mimefile)     
+;     (string dataconf)
+;     (file* weblog)
+;     (ws-flags flags) 
+;     (gethandler* gethandler)
+;     (web_client* client)
+;     (int usessl)
+;     ; void *pad[2]
+;     )) 
+
+; (define-flags (ws-flags int)
+;    (ws-local WS_LOCAL)
+;    (ws-usessl WS_USESSL)
+;    (ws-useextconf WS_USEEXTCONF)
+;    (ws-dynvar WS_DYNVAR)
+;    (ws-uselen WS_USELEN))
+
+
+;;;; libwebserver API
+
+; void web_server_useSSLcert(struct web_server *,const char *);  // useless if not using openssl
+(define-func web_server_useSSLcert void ((webserver*)
+					 (const-string certfile)))
+
+; void web_server_useMIMEfile(struct web_server *,const char *); // new on 0.5.2
+(define-func web_server_useMIMEfile void ((webserver*)
+					  (const-string mimefile)))
+
+; int web_server_init(struct web_server *,int,const char *,int);
+(define-func web_server_init int ((webserver*)
+				  (int port)
+				  (const-string logfile)
+				  (int flags)))
+
+; char *web_server_getconf(struct web_server *,char *,char *);
+(define-func web_server_getconf string ((webserver*)
+					(string topic)
+					(string key)))
+
+; int web_server_addhandler(struct web_server *,const char *,void (*)(),int);
+(define-func web_server_addhandler int ((webserver*)
+					(string mstr)
+					(void* func)
+					(int flags)))
+
+
+; int web_server_aliasdir(struct web_server *, const char *,char *,int); // new on 0.5.2
+(define-func web_server_aliasdir int ((webserver*)
+				      (const-string alias)
+				      (string path)
+				      (int flags)))
+
+; int web_server_run(struct web_server *);
+(define-func web_server_run int ((webserver*)))
+
+; void web_server_stop(struct web_server *);
+(define-func web_server_stop void ((webserver*)))
+
+; int web_client_addfile(char *);
+; XXX only call from handler added by addhandler
+(define-func web_client_addfile int ((string file)))
+
+; XXX ??
+; void web_client_gifsetpalette(const char *);
+; int web_client_gifoutput(char *,int,int,int);
+
+; void web_client_setcookie(char *,char *,char *,char *, char *,int); // improved on 0.5.1
+; XXX only call from handler added by addhandler
+(define-func web_client_setcookie void ((string key)
+					(string value)
+					(string timeoffset)
+					(string path)
+					(string domain)
+					(int secure)))
+					
+; void web_client_deletecookie(char *);                // improved on 0.5.1
+; XXX only call from handler added by addhandler
+(define-func web_client_deletecookie void ((string key)))
+
+; int web_client_setvar(char *,char *); //(new (0.5.1)
+; XXX only call from handler added by addhandler
+(define-func web_client_setvar int ((string key)
+				    (string val)))
+
+; char *web_client_getvar(char *);        //(new (0.5.1)
+; XXX only call from handler added by addhandler
+(define-func web_client_getvar string ((string key)))
+
+; int web_client_delvar(char *);        //(new (0.5.1)
+; XXX only call from handler added by addhandler
+(define-func web_client_delvar string ((string key)))
+				     
+; void web_client_HTTPdirective(char *);
+; XXX only call from handler added by addhandler
+(define-func web_client_HTTPdirective void ((string dir)))
+
+; void web_client_contenttype(char *); // 0.5.2
+; XXX uses mime file
+(define-func web_client_contenttype void ((string type)))
+
+; void web_log(const char *,...);
+; XXX only call from handler added by addhandler
+

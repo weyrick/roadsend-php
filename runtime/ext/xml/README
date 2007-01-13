@@ -1,0 +1,10 @@
+- skip whitespace option in struct, cdata (libxml/expat discrepancy)
+- mysterious skip tagstart option
+- utf8 decoding
+- namespace functions
+- object method callback support (including array kludge)
+- encoding support
+
+there are some discrepancies with which callbacks get called, when they
+get called and with what data between expat and libxml
+

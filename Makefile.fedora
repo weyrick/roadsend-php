@@ -1,0 +1,18 @@
+#
+# distro specific configuration
+#
+
+# this is done before Makefile.linux because it's used
+# in a shell call therein
+APXS		= /usr/sbin/apxs
+
+# our defaults 
+include $(PCC_ROOT)/Makefile.linux
+
+# our overrides
+MYSQL_INCLUDE = -I/usr/include/mysql
+MYSQL_LIBRARY = -L/usr/lib/mysql
+
+# gtk
+GLADE_INCLUDE = -copt -I/usr/include/libglade-1.0 -copt -I/usr/include/gnome-xml -copt -I$(PCC_ROOT)/../include
+GLADE_LIBRARY = -L$(PCC_ROOT)/../lib

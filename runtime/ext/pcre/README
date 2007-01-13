@@ -1,0 +1,4 @@
+- fix global-loop functions to only loop if subject-offset is (- (string-length subject) 1) ?
+  right now it loops as long as it's less than subject length, which might be one too many as it 
+  appeared to be in preg_split. need test cases for this in other functions
+

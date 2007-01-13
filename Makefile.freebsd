@@ -1,0 +1,62 @@
+# -*- Mode: Makefile; -*-
+
+# this is a constant for #ifdefs and such
+PCC_OS = PCC_FREEBSD  
+SOEXT = so
+BIGLOOVERSION = 2.6f
+STATIC_SUFFIX = 
+BIGLOO_PIC = -copt -fPIC
+C_PIC = -fPIC
+
+# build .so libraries
+dllcmd = gcc -shared -o $(1)
+dllcmd_i = gcc -shared -o $(1)
+PCC_LINK_OPTIONS = 
+RUNTIME_DLL_LIBS = $(BIGLOO_LIBS)
+COMPILER_DLL_LIBS = $(BIGLOO_LIBS)
+WEBCONNECT_DLL_LIBS = $(BIGLOO_LIBS)
+EXTENSION_DLL_LIBS = $(BIGLOO_LIBS)
+PROFILER_DLL_LIBS = $(BIGLOO_LIBS)
+DOTEST_LIBS = 
+
+RESOLVER_LIBRARY =
+
+WINDOWS_TIME_SUPPORT	= 
+
+
+# this is used by tools/license/Makefile
+LIBCRYPTO	= /usr/lib/libcrypto.a
+
+APXS		= /usr/local/sbin/apxs
+APACHE_INC	= $(shell $(APXS) -q INCLUDEDIR)
+APACHE_CFLAGS = 
+APACHE_BFLAGS = -L $(APACHE_INC)
+
+#these two are pretty bad
+LINK_APACHE_MODULE = $(APXS) -I$(BGL_DEFAULT_LIB_DIR) -c mod_pcc.c $(MOD_OBJS) -o mod_pcc_s.so -I/usr/local/include/libxml2  -s  -lcrypt     -L../../libs -L. -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_$(SU)  -lphp-runtime_$(SU) -lphpeval_$(SU) -lwebconnect_$(SU)  -lbigloo_$(SU)-$(BIGLOO_VERSION) -lbigloogc-$(BIGLOO_VERSION) $(OS_LIBS) -lm
+
+LINK_APACHE_MODULE_UNSAFE = $(APXS) -I$(BGL_DEFAULT_LIB_DIR) -c mod_pcc.c -o mod_pcc_u.so $(MOD_OBJS) -I/usr/local/include/libxml2  -s  -lcrypt     -L../../libs -L. -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_u  -lphp-runtime_u -lphpeval_u -lwebconnect_u  -lbigloo_u-$(BIGLOO_VERSION) -lbigloogc-$(BIGLOO_VERSION) $(OS_LIBS) -lm
+
+# mysql
+# this assumes mysql is PCC_ROOT/../mysql, ie downloading
+# the freebsd mysql distro and unpacking in home directory
+MYSQL_INCLUDE = -I$(PCC_ROOT)/../mysql/include
+MYSQL_LIBRARY = -L$(PCC_ROOT)/../mysql/lib
+
+# curl
+CURL_INCLUDE = -I/usr/local/include
+
+# sqlite
+SQLITE_INCLUDE = -I/usr/local/include
+SQLITE_LIBRARY_PATH = -L/usr/local/lib
+
+# xml
+XML_SCHEME_CFLAGS = -copt "$(shell pkg-config --cflags libxml-2.0)"
+XML_CFLAGS = $(shell pkg-config --cflags libxml-2.0)
+XML_LIBS = $(shell pkg-config --libs libxml-2.0)
+
+# pcre
+PCRE_INCLUDE = -I/usr/local/include
+
+# gtk
+GLADE_INCLUDE = -copt -I/usr/X11R6/include/libglade-1.0/ -copt -I/usr/local/include/gnome-xml -copt -I/usr/X11R6/include/scintilla/

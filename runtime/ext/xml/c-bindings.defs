@@ -1,0 +1,55 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Roadsend PHP Compiler Runtime Libraries
+ * Copyright (C) 2007 Roadsend, Inc.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 2.1
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+ * ***** END LICENSE BLOCK ***** */
+
+(module xml-c-bindings
+;   (library common)
+   (extern
+    (include "libxml/parser.h")
+    (type int* (pointer int) "int*"))
+   (export
+    *null*))
+
+(define *null*
+   (pragma::void* "NULL"))
+
+(define-object (xml-parser-ctxt-ptr xmlParserCtxtPtr) ())
+
+; int		 xmlParseChunk		(xmlParserCtxtPtr ctxt,
+; 					 const char *chunk,
+; 					 int size,
+; 					 int terminate);
+(define-func (xml-parse-chunk "xmlParseChunk")int ((xml-parser-ctxt-ptr)
+				  (string)
+				  (int)
+				  (int)))
+
+(define-func (xml-free-parser-ctxt "xmlFreeParserCtxt") void ((xml-parser-ctxt-ptr)))
+
+
+; utf8 enoding/decoding
+(define-func (utf8-encode "isolat1ToUTF8") int ((string)
+						(int*)
+						(string)
+						(int*)))
+
+(define-func (utf8-decode "UTF8Toisolat1") int ((string)
+						(int*)
+						(string)
+						(int*)))
+

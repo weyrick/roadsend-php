@@ -1,0 +1,11 @@
+;-*- bee -*-
+;*---------------------------------------------------------------------*/
+;*    Addition includes                                                */
+;*---------------------------------------------------------------------*/
+(set! *additional-include-foreign*
+      (cons "sys/time.h" (cons "time.h" *additional-include-foreign*)))
+
+
+
+
+

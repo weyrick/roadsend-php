@@ -1,0 +1,4 @@
+AuthType Basic
+AuthUserFile /tmp/htpasswd
+Require valid-user
+AuthName "PCC Auth"

@@ -1,0 +1,1 @@
+Initial ideia, (could probably change some features...) Implents web interface to your programs, usefull for configuration, stats, and whatever you want to do without dependencies of a web server, easy configurable, logging,  easy to implement. Programed in C, intended to be portable to various systems

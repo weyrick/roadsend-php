@@ -1,0 +1,62 @@
+#!/bin/sh
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+exec_prefix_set=no
+
+usage()
+{
+	cat <<EOF
+Usage: libwebserver-config [OPTIONS] [LIBRARIES]
+Options:
+	[--version]
+	[--release]
+	[--libs]
+	[--cflags]
+Libraries:
+	libwebserver
+EOF
+	exit $1
+}
+
+if test $# -eq 0; then
+	usage 1 1>&2
+fi
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case $1 in
+    --prefix)
+      echo "@prefix@"
+      exit 0
+      ;;
+    --version)
+      echo "@VERSION@"
+      exit 0
+      ;;
+    --release)
+      echo "@RELEASE@"
+      exit 0
+      ;;
+    --cflags)
+      echo -I@includedir@
+      exit 0
+      ;;
+    --libs)
+       echo -L@libdir@ @LIBDIR@ -lwebserver @LIBS@
+       exit 0
+      ;;
+    libwebserver)
+      echo yes
+      exit 0
+      ;;
+    *)
+      usage 1 1>&2
+      ;;
+  esac
+  shift
+done

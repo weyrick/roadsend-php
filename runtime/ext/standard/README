@@ -1,0 +1,13 @@
+These are the extensions that don't depend on any external libraries
+that might not be present. That means that libc is okay, for exampl,
+but libgtk is not.  Since there's no unusual dependency, there's no
+reason not to build these in every time.
+
+Code in this directory should also be mostly orthogonal.  Even if you
+had the libraries, you likely wouldn't want to build in both postgres
+and mysql support - they both do the same thing.  In the standard
+extension, we only want one of each thing.
+
+
+
+

@@ -1,0 +1,23 @@
+;; -*- bee -*-
+
+
+(set! *user-pass*
+      (lambda (code)
+	 (if (list? code)
+	     (map (match-lambda
+		     (((and ?def (or define define-generic define-method)) (and ?sig (? pair?)) . ?code)
+		      ;function-name is a symbol to (hopefully) make hash lookup a bit faster
+		      (let ((function-name (string->symbol
+					    (with-output-to-string
+					       (lambda ()
+						  (display sig))))))
+			 `(,def ,sig
+				(profile-enter ',function-name)
+				(unwind-protect
+				   (begin ,@code)
+				   (profile-leave ',function-name)))))
+		     (?else else))
+		  code)
+	     (begin
+;		(print "not a list: " code)
+		code))))

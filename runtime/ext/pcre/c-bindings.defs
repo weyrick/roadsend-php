@@ -1,0 +1,166 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Roadsend PHP Compiler Runtime Libraries
+ * Copyright (C) 2007 Roadsend, Inc.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 2.1
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+ * ***** END LICENSE BLOCK ***** */
+
+(module pcre-c-bindings
+;   (library common)
+   (export *null-pcre*
+	   *null-pcre-extra*
+	   (inline null-pcre?::bool row::pcre*)
+	   (inline null-pcre-extra?::bool mysql::pcre-extra*))
+   (extern
+    ;; on some machines, this is pcre/pcre.h, on others (e.g. debian)
+    ;; it's not.  Add the directory where pcre.h lives to the CFLAGS in
+    ;; the Makefile instead of frobbing this.
+    (include "pcre.h")
+    (include "php-pcre.h")
+    (type pcre* (opaque) "pcre *")
+    (type pcre-extra* (opaque) "pcre_extra *")
+    (type const-string string "const char *")
+    (type const-string* (pointer string) "const char **")
+    (type const-string** (pointer const-string*) "const char ***")    
+    (type int* (pointer int) "int *")
+    (type const-uchar* (pointer uchar) "const unsigned char *")
+   ))
+
+; inline these ?
+(define *null-pcre*
+   (pragma::pcre* "((pcre*)NULL)"))
+
+(define *null-pcre-extra*
+   (pragma::pcre-extra* "((pcre_extra*)NULL)"))
+
+(define-inline (null-pcre?::bool pcre*::pcre*)
+   (pragma::bool "($1 == (pcre*)0L)" pcre*))
+
+(define-inline (null-pcre-extra?::bool pcre-extra*::pcre-extra*)
+   (pragma::bool "($1 == (pcre_extra*)0L)" pcre-extra*))
+
+
+; options
+
+(define-flags (pcre-options int)
+   (caseless PCRE_CASELESS)
+   (multi-line PCRE_MULTILINE)
+   (dot-all PCRE_DOTALL)
+   (extended PCRE_EXTENDED)
+   (anchored PCRE_ANCHORED)
+   (dollar-end-only PCRE_DOLLAR_ENDONLY)
+   (extra PCRE_EXTRA)
+   (not-bol PCRE_NOTBOL)
+   (not-eol PCRE_NOTEOL)
+   (ungreedy PCRE_UNGREEDY)
+   (not-empty PCRE_NOTEMPTY)
+   (utf8 PCRE_UTF8))
+
+; exec-time and get-time error codes
+(define-flags (pcre-errors int)
+   (no-match PCRE_ERROR_NOMATCH)
+   (null PCRE_ERROR_NULL)
+   (bad-option PCRE_ERROR_BADOPTION)
+   (bad-magic PCRE_ERROR_BADMAGIC)
+   (unknown-node PCRE_ERROR_UNKNOWN_NODE)
+   (no-memory PCRE_ERROR_NOMEMORY)
+   (no-substring PCRE_ERROR_NOSUBSTRING))
+
+; pcre_info flags
+(define-flags (pcre-info-flags int)
+   (options PCRE_INFO_OPTIONS)
+   (size PCRE_INFO_SIZE)
+   (capture-count PCRE_INFO_CAPTURECOUNT)
+   (backref-max PCRE_INFO_BACKREFMAX)
+   (first-char PCRE_INFO_FIRSTCHAR)
+   (first-table PCRE_INFO_FIRSTTABLE)
+   (last-literal PCRE_INFO_LASTLITERAL))
+
+; ;;;; functions
+
+(define-func pcc_pcre_setup void ())
+
+; extern pcre *pcre_compile(const char *, int, const char **, int *,
+;               const unsigned char *);
+
+(define-func pcre_compile pcre* ((const-string)
+				 (pcre-options)
+				 (const-string*)
+				 (int*)
+				 (const-uchar*)))
+
+; extern int  pcre_copy_substring(const char *, int *, int, int, char *, int);
+
+; (define-func pcre_copy_substring int ((const-string)
+; 				      (int*)
+; 				      (int)
+; 				      (int)
+; 				      (string)
+; 				      (int)))
+
+; extern int  pcre_exec(const pcre *, const pcre_extra *, const char *,
+;               int, int, int, int *, int);
+
+(define-func pcre_exec int ((pcre*)
+			    (pcre-extra*)
+			    (const-string)
+			    (int)
+			    (int)
+			    (pcre-options)
+			    (int*)
+			    (int)))
+
+; extern void pcre_free_substring(const char *);
+
+;(define-func pcre_free_substring void ((const-string)))
+
+; extern void pcre_free_substring_list(const char **);
+
+;(define-func pcre_free_substring_list void ((const-string*)))
+
+; extern int  pcre_get_substring(const char *, int *, int, int, const char **);
+
+(define-func pcre_get_substring int ((const-string)
+				     (int*)
+				     (int)
+				     (int)
+				     (const-string*)))
+
+; extern int  pcre_get_substring_list(const char *, int *, int, const char ***);
+
+; (define-func pcre_get_substring_list int ((const-string)
+; 					  (int*)
+; 					  (int)
+; 					  (const-string**)))
+   
+; extern int  pcre_fullinfo(const pcre *, const pcre_extra *, int, void *);
+
+; NOTE we make the final parameter an int* for convenience, as that is all we use it for
+(define-func pcre_fullinfo int ((pcre*)
+				(pcre-extra*)
+				(pcre-info-flags)
+				(int*)))
+
+; extern const unsigned char *pcre_maketables(void);
+
+;(define-func pcre_maketables const-uchar* ())
+   
+; extern pcre_extra *pcre_study(const pcre *, int, const char **);
+
+(define-func pcre_study pcre-extra* ((pcre*)
+				     (int)
+				     (const-string*)))
+
+; extern const char *pcre_version(void);

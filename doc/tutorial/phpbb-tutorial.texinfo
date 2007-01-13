@@ -1,0 +1,455 @@
+\input texinfo   @c -*-texinfo-*-
+@c %**start of header
+@setfilename phpbb-tutorial.info
+@settitle Compiling and Deploying phpBB with Roadsend PHP
+@c %**end of header
+
+@set EDITION 0.1
+@settitle Compiling and Deploying phpBB with Roadsend PHP
+
+@ifnottex
+
+@titlepage
+@title
+@end titlepage
+
+@node Top, Overview, (dir), (dir)
+@top Contents
+
+
+@end ifnottex
+
+@menu
+* Overview::                    
+* Requirements::                
+* Build Overview::              
+* Setting up the Development Environment::  
+* Initial Setup of phpBB with the Roadsend Interpreter::  
+* Compiling phpBB to a FastCGI binary::  
+* Running phpbb.fcgi with Apache::  
+* Running the FastCGI Binary::  
+* Troubleshooting::             
+* Deploying To a Different Server::  
+* Conclusion::                  
+* External Links::              
+@end menu
+
+@node Overview, Requirements, Top, Top
+@chapter Overview
+
+phpBB is a high powered, fully scalable, and highly customizable Open
+Source bulletin board package written in PHP4, available at
+@url{http://www.phpbb.com}
+
+Roadsend PHP is a commercial PHP implementation and native compiler,
+available at @url{http://www.roadsend.com}
+
+This guide will describe how to use Roadsend PHP to compile and deploy
+a working installation of phpBB on a Linux/FreeBSD server with Apache
+and FastCGI. We will build a statically linked binary using the
+command line version of the Roadsend PHP compiler: ``pcc''
+
+
+@node Requirements, Build Overview, Overview, Top
+@chapter Requirements
+
+Roadsend PHP >= 2.0
+phpBB2 >= 2.0.19
+Apache >= 1.3
+MySQL >= 4.1.x
+mod_fastcgi >= 2.4.2
+
+@node Build Overview, Setting up the Development Environment, Requirements, Top
+@chapter Build Overview
+
+We will complete the following steps to build and deploy:
+
+@enumerate
+@item Unpack phpBB to the web root directory
+@item Run phpBB uncompiled with the Roadsend PHP web interpreter to create the tables and configuration file "config.php"
+@item Compile the configured phpBB source tree to a single, statically linked executable FastCGI binary
+@item Install the compiled FastCGI binary
+@end enumerate
+
+
+@node Setting up the Development Environment, Initial Setup of phpBB with the Roadsend Interpreter, Build Overview, Top
+@chapter Setting up the Development Environment
+
+First, make sure you have a copy of Roadsend PHP installed. If you are
+not yet a customer, you can download a free 21 day trial from
+@url{http://www.roadsend.com}. Installation instructions are included in the
+package, and can also be found online [3].
+
+After installation of the compiler and runtime self installer
+packages, you can run a simple test to make sure the compiler is
+installed:
+
+@example
+$ pcc --version
+2.0.0
+@end example
+
+We also need the Roadsend web interpreter (@file{pcc.fcgi}) installed,
+because we want to run the installation scripts included with phpBB
+before we compile. Instructions installing FastCGI and enabling the
+Roadsend web interpreter can be found in the Roadsend PHP Compiler
+online manual [3].
+
+Make sure that you associate @file{.php} files with the Roadsend web
+interpreter, as we will be running the phpBB installation scripts in
+the next step.
+
+
+Now download a copy of phpBB from their website: 
+@url{http://www.phpbb.com/downloads.php}
+
+In this tutorial we will assume the file @file{phpBB-2.0.19.tar.bz2} file is
+downloaded.
+
+Copy and unpack the file into your web root directory. This should be
+the directory defined as @var{DocumentRoot} in your Apache config file.
+
+For example:
+
+@example
+$ cp phpBB-2.0.19.tar.bz2 /var/www
+$ cd /var/www/
+$ tar -jxvf phpBB-2.0.19.tar.bz2
+drwxr-xr-x www-data/www-data 0 2005-12-30 11:39:43 phpBB2/
+-rw-r--r-- www-data/www-data 0 2005-12-30 11:38:18 phpBB2/config.php
+drwxr-xr-x www-data/www-data 0 2005-12-30 11:38:18 phpBB2/admin/
+....
+@end example
+
+You should now have a @file{phpBB2} directory in your web root
+containing the contents of the @file{phpBB-2.0.19.tar.bz2} file.
+
+Read through the @file{phpBB2/doc/INSTALL} file to get an idea of the
+requirements for installing phpBB, especially in regards to the
+database. However, keep in mind that this document was not written
+with the Roadsend Compiler in mind so some steps will be different.
+
+Make sure your MySQL database is working and configured with the user
+and database that phpBB will use.
+
+To make the configuration step easier, you can change the permissions
+of the configuration file (@file{config.php}) to the web server user so that
+phpBB can write directly to this file. To do this, you need to know
+what user your web server runs as. In this example, we will assume it
+runs as the "apache" user. This step is optional - if you do not
+change permission on this file, you will have to put the configuration
+file into place manually at a later step.
+
+@example
+$ cd phpBB2/
+$ su
+Password:
+# chown apache config.php
+# exit
+$
+@end example
+
+@node Initial Setup of phpBB with the Roadsend Interpreter, Compiling phpBB to a FastCGI binary, Setting up the Development Environment, Top
+@chapter Initial Setup of phpBB with the Roadsend Interpreter
+
+We will now use the Roadsend web interpreter to run the installation
+script included with phpBB.
+
+Point your web browser to the phpBB source tree you just unpacked,
+e.g.: @file{http://localhost/phpBB2/}
+
+You should be automatically be redirected to the installation script:
+@file{http://localhost/phpBB2/install/install.php}
+
+Fill in the values you wish to use for your phpBB installation. Most
+of the settings are related to connecting to the database. Don't worry
+if the settings for the machine you wish to deploy on will be
+different than the development machine - the settings can be
+reconfigured at a later date.
+
+If you did not change the permissions on your @file{config.php} file, then
+you will be prompted to FTP or download the file instead. You can
+select "Just send the file to me and I'll FTP it manually" and save
+the @file{config.php} file to your disk, then copy it into place. Assuming
+you save it to your home directory:
+
+@example
+$ cp config.php /var/www/phpBB2
+@end example
+
+Once config.php is in place, point your browser to the phpBB2 root
+again: @file{http://localhost/phpBB2/}
+
+This time it should say you need to remove the @file{install/} and @file{contrib/}
+directories, for security reasons. We don't want to compile these
+files anyway, so we'll do that now:
+
+@example
+$ cd /var/www/phpBB2
+$ rm -r install/
+$ rm -r contrib/
+@end example
+
+Once again, reload the website:
+@file{http://localhost/phpBB2/}
+
+You should now have a fully functioning phpBB site, albeit in
+interpreted mode. So, we are ready to compile!
+
+
+@node Compiling phpBB to a FastCGI binary, Running phpbb.fcgi with Apache, Initial Setup of phpBB with the Roadsend Interpreter, Top
+@chapter Compiling phpBB to a FastCGI binary
+
+We will now compile the phpBB source tree to a single, statically
+linked FastCGI binary file. We will compile all source files except
+the @file{config.php} file so that database settings can be changed during
+deployment (the @file{config.php} file will be interpreted at runtime).
+
+First, make sure you are in the phpBB2 source tree, e.g.:
+
+@example
+$ cd /var/www/phpBB2
+@end example
+
+Use the command below to compile the phpBB source tree. We will get a
+list of files to compile with the help of the standard Unix @file{find}
+command. The options to pcc are explained in detail below.
+
+@example
+$ pcc -v --static -O --fastcgi phpbb `find ./ -name "*.php" -or -name "*.inc" | grep -v config.php`
+@end example
+
+The arguments to the Roadsend Compiler (pcc) in the above command are:
+
+@table @var
+@item -v
+Verbose build output, so we can watch the status of the build
+@item -O
+Turn on additional optimizations
+@item --static
+Link statically, so we can deploy without needed other runtime libraries
+@item --fastcgi phpbb
+Tell the compiler to create a FastCGI binary, named "phpbb"
+@end table
+
+The rest of the command line is the Unix @file{find} command, which says
+essentially: "return all files beneath the current directory that end
+in the extension "php" or "inc", but don't include config.php". The
+alternative to this is listing the source files to compile directly on
+the command line, or creating a text file with the list of source
+files in it.
+
+Note that the Roadsend Compiler only compiles the PHP source files
+into the final binary -- the images, templates and other static items
+are not included.
+
+Now, let's run the command and examine the output.
+
+@example
+$ pcc -v --static -O --fastcgi phpbb `find ./ -name "*.php" -or -name "*.inc" | grep -v config.php`
+Roadsend PHP Compiler/2.0.0
+building lib: libphpbb_u.so, libphpbb_u.a, 71 source files (71 require build)
+compiler: preprocessing...
+compiling phpbb-make-lib.scm
+compiling ./viewtopic.php
+compiling ./viewonline.php
+compiling ./viewforum.php
+...
+compiling ./admin/admin_board.php
+compiling ./admin/admin_disallow.php
+linking shared library: libphpbb_u.so
+linking static library: libphpbb_u.a
+creating FastCGI binary: phpbb.fcgi (statically linked)
+@end example
+
+The compiler will indicate each file as it compiles, and a list of
+binary files created at the end of the build. Building phpBB as a
+static FastCGI binary produces many output files (mostly .o files
+which will speed up recompiling if necessary), but the only one we are
+interested in is @file{phpbb.fcgi} - this is the final binary we will
+deploy. Because we have used to @var{--static} flag, we do not have to worry
+about any runtime or dependency libraries.
+
+
+@node Running phpbb.fcgi with Apache, Running the FastCGI Binary, Compiling phpBB to a FastCGI binary, Top
+@chapter Running phpbb.fcgi with Apache
+
+You should already have @file{mod_fastcgi} enabled, so the following
+instructions will detail the process of copying the new @file{phpbb.fcgi}
+into place and adding the correct Apache configuration directives. You
+will also need @file{mod_rewrite} (a standard module included with Apache)
+enabled in your Apache configuration to complete the following steps.
+
+The first step is to identify your @file{cgi-bin} directory. You can find
+it by looking in the Apache http.conf file for the @var{ScriptAlias}
+directive. For example:
+
+@example
+$ grep ScriptAlias /etc/apache2/httpd.conf
+ScriptAlias /cgi-bin/ /var/cgi-bin/
+@end example
+
+On this system, the @file{cgi-bin} directory is located in @file{/var/cgi-bin/}, so
+we start by copying @file{phpbb.fcgi} to that location:
+
+@example
+$ cp phpbb.fcgi /var/cgi-bin/
+@end example
+
+Note, depending on the permissions of your @file{cgi-bin} directory, you may
+need to become root (using su or sudo) to perform the copy.
+
+Each deployed web application needs a ``web root''
+directory where the static content such as images and HTML templates
+are stored. In our example, the web root is where we unpacked the
+phpBB2 archive file to: @file{/var/www/phpBB2}
+
+We will use Apache's mod_rewrite module to grab all requests for PHP
+files in phpBB's web root directory and re-route them to our compiled
+FastCGI binary. We also allow for an index.php file. Add the following
+lines to your @file{httpd.conf} file (substituting the web root path on your
+system):
+
+@example
+<Directory /var/www/phpBB2/>
+     RewriteEngine On
+     RewriteRule ^(.+\.php)$  /cgi-bin/phpbb.fcgi/$1
+     RewriteRule ^$  /cgi-bin/phpbb.fcgi/index.php
+</Directory>
+@end example
+
+Now we add the directive that loads the @file{phpbb.fcgi} binary (again,
+substitute the correct web root directory):
+
+@example
+FastCgiServer cgi-bin/phpbb.fcgi -initial-env PATH -initial-env WEB_DOC_ROOT=/var/www/phpBB2
+@end example
+
+
+@node Running the FastCGI Binary, Troubleshooting, Running phpbb.fcgi with Apache, Top
+@chapter Running the FastCGI Binary
+
+Now that the binary and configuration directives are in place, restart
+Apache. If all went well, you can point your web browser to the same
+location we used before, but this time it should be running through
+the compiled binary:
+
+@file{http://localhost/phpBB2/}
+
+You can verify that it's running the phpbb.fcgi binary by:
+@enumerate
+@item Issuing a "ps ax" command to see the running processes. You should see phpbb.fcgi listed.
+@item Turning "debug-level" to "1" in /etc/pcc.conf and restarting Apache. Now, if you look in the Apache error log, you will see which compiled files are being accessed.
+@end enumerate
+
+@node Troubleshooting, Deploying To a Different Server, Running the FastCGI Binary, Top
+@chapter Troubleshooting
+
+If you're having trouble, first try adjusting the @var{LogLevel}
+directive in your Apache configuration to ``info''.  Also, adjust the
+@var{debug-level} directive in the @file{/etc/pcc.conf} configuration file
+to "2".
+
+Then, restart Apache and rerun the application, at which point you may
+check Apache's error log for more verbose error information.
+
+If you're still having trouble, try the Roadsend Support Forums:
+@url{http://forums.roadsend.com/}
+
+
+@node Deploying To a Different Server, Conclusion, Troubleshooting, Top
+@chapter Deploying To a Different Server
+
+In practice, it's generally necessary to deploy the application to a
+server that is different from the development machine. Let's take a
+look at what we will need to deploy to our sample production server:
+
+1) The @file{phpbb.fcgi} binary
+
+Because we compiled statically, we don't need to worry about any
+dependency libraries. Copy the binary to your production server (you
+can compress it first with gzip or bzip2, of course, to speed this
+up).
+
+2) The necessary static files from the web root (images, templates, etc)
+
+These we can get right from the @file{phpBB2-x.x.x.tar.bz2} source package,
+so copy that package to your production server.
+
+3) The @file{config.php} file, which is interpreted at runtime
+
+This was created when we ran the installation scripts. The settings
+may be different on the other server, so copy it to your production
+server and we'll install it and adjust as necessary.
+
+4) A dump of the phpBB database
+
+Unless you wish to go through the installation process again on the
+production server, you will want to dump the database that was created
+on your development machine by the installation scripts. You can do
+this easily in MySQL with the "mysqldump" utility. For example
+(assuming the database name is phpBB):
+
+@example
+$ mysqldump -a phpBB > phpBB-dump.sql
+@end example
+
+You may need to use the -u and/or -p switches to enter a username
+and/or password. Now, compress the @file{phpBB-dump.sql} file with gzip or
+bzip2 and copy it to your production server.
+
+After you've copied all of the necessary files for deployment, you
+will basically be repeating the steps we used for setting up the
+FastCGI binary on the development machine. There are a few differences
+this time though.
+
+1) Unpack the phpBB-x.x.x.tar.bz2 into the web root directory. You can
+immediately remove the install/ and contrib/ directories, the same as
+we did in the steps above for the development machine. Because we've
+already compiled all the PHP source files, they aren't actually
+necessary - but it doesn't hurt to leave them either. If you wish, you
+can remove them.
+
+2) You will need to import the database file that you dumped. For
+example:
+
+@example
+$ cat phpBB-dump.sql | mysql phpBB
+@end example
+
+Again, you will probably need to supply -u and -p arguments to mysql
+as necessary.
+
+3) Copy the @file{config.php} file from our development server into the
+directory that you just unpacked phpBB into. Edit this file wit your
+favorite text editor to match the correct database connection settings
+for this machine.
+
+4) Now follow the instructions above for installing the FastCGI binary
+into Apache.
+
+
+@node Conclusion, External Links, Deploying To a Different Server, Top
+@chapter Conclusion
+
+We've now completed the steps necessary to compile, test and deploy
+the phpBB bulletin board package with the Roadsend PHP compiler.
+
+We'd love to hear your feedback on how this and other packages have
+worked for you! Join us at our own phpBB forum system:
+@url{http://forums.roadsend.com}
+
+
+@node External Links,  , Conclusion, Top
+@chapter External Links
+
+@enumerate
+@item Roadsend, Inc. Home Page        - @url{http://www.roadsend.com}
+@item phpBB Home Page                 - @url{http://www.phpbb.com}
+@item Roadsend PHP Compiler Manual    - @url{http://www.roadsend.com/p/manual/viewManual.php?prIDX=2}
+@item FastCGI Home Page               - @url{http://www.fastcgi.com}
+@item MySQL Home Page                 - @url{http://www.mysql.com}
+@item Apache Home Page                - @url{http://httpd.apache.org}
+@end enumerate
+
+@bye

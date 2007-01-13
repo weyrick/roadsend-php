@@ -1,0 +1,60 @@
+#
+# by Luis Figueiredo (stdio@netc.pt)
+#
+# enhanced by the fine folks at Roadsend
+#
+#
+
+PCC_ROOT=../../
+include $(PCC_ROOT)/bigloo-rules.mk
+
+PACKAGE=libwebserver-@RELEASE@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=@bindir@
+libdir=@libdir@
+includedir=@includedir@
+
+all: 
+	cd src; $(MAKE)	
+#	cd help; $(MAKE)
+#	cd examples; $(MAKE) -i
+
+
+
+clean:
+	cd src; $(MAKE) clean
+#	cd examples; $(MAKE) clean
+#	cd help; $(MAKE) clean
+
+
+distclean: 
+	@rm -f config.cache
+	@rm -f config.log
+	@rm -f config.status
+	@rm -rf autom4te.cache
+	@rm -f configure.scan
+	@rm -f libwebserver-config
+	@echo -e "\nall:\n\t./configure\n\tmake\n" >Makefile
+	cd src; $(MAKE) distclean
+	cd examples; $(MAKE) distclean
+	cd help; $(MAKE) distclean
+	cd examples/SoundRecorder; $(MAKE) clean
+
+
+dist: distclean
+	@echo -e "\n\tCreateing Package tar.gz \33[01;37m../$(PACKAGE).tar.gz\33[0m\n";
+	cd ..; tar -c $(PACKAGE) |gzip >$(PACKAGE).tar.gz
+
+
+install: all
+#	if [ ! -d ${bindir} ]; then mkdir -p ${bindir}; fi
+	if [ ! -d ${libdir} ]; then mkdir -p ${libdir}; fi
+	if [ ! -d ${includedir} ]; then mkdir -p ${includedir}; fi
+	install -b -m 755 src/libwebserver.$(SOEXT) ${libdir}/libwebserver.$(SOEXT).@RELEASE@
+	rm -f ${libdir}/libwebserver.$(SOEXT)
+	@ln -s ${libdir}/libwebserver.$(SOEXT).@RELEASE@ ${libdir}/libwebserver.$(SOEXT)
+	install -b -m 644 src/libwebserver.a ${libdir}/libwebserver.a
+	install -b -m 644 include/web_server.h ${includedir}/web_server.h
+#	install -b -m 755 libwebserver-config ${bindir}/libwebserver-config
+

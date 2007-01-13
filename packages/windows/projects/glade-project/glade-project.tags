@@ -1,0 +1,24 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Roadsend	/support@roadsend.com/
+!_TAG_PROGRAM_NAME	Roadsend Tags	//
+!_TAG_PROGRAM_URL	http://roadsend.com	/Roadsend site/
+!_TAG_PROGRAM_VERSION	5.5	//
+$field	C:\roadsend\projects\glade-project\mp3-manager.php	89;"	v	class:FileDialog
+$fs	C:\roadsend\projects\glade-project\mp3-manager.php	88;"	v	class:FileDialog
+$model	C:\roadsend\projects\glade-project\mp3-manager.php	30;"	v	class:SongList
+$view	C:\roadsend\projects\glade-project\mp3-manager.php	29;"	v	class:SongList
+FileDialog	C:\roadsend\projects\glade-project\mp3-manager.php	91;"	m	class:FileDialog	parameters:($filenameField)	end-line:93
+FileDialog	C:\roadsend\projects\glade-project\mp3-manager.php	87;"	c	end-line:108
+SongList	C:\roadsend\projects\glade-project\mp3-manager.php	28;"	c	end-line:85
+SongList	C:\roadsend\projects\glade-project\mp3-manager.php	32;"	m	class:SongList	parameters:($clist)	end-line:35
+addSong	C:\roadsend\projects\glade-project\mp3-manager.php	159;"	f	parameters:($widget,$form,$window)	end-line:172
+addSong	C:\roadsend\projects\glade-project\mp3-manager.php	37;"	m	class:SongList	parameters:($title,$artist,$filename)	end-line:42
+alert	C:\roadsend\projects\glade-project\mp3-manager.php	175;"	f	parameters:($message)	end-line:185
+deleteSelected	C:\roadsend\projects\glade-project\mp3-manager.php	56;"	m	class:SongList	parameters:()	end-line:67
+handleNewSong	C:\roadsend\projects\glade-project\mp3-manager.php	135;"	f	parameters:($widget)	end-line:156
+load	C:\roadsend\projects\glade-project\mp3-manager.php	79;"	m	class:SongList	parameters:()	end-line:84
+ok	C:\roadsend\projects\glade-project\mp3-manager.php	105;"	m	class:FileDialog	parameters:()	end-line:107
+redisplay	C:\roadsend\projects\glade-project\mp3-manager.php	44;"	m	class:SongList	parameters:()	end-line:54
+save	C:\roadsend\projects\glade-project\mp3-manager.php	69;"	m	class:SongList	parameters:()	end-line:77
+show	C:\roadsend\projects\glade-project\mp3-manager.php	95;"	m	class:FileDialog	parameters:()	end-line:103

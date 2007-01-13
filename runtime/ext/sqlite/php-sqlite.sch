@@ -1,0 +1,2 @@
+(init-php-sqlite-lib)
+

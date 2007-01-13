@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# cat <<EOF | more
+# LICENSE_HERE
+# EOF
+
+# agreed=
+# while [ x$agreed = x ]; do
+#     echo
+#     echo "Do you agree to the above license terms? [yes or no] "
+#     read reply leftover
+#     case $reply in
+#         y* | Y*)
+#             agreed=1;;
+#         n* | N*)
+#     echo "If you don't agree to the license you can't install this software";
+#     exit 1;;
+#     esac
+# done
+
+## backup /etc/pcc.conf if it's there
+if [ -f "/etc/pcc.conf" ]; then
+  cp -f /etc/pcc.conf /etc/.pcc.conf.installer.backup
+fi

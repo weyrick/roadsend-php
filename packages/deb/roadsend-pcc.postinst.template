@@ -1,0 +1,16 @@
+#!/bin/sh
+
+## check if we need to restore /etc/pcc.conf
+if [ -f "/etc/.pcc.conf.installer.backup" ]; then
+  mv -f /etc/.pcc.conf.installer.backup /etc/pcc.conf
+fi
+
+## try to install the web module if apxs is installed
+APXS=`which apxs 2>&1`
+if [ -n "$APXS" ]; then
+  if [ -e "$APXS" ]; then
+    $APXS -i -a -n "pcc" /usr/lib/roadsend/mod_pcc.so
+  fi
+fi
+
+ldconfig

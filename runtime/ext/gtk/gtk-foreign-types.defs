@@ -1,0 +1,251 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Roadsend PHP Compiler Runtime Libraries
+ * Copyright (C) 2007 Roadsend, Inc.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 2.1
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+ * ***** END LICENSE BLOCK ***** */
+;;;; type definitions and utility functions for working with gtk types 
+(module gtk-foreign-types
+   (export
+    
+    )
+   (load (php-gtk-macros "php-gtk-macros.sch"))
+   (extern
+    (include "gtk/gtk.h"))
+
+;   (library common)
+)
+
+;;the types and constructors
+
+
+(define-object GtkPacker (GtkContainer))
+
+(define-boxed GtkSocket)
+
+(define-object GtkFontSelection (GtkNotebook))
+
+;;this should maybe be a superclass of gdkwindow, gdkpixmap, and gdkbitmap?
+(define-object GdkDrawable ())
+
+; (define-object GtkNotebook (GtkContainer))
+
+; (define-object GtkMenuShell (GtkContainer))
+; (define-object GtkMenu (GtkMenuShell))
+; (define-object GtkMenuBar (GtkMenuShell))
+; (define-object GtkList (GtkContainer))
+; (define-object GtkLayout (GtkContainer))
+; (define-object GtkFixed (GtkContainer))
+; (define-object GtkBin (GtkContainer))
+; (define-object GtkViewport (GtkBin))
+; (define-object GtkScrolledWindow (GtkBin))
+; (define-object GtkItem (GtkBin))
+
+; (define-object GtkTreeItem (GtkItem))
+; (define-gtk-object-with-label-constructor tree-item "tree_item" "TreeItem")
+
+; (define-object GtkMenuItem (GtkItem))
+; (define-gtk-object-with-label-constructor menu-item "menu_item" "MenuItem")
+
+; (define-object GtkTearoffMenuItem (GtkMenuItem))
+
+; (define-object GtkCheckMenuItem (GtkMenuItem))
+; (define-gtk-object-with-label-constructor check-menu-item "check_menu_item" "CheckMenuItem")
+
+; (define-object GtkRadioMenuItem (GtkCheckMenuItem))
+
+; (define-object GtkListItem (GtkItem))
+; (define-gtk-object-with-label-constructor list-item "list_item" "ListItem")
+
+; (define-object GtkInvisible (GtkBin))
+; (define-object GtkHandleBox (GtkBin))
+; (define-object GtkFrame (GtkBin))
+; (define-object GtkEventBox (GtkBin))
+; (define-object GtkAlignment (GtkBin))
+
+; (define-object GtkButton (GtkBin))
+; (define-gtk-object-with-label-constructor button "button" "Button")
+
+; (define-object GtkToggleButton (GtkButton))
+; (define-gtk-object-with-label-constructor toggle-button "toggle_button" "ToggleButton")
+
+; (define-object GtkCheckButton (GtkToggleButton))
+; (define-gtk-object-with-label-constructor check-button "check_button" "CheckButton")
+
+; (define-object GtkRadioButton (GtkCheckButton))
+
+; (define-object GtkOptionMenu (GtkButton))
+; (define-object GtkBox (GtkContainer))
+
+; (define-object GtkVBox (GtkBox))
+; (define-func gtk_vbox_new
+;   GtkWidget
+;   ((bool homogenous (= "FALSE"))
+;    (int spacing (= "0"))))
+
+; (define-object GtkColorSelection (GtkVBox))
+; (define-object GtkGammaCurve (GtkVBox))
+
+; (define-object GtkHBox (GtkBox))
+; (define-func gtk_hbox_new
+;   GtkWidget
+;   ((bool homogenous (= "FALSE"))
+;    (int spacing (= "0"))))
+
+; (define-object GtkStatusbar (GtkHBox))
+; (define-object GtkCombo (GtkHBox))
+; (define-object GtkButtonBox (GtkBox))
+; (define-object GtkVButtonBox (GtkButtonBox))
+; (define-object GtkHButtonBox (GtkButtonBox))
+; (define-object GtkCList (GtkContainer))
+; (define-object GtkCTree (GtkCList))
+; (define-object GtkCalendar (GtkWidget))
+
+; (define-object GtkWindow (GtkBin))
+; (define (gtk-window-new::gtk-window . keys+values)
+;   (let((window (pragma::gtk-window "(GtkWindow*)gtk_window_new(GTK_WINDOW_TOPLEVEL)")))
+; ;    (gtk-object-set window keys+values)
+;     window))
+
+; (define-object GtkPlug (GtkWindow))
+; (define-object GtkFontSelectionDialog (GtkWindow))
+; (define-object GtkFileSelection (GtkWindow))
+; (define-object GtkDialog (GtkWindow))
+; (define-object GtkInputDialog (GtkDialog))
+; (define-object GtkColorSelectionDialog (GtkWindow))
+; (define-object GtkTipsQuery (GtkLabel))
+; (define-object GtkAspectFrame (GtkFrame))
+
+
+
+; (define-boxed GdkRectangle)
+; (define-boxed GtkAllocation)
+; (define-boxed GtkRequisition)
+
+
+; ;;these aren't in the php-gtk defs
+
+; (define-object GdkBitmap ())
+; (define-object GdkPixmap ())
+; (define-boxed GdkWindow)
+; (define-boxed GdkColor)
+; (define-boxed GdkColormap)
+; (define-object GdkCursor ())
+; (define-boxed GdkVisual)
+; (define-boxed GdkPoint)
+; (define-boxed GdkFont)
+; (define-boxed GdkEvent)
+; (define-boxed GdkGC)
+; (define-object GdkGeometry ())
+
+
+; (define-object GdkDragContext ())
+; (define-boxed GtkStyle)
+; (define-boxed GtkAccelGroup)
+; (define-func gtk_accel_group_new GtkAccelGroup ())
+
+; (define-boxed GtkCListRow)
+; (define-boxed GtkCTreeNode)
+
+; ;;;;gtk-object utilities
+
+; (define-func gtk_object_ref none((GtkObject object)))
+; (define-func gtk_object_unref none((GtkObject object)))
+; (define-func gtk_object_sink
+;   void
+;   ((GtkObject object)))
+
+; (define-export(gtk-object-set-data object::gtk-object o #!key key destroy)
+
+;    ;what's this about??
+; ;   (object-ref o destroy)
+
+;    (let((key::string (or key "")))
+;     (pragma "gtk_object_set_data_full($1, $2, $3,
+;      (GtkDestroyNotify)do_object_unref)"
+; 	    object
+; 	    key
+; 	    o))
+;   #unspecified)
+
+; (define-export (gtk-object-get-data object::gtk-object #!optional key)
+;   (let*((key::string (or key ""))
+; 	(o(pragma::obj "gtk_object_get_data($1, $2)"
+; 		       object key)))
+;     (and o
+; 	 ;; check if the object data is not the scheme object set by
+; 	 ;; our gtk-object-set-data procedure
+; ;	 (if(object-lookup o)
+; 	 ;;hrm...
+; 	 o)))
+; ; 	    (error "gtk-object-get-data"
+; ; 		   "object data is not a scheme object" "")))))
+
+; (define (do-object-unref o)
+;    ;;see misc.scm to maybe find a clue..
+;    (debug-trace 3 "unreferencing object"))
+
+
+
+; ;;;;glist
+; (define-object GList ()
+;   (fields
+;    (GList next (false))
+;    (void* data (false)))
+;   (false))
+
+; (define-object GSList ()
+;   (fields
+;    (GSList next (false))
+;    (void* data (false)))
+;   (false))
+
+; (define (glist-foreach lyst type::symbol proc #!optional backward?)
+;   (let loop((lyst lyst))
+;     (when lyst
+; 	  (proc (glist-data type lyst))
+; 	  (loop(if backward?
+; 		   (glist-prev lyst)
+; 		   (glist-next lyst)
+; 		   )))))
+
+; (define (glist-data type::symbol lyst)
+;   (and lyst
+;        (let((data
+; 	     (cond((g-list? lyst)
+; 		   (pragma::void* "($1)->data"(bg-list->g-list lyst)))
+; 		  ((g-slist? lyst)
+; 		   (pragma::void* "($1)->data"(bg-slist->g-slist lyst)))
+; 		  (else
+; 		   (error "glist-data" "invalid argument type"lyst)))))
+; 	 (coerce! type data))))
+
+
+; (define (glist-prev lyst)
+;   (and lyst
+;        (cond((g-list? lyst)
+; 	     (pragma::g-list "($1)->prev"(bg-list->g-list lyst)))
+; 	    (else
+; 	     (error "glist-prev" "invalid argument type"lyst)))))
+
+; (define (glist-next lyst)
+;   (and lyst
+;        (cond((g-list? lyst)
+; 	     (pragma::g-list "($1)->next"(bg-list->g-list lyst)))
+; 	    ((g-slist? lyst)
+; 	     (pragma::g-slist "($1)->next"(bg-slist->g-slist lyst)))
+; 	    (else
+; 	     (error "glist-next" "invalid argument type"lyst)))))
+

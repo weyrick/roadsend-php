@@ -1,0 +1,367 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Roadsend PHP Compiler Runtime Libraries
+ * Copyright (C) 2007 Roadsend, Inc.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 2.1
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+ * ***** END LICENSE BLOCK ***** */
+
+(module mysql-c-bindings
+;   (library common)
+   (export *null-mysql*
+	   (inline null-row?::bool row::mysql-row)
+	   (inline null-mysql?::bool mysql::mysql)
+	   (inline null-result?::bool res::mysql-res)
+	   (inline null-field?::bool field::mysql-field))
+   
+   (extern
+    (include "windows-mysql.h")    
+    (include "mysql.h")    
+    (type mysql-field-offset uint "MYSQL_FIELD_OFFSET")
+    (type mysql-row-offset (opaque) "MYSQL_ROW_OFFSET")
+    (type my-bool char "my_bool")
+    (type const-string string "const char *")    
+    (type my-ulonglong llong "my_ulonglong") ;number of rows. 0 to 1.84e19
+    (type ulong-ptr (pointer ulong) "unsigned long *")
+    (type mysql-row (pointer string) "MYSQL_ROW")
+    (macro is-pri-key?::int (n::field-flags) "IS_PRI_KEY")
+    (macro is-not-null?::int (n::field-flags) "IS_NOT_NULL")
+    (macro is-blob?::int (n::field-flags) "IS_BLOB")
+    (macro is-num?::int (t::field-type) "IS_NUM")
+    (macro is-num-field?::int (f::mysql-field) "IS_NUM_FIELD") )
+   
+   (type
+    (coerce mysql-row bool () ((lambda (x) (pragma::bool "($1 != (MYSQL_ROW)0L)" x)))))   
+   )
+
+
+(define *null-mysql*
+   (pragma::mysql "((MYSQL*)NULL)"))
+
+(define-inline (null-row?::bool row::mysql-row)
+   (pragma::bool "($1 == (MYSQL_ROW*)0L)" row))
+
+(define-inline (null-mysql?::bool mysql::mysql)
+   (pragma::bool "($1 == (MYSQL*)0L)" mysql))
+
+(define-inline (null-result?::bool res::mysql-res)
+   (pragma::bool "($1 == (MYSQL_RES*)0L)" res))
+
+(define-inline (null-field?::bool field::mysql-field)
+   (pragma::bool "($1 == (MYSQL_FIELD*)0L)" field))
+
+;(define-inline (string-null? str::string)
+;   (pragma::bool "($1 == (char *)0L)" str))
+
+    
+;;;; data types
+
+;database connection handle
+(define-object (mysql MYSQL*) ())
+
+;result of a SELECT, SHOW, DESCRIBE, or EXPLAIN query
+(define-object (mysql-res MYSQL_RES*) ())
+
+;one row of data
+;(define-object (mysql-row MYSQL_ROW) ())
+
+;field number within a row, beginning at 0
+;(define-object MYSQL_FIELD_OFFSET ())
+
+
+
+;one field
+(define-object (mysql-field MYSQL_FIELD*) ()
+   (fields
+    (string name)     ;name of the field
+    (string table)    ;name of the table containing this field
+    (string def)      ;default value of this field (only for mysql_list_fields)
+    (field-type type) ;type of this field
+    (uint length)     ;width of this field, as specified in the table definition
+    (uint max_length) ;longest value of this field in the current result set
+    (field-flags flags)      ;various bit-flags for the field
+    (uint decimals))) ;the number of decimals for numeric fields
+
+
+;the type of a field.  i've tried to make the scheme name be the same as
+;you'd use in the mysql client, where possible
+(define-enum (field-type "enum enum_field_types")
+   (decimal FIELD_TYPE_DECIMAL)
+   (tinyint FIELD_TYPE_TINY)
+   (smallint FIELD_TYPE_SHORT)
+   (integer FIELD_TYPE_LONG)
+   (float FIELD_TYPE_FLOAT)
+   (double FIELD_TYPE_DOUBLE)
+   (null FIELD_TYPE_NULL)
+   (timestamp FIELD_TYPE_TIMESTAMP)
+   (bigint FIELD_TYPE_LONGLONG)
+   (mediumint FIELD_TYPE_INT24)
+   (date FIELD_TYPE_DATE)
+   (time FIELD_TYPE_TIME)
+   (datetime FIELD_TYPE_DATETIME)
+   (year FIELD_TYPE_YEAR)
+   (newdate FIELD_TYPE_NEWDATE)
+   (enum FIELD_TYPE_ENUM)
+   (set FIELD_TYPE_SET)
+   (tinyblob FIELD_TYPE_TINY_BLOB)
+   (mediumblob FIELD_TYPE_MEDIUM_BLOB)
+   (longblob FIELD_TYPE_LONG_BLOB)
+   (blob FIELD_TYPE_BLOB)
+   (varstring FIELD_TYPE_VAR_STRING)
+   (varchar FIELD_TYPE_STRING))
+
+(define-enum (mysql-option "enum mysql_option")
+   (connect-timeout MYSQL_OPT_CONNECT_TIMEOUT)   ;connect timout in seconds
+   (compress MYSQL_OPT_COMPRESS)                 ;use compressed client/server protocol
+   (named-pipe MYSQL_OPT_NAMED_PIPE)             ;use named pipe to connect to server on NT
+   (init-command MYSQL_INIT_COMMAND)             ;command to execute upon connecting/reconnecting to server
+   (read-default-file MYSQL_READ_DEFAULT_FILE)   ;file to read options from instead of my.cnf
+   (read-default-group MYSQL_READ_DEFAULT_GROUP) ;group to read options from in options file
+   (set-charset-dir MYSQL_SET_CHARSET_DIR)       
+   (set-charset-name MYSQL_SET_CHARSET_NAME)
+   (local-infile MYSQL_OPT_LOCAL_INFILE))
+
+(define-flags (field-flags uint)
+   (not-null NOT_NULL_FLAG)             ;Field can't be `NULL'
+   (primary-key PRI_KEY_FLAG)           ;Field is part of a primary key
+   (unique-key UNIQUE_KEY_FLAG)         ;Field is part of a unique key
+   (multiple-key MULTIPLE_KEY_FLAG)     ;Field is part of a non-unique key
+   (unsigned UNSIGNED_FLAG)             ;Field has the `UNSIGNED' attribute
+   (zero-fill ZEROFILL_FLAG)            ;Field has the `ZEROFILL' attribute
+   (binary BINARY_FLAG)                 ;Field has the `BINARY' attribute
+   (auto-increment AUTO_INCREMENT_FLAG) ;Field has the `AUTO_INCREMENT' attribute
+   (enum ENUM_FLAG)                     ;Field is an `ENUM' (deprecated)
+   (blob BLOB_FLAG)                     ;Field is a `BLOB' or `TEXT' (deprecated)
+   (timestamp TIMESTAMP_FLAG))          ;Field is a `TIMESTAMP' (deprecated)
+
+
+
+;;;; functions
+
+
+;Returns the number of rows changed/deleted/inserted by the
+;last `UPDATE', `DELETE', or `INSERT' query.
+(define-func mysql_affected_rows my_ulonglong ((mysql)))
+
+;Closes a server connection.
+(define-func mysql_close void ((mysql)))
+   
+;Connects to a MySQL server. This function is deprecated; use `mysql_real_connect()' instead.
+;(define-func mysql_connect mysql ((mysql)
+;				  (const-string host)
+;				  (const-string user)
+;				  (const-string passwd)))
+   
+;Changes user and database on an open connection.
+(define-func mysql_change_user my_bool ((mysql)
+					(const-string user)
+					(const-string password)
+					(const-string db)))
+
+;Returns the name of the default character set for the connection.
+(define-func mysql_character_set_name const-string ((mysql)))
+
+;Creates a database. This function is deprecated use the SQL
+;command `CREATE DATABASE' instead.
+;(define-func mysql_create_db int ((mysql)
+;				  (const-string db)))
+   
+;Seeks to an arbitrary row in a query result set.
+(define-func mysql_data_seek void ((mysql-res result)
+				   (my-ulonglong offset)))
+   
+;Does a `DBUG_PUSH' with the given string.
+(define-func mysql_debug void ((string debug)))
+   
+;Drops a database. This function is deprecated use the SQL command
+;`DROP DATABASE' instead.
+;(define-func mysql_drop_db int ((mysql)
+;				(const-string db)))
+   
+;Makes the server write debug information to the log.
+(define-func mysql_dump_debug_info int ((mysql)))
+
+
+;Determines whether or not the last row of a result set has been read.
+;This function is deprecated; `mysql_errno()' or `mysql_error()' may
+;be used instead.
+(define-func mysql_eof my-bool ((mysql-res result)))
+
+;Returns the error number for the most recently invoked MySQL
+;function.
+(define-func mysql_errno int ((mysql)))
+
+;Returns the error message for the most recently invoked MySQL
+;function.
+(define-func mysql_error string ((mysql)))
+
+;Escapes special characters in a string for use in a SQL statement
+;taking into account the current charset of the connection.
+
+(define-func mysql_real_escape_string int ((mysql)
+					   (string to)
+					   (const-string from)
+					   (uint length)))
+
+
+; mysql_escape_string: They say, here lies evil.
+(define-func mysql_escape_string int ((string to)
+				      (const-string from)
+				      (uint length)))
+
+;Returns the type of the next table field.
+(define-func mysql_fetch_field mysql-field ((mysql-res result)))
+
+;Returns an array of all field structures.
+(define-func mysql_fetch_fields mysql-field ((mysql-res result)))
+
+;Returns the type of a table field, given a field number.
+(define-func mysql_fetch_field_direct mysql-field ((mysql-res result)
+						   (uint fieldnr)))
+						   
+   
+;Returns the lengths of all columns in the current row.
+(define-func mysql_fetch_lengths ulong-ptr ((mysql-res result)))
+
+;Fetches the next row from the result set.
+(define-func mysql_fetch_row mysql-row ((mysql-res result)))
+
+;Returns the number of result columns for the most recent query.
+(define-func mysql_field_count uint ((mysql)))
+
+;Puts the column cursor on a specified column.
+(define-func mysql_field_seek
+   mysql-field-offset ((mysql-res result)
+		       (mysql-field-offset offset)))
+
+;Returns the position of the field cursor used for the last
+;mysql_fetch_field()'.
+(define-func mysql_field_tell
+   mysql-field-offset ((mysql-res result)))
+   
+;Frees memory used by a result set.
+(define-func mysql_free_result void ((mysql-res)))
+
+;Returns client version information.
+(define-func mysql_get_client_info string ())
+
+;Returns a string describing the connection.
+(define-func mysql_get_host_info string ((mysql)))
+
+;Returns the protocol version used by the connection.
+(define-func mysql_get_proto_info uint ((mysql)))
+
+;Returns the server version number.
+(define-func mysql_get_server_info string ((mysql)))
+   
+;Returns information about the most recently executed query.
+(define-func mysql_info string ((mysql)))
+
+;Gets or initializes a `MYSQL' structure.
+(define-func mysql_init mysql ((mysql)))
+
+;Returns the ID generated for an `AUTO_INCREMENT' column by the
+;previous query.
+(define-func mysql_insert_id my_ulonglong ((mysql)))
+
+;Kills a given thread.
+(define-func mysql_kill int ((mysql)
+			     (ulong pid)))
+
+;Returns database names matching a simple regular expression.
+(define-func mysql_list_dbs mysql-res ((mysql)
+				       (const-string wild)))
+
+;Returns field names matching a simple regular expression.
+(define-func mysql_list_fields mysql-res ((mysql)
+					  (const-string table)
+					  (const-string wild)))
+
+;Returns a list of the current server threads.
+(define-func mysql_list_processes mysql-res ((mysql)))
+
+;Returns table names matching a simple regular expression.
+(define-func mysql_list_tables mysql-res ((mysql)
+					  (const-string)))
+
+;Returns the number of columns in a result set.
+(define-func mysql_num_fields uint ((mysql-res result)))
+
+;Returns the number of rows in a result set.
+(define-func mysql_num_rows my_ulonglong ((mysql-res result)))
+
+;Sets connect options for `mysql_connect()'.
+(define-func mysql_options int ((mysql)
+				(mysql-option options)
+				(const-string args)))
+   
+
+;Checks whether or not the connection to the server is working,
+;reconnecting as necessary.
+(define-func mysql_ping int ((mysql)))
+
+
+;Executes a SQL query specified as a null-terminated string.
+(define-func mysql_query int ((mysql)
+			      (const-string query)))
+
+
+;Connects to a MySQL server.
+(define-func mysql_real_connect mysql ((mysql)
+				       (const-string host)
+				       (const-string user)
+				       (const-string passwd)
+				       (const-string db)
+				       (uint port)
+				       (const-string unix-socket)
+				       (uint client-flag))) 
+
+
+;Executes a SQL query specified as a counted string.
+(define-func mysql_real_query int ((mysql)
+				   (const-string query)
+				   (uint length)))
+   
+;Tells the server to reload the grant tables.
+(define-func mysql_reload int ((mysql)))
+   
+
+;Seeks to a row in a result set, using value returned from
+;`mysql_row_tell()'.
+(define-func mysql_row_seek mysql-row-offset ((mysql-res result)
+					      (mysql-row-offset offset)))
+
+
+;Returns the row cursor position.
+(define-func mysql_row_tell mysql-row-offset ((mysql-res result)))
+
+;Selects a database.
+(define-func mysql_select_db int ((mysql)
+				  (const-string)))
+
+;Shuts down the database server.
+;(define-func mysql_shutdown int ((mysql)))
+
+;Returns the server status as a string.
+(define-func mysql_stat string ((mysql)))
+
+;Retrieves a complete result set to the client.
+(define-func mysql_store_result mysql-res ((mysql)))
+
+;Returns the current thread ID.
+(define-func mysql_thread_id ulong ((mysql)))
+
+;Initiates a row-by-row result set retrieval.
+(define-func mysql_use_result mysql-res ((mysql)))
+
