@@ -43,7 +43,7 @@
 	  (struct (minuteswest::int "tz_minuteswest")
 		  (dsttime::int "tz_dsttime"))
 	  "struct timezone")
-    (c-gettimeofday::int (::timeval* ::timezone*) "gettimeofday"))
+    (macro c-gettimeofday::int (::timeval* ::timezone*) "gettimeofday"))
    (export
     (gmtime::tm #!optional 
                 (seconds::elong (current-seconds))
