@@ -28,7 +28,7 @@
 		  (tv-usec::elong "tv_usec"))
 	  "struct timeval")
     (type timezone* opaque "struct timezone*")
-    (gettimeofday::int (::timeval* ::timezone*) "gettimeofday") ) )
+    (macro gettimeofday::int (::timeval* ::timezone*) "gettimeofday") ) )
 
 (define *phpoo* (string-append (getenv "PCC_HOME") 
 			       (string (file-separator)) 
