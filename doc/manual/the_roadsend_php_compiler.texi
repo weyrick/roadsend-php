@@ -1,15 +1,15 @@
 \input texinfo
 @setfilename the_roadsend_php_compiler.info
 @documentencoding us-ascii
-@settitle Roadsend PHP 2.1.x Beta
+@settitle Roadsend PHP 2.9.x
 
 @copying
-Copyright @copyright{} 2006 Roadsend, Inc.
+Copyright @copyright{} 2007 Roadsend, Inc.
 @end copying
 
 @c only in printable formats
 @titlepage
-@title Roadsend PHP 2.1.x Beta
+@title Roadsend PHP 2.9.x
 @subtitle User Manual
 
 @page
@@ -50,7 +50,6 @@ Installation and Configuration
 * Requirements::                
 * Installing Roadsend PHP on Unix::  
 * Installing Roadsend PHP on Windows::  
-* Installing A License File::   
 * Configuration::               
 * Uninstalling::                
 
@@ -120,7 +119,6 @@ Compiling Libraries
 Roadsend Studio IDE
 
 * Roadsend Studio Introduction::  
-* Obtaining A License::         
 * IDE Layout::                  
 * IDE Basics::                  
 * IDE Configuration::           
@@ -592,7 +590,6 @@ Continued optimization of compiler and runtime libraries for more speed
 * Requirements::                
 * Installing Roadsend PHP on Unix::  
 * Installing Roadsend PHP on Windows::  
-* Installing A License File::   
 * Configuration::               
 * Uninstalling::                
 @end menu
@@ -809,7 +806,7 @@ If you do not wish to make symbolic links, you will have to adjust your system p
   
 @c @end example
 
-@node Installing Roadsend PHP on Windows, Installing A License File, Installing Roadsend PHP on Unix, Installation and Configuration
+@node Installing Roadsend PHP on Windows, Configuration, Installing Roadsend PHP on Unix, Installation and Configuration
 @section Installing Roadsend PHP on Windows
 
 Run the installation file (@file{roadsend-pcc-x.x.x.exe}). Follow the
@@ -944,53 +941,7 @@ For help using Roadsend PHP in the Roadsend Commandline Terminal,
 @c Apache options, they may conflict if you attempt to use both modules at the same time.
 @c @end quotation
 
-@node Installing A License File, Configuration, Installing Roadsend PHP on Windows, Installation and Configuration
-@section Installing A License File
-
-Compiling applications and libraries with the Roadsend Compiler requires
-an appropriate license from Roadsend.
-
-Windows users can use the Roadsend Compiler Studio IDE to retrieve a
-license (@pxref{Obtaining A License}).
-
-Unix users can obtain a license from our website:
-
-@enumerate
-@item 
-Go To: @url{http://www.roadsend.com/license}
-@item
-Login to the website if necessary
-@item
-Enter the machine name or host name of the computer you are installing on
-@item
-You will be presented with a list of authorized licenses
-@item
-Select an appropriate license
-@item
-A license file will be generated that you can save to your system
-@end enumerate
-
-If you have obtained a
-license from the website, you should have a file named
-@file{ROADSEND.lic}.  Copy this file into your
-Roadsend directory (this defaults to @file{/opt/roadsend/pcc} on Unix, 
-@file{C:\roadsend} on Windows) 
-
-This file includes information about it's owner.  Do not permit unlicensed persons to
-obtain a copy of @file{ROADSEND.lic}. 
-
-@quotation
-
-@strong{Note}
-
-@noindent
-You will need a separate license file for each platform you use Roadsend PHP on.
-@end quotation
-
-For more help on obtaining or installing a license, please contact Roadsend at
-@uref{mailto: sales@@roadsend.com,sales@@roadsend.com}
-
-@node Configuration, Uninstalling, Installing A License File, Installation and Configuration
+@node Configuration, Uninstalling, Installing Roadsend PHP on Windows, Installation and Configuration
 @section Configuration
 
 The configuration file determines how Roadsend PHP runs and tells it where to find runtime files. You may edit
@@ -3488,7 +3439,6 @@ functions, and how many times.
 
 @menu
 * Roadsend Studio Introduction::  
-* Obtaining A License::         
 * IDE Layout::                  
 * IDE Basics::                  
 * IDE Configuration::           
@@ -3496,7 +3446,7 @@ functions, and how many times.
 * Working With Projects::       
 @end menu
 
-@node Roadsend Studio Introduction, Obtaining A License, Roadsend Studio IDE, Roadsend Studio IDE
+@node Roadsend Studio Introduction, IDE Layout, Roadsend Studio IDE, Roadsend Studio IDE
 @section Introduction
 
 The Roadsend Compiler Studio is an Integrated Development Environment
@@ -3539,41 +3489,7 @@ specified line.
 When you're ready to deploy, the project manager will help you package
 your finished product.
 
-@node Obtaining A License, IDE Layout, Roadsend Studio Introduction, Roadsend Studio IDE
-@section Obtaining A License
-
-Before interpreting or compiling a project, you must obtain and install
-a license file.
-
-If you have not installed a license yet, the IDE will allow you to do
-so when the program starts. You may also click on Tools -> License (in
-the main menu) to get to the license request form. Alternatively, you
-can request a license online by
-@uref{http://www.roadsend.com/p/licenseManager/licenseRequestForm.php, clicking here}.
-
-The license system works by contacting the Roadsend license server and
-requesting a license based on your member account. If you have not
-already done so, you just create a member and either request a trial
-version or purchase a license. You can access the Roadsend web site by
-@uref{http://www.roadsend.com/home/index.php?pageID=purchase, clicking here}.
-
-Once you have a username and password, you may proceed with the
-license request.
-
-@image{resources/lic-1,,,,png}
-
-Enter your roadsend.com Username and Password, then click Login.
-
-@image{resources/lic-2,,,,png}
-
-After successfully logging in you will be presented with a list of
-licenses that your account is authorized for. Simply select a license
-and click Install to proceed with the license installation.
-
-After the license is installed you will be able to build, debug and
-deploy your projects.
-
-@node IDE Layout, IDE Basics, Obtaining A License, Roadsend Studio IDE
+@node IDE Layout, IDE Basics, Roadsend Studio Introduction, Roadsend Studio IDE
 @section IDE Layout
  
 @menu
