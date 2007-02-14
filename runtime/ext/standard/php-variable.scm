@@ -533,7 +533,8 @@
    (if (is_scalar var)
        (mkstr var)
        (begin
-	  (php-warning "You cannot use strval on non-scalar values: " var)
+	  (unless (eq? NULL var)
+	     (php-warning "You cannot use strval on non-scalar values: " var))
 	  "")))
 
 
