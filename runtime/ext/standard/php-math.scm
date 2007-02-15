@@ -495,15 +495,18 @@
 
 ;n' = a + n(b-a+1)/(M+1)
 (define (rand-range the-rand min max tmax)
-   (convert-to-integer
-    (+ (mkflo min) (* (+ 1.0 (- (mkflo max) (mkflo min)))
-                      (/ (elong->flonum the-rand) (+ tmax 1.0))))))
+   (convert-to-integer (php-+ min (php-* (php-+ (convert-to-number 1.0) (php-- max min))
+					 (php-/ the-rand (php-+ tmax (convert-to-number 1.0)))))))
+
+;   (convert-to-integer
+;    (+ (mkflo min) (* (+ 1.0 (- (mkflo max) (mkflo min)))
+;                      (/ (elong->flonum the-rand) (+ tmax 1.0))))))
 
 ;generate a seed for srand, as suggested in libc texinfo docs
 (define (rand-seed)
    (pragma::double "time((void*)0)")) 
 
-(define *c-rand-max* (elong->flonum c-rand_max))
+(define *c-rand-max* (convert-to-number c-rand_max))
 
 ; rand -- Generate a random value
 (defalias rand php-rand)
@@ -513,7 +516,7 @@
    ;implement this the interesting way that php does
    (unless *rand-seeded?*
       (php-srand (rand-seed)))
-   (rand-range (c-rand) min max *c-rand-max*))
+   (rand-range (convert-to-number (c-rand)) min max *c-rand-max*))
    
 
 ; round -- Rounds a float
