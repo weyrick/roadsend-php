@@ -287,7 +287,7 @@
 ; make a new (hopefully) unique md5 session id
 ; uniqid uses microtime
 (define (make-session-id)
-   (let ((newid (md5sum-string (uniqid (php-rand 0 2147483647.0) 'unset))))
+   (let ((newid (md5sum-string (uniqid (mt_rand 0 2147483647.0) 'unset))))
       (set-session-id newid)))
 
 ; when setting a new id, if we are using a cookie we don't
