@@ -24,6 +24,7 @@
     (include "time.h")
     (include "stdlib.h")
     (include "mt_rand.h")
+    (include "windows-time.h") ; rand related
     
     ;constants
     (macro c-m_e::double "M_E")     ; The base of natural logarithms.
