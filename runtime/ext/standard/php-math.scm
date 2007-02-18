@@ -503,9 +503,15 @@
 ;    (+ (mkflo min) (* (+ 1.0 (- (mkflo max) (mkflo min)))
 ;                      (/ (elong->flonum the-rand) (+ tmax 1.0))))))
 
-;generate a seed for srand, as suggested in libc texinfo docs
+;generate a seed for srand
 (define (rand-seed)
-   (pragma::double "time((void*)0)")) 
+   (* (pragma::double "time((void*)0)")
+      (cond-expand
+	 (PCC_MINGW
+	  (pragma::int "GetCurrentProcessId()"))
+	 (else
+	  (pragma::int "getpid()")))))
+	  
 
 ;(define *c-rand-max* (convert-to-number c-rand_max))
 
