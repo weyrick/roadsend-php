@@ -459,7 +459,7 @@
    ;implement this the interesting way that php does
    (unless *mt-rand-seeded?*
       (mt_srand (rand-seed)))
-   (randomMT-range (onum->elong min) (onum->elong max)))
+   (convert-to-number (randomMT-range (onum->elong min) (onum->elong max))))
 
 ; mt_srand -- Seed the better random number generator
 (defbuiltin (mt_srand seed)
