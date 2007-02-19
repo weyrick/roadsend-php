@@ -19,7 +19,8 @@
 # check5     	- run PHP5 specific test suite
 # check-all  	- run main test suite, and all extension test suites
 #
-
+# ** there is no 'install' target yet!! **
+#
 PCC_ROOT = .
 include bigloo-rules.mk
 
@@ -117,12 +118,15 @@ check-all: all check
 docs:
 	(cd doc && $(MAKE))
 
-install: unsafe
-	./install.sh $(INSTALL_ROOT) $(INSTALL_PREFIX)
+install:
+	@echo "sorry, there is no 'make install' right now - you should run pcc from the source directory"
+	@echo "the binary is located at compiler/pcc - you should put the compiler/ directory into your PATH"
+	@echo "you also need bigloo and other items in your path: see the wiki online at http://code.roadsend.com/"
+	@echo ".. a real 'make install' is under development"
 
-install-runtime: unsafe
-	./install-runtime.sh $(INSTALL_ROOT) $(INSTALL_PREFIX)
+#install: unsafe
+#	./install.sh $(INSTALL_ROOT) $(INSTALL_PREFIX)
 
-.PHONY: etags
-etags: 
-	etags `(cd _darcs/current; find . -regex '.*\.\(sc[mh]\|[ch]\)')`
+#install-runtime: unsafe
+#	./install-runtime.sh $(INSTALL_ROOT) $(INSTALL_PREFIX)
+

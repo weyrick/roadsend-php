@@ -4,6 +4,25 @@
 # appropriate Makefile.config in place for a build
 #
 
+# PCC_HOME is required
+if [ -z $PCC_HOME ]
+then
+    echo "You *MUST* define the PCC_HOME environment variable to point to the source root directory!"
+    exit 1
+else
+    echo "PCC_HOME is: $PCC_HOME"
+fi
+
+# config file?
+if [ ! -e /etc/pcc.conf ]
+then
+    if [ -z $PCC_CONF ]
+    then
+	echo "NOTICE: You have no pcc.conf available! You should either copy ./doc/pcc.conf to /etc/pcc.conf or set PCC_CONF!"
+    fi
+fi
+
+
 if [ -e Makefile.config ] 
 then
     echo "Makefile.config already exists"
