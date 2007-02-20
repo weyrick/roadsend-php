@@ -629,10 +629,10 @@
                              (begin0
                               (cond
                                  ; before splice area
-                                 ((php-< i real-offset) (php-hash-insert! new-array :next v))
+                                 ((php-< i real-offset) (php-hash-insert! new-array (if (php-number? k) :next k) v))
                                  ; after splice area
                                  ((and (php-> i real-offset)
-                                       (php->= cur-len max-len)) (php-hash-insert! new-array :next v))
+                                       (php->= cur-len max-len)) (php-hash-insert! new-array (if (php-number? k) :next k) v))
                                  ; in splice area, no length
                                  ((and (php-= i real-offset)
                                        (php-= max-len 0)) (begin
@@ -640,7 +640,7 @@
                                                         new-array
                                                         (list replacement)))
                                        (set! cur-len (+ cur-len 1))
-                                       (php-hash-insert! new-array :next v)))
+                                       (php-hash-insert! new-array (if (php-number? k) :next k) v)))
                                  ; in splice area, with length
                                  ((and (php->= i real-offset)
                                        (php-< cur-len max-len)) (begin
@@ -650,7 +650,7 @@
                                                            (list replacement)))
                                           (set! need-replace #f))
                                        (set! cur-len (+ cur-len 1))
-                                       (php-hash-insert! ret-array :next v))))
+                                       (php-hash-insert! ret-array (if (php-number? k) :next k) v))))
                               (set! i (+ i 1))))))
 		    ; set the input array to the newly splice version
 		    (container-value-set! array new-array)

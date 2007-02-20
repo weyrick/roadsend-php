@@ -37,4 +37,10 @@ $out = array_splice($input, 3, 0, "purple");
 var_dump($input);
 var_dump($out);
 
+echo "splice 6, keys\n";
+$input = array('n1' => "red", 'n2' => "green", 'n3' => "blue", 'n4' => "yellow");
+$out = array_splice($input, 3, 0, "green");
+var_dump($input);
+var_dump($out);
+
 ?>
