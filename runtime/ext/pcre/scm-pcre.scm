@@ -594,7 +594,7 @@
 			  (if callback
 			      (begin
 				 (pull-matches-single match-hash subject match-sub-count ovector* 0)
-				 (set! rval (mkstr (php-funcall replacement match-hash)))))
+				 (set! rval (mkstr (php-callback-call replacement match-hash)))))
 			  ; go for replace
 			  (receive (r-subject r-last-match-offset)
 			     (do-sub-replace subject new-subject rval last-match-offset
