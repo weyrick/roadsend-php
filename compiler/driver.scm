@@ -77,6 +77,9 @@
                     "phpeval" '()
                     required-extensions: '("webconnect"))
 
+(define-macro (bigloo-version)
+   `',*bigloo-version*)
+
 (define %%memo-count 0)
 (define %%memo-reset-count 0)
 (define %%memo-miss-count 0)

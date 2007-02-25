@@ -34,7 +34,7 @@
    (export
     *current-target*
     *verbosity*
-    bigloo-version
+;    bigloo-version
     (verbose-trace level . rest)
     (add-target-option! key value)
     (set-target-option! key value)
@@ -836,17 +836,22 @@
 (define (get-bigloo-var var)
    (let ((out (system->string
                (string-append BIGLOO " -eval \"(begin (print " var ") (exit 0))\""))))
-      (substring out 0 (- (string-length out) 1))))
+      (if (<= (string-length out) 1)
+	  #f
+	  (substring out 0 (- (string-length out) 1)))))
 
 
 ; ;these two are lazy - the call to get-bigloo-var is actually quite expensive!
-(define bigloo-version
-   (let ((bigloo-version #f))
-      (lambda ()
-	 (or bigloo-version
-	     (begin
-              (set! bigloo-version (get-bigloo-var "*bigloo-version*"))
-              bigloo-version)))))
+(define-macro (bigloo-version)
+   `',*bigloo-version*)
+
+; (define bigloo-version
+;    (let ((bigloo-version #f))
+;       (lambda ()
+; 	 (or bigloo-version
+; 	     (begin
+;               (set! bigloo-version (get-bigloo-var "*bigloo-version*"))
+;               bigloo-version)))))
 
 
 
