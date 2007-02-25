@@ -640,6 +640,8 @@
         
         ((definekey lpar constant-name comma rval rpar)
          (make-constant-decl *parse-loc* constant-name rval '()))
+        ((definekey lpar lval comma rval rpar)
+         (make-constant-decl *parse-loc* lval rval '()))
         ((definekey lpar constant-name comma rval@name comma rval@insensitive? rpar)
          (make-constant-decl *parse-loc* constant-name name insensitive?))
         

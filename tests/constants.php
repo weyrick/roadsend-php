@@ -37,6 +37,9 @@ print("Sensible is " . SENSIBLE . "\n");
 define (ACONSTANT, false);
 print("ACONSTANT is :");  var_dump(ACONSTANT);
 
-
+$foo = 'DYNAMIC_CONSTANT';
+$bar = 'second-val';
+define($foo, $bar);
+echo "constant: ".DYNAMIC_CONSTANT."\n";
 
 ?>

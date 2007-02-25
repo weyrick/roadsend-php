@@ -1144,10 +1144,13 @@ onum.  Append the bindings for the new symbols and code."
 
 (define-method (generate-code node::constant-decl)
    (with-access::constant-decl node (name value insensitive?)
-      (if (null? insensitive?)
-	  `(store-constant ',(mkstr name) ,(get-value value) #f)
-	  `(store-constant ',(mkstr name) ,(get-value value)
-			   (convert-to-boolean ,(get-value insensitive?))))))
+      (let ((real-name (if (ast-node? name)
+			   (get-value name)
+			   (mkstr name))))
+	 (if (null? insensitive?)
+	     `(store-constant ,real-name ,(get-value value) #f)
+	     `(store-constant ,real-name ,(get-value value)
+			      (convert-to-boolean ,(get-value insensitive?)))))))
 
 (define-method (generate-code node::php-constant)
    (with-access::php-constant node (name location)
