@@ -153,8 +153,8 @@
 									     (dump-bigloo-stack
 									      (current-output-port) 10)))
 						   "")))
-				     (set! content (mkstr "<h1><font color=\"red\">" error-message
-							  "<br>" stack "</font></h1>")))
+				     (set! content (mkstr "<h2><font color=\"red\">" error-message
+							  "</h2><pre>" stack "</pre></font>")))
 				  ;   (FCGX_PutStr error-message (string-length error-message)  out) )
 				  ))
 			   (e #t))))
