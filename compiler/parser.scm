@@ -630,12 +630,13 @@
         ((exit-stmt) exit-stmt)
         
         ;; constructor invocation
+	((newkey variable-lval)
+         (make-constructor-invoke *parse-loc* variable-lval '()))
         ((newkey function-call);id-or-var constructor-arglist)
 ;         (print "parsed a constructor named " function-call)
          (function-call->constructor function-call))
         ((newkey id-or-var)
          (make-constructor-invoke *parse-loc* id-or-var '()))
-
 
         
         ((definekey lpar constant-name comma rval rpar)

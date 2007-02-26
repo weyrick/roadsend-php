@@ -66,4 +66,8 @@ zot();
 $bing = new argconstructor(12);
 $bing->afun(12);
 
+$c = 'argconstructor';
+$bap = new $c;
+$bpa = new $c(12);
+
 ?>
