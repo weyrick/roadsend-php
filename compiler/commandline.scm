@@ -299,7 +299,7 @@
        ;; ((("--list-deps") (help "List the DLL dependencies of a project that static linking doesn't remove."))
        ;;  (set! list-dependencies? #t))
        
-       ((("-rm" "--no-clean") ;(help "Don't cleanup temporary files")
+       ((("-rm" "--no-clean") (help "Don't cleanup temporary files")
 	 )
 	(when (maybe-add-script-argv "-rm")
 	   (when *RAVEN-DEVEL-BUILD*
@@ -307,27 +307,27 @@
 	      (set-target-option! pretty?: #t)
 	      (add-target-option! bigloo-args: "-rm"))))
        
-       (("--dump-pre" ;(help "Dump the string produced by the preprocessor")
+       (("--dump-pre" (help "Dump the string produced by the preprocessor")
          )
         (when *RAVEN-DEVEL-BUILD*
            (widen!::dump-target *current-target* (dump-type 'preprocessor-tokens))))
        
-       (("--dump-toks" ;(help "Dump the tokens produced by the main lexer")
+       (("--dump-toks" (help "Dump the tokens produced by the main lexer")
          )
         (when *RAVEN-DEVEL-BUILD*
            (widen!::dump-target *current-target* (dump-type 'tokens))))
        
-       (("--dump-ast" ;(help "Dump the syntax tree produced by the parser")
+       (("--dump-ast" (help "Dump the syntax tree produced by the parser")
          )
         (when *RAVEN-DEVEL-BUILD*
            (widen!::dump-target *current-target* (dump-type 'ast))))
        
-       (("--dump-containers" ;(help "Dump the syntax tree produced by the parser, after container analysis")
+       (("--dump-containers" (help "Dump the syntax tree produced by the parser, after container analysis")
          )
         (when *RAVEN-DEVEL-BUILD*
            (widen!::dump-target *current-target* (dump-type 'containers))))
        
-       (("--dump-types" ;(help "Dump the syntax tree produced by the parser, after type inference")
+       (("--dump-types" (help "Dump the syntax tree produced by the parser, after type inference")
          )
         (when *RAVEN-DEVEL-BUILD*
            (widen!::dump-target *current-target* (dump-type 'types))))
@@ -335,12 +335,12 @@
        ; 	 (("--show-copies" ;(help "Dump the syntax tree produced by the parser, after type inference")
        ; 			  )
        ;	  (set! show-copies? #t))
-       (("--dump-flow" ;(help "Dump the flow graph of the program")
+       (("--dump-flow" (help "Dump the flow graph of the program")
          )
         (when *RAVEN-DEVEL-BUILD*
            (widen!::dump-target *current-target* (dump-type 'flow-graph))))
 
-       (("--dump-times" ;(help "Compile, printing the times required for each stage")
+       (("--dump-times" (help "Compile, printing the times required for each stage")
          )
         (when *RAVEN-DEVEL-BUILD*
            (widen!::dump-target *current-target* (dump-type 'times))))
