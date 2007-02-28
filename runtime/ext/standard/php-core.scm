@@ -1147,14 +1147,17 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 ;;;IX. Class/Object Functions
 
 (define (is-php-obj fun-name obj)
-   ;; returns true of obj is a php object, otherwise false.  We issue
-   ;; a warning on behalf of fun-name unless fun-name is false.
+   ;; returns true of obj is a php object, otherwise false.  
    (if (php-object? obj)
        obj
-       (begin
-          (when fun-name
-             (php-warning fun-name ": not a php object: " obj))
-	  #f)))
+       #f))
+
+;; XXX Zend tends to ignore this silently
+;; We issue a warning on behalf of fun-name unless fun-name is false.
+;       (begin
+;          (when fun-name
+;             (php-warning fun-name ": not a php object: " obj))
+;	  #f)))
 
 ; class_exists -- Checks if the class has been defined
 (defbuiltin (class_exists class-name)
