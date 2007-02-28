@@ -4242,7 +4242,7 @@ You will be presented with the main Project Properties screen.
 Enter at least:
 @itemize
 @item
-Project Name (only lowercase letters and @code{-} (dash))
+Project Name
 @item
 Project Configuration File
 @item
@@ -4293,7 +4293,7 @@ This form allows you to edit properties that affect the way the project will be 
 
 @table @var
 @item Project Name  
-Project name should be unique and contain only lowercase characters and - (dash)
+Project name should be unique
 @item Project Directory 
 The directory where the project source tree is located
 @item Project File  
