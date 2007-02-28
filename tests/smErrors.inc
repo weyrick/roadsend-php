@@ -107,7 +107,7 @@ function SM_makeErrorPage() {
         $output .= "Output Buffer:<br /><pre>".$SM_outputBuffer."</pre>\n";
     }
 
-    $output .= "<hr /><b>Roadsend SiteManager v".SM_VERSION." (<a href=\"http://www.roadsend.com/siteManager\">http://www.roadsend.com/siteManager</a>) (PHP v".PHP_VERSION.'/'.PHP_OS.')';
+    //$output .= "<hr /><b>Roadsend SiteManager v".SM_VERSION." (<a href=\"http://www.roadsend.com/siteManager\">http://www.roadsend.com/siteManager</a>) (PHP v".PHP_VERSION.'/'.PHP_OS.')';
     $output .= "</b><br /></body></html>";
 
     return $output;
