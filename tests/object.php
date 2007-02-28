@@ -70,4 +70,23 @@ $c = 'argconstructor';
 $bap = new $c;
 $bpa = new $c(12);
 
+class bar {
+  var $baz;
+  function bar($a) { $this->baz = $a; }
+}
+
+class foo {
+
+  var $a ='bar';
+
+  function assign() {
+    $zap =& new $this->a('setbaz');
+  }
+
+}
+
+$a = new foo();
+$a->assign();
+var_dump($a);
+
 ?>

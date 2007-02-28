@@ -632,6 +632,9 @@
         ;; constructor invocation
 	((newkey variable-lval)
          (make-constructor-invoke *parse-loc* variable-lval '()))
+	; = new $this->a(arg1,arg2) where a is a class property containing a class name
+	((newkey class-prop-fetch lpar arglist rpar)
+         (make-constructor-invoke *parse-loc* class-prop-fetch arglist))
         ((newkey function-call);id-or-var constructor-arglist)
 ;         (print "parsed a constructor named " function-call)
          (function-call->constructor function-call))
@@ -800,24 +803,26 @@
          (make-literal-float *parse-loc* float)))
        
        (class-lval 
+	((class-prop-fetch) class-prop-fetch)
+        ((class-lval lpar arglist rpar)
+         (make-method-invoke (ast-node-location class-lval) class-lval arglist))
+        ((function-call)
+         function-call))
+
+       (class-prop-fetch
         ((lval classderef id-or-var)
          (make-property-fetch *parse-loc* lval id-or-var))
         ((lval classderef variable-lval)
          (make-property-fetch *parse-loc* lval variable-lval))
-        ;        ((lval classderef lcurly id-or-var rcurly) 
-        ; 	(make-property-fetch *parse-loc* lval id-or-var))
         ((lval classderef lcurly rval rcurly)
          (make-property-fetch *parse-loc* lval rval))
+	; PHP5
         ((function-call classderef id-or-var)
          (parse-require-php5)
          (make-property-fetch *parse-loc* function-call id-or-var))
         ((function-call classderef lcurly rval rcurly)
          (parse-require-php5)
-         (make-property-fetch *parse-loc* function-call rval))
-        ((class-lval lpar arglist rpar)
-         (make-method-invoke (ast-node-location class-lval) class-lval arglist))
-        ((function-call)
-         function-call))
+         (make-property-fetch *parse-loc* function-call rval)))
        
        ;place
        (lval
