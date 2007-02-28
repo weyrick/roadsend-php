@@ -123,6 +123,8 @@
    (let ((hour (date-hour tstamp)))
       (if (> hour 12)
 	  (set! hour (- hour 12)))
+      (if (= hour 0)
+	  (set! hour 12))
       (if lead-zero
 	  (if (< hour 10)
 	      (string-append "0" (number->string hour)) 
