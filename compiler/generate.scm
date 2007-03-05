@@ -1000,7 +1000,7 @@ onum.  Append the bindings for the new symbols and code."
 			(profile-wrap
 			 name
 			 (trace-wrap
-			  name param-names location
+			  'unset name param-names location
 			  (shared-env-wrap
 			   needs-env?
 			   `(begin0
@@ -1091,7 +1091,8 @@ onum.  Append the bindings for the new symbols and code."
 				  ,@(profile-wrap
 				     (string->symbol (mkstr *current-class-name* "::" name))
 				     (trace-wrap
-				      (mkstr *current-class-name* "::" name)
+				      (mkstr *current-class-name*)
+				      name
 				      (map formal-param-name decl-arglist) location
 				      (shared-env-wrap
 				       needs-env?
@@ -1916,10 +1917,10 @@ onum.  Append the bindings for the new symbols and code."
        (php-number? x)
        (boolean? x)))
 
-(define (trace-wrap name param-names location . code)
+(define (trace-wrap class-name name param-names location . code)
    (if *track-stack?*
        (let ((retvalname (gensym 'ret)))
-	  `((push-stack ',name ,@param-names)
+	  `((push-stack ',class-name ',name ,@param-names)
 	    (set! *PHP-LINE* ,(car location))
 	    (set! *PHP-FILE* ,*file-were-compiling*)
 	    (let ((,retvalname (begin ,@code)))

@@ -46,7 +46,7 @@
      E_USER_NOTICE 
      E_ALL
      ;
-    (push-stack name . args)
+    (push-stack class-name name . args)
     (pop-stack)
     (print-stack-trace)
     (print-stack-trace-html)
@@ -191,9 +191,9 @@
 (define *saved-stack-trace* '())
 
 
-(define (push-stack name . args)
+(define (push-stack class-name name . args)
    (set! *stack-trace* 
-	 (cons (stack-entry *PHP-FILE* *PHP-LINE* name args 'unset 'unset) *stack-trace*)))
+	 (cons (stack-entry *PHP-FILE* *PHP-LINE* name args class-name 'unset) *stack-trace*)))
 	     
 (define (pop-stack)
    (when (pair? *stack-trace*)

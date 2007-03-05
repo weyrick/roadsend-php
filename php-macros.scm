@@ -28,7 +28,7 @@
       `(begin
 	  (define (,name ,@(param-names params))
 	     ,@(profile-wrap name
-			     (trace-wrap name (param-names params)
+			     (trace-wrap 'unset name (param-names params)
 					 (add-function-name-to-warnings name code))))
 	  ,(generate-store-signature 'fixed name params))))
 
@@ -42,23 +42,23 @@
 	  ,(if (> (length param-names-reversed) 1)
 	       `(define (,name ,@(reverse (cdr param-names-reversed)) . ,(car param-names-reversed))
 		   ,@(profile-wrap name
-				   (trace-wrap name (param-names params)
+				   (trace-wrap 'unset name (param-names params)
 					       (add-function-name-to-warnings name code))))
 	       `(define (,name . ,(car param-names-reversed))
 		   ,@(profile-wrap name
-				   (trace-wrap name (param-names params)
+				   (trace-wrap 'unset name (param-names params)
 					       (add-function-name-to-warnings name code)))))
 	  ,(generate-store-signature 'variable name params))))
 
 (define *fast-build* (member "-unsafe" (command-line)))
 
-(define (trace-wrap name param-names code)
+(define (trace-wrap class-name name param-names code)
 ;   (fprint (current-error-port)
 ;	   "Fast build is " *fast-build*)
 ;   (if #f;*fast-build* (we're only building one set of libs now :/ )
 ;       code
    (let ((retvalname (gensym 'ret)))
-      `((when *track-stack?* (push-stack ',name ,@param-names))
+      `((when *track-stack?* (push-stack ',class-name ',name ,@param-names))
 	(let ((,retvalname (begin ,@code)))
 	   (when *track-stack?* (pop-stack))
 	   ,retvalname))))

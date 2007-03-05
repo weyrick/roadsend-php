@@ -1660,13 +1660,14 @@
        FALSE))
 
 ;; Directory class
+; this is horrible
 (define Directory=>Directory
   (let ()
     (lambda ($this . args)
        (let (($p (if (>= 0 (length args))
                    (error 'Directory "not enough params" 0)
                    (container-value (list-ref args 0)))))
-         (push-stack '"Directory::Directory" $p)
+         (push-stack '"Directory" '"Directory" $p)
          (let ((retval
 		(bind-exit
 		      (return)
@@ -1697,7 +1698,7 @@
   (let ()
     (lambda ($this . args)
        (let ()
-         (push-stack '"Directory::read")
+         (push-stack '"Directory" '"read")
          (let ((retval
                  (bind-exit
                    (return)
@@ -1727,7 +1728,7 @@
   (let ()
     (lambda ($this . args)
        (let ()
-         (push-stack '"Directory::rewind")
+         (push-stack '"Directory" '"rewind")
          (let ((retval
                  (bind-exit
                    (return)
@@ -1757,7 +1758,7 @@
   (let ()
     (lambda ($this . args)
        (let ()
-         (push-stack '"Directory::close")
+         (push-stack '"Directory" '"close")
          (let ((retval
                  (bind-exit
                    (return)

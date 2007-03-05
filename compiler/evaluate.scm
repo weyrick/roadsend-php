@@ -873,7 +873,7 @@ gives the debugger a chance to run."
 		      (with-access::method-decl method (location decl-arglist body ref?)
 			 (let ((static-env (env-new)))
 			    (lambda ($this . args)
-			       (apply push-stack (mkstr name "::" (method-decl-name method)) args)
+			       (apply push-stack name (method-decl-name method) args)
 			       (push-func-args args)
 			       (set! *PHP-FILE* (cdr location))
 			       (set! *PHP-LINE* (car location))
@@ -1139,7 +1139,7 @@ returning the value of the last. "
 	 (hashtable-put! *interpreted-function-table* canonical-name
 			 (let ((static-env (env-new))) 
 			    (lambda args
-			       (apply push-stack name args)
+			       (apply push-stack 'unset name args)
 			       (push-func-args args)
 			       (set! *PHP-LINE* (car location))
 			       (set! *PHP-FILE* (cdr location))
