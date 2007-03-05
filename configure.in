@@ -19,13 +19,21 @@ AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 AC_CANONICAL_SYSTEM
 
+# bigloo
+#AC_MSG_CHECKING([for a proper version of bigloo])
+#BIGLOO_VERSION=`bigloo -revision`
+#if [
+#AC_MSG_RESULT([$bversion])
+AC_CHECK_PROG_VER([HAVE_BIGLOO],[bigloo],[-revision],[3.0],[yes],[no])
+
+
 # Checks for libraries.
 #AC_CHECK_LIB([curl], [curl_version])
 #AC_CHECK_LIB([fcgi], [FCGX_Accept_r])
 #AC_CHECK_LIB([sqlite3], [sqlite3_open])
 
 # Arguments 
-AC_ARG_ENABLE(cgi, AS_HELP_STRING([--enable-cgi],[build with (normal) cgi support]),enable_cgi=$enableval,enable_cgi=auto)
+AC_ARG_ENABLE(cgi, AS_HELP_STRING([--enable-cgi],[build with (normal) cgi support]),enable_cgi=$enableval,enable_cgi=yes)
 #AC_ARG_ENABLE(gtk, AS_HELP_STRING([--enable-gtk],[build with PHP-GTK 1 support]),enable_gtk=$enableval,enable_gtk=auto)
 #AC_ARG_ENABLE(gtk2, AS_HELP_STRING([--enable-gtk2],[build with PHP-GTK 2 support (experimental)]),enable_gtk2=$enableval,enable_gtk2=auto)
 #AC_ARG_ENABLE(mysql, AS_HELP_STRING([--enable-mysql],[build with MySQL support]),enable_mysql=$enableval,enable_mysql=auto)
@@ -45,7 +53,7 @@ PCRE_LIBS=
   AS_IF([test "x$with_pcre" != xno],
         [AC_CHECK_LIB([pcre], [pcre_exec],
 	  [AC_SUBST([PCRE_LIBS], ["-lpcre"])
-	   with_pcre=enabled
+	   with_pcre=yes
            AC_DEFINE([HAVE_PCRE], [1], [Define if you have pcre])
           ],
           [if test "x$with_pcre" != xcheck; then
@@ -64,9 +72,9 @@ AC_ARG_WITH([fcgi],
           
 FCGI_LIBS=
   AS_IF([test "x$with_fcgi" != xno],
-        [AC_CHECK_LIB([fcgi], [FCGX_Accept_r2],
+        [AC_CHECK_LIB([fcgi], [FCGX_Accept_r],
           [AC_SUBST([FCGI_LIBS], ["-lfcgi"])
-	   with_fcgi=enabled
+	   with_fcgi=yes
            AC_DEFINE([HAVE_FCGI], [1],[Define if you have FastCGI])
           ],
           [if test "x$with_fcgi" != xcheck; then
@@ -74,6 +82,28 @@ FCGI_LIBS=
             [--with-fcgi was given, but test for FastCGI failed])
            fi
 	   with_fcgi=no
+          ])
+        ])
+
+# XML
+AC_ARG_WITH([xml],
+  [AS_HELP_STRING([--with-xml],
+     [support xml extension @<:@default=check@:>@])],
+  [],
+  [with_xml=check])
+          
+XML_LIBS=
+  AS_IF([test "x$with_xml" != xno],
+        [AC_CHECK_LIB([xml], [xmlParseChunk],
+          [AC_SUBST([XML_LIBS], ["-lxml2"])
+	   with_xml=yes
+           AC_DEFINE([HAVE_XML], [1],[Define if you have libxml2])
+          ],
+          [if test "x$with_xml" != xcheck; then
+           AC_MSG_FAILURE(
+            [--with-xml was given, but test for libxml2 failed])
+           fi
+	   with_xml=no
           ])
         ])
 
@@ -139,21 +169,20 @@ echo "
                   ======================================
 
 	prefix:                   ${prefix}
-        exec_prefix:              ${exec_prefix}
         libdir:                   ${libdir}
         bindir:                   ${bindir}
         mandir:                   ${mandir}
 	source code location:	  ${srcdir}
-	compiler:		  ${CC}
+
+	c compiler:		  ${CC}
 	cflags:		          ${CFLAGS}
 	
-	bigloo:			  $BIGLOO
-	bigloo version:		  $BIGLOO_VERSION
+	bigloo version:		  ${BIGLOO_VERSION}
 
 	= Web Backends =
 
 	MicroServer:		  always enabled
-	Normal CGI:		  ${with_cgi}
+	Normal CGI:		  ${enable_cgi}
         FastCGI extension:        ${with_fcgi}
     
         = Extensions =
@@ -173,7 +202,7 @@ echo "
 
 echo "
 XXXXXXXXXX
-This build/configuration system is still alpha quality. Please don't execute
-anything as root!!
+This build/configuration system is still alpha quality.
+You're tempting fate if you do anything with this script as root!
 XXXXXXXXXX
 "
