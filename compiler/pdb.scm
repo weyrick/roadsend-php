@@ -257,7 +257,7 @@
 
 (define (page-return)
    (let ((ret (php-hash-lookup (container-value $_REQUEST) "ret")))
-      (if ret
+      (if (not (php-null? ret))
 	  (header (mkstr "Location: " ret) #t)
 	  (header "Location: /pdb/index.php" #t))))
 
@@ -326,7 +326,7 @@
 	     "Web Application Debugger<br>Current Web Root: "
 	     *debug-target-webroot*
 	     "<br><br>"
-	     ; PROJECT FILE EXAMPLE
+	     ; PROJECT FILE EXAMINE
 	     "<form action=\"/pdb/examine.pdb\" method=\"get\">"
 	     (script-select-options)
 	     "<input type=\"submit\" value=\"Examine\"></form><br>"
@@ -419,7 +419,7 @@
 				   "</td></tr>")
 			    (loop (+ n 1)))))
 		   (print "</table></body></html>"))))
-	  "File not found")))
+	  (mkstr "File not found" script))))
 
 
 ; select list of files in web root
