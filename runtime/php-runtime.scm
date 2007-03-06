@@ -180,8 +180,6 @@
     (var-lookup env name)
     *function-table*
     *interpreted-function-table*
-    *interpreted-class-table*
-    *class-table*
     (hashtable-copy hash)
     (var-store env name value)
     (inline maybe-unbox thupet)
@@ -475,12 +473,6 @@
 
 ;this table contains the closures for interpreted functions 
 (define *interpreted-function-table* (make-hashtable))
-
-;this table contains the closures for interpreted classes
-(define *interpreted-class-table* (make-hashtable))
-
-(define *class-table* (make-hashtable))
-
 
 
 ;;;; functions used in emitted code
@@ -1161,7 +1153,7 @@
    
 
 
-   ; reset server superglobals, ready for apache to fill again
+   ; reset server superglobals, ready for web backend to fill again
    (init-server-superglobal)
    
    (set! *output-buffer-stack* '())
@@ -1173,8 +1165,7 @@
    (set! *function-table* (make-hashtable))
    (reset-signatures!)
    (set! *interpreted-function-table* (make-hashtable))
-   (set! *interpreted-class-table* (make-hashtable))
-   (set! *class-table* (make-hashtable))
+   (init-php-object-lib)
    (reset-ini!)   
    ; this doesn't change?
    ;(set! $argv 'unset)
@@ -1199,9 +1190,6 @@
       ; doesn't change per runtime load and so not reset
       (init-env-superglobal)      
       
-      ;initialize sub-libraries 
-      (init-php-object-lib)
-
       ; all better
       (set! *runtime-uninitialized?* #f)
 
