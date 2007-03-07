@@ -53,6 +53,7 @@
 (define *debug-target-file* #f)
 (define *debug-target-webroot* #f)
 
+(define *web-scan-skip-dirs* '(".svn" ".cvs"))
 (define *web-ext-list* '("php" "inc"))
 (define *web-files* '())
 
@@ -372,54 +373,60 @@
 ; print a syntax highlighted version of the source file, with linked line numbers
 ; allowed breakpoints to be set/unset
 (define (page-examine-script url)
-   (let* ((script (util-realpath (mkstr (php-hash-lookup (container-value $_REQUEST) "script"))))
-	  (relscript (strip-string-prefix *debug-target-webroot* script)))
-      (if (file-exists? script)
-	  (let ((lineinfo (debugger-get-lineinfo script))
-		(blist (breakpoint-get-file-line-list))
-		(highlit-source (syntax-highlight-file script 'html)))
-	     (with-output-to-string
-		(lambda ()
-		   (print "<html>")
-		   (print (css-style))
-		   (print "<body><b>" script "</b><br>")
-		   (when (> (hashtable-size blist) 0)
-		      (print "<a href=\"/pdb/file-line-break-clearall.pdb?script="
-			     script
-			     "\">clear all breakpoints</a>"))
-		   (print "<table class=\".code\">")
-		   (let loop ((n 1))
-		      (when (<= n (hashtable-size highlit-source))
-			 (let ((is-break? (breakpoint-check-file-line script n)))
-			    (print "<tr " (if is-break?
-					      "bgcolor=\"red\""
-					      "")
-				   "><td class=\"linenumber\" bgcolor=\"#eeeeff\" align=\"right\">"
-				   "<a name=\"line-" n "\">"
-				   (if (member n lineinfo)
-				       (mkstr "<a href=\"/pdb/file-line-break-" (if is-break?
-										    "remove"
-										    "add")
-					      ".pdb?script="
-					      (cgi-url-encode relscript)
-					      "&line="
-					      n
-					      "&ret=" (cgi-url-encode
-						       (mkstr "/pdb/examine.pdb?script="
-							      script
-							      "#line-"
-							      (if (< (- n 5) 0)
-								  n
-								  (- n 5))))
-					      "\">" n "</a>")
-				       n)
-				   "</td><td>"
-				   ;(clean-source line)
-				   (hashtable-get highlit-source n)
-				   "</td></tr>")
-			    (loop (+ n 1)))))
-		   (print "</table></body></html>"))))
-	  (mkstr "File not found" script))))
+   (bind-exit (return)
+      (let ((script (file-name-canonicalize (mkstr (php-hash-lookup (container-value $_REQUEST) "script"))))
+	    (relscript ""))
+	 (if (file-exists? script)
+	     (set! relscript (strip-string-prefix *debug-target-webroot* script))
+	     (begin
+		(set! relscript script)
+		(set! script (file-name-canonicalize (mkstr *debug-target-webroot* (file-separator) script)))
+		(unless (file-exists? script)
+		   (return (mkstr "File not found: " script)))))
+	 (let ((lineinfo (debugger-get-lineinfo script))
+	       (blist (breakpoint-get-file-line-list))
+	       (highlit-source (syntax-highlight-file script 'html)))
+	    (with-output-to-string
+	       (lambda ()
+		  (print "<html>")
+		  (print (css-style))
+		  (print "<body><b>" script "</b><br>")
+		  (when (> (hashtable-size blist) 0)
+		     (print "<a href=\"/pdb/file-line-break-clearall.pdb?script="
+			    script
+			    "\">clear all breakpoints</a>"))
+		  (print "<table class=\".code\">")
+		  (let loop ((n 1))
+		     (when (<= n (hashtable-size highlit-source))
+			(let ((is-break? (breakpoint-check-file-line script n)))
+			   (print "<tr " (if is-break?
+					     "bgcolor=\"red\""
+					     "")
+				  "><td class=\"linenumber\" bgcolor=\"#eeeeff\" align=\"right\">"
+				  "<a name=\"line-" n "\">"
+				  (if (member n lineinfo)
+				      (mkstr "<a href=\"/pdb/file-line-break-" (if is-break?
+										   "remove"
+										   "add")
+					     ".pdb?script="
+					     (cgi-url-encode relscript)
+					     "&line="
+					     n
+					     "&ret=" (cgi-url-encode
+						      (mkstr "/pdb/examine.pdb?script="
+							     relscript
+							     "#line-"
+							     (if (< (- n 5) 0)
+								 n
+								 (- n 5))))
+					     "\">" n "</a>")
+				      n)
+				  "</td><td>"
+				  ;(clean-source line)
+				  (hashtable-get highlit-source n)
+				  "</td></tr>")
+			   (loop (+ n 1)))))
+		  (print "</table></body></html>")))))))
 
 
 ; select list of files in web root
@@ -523,17 +530,19 @@
 (define (scan-project-root)
    (let ((flist '()))
       (let loop ((level ""))
+	 ;(debug-trace 1 "loop: level is " level)
 	 (let* ((level-path (mkstr *debug-target-webroot*
 				   (file-separator)
 				   (if (string=? level "")
 				       ""
 				       (mkstr level (file-separator)))))
 		(level-list (directory->list level-path)))
-	    ;(print "level is " level-path)
+	    ;(debug-trace 1 "level-path is " level-path)
 	    (map (lambda (v)
-		    ;(print "looking at " v)
-		    (if (directory? (mkstr level-path v))
-			(loop v)
+		    ;(debug-trace 1 "looking at " v)
+		    (if (and (directory? (mkstr level-path v))
+			     (not (member v *web-scan-skip-dirs*)))
+			(loop (mkstr level (file-separator) v))
 			(when (member (suffix v) *web-ext-list*)
 			   (set! flist (cons (mkstr (if (string=? level "")
 							""
@@ -559,7 +568,7 @@
 		(fprint (if *web-debugger?*
 			    (current-error-port)
 			    (current-output-port))
-			#\newline *debugger-line* #\tab
+			#\newline *debugger-file* #\newline *debugger-line* #\tab
 			(debugger-get-source-at-file-line *debugger-file* *debugger-line*)))
 	     ; prompt
 	     (display "\n(pdb) "
