@@ -22,6 +22,7 @@
 ;   (library "common")
    (import (php-variable-lib "php-variable.scm"))
    (import (php-math-lib "php-math.scm"))
+   (import (pcc-web-url "url.scm"))
    (library profiler)
    (extern
     (include "crc.h")
@@ -928,95 +929,40 @@
 	  (env-import *current-variable-environment* php-hash ""))))
 
 ; parse_url -- Parse a URL and return its components
-; XXX this is convoluted and ugly but mostly because php is so leniant
-; but it should be rewritten in a more modular fashion
 (defbuiltin (parse_url url)
-   (let ((surl (mkstr url))
-	 (rethash (make-php-hash))
-	 (maybe-path (lambda (v w) ; possibly make it a path instead of what we thought
-			(if (and (string? v)
-				 (> (string-length v) 0)
-				 (char=? (string-ref v 0) #\/))
-			    "path"
-			    w)))
-	 (insert-if (lambda (h k v i) ; make sure it's there and has a value
-		       (if (and (< i (vector-length v))
-				(vector-ref v i)
-				(not (string=? "" (vector-ref v i))))
-			   (begin
-			      (php-hash-insert! h k (vector-ref v i))
-			      #t)
-			   #f))))
-      (if (> (string-length surl) 0)
-	  ; http://rfc.sunsite.dk/rfc/rfc2396.html appendix B
-	  (let ((parts (list->vector (pregexp-match "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\\?([^#]*))?(#(.*))?"
-						    surl))))
-	     ; scheme
-	     ; if it doesn't match scheme regex, make it host instead
-	     (if (and (vector-ref parts 2)
-		      ;  scheme        = alpha *( alpha | digit | "+" | "-" | "." )
-		      ; XXX modified slightly, we don't allow the . which seems to work better
-		      ; with php
-		      (pregexp-match "^[a-zA-Z][a-zA-Z0-9\\+\\-]*$" (vector-ref parts 2)))
-		 (insert-if rethash (maybe-path (vector-ref parts 2) "scheme") parts 2)
-		 ; shift
-		 (begin
-		    (vector-set! parts 5 (vector-ref parts 4))
-		    (vector-set! parts 4 (vector-ref parts 2)))) 
-	     ; check host/authority
-	     (if (vector-ref parts 4)
-		(let ((host-auth (vector-ref parts 4)))
-		   (cond ((string-contains host-auth "@")
-			  ; parse auth info
-			  (begin
-			     (let ((auth-parts (list->vector (pregexp-split "@" host-auth))))
-				; check for port. this duplicates code below argg
-				(if (and (> (vector-length auth-parts) 1)
-					 (string-contains (vector-ref auth-parts 1) ":"))
-				    ; yes port
-				    (let ((h-parts (list->vector (pregexp-split ":" (vector-ref auth-parts 1)))))
-				       (insert-if rethash (maybe-path (vector-ref h-parts 0) "host") h-parts 0)
-				       (insert-if rethash "port" h-parts 1))
-				    ; no port
-				    (insert-if rethash (maybe-path (vector-ref auth-parts 1) "host") auth-parts 1))
-				; now user/pass
-				(let ((user-pass (list->vector (pregexp-split ":" (vector-ref auth-parts 0)))))
-				   (insert-if rethash "user" user-pass 0)
-				   (insert-if rethash "pass" user-pass 1)))))
-			 ((string-contains host-auth ":")
-			  ; port
-			  (begin
-			     (let ((h-parts (list->vector (pregexp-split ":" host-auth))))
-				(insert-if rethash (maybe-path (vector-ref h-parts 0) "host") h-parts 0)
-				(insert-if rethash "port" h-parts 1))))
-			 ((not (string=? host-auth ""))
-			  ; no auth info
-			  (php-hash-insert! rethash (maybe-path host-auth "host") host-auth))))
-		; no host/auth info
-		(insert-if rethash "path" parts 3))
-	     ; if path doesn't start with a slash, take part before slash and assume port
-	     (when (and (vector-ref parts 5)
-			(> (string-length (vector-ref parts 5)) 0))
-		(let ((p-parts (vector-ref parts 5)))
-		   (if (not (char=? (string-ref p-parts 0) #\/))
-		       ; split
-		       (begin
-			  (let ((h-parts (list->vector (pregexp-split "/" p-parts))))
-			     (insert-if rethash "path" h-parts 1)
-			     (insert-if rethash "port" h-parts 0)))
-		       ; just path
-		       (insert-if rethash "path" parts 5))))
-	     (insert-if rethash "query" parts 7)
-	     (insert-if rethash "fragment" parts 9))
-	  ; nothin
-	  (php-hash-insert! rethash "path" ""))
-      ; cleanup port, changing type if necessary
-      (when (is_numeric (php-hash-lookup rethash "port"))
-	  (php-hash-insert! rethash "port" (convert-to-number (php-hash-lookup rethash "port"))))
-      ; another masterpiece
-      rethash))
-		
-
+   (let ((rethash (make-php-hash)))
+      (try
+       (multiple-value-bind (scheme user pass host port path query fragment)
+	  (pcc-url-parse (mkstr url))
+	  ; PHP specific semantics
+	  (when (and host (not path) (not scheme) (not port))
+	     (set! path host)
+	     (set! host #f))
+	  (when (and path host (not scheme) (not port))
+	     (set! path (mkstr host path))
+	     (set! host #f))
+	  ;
+	  (when scheme
+	     (php-hash-insert! rethash "scheme" scheme))
+	  (when host
+	     (php-hash-insert! rethash "host" host))
+	  (when port
+	     (php-hash-insert! rethash "port" (convert-to-number port)))
+	  (when user
+	     (php-hash-insert! rethash "user" user))
+	  (when pass
+	     (php-hash-insert! rethash "pass" pass))
+	  (when path
+	     (php-hash-insert! rethash "path" path))
+	  (when query
+	     (php-hash-insert! rethash "query" query))
+	  (when fragment
+	     (php-hash-insert! rethash "fragment" fragment))
+	  rethash)
+       (lambda (e p m o)
+	  (php-hash-insert! rethash "path" "")
+	  (e rethash)))))
+      
 ; printf -- Output a formatted string
 (defalias printf php-printf)
 (defbuiltin-v (php-printf data)

@@ -40,7 +40,8 @@ SOURCE_LIST     = php-strings \
 		  php-streams \
 		  php-network \
 		  streams-c-bindings \
-		  php-image
+		  php-image \
+		  url
 
 
 C_SOURCE_LIST   = strnatcmp \
