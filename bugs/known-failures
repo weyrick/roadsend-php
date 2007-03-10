@@ -2,15 +2,12 @@ last updated: 3/1/07
 
 ** KNOWN REGRESSIONS **
 linux:
-1146
-1142
-1123
-1125
+1123: base64 encode/decode
+1125: numbers
 
 
-
-Known Failures:
-----
+Other Known (acceptable) Failures:
+----------------------------------
 
 linux:
 

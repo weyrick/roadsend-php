@@ -958,6 +958,8 @@
 	     (php-hash-insert! rethash "query" query))
 	  (when fragment
 	     (php-hash-insert! rethash "fragment" fragment))
+	  (when (= (php-hash-size rethash) 0)
+	     (php-hash-insert! rethash "path" ""))
 	  rethash)
        (lambda (e p m o)
 	  (php-hash-insert! rethash "path" "")

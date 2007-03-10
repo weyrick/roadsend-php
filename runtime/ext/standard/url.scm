@@ -31,18 +31,16 @@
 	     (proc 'url-parse)
 	     (msg msg))))
 
-(define (test-purl url)
-   (multiple-value-bind (scheme user pass host port path query fragment)
-      (pcc-url-parse url)
-      (print scheme "][" user "][" pass "][" host "][" port "][" path "][" query "][" fragment)))
+;(define (test-purl url)
+;   (multiple-value-bind (scheme user pass host port path query fragment)
+;      (pcc-url-parse url)
+;      (print scheme "][" user "][" pass "][" host "][" port "][" path "][" query "][" fragment)))
 
 ;*---------------------------------------------------------------------*/
 ;*    uri-grammar ...                                                  */
 ;*---------------------------------------------------------------------*/
 (define uri-grammar
    (regular-grammar ((CRLF "\r\n"))
-;      ("*"
-;       (values "*" #f #f #f #f #f #f #f))
       ; this is a standard scheme, we will check for host
       ((: (out #\/) (* (out #\:)) "://")
        (read/rp absolute-uri-grammar (the-port) (the-substring 0 -3) #f #f #f #f))
@@ -52,17 +50,21 @@
        (let ((scheme (the-substring 0 -1)))
 	  (multiple-value-bind (abspath query fragment)
 	     (read/rp abspath-grammar (the-port) #f #f)
-	     (values scheme #f #f #f #f abspath query fragment))))
-;      (else
-;       (rgc-buffer-unget-char (the-port) (the-byte))       
-;       (multiple-value-bind (abspath query fragment)
-;	  (read/rp abspath-grammar (the-port) #f #f)
-;	  (values #f #f #f #f #f abspath query fragment)))))
-       ((: "/" (* (out " \r\n")))
-        (values #f #f #f #f #f (the-string) #f #f))
-       (else
-        (rgc-buffer-unget-char (the-port) (the-byte))
-        (read/rp absolute-uri-grammar (the-port) #f #f #f #f #f ))))      
+	     (values scheme #f #f #f #f abspath query fragment))))      
+      ; no scheme, but port
+      ((: (+ (out #\:)) ":" (+ digit) (* (out "\r\n")))
+       ;(print "no scheme but port: " (the-string))
+       (let ((p (open-input-string (the-string))))
+	  (unwind-protect
+	     (read/rp absolute-uri-grammar p #f #f #f #f #f)
+	     (close-input-port p))))
+      ; no scheme or port, always just a path part
+      (else
+       ;(print "no scheme or port: " (the-string))
+       (rgc-buffer-unget-char (the-port) (the-byte))       
+       (multiple-value-bind (abspath query fragment)
+	  (read/rp abspath-grammar (the-port) #f #f)
+	  (values #f #f #f #f #f abspath query fragment)))))
 
 
 ;*---------------------------------------------------------------------*/
@@ -116,19 +118,19 @@
 		     (anchor (+ (out "\r\n"))) ; is this ok?
 		     query
 		     fragment)
-      ((: "/" (+ pdelim) #\? (+ pdelim) #\# (+ anchor))
+      ((: (* "/") (+ pdelim) #\? (+ pdelim) #\# (+ anchor))
        (let ((abspath (the-substring 0 (string-index (the-string) "?")))
 	     (query (the-substring (+fx 1 (string-index (the-string) "?"))
 				   (string-index (the-string) "#")))
 	     (fragment (the-substring (+fx 1 (string-index (the-string) "#"))
 				      (the-length))))
 	  (values abspath query fragment)))
-      ((: "/" (+ pdelim) #\? (+ pdelim))
+      ((: (* "/") (+ pdelim) #\? (+ pdelim))
        (let ((abspath (the-substring 0 (string-index (the-string) "?")))
 	     (query (the-substring (+fx 1 (string-index (the-string) "?"))
 				   (the-length))))
 	  (values abspath query #f)))
-      ((: "/" (+ pdelim) #\# (+ anchor))
+      ((: (* "/") (+ pdelim) #\# (+ anchor))
        (let ((abspath (the-substring 0 (string-index (the-string) "#")))
 	     (fragment (the-substring (+fx 1 (string-index (the-string) "#"))
 				      (the-length))))
@@ -141,17 +143,19 @@
        (let ((fragment (the-substring (+fx 1 (string-index (the-string) "#"))
 				      (the-length))))
 	  (values "/" #f fragment)))
-      ((: "/" (* (out "\r\n")) #\? #\#)
+      ((: (* "/") (* (out "\r\n")) #\? #\#)
        (values (the-substring 0 -2) #f #f))      
-      ((: "/" (* (out "\r\n")) #\?)
+      ((: (* "/") (* (out "\r\n")) #\?)
        (values (the-substring 0 -1) #f #f))
       ((: (* "/") (* (out "\r\n")))
-       (values (if (string=? (the-string) "") #f (the-string)) #f #f))
-      (else
-       (let ((c (the-failure)))
-	  (if (eof-object? c)
-	      (values #f #f #f)
-	      (parse-error (the-port) "Illegal character" (the-failure)))))))
+       (values (if (string=? (the-string) "") #f (the-string)) #f #f))))
+
+;      (else
+;       (values "" #f #f))))
+;       (let ((c (the-failure)))
+;	  (if (eof-object? c)
+;	      (values #f #f #f)
+;	      (parse-error (the-port) "Illegal character" (the-failure)))))))
       
 ;*---------------------------------------------------------------------*/
 ;*    http-port-grammar ...                                            */

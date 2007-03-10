@@ -6,6 +6,7 @@ $sample_urls = array (
 'http://64.246.30.37/',
 '64.246.30.37/',
 '64.246.30.37:80/',
+'foo.com:80/',
 'php.net',
 'php.net/',
 'http://php.net',
@@ -61,7 +62,7 @@ $sample_urls = array (
 'mailto:me@mydomain.com',
 '/foo.php?a=b&c=d',
 'foo.php?a=b&c=d',
-'http://user:passwd@www.example.com:8080?bar=1&boom=0',
+'foo.php',
 'file:///path/to/file',
 'file://path/to/file',
 'file:/path/to/file'
