@@ -21,7 +21,6 @@
 ;;;; Execute a PHP AST directly, without compiling.
 (module evaluate
    (include "php-runtime.sch")
-   ;   (include "common.sch")
    (library php-runtime)
    (import (ast "ast.scm")
 	   (declare "declare.scm")
@@ -96,12 +95,7 @@
 ; run after every page view
 (add-end-page-reset-func reset-evaluator-state)
 
-;   (for-each (lambda (a)
-;		(hashtable-remove! *function-sig-table* a))
-;	     *remove-from-fun-sig-table*)
-;   (set! *remove-from-fun-sig-table* '()))
-   
-
+
 (define-generic (evaluate node)
    (if (list? node)
        (evaluate-block node)
@@ -121,14 +115,11 @@ gives the debugger a chance to run."
 
 (define-method (evaluate node::php-ast)
    (dynamically-bind (*current-env* *current-variable-environment*);*global-env*)
-;      (dynamically-bind (*current-variable-environment* *global-env*)
 	 (bind-exit (return)
 	    (dynamically-bind (*current-return-escape* return)
 	       (with-access::php-ast node (real-filename nodes)
 		  (set! *PHP-FILE* real-filename)
-		  ;	       (push-stack "<global>" file 0)
 		  (d/evaluate nodes))))));)
-;      (pop-stack)))
 
 
 (define-method (evaluate node::function-invoke)
@@ -230,34 +221,6 @@ gives the debugger a chance to run."
 			     ;(print "args is: " args ", args-num is " args-num)
 			     (reverse! args)))))))))
 
-;;This is how the function-invoke stuff used to look before fixing bug
-;; 2492. -- tpd 10/21/04
-; (define-method (evaluate node::function-invoke)
-;    (with-access::function-invoke node (location name arglist)
-;       (set! *PHP-FILE* (cdr location))
-;       (set! *PHP-LINE* (car location))
-;       (if (ast-node? name)
-; 	  ;don't cache non-constant function lookups
-; 	  (apply php-funcall (mkstr (evaluate name)) (map evaluate arglist))
-; 	  (begin
-; 	     (widen!::function-invoke/cached node
-; 		(cached-handle (php-get-funcall-handle name (length arglist))))
-; 	     (begin0
-; 	      (evaluate node)
-; 	      (set! *PHP-FILE* (cdr location))
-; 	      (set! *PHP-LINE* (car location)))))))
-
-; (define-method (evaluate node::function-invoke/cached)
-;    (with-access::function-invoke/cached node (cached-handle arglist location)
-;       (set! *PHP-FILE* (cdr location))
-;       (set! *PHP-LINE* (car location))
-;       (begin0
-;        (php-funcall/handle cached-handle (map evaluate arglist))
-;        (set! *PHP-FILE* (cdr location))
-;        (set! *PHP-LINE* (car location)))))
-
-       
-
 (define-method (evaluate node::nop)
    '() )
 
@@ -286,18 +249,6 @@ gives the debugger a chance to run."
 	 (if (php-hash? (container-value thehash))
 	     (php-hash-lookup-ref (container-value thehash) #f thekey)
 	     (make-container (%general-lookup (container-value thehash) thekey))))))
-; 	     (if (string? (container-value thehash))
-; 		 (if (eqv? key :next)
-; 		     (php-error/loc node "Can't use [] on strings.")
-; 		     (maybe-box (php-string-ref thehash (convert-to-number thekey))))
-; 		 ;		 (begin
-; 		 ; 		    (unless (php-hash? (container-value thehash))
-; 		 ; 		       (container-value-set! thehash (make-php-hash)))
-; 		 (if (php-hash? (container-value thehash))
-; 		     (php-hash-lookup-ref (container-value thehash)
-; 					  #f thekey)
-; 		     (make-container '())))
-;	     (error 'evaluate-hash-lookup "Not sure what to do with: " (mkstr thehash)) ))))
 
 (define-method (evaluate node::literal-array)
    (with-access::literal-array node (array-contents)
@@ -539,18 +490,13 @@ gives the debugger a chance to run."
 			  (undollar var))))
 	 (env-extend *current-env* var-name
 		     (env-lookup *global-env* var-name)))))
-;	 (php-hash-insert! *current-env* var-name
-;			   (php-hash-lookup-ref *global-env* #t var-name)) )))
 
 
 (define-method (evaluate node::declared-static-var)
    (set! *PHP-LINE* (car (ast-node-location node)))
    (with-access::declared-static-var node (name)
-;      (let ((name (string->symbol name)))
 	 (env-extend *current-env* (undollar name)
 		     (env-lookup *current-static-env* (undollar name)))))
-;       (php-hash-insert! *current-env* name
-; 			(php-hash-lookup-ref *current-static-env* #f name))))
 
 (define-method (evaluate node::disable-errors)
    (set! *PHP-LINE* (car (ast-node-location node)))
@@ -579,26 +525,12 @@ gives the debugger a chance to run."
 	     (set! cached-env *current-env*)
 	     (env-internal-index-value index)))))
 	  
-      ;create the location if it doesn't exist
-;      (env-lookup *current-env* (undollar name))))
-;      (php-hash-lookup-ref *current-env* #t name)))
 
 (define-method (evaluate node::var-var)
    (set! *PHP-LINE* (car (ast-node-location node)))
    (with-access::var-var node (lval)
-      ;create the location if it doesn't exist
-;      (let ((val (php-hash-lookup-ref *current-env* #t (mkstr "$" (d/evaluate lval)))))
-;      val)))
       (var-lookup *current-env* (mkstr (d/evaluate lval)))))
 	
-
-; (define-method (evaluate node::string-char)
-;    (set! *PHP-LINE* (car (ast-node-location node)))
-;    (with-access::string-char node (str pos)
-;       (make-container
-;        (%general-lookup (maybe-unbox (evaluate str))
-; 			(maybe-unbox (evaluate pos))))))
-;      (maybe-box (php-string-ref (evaluate str) (evaluate pos)))))
 
 (define-method (evaluate node::assignment)
    (set! *PHP-LINE* (car (ast-node-location node)))
@@ -710,26 +642,8 @@ gives the debugger a chance to run."
 	     (set! cached-index index)
 	     (env-internal-index-value-set! index rval)))))
 
-;      (env-extend *current-env* (undollar (var-name lval)) rval))
-
-;   (php-hash-insert! *current-env* (var-name lval) rval))
-
 (define-method (update-location lval::hash-lookup rval)
    (do-hash-assign lval (maybe-box rval)))
-
-; (define-method (update-location lval::hash-lookup rval)
-;    (with-access::hash-lookup lval (hash key)
-;       (let* ((thehash-container (d/evaluate hash))
-; 	     (thehash (container-value thehash-container))
-; 	     (thekey (if (eqv? key :next)
-; 			 :next
-; 			 (d/evaluate key))))
-; 	 (unless (php-hash? thehash)
-; 	    (eval-assign hash (%coerce-for-insert thehash))
-; 	    (set! thehash-container (d/evaluate hash))
-; 	    (set! thehash (container-value thehash-container)))
-; 	 (%general-insert! thehash thekey (maybe-box rval))))
-;    rval)
 
 (define-method (update-location lval::property-fetch rval)
    (with-access::property-fetch lval (obj prop)
@@ -739,13 +653,6 @@ gives the debugger a chance to run."
 				    (php-error "noise property " prop))
 				rval)))
 				
-;       ((maybe-unbox (evaluate obj)) 'assign-prop (if (ast-node? prop)
-; 						     (maybe-unbox (evaluate prop))
-; 						     (php-error (format "noise property ~a" prop)))
-; 				    rval)))
-;       (php-hash-insert! (container-value (evaluate hash))
-;  			(evaluate key) rval)))
-
 (define-method (evaluate node::unset-stmt)
    (set! *PHP-LINE* (car (ast-node-location node)))
    (with-access::unset-stmt node (lvals)
@@ -754,19 +661,6 @@ gives the debugger a chance to run."
 
 (define-generic (unset lval)
    (eval-assign lval NULL))
-;   (php-error/loc lval "cannon unset"))
-
-; (define-method (unset lval::property-fetch)
-;    (with-access::property-fetch lval (obj prop)
-;       (php-object-property-set! (maybe-unbox (d/evaluate obj))
-; 				(if (ast-node? prop)
-; 				    (maybe-unbox (d/evaluate prop))
-; 				    (php-error "noise property " prop))
-; 				'())))
-
-; (define-method (unset lval::var)
-;    (container-value-set! (d/evaluate lval) '()))
-
 
 (define-method (unset lval::hash-lookup)
    (with-access::hash-lookup lval (hash key)
@@ -972,9 +866,6 @@ gives the debugger a chance to run."
 	 (set! *PHP-LINE* (car location)))))
 
 
-; 	 (apply call-static-php-method *current-parent-class-name*
-; 		*current-this* method-name (map evaluate arglist)))))
-
 (define-method (evaluate node::property-fetch)
    (set! *PHP-LINE* (car (ast-node-location node)))
    (with-access::property-fetch node (obj prop)
@@ -993,17 +884,6 @@ gives the debugger a chance to run."
    (set! *PHP-LINE* (car (ast-node-location node)))
    '())
 
-
-
-; (define-method (evaluate node::formal-param)
-;    (with-access::formal-param node (location name ref?)
-;       (make-required-param (cdr location) (car location) name ref? 'notype)))
-
-; (define-method (evaluate node::optional-formal-param)
-;    (with-access::optional-formal-param node (location name default-value ref?)
-;       (make-optional-param (cdr location) (car location) name ref? 'notype ;default-value)))
-; 			   (parameter-default-value-value default-value))))
-   
 
 (define-method (evaluate node::constant-decl)
    (set! *PHP-LINE* (car (ast-node-location node)))
@@ -1193,23 +1073,3 @@ returning the value of the last. "
 	  (substring str 1 (string-length str))
 	  str)))
 
-
-; (define (store-eval-signature aliased-name location decl-args)
-;    ;XXX this is identical to store-ast-signature in ast.scm,
-;    ;except that the default-value is evaluated :(
-;    (let ((maximum-arity (length decl-args))
-; 	 (minimum-arity 0)
-; 	 (brief-params '()))
-;       (map (lambda (a)
-; 	      (if (required-formal-param? a)
-; 		  (with-access::required-formal-param a (name ref?)
-; 		     (set! minimum-arity (+fx minimum-arity 1))
-; 		     (set! brief-params
-; 			   (cons* (if ref? t-reference t-required)
-; 				  name 0 brief-params)))
-; 		  (with-access::optional-formal-param a (name default-value ref?)
-; 		     (set! brief-params
-; 			   (cons* (if ref? t-optional-reference t-optional)
-; 				  name (d/evaluate default-value) brief-params)))))
-; 	   (reverse decl-args))
-;       (apply store-signature ft-user location aliased-name minimum-arity maximum-arity brief-params)))

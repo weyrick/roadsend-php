@@ -24,12 +24,9 @@
 (module declare
    (include "php-runtime.sch")
    (library php-runtime)
-;   (library common)
    (import (ast "ast.scm")
            (target "target.scm"))
-;   (import (generate "generate.scm"))
    (export
-;    *required-extensions*
     *class-decl-table*
     *function->ast-table* 
     (generic declare node parent k)

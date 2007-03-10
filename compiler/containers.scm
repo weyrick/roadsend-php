@@ -27,37 +27,6 @@
 
    (export
     (generic find-containers node k)))
-;     (wide-class var/cont::var)
-;     (wide-class return-stmt/cont::return-stmt)
-;     (wide-class static-decl/cont::static-decl)
-;     (wide-class required-formal-param/cont::required-formal-param)
-;     (wide-class optional-formal-param/cont::optional-formal-param) )
-    
-;    (static
-    
-;     (wide-class function-decl/cont::function-decl
-;        (var-var-used? (default #f))
-;        container-table)
-;     (wide-class method-decl/cont::method-decl
-;        (var-var-used? (default #f))
-;        container-table)
-;     (wide-class php-ast/cont::php-ast
-;        global-container-table)
-
-
-; ;    (wide-class var-var/cont::var-var)
-
-; ;         (wide-class var/cont::var
-; ;        (ref? (default #f)))
-; ;     (wide-class var-var/cont::var-var
-; ;        (ref? (default #f)))    
-; ;     (wide-class hash-lookup/cont::hash-lookup
-; ;        (ref? (default #f)))
-; ;     (wide-class property-fetch/cont::property-fetch
-; ;        (ref? (default #f)))
-; ;     (wide-class global-hash-lookup/cont::global-hash-lookup
-; ;        (ref? (default #f)))
-;     ) )
     
 ;a variable is in a container if it is:
 ;  - in global scope
@@ -354,17 +323,3 @@
 	      *current-block*))))
 
        
-;;;;strange old-style function signature stuff
-;another copy in generate.scm
-; (define-generic (sig-argref v i)
-;    (error 'sig-argref "not a function signature" v))
-
-; (define-method (sig-argref v::function-signature i)
-;    (function-signature-params-ref v i))
-       
-
-; (define-method (sig-argref v::var-arity-signature i)
-;    (with-access::var-arity-signature v (params)
-;       (if (>= i params-len)
-; 	  (params-ref (- params-len 1))
-; 	  (params-ref i))))

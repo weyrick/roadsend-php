@@ -26,9 +26,6 @@
    (export
     (php-surface)
     *current-lineno*
-; moved to php-runtime
-;    *include-paths*
-;    (dqstring-parse astring heredoc?)
     *syntax-highlight?*
     (php-preprocess port filename #!optional syntax-highlight?)
     (lexer-reset!)
@@ -36,11 +33,6 @@
     (lineno-munch-file file)
     (lineno-unmunch-file)
     (handle-token-error escape proc msg token) ))
-
-
-; moved to php-runtime
-;the search list for include files
-;(define *include-paths* '("./"))
 
 ;current line number in current file
 (define *current-lineno* 1)
@@ -109,20 +101,6 @@
    (if (memv token '(error-handler php-exit php-warning/notice))
       (handle-runtime-error escape proc msg token)
       (let ((outmsg
-             ; 	  (if (vector? token)
-             ; 		     (format "~a:~a: ~a~%"
-             ; 			     ; strip full path
-             ; 			     (if (substring=? (cdr (vector-ref token 2)) (pwd) (string-length (pwd)))
-             ; 				 (substring (cdr (vector-ref token 2))
-             ; 					    (+ (string-length (pwd)) 1) ; + 1 for the trailing /
-             ; 					    (string-length (cdr (vector-ref token 2))))
-             ; 				 (cdr (vector-ref token 2)))
-             ; 			     (car (vector-ref token 2))
-             ; 			     msg
-             ; 			     (cons (vector-ref token 0)
-             ; 				   (vector-ref token 1))
-             ; 			     ;use the numbers because it's bad, but it's done in driver.scm, too.			     
-             ; 			     )
              (format "~a:~a: ~a"
                      (if *current-file*
                          (if (substring=? *current-file* (pwd) (string-length (pwd)))
@@ -151,22 +129,11 @@
 (define (tok type . value)
    "produce a new token for the current file and line"
    (let ((file (or *current-file*
-		   ;		   *current-file*
-		   ;"unknown file")))
 		   (error 'tok "case of the runaway files" *file-stack*))))
-      ;;this is left to the guy using the lexer now, for example in driver.scm,
-      ;;since it has better information about who included what.
-;       (dolist (l *file-stack*)
-; 	 (set! file (format "~a, included from ~a, line ~a~%"
-; 			    file  (car l) (cdr l))))
       (set! *parse-loc* (cons *current-lineno* file))
       (if (pair? value)
 	  (cons type (car value))
 	  type)))
-;       (vector type (if (pair? value)
-; 		       (car value)
-; 		       type)
-; 	      (cons *current-lineno* file))))
    
 (define (handle-newlines str)
    "count the newlines in a string.  used in the lexers to keep
@@ -199,8 +166,6 @@
 
 (define (php-surface)
       (regular-grammar ((punkt (in "*" "/" "%"))
-;			(newline (or #a010 (: #a013 #a010)))
-;			(strich (in "+" "-" ))
 			(identifier (: (or alpha "_") (* (or alnum "_"))))
 			(variable (: #\$ (or alpha "_") (* (or alnum "_")))))
 
@@ -363,14 +328,9 @@
 
 	 ; floats
 	 ((: (+ digit) (? (: #\. (* digit))) (? (: (uncase #\e) (or (? #\-) (? #\+)) (+ digit))))
-          ;           (print "1the string is " (the-string))
-          ;           (print "1the flonum is " (the-flonum))
-          ;           (print "1the number is " (mkstr (convert-to-float  (the-string))))
 	  (stok 'float (convert-to-number (the-string))));(the-flonum)))
 
 	 ((: #\. (+ digit) (? (: (uncase #\e) (or (? #\-) (? #\+)) (+ digit))))
-;           (print "the string is " (the-string))
-;           (print "the number is " (mkstr (convert-to-number (the-string))))
 	  (stok 'float (convert-to-number (the-string))));(the-flonum)))
 	 
 	 ; identifiers
@@ -621,9 +581,6 @@
 		     ((nchars) nchars)
 		     ((variable-code) variable-code)) ) ) )
 
-;;      (fprint (current-error-port)  "tokens: " (with-output-to-string (lambda () (pp (get-tokens-from-string lexer astring)))))
-
-
       (let ((result
              (if constant-string?
                  (string-append "\"" (append-strings
@@ -646,22 +603,19 @@
                                     "\""))
                   handle-token-error)
              )))
-;;	 (print "result: ")
-;;	 (print result)
 
 	 result)))
 	 
 (define *php-preprocess-string-port* (open-output-string))
 
 (define-macro (shtest value)
-   `(let ((r ,value ;; (dqstring-parse (handle-newlines (the-string)) #f #t syntax-highlight?)
+   `(let ((r ,value 
              ))
        (when syntax-highlight?
           (begin
              (unless (= (the-length) (string-length r))
                 (print "bad key:" r ":")
                 (print "bad val:" (the-string) ":"))
-             ;; (hashtable-put! token-position-info r (the-string))
              ))
        r))
 
@@ -700,7 +654,6 @@
                            (if syntax-highlight?
                                (pregexp-replace* "[^\n]" (the-string) " ")
                                "\n"))))
-		   ;		    (cons code-lexer (just-newlines (the-string))))
 		   
 		   ;short and javascript style open tags
 		   ((or "<?"
@@ -794,18 +747,8 @@
 			#\?
 			#\>) ;)
 		    (the-string))
-		   ;(handle-newlines (the-string)))
-		   
-		   ; includes
-		   ; 		   ((: (or "require" "include")  include-path) 
-		   ; 		    (do-include (the-string) #f))
-		   
-		   ; 		   ((: (or "include_once" "require_once") include-path)
-		   ; 		    (do-include (the-string) #t))
 		   
 		   (newline (lineno-inc! 1) (shtest (if syntax-highlight? (the-string) "\n")))
-		   ;		   ((+ newline)
-		   ;		    (handle-newlines (the-string)))
 		   
 		   ; line comments
 		   ;line comments don't have to reach to the end of the line:
@@ -910,164 +853,6 @@
 		     (else (error 'oops "can't happen" (cons token lexer-name))))))
 	    (lineno-unmunch-file)
             (flush-string-port/bin out)))))
-;)
-	       
-
-
-;; just get rid of the backslashes before double quotes in
-;; double-quoted strings.
-; (define *double-quoted-string-port* (open-output-string))
-
-; (define (double-quoted-string-escape astring)
-;    "translate the escape chars in php single-quoted strings"
-;    (let ((len (string-length astring))
-; 	 (out *single-quoted-string-port*)
-; 	 (seen-backslash? #f))
-;       (let loop ((i 0))
-; 	 (when (<fx i len)
-; 	    (let ((c (string-ref astring i)))
-; 	       (if seen-backslash?
-; 		   (begin
-; 		      (set! seen-backslash? #f)
-; 		      (case c
-; 			 ((#\\) (display #\\ out))
-; 			 ((#\") (display #\" out))
-; 			 (else (display #\\ out)
-; 			       (display c out))))
-; 		   (if (char=? c #\\)
-; 		       (set! seen-backslash? #t)
-; 		       (display c out))))
-; 	    (loop (+fx i 1))))
-;       ;in case astring ended in a backslash
-;       (when seen-backslash? (display #\\ out))
-;       (flush-output-port out)))
-; (define (double-quoted-string-escape astring)
-;    (let ((len (string-length astring))
-;    	 (out *double-quoted-string-port*)
-;    	 (seen-backslash? #f))
-;       (let loop ((i 0))
-;    	 (when (<fx i len)
-;    	    (let ((c (string-ref astring i)))
-;    	       (if (not seen-backslash?)
-;                    (if (char=? c #\\)
-;    		       (set! seen-backslash? #t)
-;    		       (display c out))
-;    		   (begin
-;    		      (set! seen-backslash? #f)
-;    		      (unless (char=? c #\")
-;                          (display #\\ out))
-;                       (display c out))))
-;    	    (loop (+fx i 1))))
-;       ;in case astring ended in a backslash
-;       (when seen-backslash? (display #\\ out))
-;       (flush-output-port out)))
-
-
-
-
-
-
-;(define *double-quoted-string-port* (open-output-string))
-; (define (double-quoted-string-escape astring)
-;    "translate the escape chars in php double-quoted strings"
-;    (let ((len (string-length astring))
-;    	 (out *double-quoted-string-port*)
-;    	 (octal? (lambda (c)
-;    		    (and (char>=? c #\0)
-;    			 (char<=? c #\7))))
-;    	 (hex? (lambda (c)
-;    		  (or (and (char>=? c #\0) (char<=? c #\7))
-;    		      (and (char>=? c #\a) (char<=? c #\f))
-;    		      (and (char>=? c #\A) (char<=? c #\F)))))
-;    	 (seen-backslash? #f))
-;       (let loop ((i 0))
-;    	 (when (<fx i len)
-;    	    (let ((c (string-ref astring i)))
-;    	       (if (not seen-backslash?)
-;                    (if (char=? c #\\)
-;    		       (set! seen-backslash? #t)
-;    		       (display c out))
-;    		   (begin
-;    		      (set! seen-backslash? #f)
-;    		      (case c
-;    			 ((#\\) (display #\\ out))
-;    			 ((#\n) (display #\newline out))
-;    			 ((#\r) (display #a013 out))
-;    			 ((#\t) (display #\tab out))
-;    			 ((#\$) (display #\$ out))
-;    			 ;((#\{) (display #\{ out))
-;    			 ((#\") (display #\" out))
-;    			 ((#\x) (let loop ((j (+ i 1)))
-;    				   (if (and (< j len)
-;    					    (<= j (+ i 3))
-;    					    (hex? (string-ref astring j)))
-;    				       (loop (+fx j 1))
-;    				       (if (> j (+ i 1))
-;    					   (begin
-;    					      (display (integer->char
-;    							(string->integer
-;    							 (substring astring (+ i 1) j)
-;    							 16))
-;    						       out)
-;    					      (set! i (- j 1)))
-;    					   (display "\\x" out)))))
-;                          ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7)
-;                           (let loop ((j (+ i 1)))
-;                              (if (and (< j len)
-;                                       (<= j (+ i 3))
-;                                       (octal? (string-ref astring j)))
-;                                  (loop (+fx j 1))
-;                                  (if (> j (+ i 1))
-;                                      (begin
-;                                         (display (integer->char
-;                                                   (string->integer
-;                                                    (substring astring i j)
-;                                                    8))
-;                                                  out)
-;                                         (set! i (- j 1)))
-;                                      (begin
-;                                         (display #\\ out)
-;                                         (display c out))))))
-;                           (else
-;                            (display #\\ out)
-;                            (display c out))))))
-;    	    (loop (+fx i 1))))
-;       ;in case astring ended in a backslash
-;       (when seen-backslash? (display #\\ out))
-;       (flush-output-port out)))
-
-;    (let  ((in (open-input-string astring))
-; 	  (out *double-quoted-string-port*)) ;(open-output-string)))
-      
-;       (let ((r (regular-grammar ()
-; 		  ((: #\\ #\\) #\\)
-; 		  ((: #\\ #\n) #\newline)
-; 		  ((: #\\ #\r) #a013)
-; 		  ((: #\\ #\t) #\tab)
-; 		  ((: #\\ #\$) #\$)
-; 		  ((: #\\ #\{) #\{)
-; 		  ((: #\\ #\") #\")
-		  
-; 		  ; char in octal
-; 		  ((: #\\ (** 1 3 (in ("07")))) 
-; 		   (integer->char
-; 		    (string->integer
-; 		     (the-substring 1 (the-length)) 8)))
-		  
-; 		  ; char in hex
-; 		  ((: #\\ #\x (** 1 2 xdigit)) 
-; 		   (integer->char
-; 		    (string->integer
-; 		     (the-substring 2 (the-length)) 16)))
-		  
-; 		  ; pass the rest thru
-; 		  (else (the-failure)))))
-	 
-; 	 (do ((toker (read/rp r in)
-; 		     (read/rp r in)))
-; 	     ((eof-object? toker))
-; 	     (write-char toker out))
-; 	 (flush-output-port out))))
 
 (define *quoted-string-port* (open-output-string))
 
@@ -1101,20 +886,4 @@
       ;in case astring ended in a backslash
       (when seen-backslash? (display #\\ out))
       (flush-string-port/bin out)))
-
-;    (let  ((in (open-input-string astring))
-; 	  (out *single-quoted-string-port*)) ;(open-output-string)))
-      
-;       (let ((r (regular-grammar ()
-; 		  ((: #\\ #\\) #\\)
-; 		  ((: #\\ #\') #\')
-		  
-; 		  ; pass the rest thru
-; 		  (else (the-failure)))))
-	 
-; 	 (do ((toker (read/rp r in)
-; 		     (read/rp r in)))
-; 	     ((eof-object? toker))
-; 	     (write-char toker out))
-; 	 (flush-output-port out))))
 

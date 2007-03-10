@@ -44,22 +44,18 @@
       (for-each (lambda (v)
 		   (set! *orig-include-paths* (cons v *orig-include-paths*)))
 		*include-paths*))
-      ;(log-message (format "sett orig include path to ~a" *orig-include-paths*)))
    ; integrate temp includes for this view
    (when (pair? *temp-include-paths*)
       (for-each (lambda (v)
 		   (set! *include-paths* (cons v *include-paths*)))
 		*temp-include-paths*))
    (set-ini-entry "include_path" (string-join *include-paths* (string (path-separator)))))
-      ;(log-message (format "added in temp include paths from ~a" *temp-include-paths*))))
 
 ; restore every page load
 (define (restore-include-paths)
-;   (set! *current-web-app-file* 'unset)
    (set! *include-paths* '())
    (set! *temp-include-paths* '())
    (set! *all-files-ever-included* (make-hashtable))
-   ;(log-message "reset all but orig include paths")
    (for-each (lambda (v)
 		(set! *include-paths* (cons v *include-paths*)))
 	     *orig-include-paths*))   

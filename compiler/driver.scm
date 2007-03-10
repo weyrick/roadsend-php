@@ -35,22 +35,16 @@
     (generate "generate.scm")
     (declare "declare.scm")
     (php-cfa "cfa.scm")
-    ;(license "license.scm")
     (include "include.scm")
     (config "config.scm")
     (target "target.scm")
-;    (show-copies "show-copies.scm")
-;    (insensitive "insensitive.scm")
     )
 
    (export
-;    (check-distributable userinfo library? binary-name)
     (load-runtime-libs libs)
-;    (load-cl-libs)
     load-web-libs
     (php-eval code)
     (init-eval-lib)
-;    (dump-copies input-files)
     (dump-tokens input-file)
     (dump-ast input-file)
     (dump-containers input-file)
@@ -143,12 +137,6 @@
             (load-runtime-libs (reverse *web-libs*))
             (set! web-libs-loaded? #t)))))
 
-; load commandline libs
-; (define (load-cl-libs)
-;    ;   (debug-trace 1 "loading libraries from commandline (safe only)" *cl-libs*)
-;    ;   (dynamically-bind (*unsafe?* #f)
-;    (load-runtime-libs (reverse (target-option commandline-libs:))))
-
 ;; web backends will use this target
 (define (setup-web-target)
    (set! *current-target* (instantiate::interpret-target)))
@@ -161,21 +149,12 @@
 		", index-file: " (if index-file index-file "(none)" ))
    (unless *static-webapp?*
       (load-web-libs)
-      ; (when webapp-lib
-; 	 (load-runtime-libs (list webapp-lib)))
       )
    (run-startup-functions)
    (if webapp-lib
        ; app
        (with-output-to-string
 	  (lambda ()
-	     ;;; apache.scm does the chdir for us
-; 	     (debug-trace 1 "dirname is  " (dirname filename))
-
-; 	     (if (directory? (dirname filename))
-; 		 (chdir (dirname filename))
-; 		 )
-
 	     (let ((lib-inc-name
 		    (or (find-include-file-in-lib filename *PHP-FILE*)
 			(and index-file
@@ -231,9 +210,7 @@
 ;(define *debugging* #f)
 (define (debug input-file)
    ; read config and user libs handled in either run-url for web or commandline for comand line
-   ;   (dynamically-bind (*debugging* #t)
    (do-include-paths)
-   ;(let ((ast-nodes (input-file->ast input-file #t))) ; this will bail out to proper parse error handler 
    (if (and *RAVEN-DEVEL-BUILD*
 	    (getenv "BIGLOOSTACKDEPTH"))
        ; if devel mode allow stack trace
@@ -245,10 +222,6 @@
 ;;;main entry point in compiled code
 (define (program-prologue filename main?)
     (debug-trace 3 "compiler: generating program prologue, file: " filename ", main: " main?)
-;    (when (member (get-license-type) '(beta demo))
-       ;; we need libphpeval for the license check code.  We assume
-       ;; that include() is a builtin in libphpeval.
-;       (ensure-extension-will-load (get-php-function-sig "include")))
 
    `((module ,(main-name filename)
 	,@(if main? `((main main)) '())
@@ -264,13 +237,7 @@
 		      '())
 		(check-runtime-library-version ,%runtime-library-version)
                 (set! PHP5? ,PHP5?)
-;		(read-config-file)
                 
-		;;this is a license check to keep beta and demo users from distributing stuff
-; 		,@(if (member (get-license-type) '(beta demo))
-;		      `((check-distributable ,(get-userinfo) #f ,filename))
-;		      '())
-;		(do-include-paths)
 					; check for auto session start
                 (init-php-runtime)
                 ,(generate-config-ini-entries)
@@ -280,10 +247,7 @@
 		      '())
 
 		(run-startup-functions)
-					;	       (load-cl-libs)
-					;	       ,@(map (lambda (f)
-					;		 `(,(libname->lib-init-function f)))
-					;      *cl-libs*)
+
 		(init-php-argv argv)
 		,(if *RAVEN-DEVEL-BUILD*
 					;this provides a way to get at the scheme file line number, at least.
@@ -308,21 +272,7 @@
 	      `((library ,filename)
 		(include ,(mkext filename ".sch")))
 	      '())
-; 	(library "php-runtime")
-; 	(library "common")
-; 	(library "phpeval")
-; 	(library "webconnect")
-; 	(include "php-runtime.sch")
         ,@(scheme-libraries-and-includes)
-; 	,@(map (lambda (f)
-;                   (debug-trace 3 "compiler: including " f ".sch")
-;                   (let ((r `(include ,(mkext f ".sch"))))
-;                      (debug-trace 3 "compiler: included " f ".sch")
-;                      r))
-;                ;; these two have no .sch files.
-;                (delete "webconnect"
-;                        (delete "phpeval"
-;                                (target-libraries *current-target*))))
 
 	)
 
@@ -377,11 +327,6 @@
 	(run-startup-functions)
 	(init-php-argv argv)
 	
-	;;this is a license check to keep beta and demo users from distributing stuff
-;	,@(if (member (get-license-type) '(beta demo))
-;	      `((check-distributable ,(get-userinfo) #f ,filename))
-;	      '())
-	
 	(try (run-micro-server)
 	     handle-runtime-error))))
 
@@ -411,10 +356,6 @@
 	(run-startup-functions)
 	(init-php-argv argv)
 	
-	;;this is a license check to keep beta and demo users from distributing stuff
-;	,@(if (member (get-license-type) '(beta demo))
-;	      `((check-distributable ,(get-userinfo) #f ,filename))
-;	      '())
         (fastcgi-main argv))))
 
 (define (dump-ast input-file)
@@ -587,11 +528,6 @@
 	       (maybe-pp
 		`(module ,(string->symbol (php-ast-project-relative-filename ast))
                     ,@(scheme-libraries-and-includes)
-; 		    (library "php-runtime")
-; 		    (library "common")
-; 		    (library "phpeval")
-; 		    (library "webconnect")
-; 		    (include "php-runtime.sch")
 		    (eval (export-exports))
 		    (export (,init-fun-name))
 		    ,@(if (null? exports) '() `((export ,@exports)))
@@ -601,22 +537,9 @@
 			   (delete-duplicates (delete ast include-asts)))))
 	       (print `(define (,init-fun-name) 1))
 	       
-	       ; 	       (maybe-pp `(let ((sig (make-function-signature #f #f
-	       ; 							      ',(include-name
-	       ; 								 (php-ast-include-relative-filename ast))
-	       ; 							      'notype 1 0)))
-	       ; 			     (function-signature-params-set! sig 0 (make-required-param #f #f '$obj #f 'notype))
-	       ; 			     (add-library-include ,(php-ast-program-name ast)
-	       ; 						  ',(include-name
-	       ; 						     (php-ast-include-relative-filename ast)) sig)))
-	       ;(hashtable-put! *library-includes* ',(ast-head-module-name ast-head) sig)))
 	       (maybe-pp `(define ,mangled-name
 			     (check-runtime-library-version ,%runtime-library-version)
                              (set! PHP5? ,PHP5?)
-			     ;;this is a license check to keep beta and demo users from distributing stuff
-;			     ,@(if (member (get-license-type) '(beta demo))
-;				   `((check-distributable ,(get-userinfo) #t ,(php-ast-program-name ast)))
-;				   '())
 			     ;;this is the actual main function, including stuff like storing
 			     ;;the function signatures for the file, and the global code in the
 			     ;;file.
@@ -642,9 +565,6 @@
                                  1 1 0 '$obj 0))))
 	       (for-each maybe-pp (cdr code)))))))
 
-;(define (libname->lib-init-function libname)
-;   (string->symbol (string-append libname "-init-all-includes")))
-
 (define (write-library-include-file libname asts)
    (with-output-to-file (mkext libname ".sch")
       (lambda ()
@@ -659,17 +579,7 @@
 		  `(import (,(string->symbol (php-ast-project-relative-filename ast))
 			    ,(mkstr (prefix (php-ast-real-filename ast)) ".scm"))))
 	       asts)
-;	(export (,(libname->lib-init-function libname)))
-	;(eval (export-exports))
 	)))
-   ;(maybe-pp
-    ;`(define (,(libname->lib-init-function libname))
-	;;;;;;;;;;;(print "i am here in lib init"))))
-	;,@(map (lambda (f)
-		 ;  `(,(file->init-fun-name f)))
-	;       files))))
-
-
 
 
 (defalias eval php-eval)
@@ -678,18 +588,7 @@
     (with-input-from-string (string-append "<?php " (mkstr code) " ?>")
        (lambda ()
           (%memoized-parse (read-string) 'php-lambda "Eval String")
-	  ;; (try (parse (php-preprocess (current-input-port) "Eval String")
-;; 		      'php-lambda "Eval String")
-;; 	       handle-token-error)
           ))))
-
-; (define (maybe-get-prefix-dir)
-;    (if (eqv? *current-web-app-file* 'unset)
-;        ; do something here for libs?
-;        ""
-;        ; web app, return dir portion before current web app file, which is really
-;        ; the initial directory the file was compiled in when the library was made
-;        (substring *PHP-FILE* 0 (- (string-length *PHP-FILE*) (string-length *current-web-app-file*)))))
 
 
 (define (evaluate-from-file file name-to-use)
@@ -700,9 +599,6 @@
 	(with-input-from-file file
 	   (lambda ()
               (%memoized-parse (read-string) name-to-use file)
-	      ;; (try (parse (php-preprocess (current-input-port) file)
-;; 			  name-to-use file)
-;; 		   handle-token-error)
               )))))
 
 ;parse takes a string instead of a file, so you can use it for eval
@@ -747,9 +643,6 @@
 				(substring=? shebang "#!" 2))))
 	       (set-input-port-position! (current-input-port) 0))
 	    (let ((ast (%memoized-parse (read-string) (main-name input-file) input-file)
-		   ;; (try (parse (php-preprocess (current-input-port) input-file)
-;;                                (main-name input-file) input-file)
-;; 			handle-token-error)
                    ))
                (when (php-ast? ast)
                   (php-ast-original-filename-set! ast input-file))
@@ -809,8 +702,6 @@
 
 (define (main-name filename)
    (include-name filename))
-;   (string->symbol filename))
-    ;(string-downcase filename)))
 
 (define (php-reset)
    (lexer-reset!))

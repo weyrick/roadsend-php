@@ -21,7 +21,6 @@
 (module commandline
    (library php-runtime)
    (include "php-runtime.sch")
-;   (library common)
    (library profiler)
    (import (driver "driver.scm")
            (declare "declare.scm")
@@ -91,10 +90,6 @@
            (lambda (library-name)
 
               (when (maybe-add-script-argv "-l")
-;                 (unless (pregexp-match "^[a-z][-a-z]+$" (basename library-name))
-;                    (fprint (current-error-port)
-;                            "please choose a library name consisting only of alphanumeric characters, dashes, and underscores")
-;                    (exit 1))
                  (widen!::library-target *current-target* (name library-name))
                  (set-target-option! compile-includes?: #f)))))
       
@@ -221,17 +216,6 @@
 	(when (maybe-add-script-argv "--strip-path")
 	   (add-target-option! strip-paths: strip-path)))
 
-       ;; have to add support for this back in.
-;        ((("--extensions") ?ext-list
-;          (help "Use this comma separated list of file extensions when building libraries from a directory"))
-; 	(when (maybe-add-script-argv "--extensions")
-; 	   (set-target-option! compile-extensions: (pregexp-split ",\\s*" ext-list))))
-
-       ; XXX this isn't implemented currently
-;        ((("--clean") (help "Clean build files associated with specified library"))
-; 	(when (maybe-add-script-argv "--clean")
-; 	   (widen!::cleanup-target *current-target*)))
-       
        ((("--install") (help "Install library to PCC library directory"))
 ;	(widen!::install-target *current-target*))
 	(when (maybe-add-script-argv "--install")
@@ -295,10 +279,6 @@
 	      (php-hash-insert! (container-value $HTTP_SERVER_VARS) (mkstr (car vals)) (mkstr (cadr vals)))
               (php-hash-insert! (container-value $_SERVER) (mkstr (car vals)) (mkstr (cadr vals))))))
 
-       ;; the IDE is handling this now, I think --timjr
-       ;; ((("--list-deps") (help "List the DLL dependencies of a project that static linking doesn't remove."))
-       ;;  (set! list-dependencies? #t))
-       
        ((("-rm" "--no-clean") (help "Don't cleanup temporary files")
 	 )
 	(when (maybe-add-script-argv "-rm")

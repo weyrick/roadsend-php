@@ -101,30 +101,3 @@
 	 (else
 	  (clean-str str)))))
 
-; (define (syntax-highlight file)
-; ;;    (with-input-from-file file
-; ;;       (lambda ()
-; ;;          (let* ((preprocessed-file (php-preprocess (current-input-port) file #t)))
-; ;;                 ( (car a))
-; ;;                 (token-position-info (cdr a)))
-; ;;             (hashtable-for-each token-position-info
-; ;;                (lambda (k v)
-; ;;                   (unless (= (string-length k) (string-length v))
-; ;;                      (print "key is: " k)
-; ;;                      (print "value is: " v)))))))
-;    (let ((tokens (fluid-let ((*syntax-highlight?* #t))
-;                     (with-input-from-file file
-;                        (lambda ()
-;                           (with-input-from-string (php-preprocess (current-input-port) file #t)
-;                              (lambda ()
-;                                 (get-tokens (php-surface) (current-input-port)))))))))
-;       ;(print tokens)
-;       (let ((acc 0))
-;          (for-each (lambda (tok) (set! acc (+ acc (cdr tok)))) tokens)
-;          (unless (= acc (file-size file))
-;             (print "screwed on file " file " lexer came back with " acc " but file is " (file-size file))))))
-
-
-
-
-;; test: for i in `find ~/phpoo/ -name '*.php'`; do pdb --highlight $i; done

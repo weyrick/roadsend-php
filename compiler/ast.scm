@@ -25,8 +25,6 @@
     *library-mode?*
     ;; autoaliasing
     ; used by generate and declare 
-;    *current-file*
-;    *current-module*
     *current-ast*
     (needs-alias? name::symbol)
     (autoalias name::symbol)
@@ -341,7 +339,7 @@
       (walker php-ast)))
 
 (define (walk-ast/parent php-ast thunk)
-   "walk ast calling thun. Thunk takes three args -- node, parent, and k."
+   "walk ast calling thunk. Thunk takes three args -- node, parent, and k."
    (letrec ((walker
 	     (lambda (php-ast parent)
 		(cond
@@ -479,9 +477,6 @@
 
 ;;;autoaliasing
 (define *current-ast* 'unset)
-
-;(define *current-file* 'unset)
-;(define *current-program* 'unset)
 
 (define (needs-alias? name::symbol)
    "does name conflict with a builtin symbol?"

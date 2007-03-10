@@ -31,7 +31,6 @@
            (declare "declare.scm")
 	   (ast "ast.scm")
 	   (lexers "lexers.scm")
-;	   (license "license.scm")
 	   (target "target.scm")
 	   (debugger "debugger.scm")
 	   (evaluate "evaluate.scm") ; access to environments
@@ -78,18 +77,10 @@
 
       (read-config-file)
 
-      ;; We check the license after reading the config file, so we
-      ;; know where to look for the license, but before anything else.
-;      (check-license PCC-HOME)
-
       ; start with no command line arguments for interpreter
       (set-target-option! script-argv: '())
 
       (parse-commandline-arguments pcc-argv)
-      ;; (try (parse-commandline-arguments pcc-argv)
-;; 	   (lambda (e p m o)
-;; 	      (print (format "pdb: argument parsing error: ~a ~a" m p))
-;; 	      (exit 1)))
 
       ; if we had a file on the commandline, run it
       (if (or *debug-target-file*
@@ -996,112 +987,4 @@
 
 (define (fetch-entry offset)
    "foo")
-
-
-
-; ;;;; REPL
-
-; (define (main-debugger-repl)
-;    (let loop ()
-; ;      (if *slavemode*
-; ;	 (debug-print "Location: " *debugger-file* ":" *debugger-line*)
-; 	 (display "\n(pdb) ");)
-;       (flush-output-port (current-output-port))
-;       (flush-output-port (current-error-port))
-;       (let ((command (read-line)))
-; 	 (string-case command
-
-; ;;; The all important help command.
-; 	    ((or "h" "help")
-; 	     (debug-print "Specify a source [file] or [webroot] to debug, or begin debugging with [run].")
-; 	     (debug-print "Commands available: ")
-; 	     (debug-print "file, webroot, port, run, quit")
-; 	     (loop))
-	    
-; ;;;### Public Commands
-	    
-; ;;; This is the quit command. 
-; 	    ((eof (or "q" "quit" "exit"))
-; 	     (debug-print "\nbye")
-; 	     (exit 0))
-
-; ;;; file command for loading a target file to debug (commandline) 
-; 	    ((: "file"
-; 		(+ blank)
-; 		(+ (out blank)))
-; 	     (let ((target (substring (the-string) 5 (the-length))))
-; 		(if (file-exists? target)
-; 		    (begin
-; 		       (debug-print "\nsetting debug target file: " target)
-; 		       (set! *debug-target-webroot* #f)
-; 		       (set! *debug-target-file* target))
-; 		    (debug-print "\nfile not found: " target)))
-; 	     (loop))
-
-; ;;; webroot command for pointing the builtin web server at a root directory
-; 	    ((: "webroot"
-; 		(+ blank)
-; 		(+ (out blank)))
-; 	     (let ((target (substring (the-string) 8 (the-length))))
-; 		(if (directory? target)
-; 		    (begin
-; 		       (debug-print "\nsetting debug target webroot: " target)
-; 		       (set! *debug-target-webroot* target)
-; 		       (set! *debug-target-file* #f))
-; 		    (debug-print "\ndirectory does not exist: " target)))
-; 	     (loop))	    
-
-; ;;; run command makes it go
-;            ((or "r" "run")
-; 	    (if (or *debug-target-webroot*
-; 		    *debug-target-file*)
-; 		(start-debugger)
-; 		(debug-print "\nyou must first set a file or webroot"))
-; 	    (loop))
-	    
-; 	    (else 		   
-; ;;; The "default command"
-;               (begin
-; 		 (unless (string=? command "")
-; 		       (debug-error "Unknown command: " command))
-; 		    (loop)))))))
-
-
-
-
-
-
-; ;;; The function `debug-print' is used for all debugger (non program)
-; ;;; output. It goes to stdout unless we're in slavemode, then it's stderr.
-; (define (debug-print . rest)
-;   (if *slavemode*
-;       (begin
-; 	 (apply fprint (current-error-port) rest)
-; 	 (flush-output-port (current-error-port)))
-;       (begin
-; 	 (apply print rest)
-; 	 (flush-output-port (current-output-port)))))
-
-; ;;; The function `debug-warn' will issue a warning at the debugger
-; ;;; prompt. It goes to stdout unless we're in slavemode, then it's stderr.
-; (define (debug-warn . rest)
-;   (if *slavemode*
-;       (begin
-; 	 (apply fprint (current-error-port) "Warning: " rest)
-; 	 (flush-output-port (current-error-port)))
-;       (begin
-; 	 (apply print "Warning: " rest)
-; 	 (flush-output-port (current-output-port)))))
-
-; ;;; The function `debug-error' will issue an error at the debugger
-; ;;; prompt. It goes to stdout unless we're in slavemode, then it's stderr.
-; (define (debug-error . rest)
-;   (if *slavemode*
-;       (begin
-; 	 (apply fprint (current-error-port) "Error: " rest)
-; 	 (flush-output-port (current-error-port)))
-;       (begin
-; 	 (apply print "Error: " rest)
-; 	 (flush-output-port (current-output-port)))))
-
 

@@ -32,7 +32,6 @@
       ((right: varnamed)
        (left: elsekey elseifkey)
        (left: newkey)
-;       (left: lbrak lcurly)
        (right: logical-not bitwise-not crement atsign boolcast intcast floatcast stringcast objectcast arraycast)
        (left: punkt)
        (left: plus minus dot)
@@ -74,10 +73,6 @@
 
       (start
        ((statements) (finish-ast (reverse statements))))
-
-;       (statements
-;        ((statements statement) (append statements (list statement)))
-;        ((statement) (list statement)))
 
       (statements
        ((statements statement) (cons statement statements))
@@ -432,25 +427,12 @@
       (constant
        ((id)
 	(make-php-constant *parse-loc* id)))
-;        ;; ugg
-;        ((boolcast)
-; 	;;could be "bool" or "boolean", same deal with the next few
-; 	(make-php-constant *parse-loc* boolcast))
-;        ((intcast)
-; 	(make-php-constant *parse-loc* intcast))
-;        ((floatcast)
-; 	(make-php-constant *parse-loc* floatcast))
-;        ((stringcast)
-; 	(make-php-constant *parse-loc* "string"))
-;        ((objectcast)
-; 	(make-php-constant *parse-loc* "object")))
 
       ;this is for class properties and the like.
       ;many random tokens are treated as strings here.
       (id-or-var
        ((id)
 	(make-literal-string *parse-loc*  id))
-;       ((lval) lval)
        ((includekey)
 	(make-literal-string *parse-loc* "include"))
        ((include-once)
@@ -463,8 +445,6 @@
 	(make-literal-string *parse-loc* "continue"))
        ((definekey)
 	(make-literal-string *parse-loc* "define"))
-;       ((parent) ;;this is actually "parent::"
-;	(make-literal-string *parse-loc* "parent"))
        ((exitkey)
 	(make-literal-string *parse-loc* "exit"))
        ((boolean)
@@ -535,34 +515,13 @@
 	(make-literal-string *parse-loc* "case"))
        ((nullkey)
 	(make-literal-string *parse-loc* "null")))
-;        ((boolcast)
-; 	;;could be "bool" or "boolean", same deal with the next few
-; 	(make-literal-string *parse-loc* boolcast))
-;        ((intcast)
-; 	(make-literal-string *parse-loc* intcast))
-;        ((floatcast)
-; 	(make-literal-string *parse-loc* floatcast))
-;        ((stringcast)
-; 	(make-literal-string *parse-loc* "string"))
-;        ((objectcast)
-; 	(make-literal-string *parse-loc* "object")))
 
       ;all the things that can name a function
       (function-name
        ((id) id)
-;       ((classkey) 'class)
-;       ((default) 'default)
        ((definekey) 'define)
-;       ((parent) 'parent)
        ((nullkey) 'null)
        ((boolean) (if (eqv? TRUE boolean) 'true 'false)))
-;       ((boolcast) (string->symbol boolcast)) 
-;       ((intcast) (string->symbol intcast))
-;       ((floatcast) (string->symbol floatcast))
-;       ((stringcast) 'string)
-;       ((objectcast) 'object))
-;       ((varkey) 'var)
-;       ((stringcast) 'string))
 
       (include-stmt
        ((includekey rval)
@@ -596,18 +555,13 @@
 
       (function-call
        ((id lpar arglist rpar)
-;        (debug-trace 0 "parsed a function named " id)
 	(make-function-invoke *parse-loc* id arglist))
        ((variable-lval lpar arglist rpar)
-;        (debug-trace 0 "xx parsed a function named " variable-lval)
 	(make-function-invoke *parse-loc* variable-lval arglist))
        ((array-lval lpar arglist rpar)
-;        (debug-trace 0 "xxxx parsed a function named " array-lval)
 	(make-function-invoke *parse-loc* array-lval arglist))
        ((parent id-or-var@method lpar arglist rpar) 
 	(make-parent-method-invoke *parse-loc* method arglist))
-       ;; ((class-lval lpar arglist rpar) 
-;; 	(make-method-invoke (ast-node-location class-lval) class-lval arglist))
        ((id@klass static-classderef id-or-var@method lpar arglist rpar) 
 	(make-static-method-invoke *parse-loc* klass method arglist)))
        
@@ -636,7 +590,6 @@
 	((newkey class-prop-fetch lpar arglist rpar)
          (make-constructor-invoke *parse-loc* class-prop-fetch arglist))
         ((newkey function-call);id-or-var constructor-arglist)
-;         (print "parsed a constructor named " function-call)
          (function-call->constructor function-call))
         ((newkey id-or-var)
          (make-constructor-invoke *parse-loc* id-or-var '()))
@@ -675,9 +628,6 @@
          (make-typecast *parse-loc* 'hash rval))
         ((objectcast rval)
          (make-typecast *parse-loc* 'object rval))
-        
-        ;        ((typecast rval)
-        ; 	(make-typecast *parse-loc* typecast rval))
         
         ((lpar rval rpar)
          rval)
@@ -781,14 +731,6 @@
         
         ((lval) lval))
        
-       ;       (typecast
-       ;        ((boolcast) 'boolean)
-       ;        ((intcast) 'integer)
-       ;        ((floatcast) 'float)
-       ;        ((stringcast) 'string)
-       ;        ((arraycast) 'hash)
-       ;        ((objectcast) 'object))
-       
        (simple-literal
         ((constant) constant)
         ((nullkey)
@@ -829,17 +771,6 @@
         ((variable-lval) variable-lval)
         ((class-lval) class-lval)
         ((array-lval) array-lval))
-       ;       ((string-lval) string-lval))
-       
-       ;       (string-lval
-       ;        ((string-lval lcurly rval rcurly)
-       ; 	(make-string-char *parse-loc* string-lval rval))
-       ;        ((variable-lval lcurly rval rcurly)
-       ; 	(make-string-char *parse-loc* variable-lval rval))
-       ;        ((class-lval lcurly rval rcurly)
-       ; 	(make-string-char *parse-loc* class-lval rval))
-       ;        ((array-lval lcurly rval rcurly)
-       ; 	(make-string-char *parse-loc* array-lval rval)))
        
        (variable-lval
         ((varnamed lval)
@@ -847,12 +778,6 @@
         
         ((varnamed lcurly rval rcurly)
          (make-var-var *parse-loc* rval))
-        
-        ;        ((globalhash lbrak rval rbrak)
-        ; 	(make-global-hash-lookup *parse-loc* rval))
-        
-        ;        ((globalhash)
-        ; 	(make-global-hash-var *parse-loc*))
         
         ((var)
          (make-var *parse-loc* var)))
@@ -902,18 +827,12 @@
              (set! arglist (function-invoke-arglist fun)))
             ((method-invoke? fun)
              (error 'fun->constructor "methods are not supported in constructors" "")
-;;              (set! name (method-invoke-name fun))
-;;              (set! arglist (method-invoke-arglist fun))
              )
             ((parent-method-invoke? fun)
              (error 'fun->constructor "parent methods are not supported in constructors" "")
-;;              (set! name (parent-method-invoke-name fun))
-;;              (set! arglist (parent-method-invoke-arglist fun))
              )
             ((static-method-invoke? fun)
              (error 'fun->constructor "static methods are not supported in constructors" "")
-;;              (set! name (static-method-invoke-name fun))
-;;              (set! name (static-method-invoke-arglist fun))
              )
             (else (error 'fun->constructor "unsupported type" "")))
       (make-constructor-invoke (ast-node-location fun)

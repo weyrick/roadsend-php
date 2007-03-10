@@ -22,9 +22,7 @@
 (module generate
    (include "php-runtime.sch")
    (library php-runtime)
-;   (library common)
    (library profiler)
-;   (library profiler)
    (import (ast "ast.scm")
 	   (declare "declare.scm") )
    (export
@@ -55,9 +53,6 @@
 ;collect the actual code for the functions
 (define *functions* '())
 
-;code for constant definitions and classes
-;(define *classes-and-constants* '())
-
 ;the name of the current environment for looking up variable variables
 (define *current-var-var-env* #f)
 
@@ -73,7 +68,6 @@
 (define-generic (generate-code node)
    (if (list? node)
        (let ((node (filter (lambda (n) (not (nop? n))) node)))
-;	  (for-each declare node)
 	  (cons 'begin
 		(map generate-code node)))
        (error 'generate-code (with-output-to-string
@@ -81,25 +75,13 @@
 				   (print "generate-code: Don't know what to do with node: " node ", see?")))
 	      #t)))
 
-; 	      (with-output-to-string
-; 		 (lambda ()
-; 		    (if (ast-node? node)
-; 			(print-pretty-ast node)
-; 			(print node)))))))
-
-
 
 (define-method (generate-code node::php-ast)
-   ;   (widen!::php-ast/gen node (global-symbol-table (make-hashtable)))
    (set! *functions* '())
    (set! *constant-bindings* '())
-   ;   (set! *classes-and-constants* '())
    (set! *exports* '())
    (set! *runtime-function-sigs* '())
-   ;   (set! *current-file* (string->symbol (path-relative-to-include-path (php-ast-file node))))
-   ;   (set! *current-module* (string->symbol (php-ast-module node)))
    (set! *current-ast* node)
-   ;   (set! *class-decl-table* (make-php-hash))
    
    (dynamically-bind (*current-block* node)
       (dynamically-bind (*current-var-var-env* '*current-variable-environment*) ;'*global-env*)
@@ -127,19 +109,12 @@
                                       ;; just returns from the include().
 				      `(,(bind-exit-if (php-ast/gen-needs-return? node) 'return
                                             `(let ,(global-bindings)
-                                                ;(bindings (current-symtab))
-                                                ;		       ,@(add-bindings-to-env (current-symtab))
                                                 #t ;so it's never empty
-                                                ;			 ,@(reverse *classes-and-constants*)
                                                 ,@*runtime-function-sigs*
                                                 ,@global-code)))) )
 		  ;the other functions (class definition is in here too, and is dependent on order)
 		  (reverse *functions*)))
-		;	      (append *constant-bindings*
-		;		      (reverse *functions*)))
-		;	     (begin
-		;		(fprint (current-error-port) "numbnuts: " *required-files* )
-		*required-asts* ;)
+		*required-asts*
 		*exports*))))))
 
 
@@ -224,10 +199,6 @@ onum.  Append the bindings for the new symbols and code."
 				       (php-error/loc node m)
 				       (e #t)))
 				    (begin
-				       ;;disable these for now, since they are usually meaningless --tpd
-; 				      (warning/loc node
-; 						   (format "generate-code-function-invoke: undefined function ~A"
-; 							   name))
 				      `(php-funcall ',name
 						    ,@(map get-location arglist))))))))
 		   (set! *PHP-FILE* ,*file-were-compiling*)
@@ -542,14 +513,6 @@ onum.  Append the bindings for the new symbols and code."
 				    (+ ,level 1) (if (> ,level 0) "s" "")))
 		 ((list-ref ,break-stack ,level) #t))))))
 
-; (define-method (generate-code node::continue-stmt)
-;    (with-access::continue-stmt node (level)
-;       (let ((level (if (null? level) 0 (max 0 (- (mkfixnum level) 1)))))
-; 	 (if (>= level (length *continue-stack*))
-; 	     (delayed-error/loc node (format "Cannot continue ~A level~A"
-; 					     (+ level 1) (if (> level 0) "s" "")))
-; 	     `((list-ref ',*continue-stack* level) #t)))))
-
 (define-method (generate-code node::continue-stmt)
    (with-access::continue-stmt node (level)
       (let ((the-level (if (null? level) 0 (generate-code level)))
@@ -593,28 +556,12 @@ onum.  Append the bindings for the new symbols and code."
 
 (define-method (generate-code node::literal-integer)
    (convert-to-number (lyteral-value node)))
-;    (with-access::lyteral node (value)
-;       (cond
-; 	 ((=elong value #e0)
-; 	  '*zero*)
-; 	 ((=elong value #e1)
-; 	  '*one*)
-; 	 (else
-; 	  (let ((the-int (gensym 'int)))
-; 	     (add-constant-binding-to-current-block the-int `(convert-to-number ,(lyteral-value node)))
-; 	     the-int)))))
-
 
 
 (define-method (generate-code node::literal-float)
    (convert-to-number (lyteral-value node)))
-;    (let ((the-float (gensym 'float)))
-;       (add-constant-binding-to-current-block the-float `(convert-to-number ,(lyteral-value node)))
-;       the-float))
-
 
 (define-method (generate-code node::literal-string)
-   ;   `(string-copy ,(mkstr (lyteral-value node))))
    (mkstr (lyteral-value node)))
 
 (define-method (generate-code node::literal-null)
@@ -708,31 +655,14 @@ onum.  Append the bindings for the new symbols and code."
 	  (add-binding-to-current-block name '(make-container '()))
 	  (add-binding-to-current-block name ''()))
       (if (global-scope?)
-;	  `(env-lookup *global-env* ,(undollar name))
 	  ;; xxx should put an assert here
 	  `(env-internal-index-value ,name)
 	  name)))
-
-; (define-method (generate-code node::var/hash)
-;    (with-access::var node (name)
-;       (add-binding-to-current-block name '(make-php-hash))
-;       name))
-
-; (define-method (generate-code node::var/cont)
-;    (with-access::var node (name)
-;       (add-binding-to-current-block name '(make-container '()))
-;       name))
 
 (define-method (generate-code node::var-var)
    (with-access::var-var node (lval)
       (flag-needs-var-var-env!)
      `(env-lookup ,*current-var-var-env* (mkstr ,(get-value lval)))))
-
-; (define-method (generate-code node::string-char)
-;    (with-access::string-char node (str pos)
-;       `(%general-lookup ,(get-value str) ,(get-value pos))))
-; ;            `(php-string-ref ,(get-value str) ,(get-value pos))))
-;      `(php-string-ref ,(get-value str) ,(get-value pos))))
 
 (define-method (generate-code node::assignment)
    (with-access::assignment/gen node (lval rval lhs-is-output-port?)
@@ -776,21 +706,6 @@ onum.  Append the bindings for the new symbols and code."
 (define-method (generate-code node::reference-assignment)
    (with-access::reference-assignment node (lval rval)
       (update-location lval (get-location rval))))
-
-
-
-; (define-generic (update-location lval rval)
-;    (error 'update-location "don't know how to update location" lval))
-
-; (define-method (update-location lval::var rval)
-;    (php-hash-insert! *current-env* (var-name lval) rval))
-
-; (define-method (update-location lval::hash-lookup rval)
-;    (with-access::hash-lookup lval (hash key)
-;       (php-hash-insert! (container-value (generate-code hash))
-; 			(generate-code key) rval)))
-
-
 
 
 (define-method (generate-code node::unset-stmt)
@@ -1131,18 +1046,6 @@ onum.  Append the bindings for the new symbols and code."
 (define-method (generate-code node::function-decl)
    (error 'generate-code-function-decl "function decl didn't get declared" node))
 
-
-; (define-method (generate-code node::required-formal-param)
-;    (with-access::required-formal-param node (location name ref?)
-;       (make-required-param (cdr location) (car location) name ref? 'notype)))
-
-; (define-method (generate-code node::optional-formal-param)
-;    (with-access::optional-formal-param node (location name default-value ref?)
-;       (make-optional-param (cdr location) (car location) name ref? 'notype
-; 			   (if (ast-node? default-value)
-; 			       (get-value default-value)
-; 			       default-value))))
-
 (define-method (generate-code node::constant-decl)
    (with-access::constant-decl node (name value insensitive?)
       (let ((real-name (if (ast-node? name)
@@ -1226,8 +1129,6 @@ onum.  Append the bindings for the new symbols and code."
 (define-method (generate-code node::boolean-not)
    (with-access::boolean-not node (p)
       `(not ,(get-boolean p))))
-;      (not (convert-to-boolean (generate-code p)))))
-
 
 (define-method (generate-code node::boolean-or)
    (with-access::boolean-or node (p q)
@@ -1238,16 +1139,6 @@ onum.  Append the bindings for the new symbols and code."
    (with-access::boolean-and node (p q)
       `(and ,(get-boolean p)
 	    ,(get-boolean q))))
-
-; (define-method (generate-code node::boolean-xor)
-;    (with-access::boolean-xor node (p q)
-;       (if (convert-to-boolean (generate-code p))
-; 	  (if (convert-to-boolean (generate-code q))
-; 	      #f
-; 	      #t)
-; 	  (if (convert-to-boolean (generate-code q))
-; 	      #t
-; 	      #f))))
 
 
 ;;;;typed stuff
@@ -1294,9 +1185,6 @@ onum.  Append the bindings for the new symbols and code."
 (define-method (get-copy rval::constructor-invoke)
    (get-value rval))
 
-; (define-method (get-copy rval::var/number)
-;    (get-value rval))
-
 (define (get-boolean node)
    (if (or ;(var/boolean? node)
 	   (eqv? 'boolean (node-return-type node)))
@@ -1312,20 +1200,10 @@ onum.  Append the bindings for the new symbols and code."
 
 (define-method (get-value rval::ast-node)
 ;   (fprint (current-error-port) "other get value caught a " rval)
-;   (let ((ret-type (node-return-type rval)))
-;      (case ret-type
-	 ;((boolean number string object hash) (generate-code rval))
-;	 (else ;`(maybe-unbox ,(generate-code rval))
           (generate-code rval));)))
 
 (define-method (get-value rval::var-var)
    `(container-value ,(generate-code rval)))
-
-;; (define-method (get-value rval::hash-lookup)
-;;    (generate-code rval))
-
-;; (define-method (get-value rval::lyteral)
-;;    (generate-code rval))
 
 (define-method (get-value rval::var)
    ;   (if (eqv? *current-var-var-env* '*current-variable-environment*);<-- this is even hackier! '*global-env*)    
@@ -1337,22 +1215,8 @@ onum.  Append the bindings for the new symbols and code."
        `(container-value ,(generate-code rval))
        (generate-code rval)))
 
-; (define-method (get-value rval::var/cont)
-;    (if (eqv? *current-var-var-env* '*global-env*)
-;        ;see above "this is a hack..."
-;        `(container-value (env-lookup *global-env* ',(generate-code rval)))
-;        `(container-value ,(generate-code rval))))
-
-; (define-method (get-value rval::string-char)
-;    (generate-code rval))
-;introduced because %general-lookup always returns a container
-;   `(maybe-unbox ,(generate-code rval)))
-
 (define-method (get-value rval::function-invoke)
    `(maybe-unbox ,(generate-code rval)))
-; (if (function-invoke-ref? rval)`
-;        `(container-value ,(generate-code rval))
-;        (generate-code rval)))
 
 
 (define-method (get-value rval::property-fetch)
@@ -1404,23 +1268,12 @@ onum.  Append the bindings for the new symbols and code."
 	       ,the-object ,(mkstr the-property))
 	     `(php-object-property-ref ,the-object ,the-property)))))
 	     
-;XXX disable this for function-invoke for now
-;(define-method (get-location rval::var)
-;   (error 'get-location "tried to access the location of a normal var" rval))
-   
 
 (define-method (get-location rval::var)
-   ;rval::var/cont)
-;   (if (eqv? *current-var-var-env* '*current-variable-environment*)
-       ;see above "this is a hack..."
-;       `(env-lookup *global-env* ,(undollar (var-name rval)))
        (generate-code rval));)
 
 (define-method (get-location rval::function-invoke)
    `(maybe-box ,(generate-code rval)))
-;    (if (function-invoke-ref? rval)
-;        (generate-code rval)
-;        `(make-container ,(generate-code rval))))
 
 (define-method (get-location rval::method-invoke)
    (generate-code rval))
@@ -1433,10 +1286,6 @@ onum.  Append the bindings for the new symbols and code."
 
 (define-method (get-location rval::parent-method-invoke)
    (generate-code rval))
-;    (if (method-invoke-ref? rval)
-;        (generate-code rval)
-;        `(make-container ,(generate-code rval))))
-
 
 ;;;;update-value
 (define-generic (update-value lval rval-code)
@@ -1470,8 +1319,6 @@ onum.  Append the bindings for the new symbols and code."
 	      ;so get-value & get-location treat it differently
 	      ,rval-name))))
 
-; (define-method (update-value lval::var/cont rval-code)
-;    )
 
 (define-method (update-value lval::hash-lookup rval-code)
    ;;this and update-location of hash-lookup are similar messes
@@ -1786,16 +1633,6 @@ onum.  Append the bindings for the new symbols and code."
 				    ,(formal-param-name (car args)))
 		       code)))))
 
-;(define (add-constant-binding-to-current-block name value)
-;   (pushf `(define ,name ,value) *constant-bindings*))
-;    (if (or (function-decl/gen? *current-block*)
-; 	   (method-decl/gen? *current-block*))
-;        ;constants never change, so it's much more efficient to close
-;        ;over them than constantly reallocate them.
-;        (hashtable-put! (current-static-vars) name value)
-;        (add-binding-to-current-block name value)))
-
-
 (define (add-binding-to-current-block name value)
    ;; once upon a time, a list of all variables in a function was built
    ;; up using add-binding-to-current-block while generating code.  Now
@@ -1809,21 +1646,6 @@ onum.  Append the bindings for the new symbols and code."
 	 (if (ast-node? *current-block*)
 	     (delayed-error/loc *current-block* (mkstr "variable "  name " not found in symtab"))
 	     (delayed-error (mkstr "likely global, variable "  name " not found in symtab"))))))
-; 	 (static-vars (current-static-vars))
-; 	 (args #f))
-;       (cond
-; 	 ((function-decl/gen? *current-block*)
-; 	  (set! args (map formal-param-name (function-decl/gen-decl-arglist *current-block*))))
-; 	 ((method-decl/gen? *current-block*)
-; 	  (set! args (map formal-param-name (method-decl/gen-decl-arglist *current-block*)))))
-;       (cond
-; 	 ((and args (memv name args)) #t)
-; 	 ((and static-vars (hashtable-get static-vars name))
-; 	  ;static-vars have initial values
-; 	  ;(php-hash-insert! static-vars name value)
-; 	  #t)
-; 	 (else
-; 	  (hashtable-put! symtab name value)))))
    
 (define (pass-argument from to)
    (if from

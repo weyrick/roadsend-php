@@ -36,7 +36,6 @@
 (module debugger
    (include "php-runtime.sch")
    (library php-runtime)
-;   (library common)
    (import
     ;; ast.scm and declare.scm define the AST node types.
     (ast "ast.scm")
@@ -211,74 +210,18 @@
 
 ;;; save the argument environment (program args, GET/POST, etc)
 (define (save-arg-env)
-;    (let ((vhash (container-value (env-lookup *global-env* "argv"))))
-;       (when (php-hash? vhash)
-;          (hashtable-put! *original-foo* "argv" (copy-php-data vhash))))
-; ; 	 (php-hash-for-each vhash
-; ; 			    (lambda (k v)
-; ; 			       (php-hash-insert! *original-argv* k v)))))
-;    (let ((c (container-value (env-lookup *global-env* "argc"))))
-;       ; (set! *original-argc* c)
-;       (hashtable-put! *original-foo* "argc" c))
-
    (for-each (lambda (v)
                 (hashtable-put! *original-foo* v
                                 (copy-php-data (env-lookup *global-env* v))))
              '("HTTP_GET_VARS" "_GET" "HTTP_POST_VARS" "_POST"
                "HTTP_COOKIE_VARS" "_COOKIE" "_REQUEST" "argv" "argc")))
    
-;    (php-hash-for-each (container-value $HTTP_GET_VARS)
-; 		      (lambda (k v)
-; 			 (php-hash-insert! *original-GET* k v)))
-;    (php-hash-for-each (container-value $HTTP_POST_VARS)
-; 		      (lambda (k v)
-; 			 (php-hash-insert! *original-POST* k v)))
-;    (php-hash-for-each (container-value $HTTP_COOKIE_VARS)
-; 		      (lambda (k v)
-; 			 (php-hash-insert! *original-COOKIE* k v)))
-;    (php-hash-for-each (container-value $HTTP_SERVER_VARS)
-; 		      (lambda (k v)
-; 			 (php-hash-insert! *original-SERVER* k v)))
-;    (php-hash-for-each (container-value $_REQUEST)
-; 		      (lambda (k v)
-; 			 (php-hash-insert! *original-REQUEST* k v))))
-
 ;;; restore the argument environment (program args, GET/POST etc) after an evaluator reset
 (define (restore-arg-env)
-;    (when (> (php-hash-size *original-argv*) 0)
-;       (let ((vhash (container-value (env-lookup *global-env* "argv"))))
-; 	 (unless (php-hash? vhash)
-; 	    (container-value-set! (env-lookup *global-env* "argv") (make-php-hash))))
-;       (php-hash-for-each *original-argv*
-; 			 (lambda (k v)
-; 			    (php-hash-insert! (container-value
-; 					       (env-lookup *global-env* "argv"))
-; 					      k v))))
-;       (container-value-set! (env-lookup *global-env* "argv")
-;                             (hashtable-get *original-foo* ))
-
-;    (container-value-set! (env-lookup *global-env* "argc") *original-argc*)
-
    (for-each (lambda (v)
                 (env-extend *global-env* v (hashtable-get *original-foo* v)))
              '("HTTP_GET_VARS" "_GET" "HTTP_POST_VARS" "_POST"
                "HTTP_COOKIE_VARS" "_COOKIE" "_REQUEST" "argv" "argc")))
-;    (php-hash-for-each *original-GET*
-; 		      (lambda (k v)
-; 			 (php-hash-insert! (container-value $HTTP_GET_VARS) k v)))   
-;    (php-hash-for-each *original-POST*
-; 		      (lambda (k v)
-; 			 (php-hash-insert! (container-value $HTTP_POST_VARS) k v)))   
-;    (php-hash-for-each *original-COOKIE*
-; 		      (lambda (k v)
-; 			 (php-hash-insert! (container-value $HTTP_COOKIE_VARS) k v)))   
-;    (php-hash-for-each *original-SERVER*
-; 		      (lambda (k v)
-; 			 (php-hash-insert! (container-value $HTTP_SERVER_VARS) k v)))   
-;    (php-hash-for-each *original-REQUEST*
-; 		      (lambda (k v)
-; 			 (php-hash-insert! (container-value $_REQUEST) k v))))
-
 
 (define *program-restart* #f)
 
@@ -630,58 +573,6 @@
 	0)))
     (else 0)))
     
-
-; BOOL CtrlHandler( DWORD fdwCtrlType ) 
-; { 
-;   switch( fdwCtrlType ) 
-;   { 
-;     // Handle the CTRL-C signal. 
-;     case CTRL_C_EVENT: 
-;       printf( "Ctrl-C event\n\n" );
-;       Beep( 750, 300 ); 
-;       return( TRUE );
- 
-;     // CTRL-CLOSE: confirm that the user wants to exit. 
-;     case CTRL_CLOSE_EVENT: 
-;       Beep( 600, 200 ); 
-;       printf( "Ctrl-Close event\n\n" );
-;       return( TRUE ); 
- 
-;     // Pass other signals to the next handler. 
-;     case CTRL_BREAK_EVENT: 
-;       Beep( 900, 200 ); 
-;       printf( "Ctrl-Break event\n\n" );
-;       return FALSE; 
- 
-;     case CTRL_LOGOFF_EVENT: 
-;       Beep( 1000, 200 ); 
-;       printf( "Ctrl-Logoff event\n\n" );
-;       return FALSE; 
- 
-;     case CTRL_SHUTDOWN_EVENT: 
-;       Beep( 750, 500 ); 
-;       printf( "Ctrl-Shutdown event\n\n" );
-;       return FALSE; 
- 
-;     default: 
-;       return FALSE; 
-;   } 
-; } 
- 
-; void main( void ) 
-; { 
-;   if( SetConsoleCtrlHandler( (PHANDLER_ROUTINE) CtrlHandler, TRUE ) ) 
-;   { 
-;     printf( "\nThe Control Handler is installed.\n" ); 
-;     printf( "\n -- Now try pressing Ctrl+C or Ctrl+Break, or" ); 
-;     printf( "\n    try logging off or closing the console...\n" ); 
-;     printf( "\n(...waiting in a loop for events...)\n\n" ); 
- 
-;     while( 1 ){ } 
-;   } 
-;   else 
-;     printf( "\nERROR: Could not set control handler"); 
-; }
 
 (define (breakpoint-file-and-line match)
    (let* ((parts-reversed (reverse (pregexp-split ":" match)))

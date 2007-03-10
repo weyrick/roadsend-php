@@ -83,74 +83,6 @@
 		   (or (target-option library-paths:) '())
 		   (unix-path->list (or (getenv "LD_LIBRARY_PATH") ""))))))
 
-; (set! RUNTIME-INC 
-; 	    (append RUNTIME-INC 
-; 		    (map (lambda (p)
-; 			    (string-append 
-; 			     "-L " (escape-path (append-paths PCC-HOME p))))
-; 			 '("/local/include/gtk" 
-; 			   "/local/include" 
-; 			   "/local/lib/gtk+/include" 
-; 			   "/local/include/glib-2.0" 
-; 			   "/local/lib/glib-2.0/include"))))
-; ;)
-   
-;    ; scheme libraries
-;    (set! RUNTIME-LIB-INC (cons (string-append "-L " (escape-path PCC-HOME))
-; 				 (cons (string-append "-L " (escape-path (append-paths PCC-HOME "/libs")))
-; 				       (map (lambda (p) (string-append "-L " (escape-path p)))
-; 					    (append 
-; 					     ;*user-library-path*
-;                                              (target-option library-paths:)
-; 					     (unix-path->list (or (getenv "LD_LIBRARY_PATH") ""))))))))
-
-; (define (setup-library-paths)
-;    ;add home/libs to dynamic-load-path by default
-;    (set! *dynamic-load-path* (cons PCC-HOME
-; 				   (cons (append-paths PCC-HOME "/libs")
-; 					 *dynamic-load-path*)))
-
-;    ; scheme include files, heap files
-;    (set! RUNTIME-INC (cons (string-append "-I " (escape-path PCC-HOME)
-; 					 " -I " (escape-path (append-paths PCC-HOME "/libs")))
-; 			   (map (lambda (p) (string-append "-I " (escape-path p)))
-; 				(append 
-; 				 ;*user-library-path*
-;                                  (target-option library-paths:)
-; 				 (unix-path->list (or (getenv "LD_LIBRARY_PATH") ""))))))
-
-;    ;this is a no-no
-; ;			     (append-paths "-I " PCC-HOME "/runtime")))
-
-;    ;;this is a no-no
-;    ;;for gtk:
-; ;   (when (member "php-gtk" *cl-libs*)
-;       (set! RUNTIME-INC 
-; 	    (append RUNTIME-INC 
-; 		    (map (lambda (p)
-; 			    (string-append 
-; 			     "-L " (escape-path (append-paths PCC-HOME p))))
-; 			 '("/local/include/gtk" 
-; 			   "/local/include" 
-; 			   "/local/lib/gtk+/include" 
-; 			   "/local/include/glib-2.0" 
-; 			   "/local/lib/glib-2.0/include"))))
-; ;)
-   
-;    ; scheme libraries
-;    (set! RUNTIME-LIB-INC (cons (string-append "-L " (escape-path PCC-HOME))
-; 				 (cons (string-append "-L " (escape-path (append-paths PCC-HOME "/libs")))
-; 				       (map (lambda (p) (string-append "-L " (escape-path p)))
-; 					    (append 
-; 					     ;*user-library-path*
-;                                              (target-option library-paths:)
-; 					     (unix-path->list (or (getenv "LD_LIBRARY_PATH") ""))))))))
-
-
-
-
-
-
 
 ; binary
 (define BIGLOO (or (getenv "BIGLOO")
@@ -164,10 +96,6 @@
 
 (define WINDRES (or (getenv "WINDRES")
 		    "windres"))
-
-
-; (define RUNTIME-INC 'call-setup-library-paths!)
-; (define RUNTIME-LIB-INC 'call-setup-library-paths!)
 
 
 ; library cleaning

@@ -34,7 +34,6 @@
    (export
     *current-target*
     *verbosity*
-;    bigloo-version
     (verbose-trace level . rest)
     (add-target-option! key value)
     (set-target-option! key value)
@@ -55,7 +54,6 @@
     (wide-class dump-target::target
        dump-type)
     (wide-class cleanup-target::target)
-;    (wide-class install-target::target)
     (wide-class debug-target::target)
     (wide-class interpret-target::target)
     (wide-class autocompile-target::target)
@@ -64,7 +62,6 @@
        name)
     (wide-class webapp-target::target
        name)))
-;    (wide-class microserver-target::library-target)))
 
 (define-macro (with-temp-file (name path) . body)
    `(invoke-with-temp-file ,path (lambda (,name) ,@body)))
@@ -246,32 +243,6 @@
                    (else '()))
               ,@(standalone-link-libs))))
 
-; how to link a microserver, in case I screwed up merging the above code:
-;          (apply run-command #t LD "-o" mhttpd-binary o-file
-; 			    "-L" (bigloo-lib-dir) 
-; 			    `(,@(if (target-option static?:) '("-static") '())
-; 				,@(cond-expand
-; 				     (PCC_MINGW `("-mwindows"))
-; 				     (else '()))				
-; 				,@(aif (target-option resource-file:)
-; 				       `(,(res-out-file-name it))
-; 				       '())
-; 				,@(cond-expand
-; 				     ;; on mingw, the root dir can be in different
-; 				     ;; places.  We use local/lib/ for a bunch of
-; 				     ;; libs, but gcc won't look there by default.
-; 				     (PCC_MINGW `(,(string-append 
-; 						    "-L" (append-paths MINGW-ROOT-DIR "/local/lib"))))
-; 				     (else '()))
-; 				,@(if (> *debug-level* 1) '("-v") '("-s"))
-; 				,@(apply append (map (lambda (lib-path)
-; 							`("-L" ,lib-path "-I" ,lib-path))
-; 						     (target-option scheme-include-paths:)))
-; 				,(string-append "-lmhttpd" (safety-ext))
-; 				"-lwebserver"
-; 				,@(if (target-option static?:) `(,(string-append "-l" name (safety-ext))) '())
-; 				,@(standalone-link-libs)))
-
 (define-method (build-target target::library-target)
    (setup-library-paths)
    (load-runtime-libs (or (target-option default-libs:) '()))
@@ -444,24 +415,6 @@
                                                                          mhttpd-binary
                                                                          fastcgi-binary)))))))))
 
-;                      (apply run-command #t BIGLOO "-o" mhttpd-binary                         
-;                             `(,@(cond-expand 
-;                                  (unsafe '("-unsafe"))
-;                                  (else '()))
-;                               ;; XXX this is copy-pasted from standalone up above 
-;                               ,@(cond-expand
-;                                  (PCC_MINGW `("-L" ,(append-paths MINGW-ROOT-DIR "/local/lib")))
-;                                  (else '()))
-; 			      ; kill dos box
-;                               ,@(cond-expand
-;                                  (PCC_MINGW `("-copt" "-mwindows"))
-;                                  (else '()))
-; 			      ,@(aif (target-option resource-file:)
-; 				     `(,(res-out-file-name it))
-; 				     '())      
-;                               ,@(reverse (or (target-option bigloo-args:) '()))
-;                               ,microserver-source-file
-;                               ,@include-path)))))))))
 
 (define-method (build-target target::dump-target)
    (with-access::dump-target target
@@ -472,158 +425,6 @@
          ((ast) (dump-ast (car source-files)))
          ((preprocessor-tokens) (dump-preprocessed (car source-files)))
          (else (bomb "unsupported dump type")))))
-
-
-; (define-method (build-target target::microserver-target)
-;    ;; first, build a library containing all the scheme code
-;    (call-next-method)
-;    (with-access::microserver-target target (name output-path)
-;       (set! output-path (if output-path (dirname output-path) ""))
-;       (with-temp-file (outport (append-paths output-path))
-;          (foreach (lambda (form)
-;                      (pp form outport)
-;                      (newline outport))
-;                   (library-httpd-stub name))
-;          (apply run-command #t BIGLOO "-o" name
-;                 (apply append
-;                        (map (lambda (lib-path)
-;                                `("-L" ,lib-path "-I" ,lib-path))
-;                             (target-option scheme-include-paths:)))))))
-
-
-
-      
-   ;; then, build an executable that links to that library.
-; 	 (when *httpd-stub?*
-; 	    (debug-trace 1 (format "generating stand alone httpd server: ~a" stub-file))
-; 	    (with-output-to-file stub-file
-; 	       (lambda ()
-; 		  (for-each (lambda (code)
-; 			       (pp code)
-; 			       (newline))
-; 			    (library-httpd-stub libname))))
-; 	    ; compile stub
-; 	    (run-command (get-bigloo-compile-command stub-file libname) #t))
-
-
-
-; (define (do-compile-bigloo-lib-file file)
-;    ; change working directory to file directory to avoid
-;    ; overwritting .o files with same name, directory
-;    (let ((cdir (pwd))
-;          (filedir (dirname file))
-;          (sfile (basename file)))
-;       (debug-trace 4 (format "file is ~a, changing to ~a to compile ~a" file filedir sfile)) 
-;       (chdir filedir)
-;       (run-command (get-bigloo-lib-compile-command sfile cdir) #t)
-;       ;(fprint (current-error-port) (format "changing back to ~a" cdir)) 
-;       (chdir cdir)))
-            
-;            ;; now have bigloo build the library itself
-;            (apply run-command #t BIGLOO
-                   ; (define (get-bigloo-make-lib lib-file)
-;    (let ((args (append BIGLOO-ARGS
-; 		       RUNTIME-INC
-; 		       RUNTIME-LIB-INC
-;                        (list-ext-runtime-libs)
-; 		       (list "-c" "-o" (mkext lib-file ".o")
-; 			     "-mkaddlib" "-dload-sym"
-; 			     (cond-expand
-; 				(PCC_MINGW "")
-; 				(else "-copt -fPIC"))
-; 			     lib-file))))
-;       (string-append BIGLOO " " (get-user-lib-string) (string-join args " "))))
-;)
-;            ))))
-            
-      ; (unless output-path
-;          (set! output-path (prefix (car source-files))))
-
-;    (let* ((lib-base (prefix libname))
-; 	  (work-dir (util-realpath (dirname lib-base)))
-; 	  (a-file (mkext (string-append "lib"
-; 					lib-base
-; 					(safety-ext))
-; 			 (make-static-library-name "")))
-; 	  (stub-file (if *httpd-stub?* (tmp-file-name work-dir libname) "")) 
-; 	  (lib-make-file (string-append lib-base "-make-lib.scm")))
-;       ; install mode?
-;       (if *install-mode?*
-; 	  (do-install lib-base so-file a-file)) ; won't return
-;       ;
-;       (debug-trace 2 "input files are " source-files
-; 		   " lib make file is (" lib-make-file ") for library " so-file)
-
-;       ; setup files to clean
-;       (set! *files-to-clean* (map (lambda (f) (mkext f ".scm")) source-files))
-;       (set! *files-to-clean* (append (map (lambda (f) (mkext f ".c")) source-files) *files-to-clean*))
-;       (set! *files-to-clean* (cons lib-make-file *files-to-clean*))
-;       (set! *files-to-clean* (cons (mkext lib-make-file ".o") *files-to-clean*))
-;       (when *httpd-stub?*
-; 	 (set! *files-to-clean* (cons stub-file *files-to-clean*)))
-;       ; *clean-build* is where we want to remove build files and exit
-;       (if *clean-build?*
-; 	  (begin
-; 	     (fprint (current-error-port) "cleaning library build files...")
-; 	     (set! *files-to-clean* (append (map (lambda (f) (mksext f ".o")) source-files) *files-to-clean*))
-; 	     (set! *files-to-clean* (cons so-file *files-to-clean*))
-; 	     (set! *files-to-clean* (cons a-file *files-to-clean*))
-; 	     (set! *files-to-clean* (cons (mkext lib-base ".heap") *files-to-clean*))
-; 	     (set! *files-to-clean* (cons (mkext lib-base ".sch") *files-to-clean*))
-; 	     (clean-files 0)
-; 	     (exit 0)))
-;       ; clean-tmps
-;       (when clean-tmps?	 
-; 	 (register-exit-function! clean-files)) 
-;       ; this will (currently) write out scm files without our help
-;       ; note this also writes out the library prologue
-;       (with-output-to-file lib-make-file 
-; 	 (lambda ()
-; 	    (compile lib-base source-files)))
-;       ; bigloo make heap file
-;       (run-command (get-bigloo-heap-command lib-base lib-make-file) #t)
-;       ; bigloo build our source file to objects (only one's that need a recompile, unless force)
-;       (let* ((i 1)
-; 	     (recomp-list (if *force-rebuild?*
-; 			      source-files
-; 			      (filter needs-rebuild? source-files))))
-; 	 (if (and (< (length recomp-list) (length source-files))
-; 		  (> *debug-level* 0))
-; 	     (fprint (current-error-port) (format "~a files are already up to date" (- (length source-files)
-; 										       (length recomp-list)))))
-; 	 (for-each (lambda (f)		      
-; 		      (when (> *debug-level* 0)
-; 			 (fprint (current-error-port) (format "compiling ~a (~a of ~a)" f i (length recomp-list))))
-; 		      (do-compile-bigloo-lib-file f)
-; 		      (set! i (+ i 1)))
-; 		   recomp-list)
-; 	 ; bigloo build make-lib file
-; 	 (run-command (get-bigloo-make-lib lib-make-file) #t)
-; 	 ; build dynamic
-; 	 (when (> *debug-level* 0)
-; 	    (fprint (current-error-port) (format "generating ~a" so-file))) 
-; 	 (run-command (get-ld-command so-file (mkext lib-make-file ".o") source-files) #t)
-; 	 ; build static
-; 	 (cond-expand
-; 	    ;; static libs are disabled because of the _imp__symbol problem
-; 	    (PCC_MINGW #t)
-; 	    (else
-; 	     (when (> *debug-level* 0)
-; 		(fprint (current-error-port) (format "generating ~a" a-file))) 
-; 	     (run-command (get-ar-command a-file (mkext lib-make-file ".o") source-files) #t)))
-; 	 ; stand alone httpd stub
-; 	 (when *httpd-stub?*
-; 	    (debug-trace 1 (format "generating stand alone httpd server: ~a" stub-file))
-; 	    (with-output-to-file stub-file
-; 	       (lambda ()
-; 		  (for-each (lambda (code)
-; 			       (pp code)
-; 			       (newline))
-; 			    (library-httpd-stub libname))))
-; 	    ; compile stub
-; 	    (run-command (get-bigloo-compile-command stub-file libname) #t))
-; 	 (when (> *debug-level* 0)
-; 	    (fprint (current-error-port) "done")))))
 
 
 (define (validate-files flist)
@@ -671,125 +472,6 @@
 	 (else (loop (cddr lst))))))
 
 
-;    (debug-trace 1 "Using config file: " *config-file*)
-;    (debug-trace 1 "*dynamic-load-path*: " *dynamic-load-path*)
-;    (debug-trace 1 "RUNTIME-INC: " RUNTIME-INC)
-;    (debug-trace 1 "RUNTIME-LIB-INC: " RUNTIME-LIB-INC)
-
-;       (setup-library-paths)
-
-; (when (and (null? input-files)
-; 		 (not *library-mode?*))
-; 	 (print "No files to compile")
-; 	 (exit 1))
-
-;       (cond
-; 	 ;	 (show-copies? (dump-copies (reverse input-files)))
-; 	 (dump-pre? (dump-preprocessed (car input-files)))
-; 	 (dump-toks? (dump-tokens (car input-files)))
-; 	 (dump-ast? (dump-ast (car input-files)))
-; 	 (dump-containers? (dump-containers (car input-files)))
-; 	 (dump-types? (dump-types (car input-files)))
-; 	 (dump-flow? (dump-flow (car input-files)))
-; 	 (dump-times? (dump-times (car input-files) output-file))
-; 	 (list-dependencies? (dump-dll-dependencies))
-; 	 (interpret? (begin
-; 			(when *library-mode?*
-; 			   (print "-l is not compatible with -i or -f")
-; 			   (exit 1))
-; 			(unless (and (file-exists? (car input-files))
-; 				     (> (file-size (car input-files)) 0))
-; 			   (print (format "file does not exist or is empty: ~a" (car input-files)))
-; 			   (exit 1))
-; 			(load-cl-libs)
-; 			(init-php-argv (cons (car input-files) script-argv))
-; 			(run-startup-functions)
-; 			(if start-debugger?
-; 			    (debug (car input-files))
-; 			    (interpret (car input-files)))))
-; 	 (*library-mode?* (begin
-; 			     (set! *compile-mode?* #t)
-; 			     (load-cl-libs)
-; 			     (do-library libname (reverse input-files) clean-tmps?)))
-; 	 (else
-; 	  (set! *compile-mode?* #t)
-; 	  (load-cl-libs)
-; 	  (do-compile input-files output-file clean-tmps?)))))
-
-
-; (define (do-compile-bigloo-lib-file file)
-;    ; change working directory to file directory to avoid
-;    ; overwritting .o files with same name, directory
-;    (let ((cdir (pwd))
-;          (filedir (dirname file))
-;          (sfile (basename file)))
-;       (debug-trace 4 (format "file is ~a, changing to ~a to compile ~a" file filedir sfile)) 
-;       (chdir filedir)
-;       (run-command (get-bigloo-lib-compile-command sfile cdir) #t)
-;       ;(fprint (current-error-port) (format "changing back to ~a" cdir)) 
-;       (chdir cdir)))
-
-
-
- 
-; (define *compile-exts* '())
-
-; (define *current-web-app-file* 'unset)
-
-; ; libs specified on commandline
-; ; always require php-std. the list is unique'd
-; ; before being used so dupe is ok
-; (define *cl-libs* '("php-std"))
-
-; ; libs for loading as a module
-
-; (define *web-libs-loaded?* #f)
-
-; (define *httpd-stub?* #f)
-
-; ; web apps
-; (define *web-apps* '())
-
-; (define *bigloo-optimization* (cond-expand
-; 				 (unsafe '("-unsafe"))
-; 				 (else '())))
-
-; ;paths to strip from (include-name)s when in *library-mode*
-; (define *library-compile-strip-paths* '())
-
-; (define *pretty?* #f)
-; (define *force-rebuild?* #f)
-
-
-
-; (define (get-user-lib-string)
-; ;   (fprint (current-error-port) "User libs: " *cl-libs*)
-; ;   (fprint (current-error-port) "Dynamic-load-path: " *dynamic-load-path*)
-;    (let ((ldone '()))
-;       (if (> (length *cl-libs*) 0)
-; 	  (with-output-to-string
-; 	     (lambda ()
-; ; 		(for-each (lambda (p)
-; ; 			     (display " -L ")
-; ; 			     (display (escape-path p))
-; ; 			     (display " -I ")
-; ; 			     (display (escape-path p))
-; ; 			     )
-; ; 			  (remove (lambda (a)
-; ; 				     (string=? a ""))
-; ; 				  *dynamic-load-path*))
-; 		(for-each (lambda (v)
-; 			     (unless (member v ldone)
-; 				(set! ldone (cons v ldone))
-; 				(display (format " -library ~a " v))))
-; 			  (remove (lambda (a)
-; 				     (string=? a ""))
-; ;					*cl-libs*
-;                                   *required-extensions*
-; 					)) ))
-; 	  "")))
-
-
 (define bigloo-lib-dir
    (let ((bigloo-lib-dir #f))
       (lambda ()
@@ -800,38 +482,6 @@
 
 
    
-
-; ; XXX find some way to not hard code this
-; (define BIGLOO-LIBS '(
-; ;		      "php-pcre"
-; ;mingw		      "profiler"
-; 		      "php-runtime"
-; ;		      "phpstd"
-; 		      "common"
-; ;		      "phpmysql"
-; ;		      "php-xml"
-; 		      "phpeval"
-; 		      "webconnect"
-; 		      "profiler"
-; 		      ))
-
-; (define BIGLOO-ARGS (list (string-append "-saw -copt -Lc:/msys/1.0/local/lib -library profiler"
-; 					 (if (> *debug-level* 1) "" " -s")
-; 					 )))
-
-
-
-; (define (add-bigloo-arg arg)
-;    (if (list? arg)
-; 	  (set! BIGLOO-ARGS (append BIGLOO-ARGS arg))
-; 	  (set! BIGLOO-ARGS (cons arg BIGLOO-ARGS))))
-
-; (unless *RAVEN-DEVEL-BUILD*
-;    (add-bigloo-arg "-s"))
-
-
-
-
 
 (define (get-bigloo-var var)
    (let ((out (system->string
@@ -845,98 +495,8 @@
 (define-macro (bigloo-version)
    `',*bigloo-version*)
 
-; (define bigloo-version
-;    (let ((bigloo-version #f))
-;       (lambda ()
-; 	 (or bigloo-version
-; 	     (begin
-;               (set! bigloo-version (get-bigloo-var "*bigloo-version*"))
-;               bigloo-version)))))
-
-
-
-
-; (define (tmp-file-name workdir file)
-;    (append-paths workdir (string-append file ".scm")))
-
 (define (res-out-file-name file)
    (string-append (prefix file) "-res.o"))
-
-; (define (list-ext-runtime-libs)
-;    ;; return a list of C libraries required by all the extensions that
-;    ;; we'll be linking with (*required-extensions*)
-;    (let ((libs '()))
-;       (extensions-for-each
-;        (lambda (e)
-;           (when (member (get-extension-info e scheme-lib-name:)
-;                         *required-extensions*)
-;              (pushf (get-extension-info e lib-list:) libs))))
-;       (apply append libs)))
-
-; (define (get-bigloo-compile-command tmp-file out-file)
-;    ; resource file?
-;    (when (and *res-file* 
-; 	      (file-exists? (res-out-file-name *res-file*)))
-;       (add-bigloo-arg (res-out-file-name *res-file*)))
-;    (let ((args (append BIGLOO-ARGS
-; 		       *bigloo-optimization*
-; 		       RUNTIME-INC
-; 		       RUNTIME-LIB-INC
-; 		       (list-ext-runtime-libs)
-; 		       (list ;"-ldopt -Wl,--enable-auto-import" 
-; 			     "-o" (escape-path out-file) (escape-path tmp-file)))))
-;       (string-append BIGLOO " " (get-user-lib-string) (string-join args " "))))
-
-; (define (get-bigloo-heap-command lib-file lib-make-file)
-;    (let ((args (append BIGLOO-ARGS
-; 		       RUNTIME-INC
-; 		       RUNTIME-LIB-INC
-; 		       (list-ext-runtime-libs)
-; 		       (list "-mkaddheap" "-addheap"
-; 			     (mkext lib-file ".heap")
-; 			     lib-make-file))))
-;       (string-append BIGLOO " " (get-user-lib-string) (string-join args " "))))
-
-; (define (get-bigloo-lib-compile-command file cdir)
-;    (let ((args (append BIGLOO-ARGS
-; 		       *bigloo-optimization*
-; 		       RUNTIME-INC
-; 		       RUNTIME-LIB-INC
-;                        (list-ext-runtime-libs)
-; 		       (list "-I" (escape-path cdir) "-c" 
-; 			     (cond-expand
-; 				(PCC_MINGW "")
-; 				(else "-copt -fPIC"))
-; 			     "-o" 
-; 			     (mksext file ".o") (mkext file ".scm")))))
-;       (string-append BIGLOO " " (get-user-lib-string) (string-join args " "))))
-
-
-; (define (do-compile-bigloo-lib-file file)
-;    ; change working directory to file directory to avoid
-;    ; overwritting .o files with same name, directory
-;    (let ((cdir (pwd))
-;          (filedir (dirname file))
-;          (sfile (basename file)))
-;       (debug-trace 4 (format "file is ~a, changing to ~a to compile ~a" file filedir sfile)) 
-;       (chdir filedir)
-;       (run-command (get-bigloo-lib-compile-command sfile cdir) #t)
-;       ;(fprint (current-error-port) (format "changing back to ~a" cdir)) 
-;       (chdir cdir)))
-
-; (define (get-bigloo-make-lib lib-file)
-;    (let ((args (append BIGLOO-ARGS
-; 		       RUNTIME-INC
-; 		       RUNTIME-LIB-INC
-;                        (list-ext-runtime-libs)
-; 		       (list "-c" "-o" (mkext lib-file ".o")
-; 			     "-mkaddlib" "-dload-sym"
-; 			     (cond-expand
-; 				(PCC_MINGW "")
-; 				(else "-copt -fPIC"))
-; 			     lib-file))))
-;       (string-append BIGLOO " " (get-user-lib-string) (string-join args " "))))
-
 
 
 (define (run-command errors-fatal? command . args)
@@ -973,199 +533,6 @@
 	      (file-exists? file))
       (run-command #f WINDRES file (res-out-file-name file))))
 
-; ; run linker to make final .so library
-; (define (get-ld-command out-file lib-make-obj obj-list)
-;    (let* ((linker LD)
-; 	  (link-args (list "-shared ";-Wl,--enable-auto-import"  
-; ;; no implib because it's not necessary if there's no .a
-; ;			   (format "-Wl,--out-implib=~A.a" out-file)
-; 			   "-Lc:/msys/1.0/local/lib"
-; 			   "-o"))
-; 	  (args (append link-args
-; 		        (list out-file "-L" (bigloo-lib-dir) lib-make-obj)
-; 			(map (lambda (f)
-; 				(mksext f ".o"))
-; 			     obj-list)
-; 		        RUNTIME-LIB-INC))
-; 	  (final (string-append linker
-; 				" "
-; 				(string-join args " ")
-; 				" -l"
-; 				(string-join *cl-libs*
-;                                              (string-append (safety-ext) " -l"))
-; 				(safety-ext)
-; 				(string-append " -lbigloo"
-;                                                (safety-ext)
-;                                                "-"
-; 					       (bigloo-version)
-; 					       " -lbigloogc-"
-; 					       (bigloo-version)
-; 					       " -l"
-; 					       (string-join BIGLOO-LIBS
-;                                                             (string-append (safety-ext) " -l"))
-; 					       (safety-ext)))))
-;       final))
-
-; (define (get-ar-command out-file lib-make-obj obj-list)
-;    (let* ((linker AR)
-; 	  (link-args (list "ru" out-file))			
-; 	  (args (append link-args
-; 			(map (lambda (f)
-; 				(mksext f ".o"))
-; 			     obj-list)))
-; 	  (final (string-append linker
-; 				" "
-; 				(string-join args " "))))
-;       final))
-
-
-; ; return a list of source files.
-; ; if (car slist)
-; ; is a directory, we will gather all files from that
-; ; directory with matching extensions from *commpile-exts*
-; ; otherwise we just return slist which is presumably a list of
-; ; files specified on the command line
-; (define (get-source-files slist)
-;    (unless *install-mode?*
-;    (letrec ((file-matches? (lambda (f)
-; 			      ;(print "doing a file-matches on " f)
-; 			      (let ((suf (suffix f)))
-; 				 (and (not (directory? f))
-; 				      (> (file-size f) 0)
-; 				      (> (string-length suf) 0)				      
-; 				      (> (length (filter (lambda (a)
-; 							    (string=? (mkstr a) suf))
-; 							 *compile-exts*)) 0)))))
-; 	    (dir->list (lambda (d)
-; 			  (let* ((files-below '())
-; 				 (fulllist (directory->list d))
-; 				 (directorize (lambda (z)
-; 						 (if (char=? #\/
-; 							     (string-ref d (- (string-length d) 1)))
-; 						     (mkstr d z)
-; 						     (mkstr d "/" z))))
-; 				 (dlist (filter (lambda (z)
-; 						   (directory? z)) (map directorize fulllist)))
-; 				 (flist (filter (lambda (z)
-; 						   (file-matches? z)) (map directorize fulllist))))
-; 			     ;(print "checking " d " fulllist is " fulllist " dlist is " dlist " flist is " flist)
-; 			     (for-each (lambda (rd)
-; 					  (set! files-below (append (dir->list rd) files-below)))
-; 				       dlist)
-; 			     ;(print "final list here (" d ") is " flist " below me is " files-below)
-; 			     (append flist files-below)))))
-;       (if (and (pair? slist)
-; 	       (directory? (car slist)))
-; 	  (let ((matches (dir->list (car slist))))
-; 	     (when (> *debug-level* 0)
-; 		(fprint (current-error-port) (format "using files from directory ~a with extensions from list ~a found: ~a"
-; 						     (car slist) *compile-exts* matches)))
-; 	     matches)
-; 	  (if (and (file-exists? (car slist))
-; 		   (> (file-size (car slist)) 0))
-; 	      slist
-; 	      (begin
-; 		 (fprint (current-error-port) (format "file ~a does not exist, or is empty." (car slist)))
-; 		 (exit 1)))))))
-
-; (define (do-library libname in-files clean-tmps?)
-;    (when (and (< (length in-files) 1)
-; 	      (not *install-mode?*))
-;       (fprint (current-error-port) "a library requires at least one source file")
-;       (exit 1))
-;    (let* ((lib-base (prefix libname))
-; 	  (work-dir (util-realpath (dirname lib-base)))
-; 	  (source-files (validate-files (get-source-files in-files)))
-; 	  (so-file (mkext (string-append "lib"
-; 					 lib-base
-; 					 (safety-ext))
-; 			  (make-shared-library-name "")))
-; 	  (a-file (mkext (string-append "lib"
-; 					lib-base
-; 					(safety-ext))
-; 			 (make-static-library-name "")))
-; 	  (stub-file (if *httpd-stub?* (tmp-file-name work-dir libname) "")) 
-; 	  (lib-make-file (string-append lib-base "-make-lib.scm")))
-;       ; install mode?
-;       (if *install-mode?*
-; 	  (do-install lib-base so-file a-file)) ; won't return
-;       ;
-;       (debug-trace 2 "input files are " source-files
-; 		   " lib make file is (" lib-make-file ") for library " so-file)
-
-;       ; setup files to clean
-;       (set! *files-to-clean* (map (lambda (f) (mkext f ".scm")) source-files))
-;       (set! *files-to-clean* (append (map (lambda (f) (mkext f ".c")) source-files) *files-to-clean*))
-;       (set! *files-to-clean* (cons lib-make-file *files-to-clean*))
-;       (set! *files-to-clean* (cons (mkext lib-make-file ".o") *files-to-clean*))
-;       (when *httpd-stub?*
-; 	 (set! *files-to-clean* (cons stub-file *files-to-clean*)))
-;       ; *clean-build* is where we want to remove build files and exit
-;       (if *clean-build?*
-; 	  (begin
-; 	     (fprint (current-error-port) "cleaning library build files...")
-; 	     (set! *files-to-clean* (append (map (lambda (f) (mksext f ".o")) source-files) *files-to-clean*))
-; 	     (set! *files-to-clean* (cons so-file *files-to-clean*))
-; 	     (set! *files-to-clean* (cons a-file *files-to-clean*))
-; 	     (set! *files-to-clean* (cons (mkext lib-base ".heap") *files-to-clean*))
-; 	     (set! *files-to-clean* (cons (mkext lib-base ".sch") *files-to-clean*))
-; 	     (clean-files 0)
-; 	     (exit 0)))
-;       ; clean-tmps
-;       (when clean-tmps?	 
-; 	 (register-exit-function! clean-files)) 
-;       ; this will (currently) write out scm files without our help
-;       ; note this also writes out the library prologue
-;       (with-output-to-file lib-make-file 
-; 	 (lambda ()
-; 	    (compile lib-base source-files)))
-;       ; bigloo make heap file
-;       (run-command (get-bigloo-heap-command lib-base lib-make-file) #t)
-;       ; bigloo build our source file to objects (only one's that need a recompile, unless force)
-;       (let* ((i 1)
-; 	     (recomp-list (if *force-rebuild?*
-; 			      source-files
-; 			      (filter needs-rebuild? source-files))))
-; 	 (if (and (< (length recomp-list) (length source-files))
-; 		  (> *debug-level* 0))
-; 	     (fprint (current-error-port) (format "~a files are already up to date" (- (length source-files)
-; 										       (length recomp-list)))))
-; 	 (for-each (lambda (f)		      
-; 		      (when (> *debug-level* 0)
-; 			 (fprint (current-error-port) (format "compiling ~a (~a of ~a)" f i (length recomp-list))))
-; 		      (do-compile-bigloo-lib-file f)
-; 		      (set! i (+ i 1)))
-; 		   recomp-list)
-; 	 ; bigloo build make-lib file
-; 	 (run-command (get-bigloo-make-lib lib-make-file) #t)
-; 	 ; build dynamic
-; 	 (when (> *debug-level* 0)
-; 	    (fprint (current-error-port) (format "generating ~a" so-file))) 
-; 	 (run-command (get-ld-command so-file (mkext lib-make-file ".o") source-files) #t)
-; 	 ; build static
-; 	 (cond-expand
-; 	    ;; static libs are disabled because of the _imp__symbol problem
-; 	    (PCC_MINGW #t)
-; 	    (else
-; 	     (when (> *debug-level* 0)
-; 		(fprint (current-error-port) (format "generating ~a" a-file))) 
-; 	     (run-command (get-ar-command a-file (mkext lib-make-file ".o") source-files) #t)))
-; 	 ; stand alone httpd stub
-; 	 (when *httpd-stub?*
-; 	    (debug-trace 1 (format "generating stand alone httpd server: ~a" stub-file))
-; 	    (with-output-to-file stub-file
-; 	       (lambda ()
-; 		  (for-each (lambda (code)
-; 			       (pp code)
-; 			       (newline))
-; 			    (library-httpd-stub libname))))
-; 	    ; compile stub
-; 	    (run-command (get-bigloo-compile-command stub-file libname) #t))
-; 	 (when (> *debug-level* 0)
-; 	    (fprint (current-error-port) "done")))))
-
-
-		   
 
 ; install library to lib dir
 (define (do-install libbase soname aname)
@@ -1228,46 +595,6 @@
 	     (begin
 		(fprint (current-error-port) "invalid directory")
 		(exit 1))))))
-
-
-; (define (dump-dll-dependencies)
-;    ;; print out a list of all the dll files that need to be included 
-;    ;; with a program for it to work.  This uses the *cl-libs* just 
-;    ;; like load-cl-libs does, so it should work just as well, I guess.
-;    ;; This list should probably go in each respective extension, instead
-;    ;; just here, I guess.
-;    (let ((print-lib (lambda (lib)
-; 		       (print 
-; 			(pregexp-replace* "/"
-; 					  (find-file/path lib *dynamic-load-path*)
-; 					  "\\\\")))))
-;       (for-each 
-;        (lambda (ext-name)
-; 	  (string-case ext-name
-; 		       ("php-gtk"
-; 			(print-lib "libgdk-0.dll")
-; 			(print-lib "libglib-2.0-0.dll")
-; 			(print-lib "iconv.dll")
-; 			(print-lib "intl.dll")
-; 			(print-lib "libgtk-0.dll")
-; 			(print-lib "libgmodule-2.0-0.dll"))
-; 		       ("php-xml"
-; 			(print-lib "libxml2.dll"))
-; 		       ("php-pcre"
-; 			(print-lib "pcre.dll"))
-; 		       ("php-mysql"
-; 			(print-lib "libmysqlclient.dll")
-; 			(print-lib "zlib1.dll"))
-; 		       ("php-curl"
-; 			(print-lib "libcurl-3.dll")
-; 			(print-lib "zlib1.dll"))))
-
-;        *cl-libs*)))
-
-; ;;paths passed on commandline with -L or in pcc.conf with (library ...)
-; (define *user-library-path* '()) 
-
-; (define *compile-includes?* #t)
 
 
 (define (scheme-libraries-and-includes)
@@ -1352,19 +679,6 @@
 
 (define (dll-link-libs)
    (standalone-link-libs)
-   ; (let ((libs '()))
-;       (for-each (match-lambda 
-;                  ((library ?name) 
-;                   (pushf (string-append name (safety-ext)) libs)
-;                   (when (extension-registered? name)
-;                      (for-each (lambda (l) 
-;                                   (debug-trace 2 "libraries: " l " needed for extension " name)
-;                                   (pushf l libs))
-;                                (get-extension-info name lib-list:)))))
-;                 (scheme-libraries-and-includes))      
-;       (pushf (string-append "bigloo" (safety-ext) "-" (bigloo-version)) libs)
-;       (pushf (string-append "bigloogc" "-" (bigloo-version)) libs)
-;       (reverse! libs))
    )
 
 (define (microserver-link-libs)
@@ -1388,10 +702,6 @@
 ; same but tack in safety extension
 (define (mksext file ext)
    (string-append (prefix file) (safety-ext) ext))
-
-; ;; for the library-paths: option
-; 	(set! *dynamic-load-path* (cons lib-path *dynamic-load-path*))
-; 	(set! *user-library-path* (cons lib-path *user-library-path*)))
 
 ;;;;;;
 
@@ -1459,52 +769,12 @@
                            (display prefix))
                         (loop))))))))
 
-; on windows, even after tweaking char-ready? so it uses
-; WaitForSingleObject instead of select, it still sometimes said #t
-; when it meant #f, e.g., when running gcc to link a dll (and
-; failing), causing us to hang.
 (define (chars-available port)
-  ; XXX fixed in 2.8?
   (if (char-ready? port) 1 0))
   
-;    (cond-expand
-;     (PCC_MINGW
-;      (let ((tbytes::int 0))
-;         (pragma "{
-;     if ((INPUT_PORT( $1 ).forward+1) < INPUT_PORT( $1 ).abufsiz) {
-;       $2 = 1;
-;     } else {
-;       HANDLE hFile = (HANDLE)_get_osfhandle( _fileno( (FILE *)INPUT_PORT( $1 ).file ) );
-;       if (hFile == INVALID_HANDLE_VALUE)
-;         C_FAILURE( \"char-available?\", 
-;                    \"bad file descriptor\",
-;                    $1 );
-
-;       //    return ((WaitForSingleObject( hFile, 0) == WAIT_OBJECT_0) ? 1 : 0);
-;       // WaitForSingleObject seems to be not doing what I want on the 
-;       // anonymous pipes that we use for processes. --timjr
-;       if (!PeekNamedPipe(hFile, NULL, 0, NULL, (PDWORD)&$2, NULL)) {
-;          //C_FAILURE ( \"pipe error\", \"pipe error \", $1 );
-;          $2 = 0;
-;       }
-;     }
-; }" port tbytes)
-;                                         ;      (print "tbytes is " tbytes)
-;         tbytes))
-;      (else (if (char-ready? port) 1 0))))
-
 ;; only compile again if source file last mod is greater than .o
 (define (needs-rebuild? file)
    (if (target-option force-rebuild?:)
-;;     (or (target-option force-rebuild?:)
-;;            ;; XXX this is a temporary solution to make static
-;;            ;; microservers work without dealing with making static
-;;            ;; libs work in general.  We always recompile, so that it
-;;            ;; doesn't matter if the last build was static or not.
-;;            (cond-expand
-;;               (PCC_MINGW (or (target-option microserver?:)
-;;                              (target-option fastcgi:)))
-;;               (else #f)))
        #t
        (let ((obj-file (mksext file ".o"))
 	     (php-file file))

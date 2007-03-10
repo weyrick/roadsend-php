@@ -618,24 +618,6 @@
    ;; these are mostly fixed.  For more info on what still needs work,
    ;; do a GTK_DEBUG=t make clean all in runtime/ext/gtk.
    '())
-;   '(GdkBitmap** GdkPoint*)
-   ; '(guint* GSList* gint* int* GList*
-;      guint32** GSList** GtkArgInfo** GScanner* GtkPatternSpec* gpointer
-;      GtkMenuEntry* GtkFunction GdkInputFunction GtkKeySnoopFunc
-;      GtkPreviewInfo* GtkRcStyle* GtkImageLoader GdkEventProperty*
-;      GtkSignalFunc GtkEmissionHook GtkSignalQuery* GtkArg*
-;      GtkSignalMarshal GdkPoint* GtkTooltipsData* GtkTypeObject*
-;      GtkTypeClass* GtkEnumValue* GtkFlagValue* GdkBitmap**
-;      const-GdkWChar* GdkImage* GdkSegment* GdkAtom GtkAccelEntry* GQuark
-;      GtkDestroyNotify GtkWidget** GdkEventSelection* GtkTargetList*
-;      const-GtkTargetEntry* GtkItemFactoryEntry* GtkTranslateFunc
-;      GtkCallback GdkPixmap** gfloat* GdkImage** gboolean*
-;      GtkCListCompareFunc guint8* GdkGeometry* GtkCTreeCompareDragFunc
-;      GtkCTreeRow* GtkCTreeFunc GNode* oops: GtkMenuDetachFunc
-;      GtkMenuPositionFunc GtkObjectClass GtkTypeQuery* const-GtkTypeInfo*
-;      GtkSelectioData* GtkTargetList)
-;   )
-
 
 (define (key-assoc key lst default)
    (if (pair? lst)
