@@ -11,9 +11,9 @@
 
 
 ;*
-;* NOTE: This is from the Bigloo web API. It has been modified to 
-;* reproduce Zend PHP's parse_url semantics
-;*
+;* NOTE: This is originally from the Bigloo web API. It has been modified to 
+;* reproduce Zend PHP's parse_url semantics. Don't bother Manuel for anything
+;* in this file
 ;*
 
 ;*---------------------------------------------------------------------*/
@@ -31,20 +31,38 @@
 	     (proc 'url-parse)
 	     (msg msg))))
 
+(define (test-purl url)
+   (multiple-value-bind (scheme user pass host port path query fragment)
+      (pcc-url-parse url)
+      (print scheme "][" user "][" pass "][" host "][" port "][" path "][" query "][" fragment)))
+
 ;*---------------------------------------------------------------------*/
 ;*    uri-grammar ...                                                  */
 ;*---------------------------------------------------------------------*/
 (define uri-grammar
    (regular-grammar ((CRLF "\r\n"))
-      ("*"
-       (values "*" #f #f #f #f #f #f #f))
+;      ("*"
+;       (values "*" #f #f #f #f #f #f #f))
+      ; this is a standard scheme, we will check for host
       ((: (out #\/) (* (out #\:)) "://")
        (read/rp absolute-uri-grammar (the-port) (the-substring 0 -3) #f #f #f #f))
-      ((: "/" (* (out " \r\n")))
-       (values "*" #f #f #f #f (the-string) #f #f))
-      (else
+      ; this is a scheme with no host, just path part
+      ((: (out #\/) (+ (in lower digit #\+ #\- #\.)) ":" (out digit))
        (rgc-buffer-unget-char (the-port) (the-byte))
-       (read/rp absolute-uri-grammar (the-port) #f #f #f #f #f ))))
+       (let ((scheme (the-substring 0 -1)))
+	  (multiple-value-bind (abspath query fragment)
+	     (read/rp abspath-grammar (the-port) #f #f)
+	     (values scheme #f #f #f #f abspath query fragment))))
+;      (else
+;       (rgc-buffer-unget-char (the-port) (the-byte))       
+;       (multiple-value-bind (abspath query fragment)
+;	  (read/rp abspath-grammar (the-port) #f #f)
+;	  (values #f #f #f #f #f abspath query fragment)))))
+       ((: "/" (* (out " \r\n")))
+        (values #f #f #f #f #f (the-string) #f #f))
+       (else
+        (rgc-buffer-unget-char (the-port) (the-byte))
+        (read/rp absolute-uri-grammar (the-port) #f #f #f #f #f ))))      
 
 
 ;*---------------------------------------------------------------------*/
@@ -127,8 +145,8 @@
        (values (the-substring 0 -2) #f #f))      
       ((: "/" (* (out "\r\n")) #\?)
        (values (the-substring 0 -1) #f #f))
-      ((: "/" (* (out "\r\n")))
-       (values (the-string) #f #f))
+      ((: (* "/") (* (out "\r\n")))
+       (values (if (string=? (the-string) "") #f (the-string)) #f #f))
       (else
        (let ((c (the-failure)))
 	  (if (eof-object? c)
