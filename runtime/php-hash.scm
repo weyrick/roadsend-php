@@ -22,7 +22,6 @@
     (include "opaque-math.h")
     (is-numeric-key::int (str::string length::int) "is_numeric")
     (phpstring-hashnumber::int (str::string) "php_string_hash_number"))
-;    (phpnum-hashnumber::int (num::onum) "php_number_hash_number"))
    (import (php-runtime "php-runtime.scm")
 	   (php-object "php-object.scm")
 	   (utils "utils.scm")
@@ -122,15 +121,6 @@
    ;; this is the private data that the functions can use
    context)
 
-;; (define-struct %entry 
-;;    chained-entry
-;;    ;   ref?
-;;    next
-;;    prev
-;;    hashnumber
-;;    key
-;;    value)
-
 (define-inline (%entry chained-entry next prev hashnumber key value)
    (vector chained-entry next prev hashnumber key value))
 
@@ -144,11 +134,6 @@
        (define-macro (,(symbol-append '%entry- name '-set!) a b)
           `(vector-set-ur! ,a ,,pos ,b))))
 
-;; (define-inline (%entry-chained-entry a)
-;;    (vector-ref-ur a 0))
-
-;; (define-macro (%entry-chained-set! a b)
-;;    (vector-set-ur! a 0 b))
 (entry-field chained-entry 0)
 (entry-field next 1)
 (entry-field prev 2)
@@ -160,11 +145,8 @@
    (> (container-value (%php-hash-refcount hash)) 0))
 
 (define *default-size* 8);4);16)
-;(define *default-max-bucket-len* 5)
-;(define *default-load-factor* 0.75)
 
 (define-inline (expand-threshold size)
-   ; (* size *default-load-factor*)
    (+fx (bit-rsh size 1) (bit-rsh size 2))) 
 ;
 (define *sentinel-value* 26) ;; random constant
@@ -173,7 +155,6 @@
 (define (sentinel?::bool entry)
    (and (fixnum? entry)
 	(=fx entry *sentinel-value*)))
-;   (eqv? *sentinel-value* entry))
 
 ;; start the max key at -1
 (define *initial-max-key* (int->onum -1))
@@ -1109,45 +1090,6 @@ the current index if it was this entry."
             (loop (+fx i 1) (cdr lst))))
       (vector->php-hash vector)))
 
-;; (define (list->php-hash lst)
-;;    "Make a new php-hash containing the items in lst, with numeric keys
-;;    starting at 0."
-;;    (let* ((array (make-php-hash))
-;; 	  (buckets (%php-hash-buckets array))
-;; 	  (bucket-len (vector-length buckets))
-;; 	  (bucket-mask (-fx bucket-len 1))
-;; 	  (last-entry *sentinel-value*)
-;; 	  (first-entry *sentinel-value*)
-;; 	  (add-item!
-;; 	   (lambda (key value)
-;; 	     (let* ((ref? (container? value))
-;; 		    (value (maybe-box value))
-;; 		    (bucket-num (bit-and key bucket-mask))
-;; 		    (new-entry (%entry (vector-ref-ur buckets bucket-num)
-;; 				       *sentinel-value* last-entry
-;; 				       key (int->onum key)
-;; 				       (if ref?
-;; 					   (container->reference! value)
-;; 					   value))))
-;; 	       (if (sentinel? last-entry)
-;; 		   (set! first-entry new-entry)
-;; 		   (%entry-next-set! last-entry new-entry))
-;; 	       (set! last-entry new-entry)
-;; 	       (vector-set-ur! buckets bucket-num new-entry)))))
-;;       (let loop ((lst lst)
-;; 		 (key 0))
-;; 	 (if (pair? lst)
-;; 	     (begin
-;; 	       (add-item! key (car lst))
-;; 	       (loop (cdr lst) (+ 1 key)))
-;; 	     (begin
-;; 	       (%php-hash-tail-set! array last-entry)
-;; 	       (%php-hash-head-set! array first-entry)
-;; 	       (%php-hash-current-index-set! array last-entry)
-;; 	       (%php-hash-size-set! array key)
-;; 	       (%php-hash-maximum-integer-key-set! array (int->onum (- key 1)))
-;; 	       array)))))
-
 (define (php-hash->list hash)
    "Make a list based on the values in the hash. Ignores keys."
    (let ((newlist (list)))
@@ -1265,32 +1207,11 @@ the current index if it was this entry."
 	  (new-bucks (make-vector new-bucks-len '()))
 	  (mask (-fx new-bucks-len 1)))
 
-;       (fprint (current-error-port)
-; 	       "Expanding hash from " old-bucks-len " to " new-bucks-len "(size " (%php-hash-size table) ")")
-;       (let loop ((i 0)
-; 		 (tallies (make-hashtable)))
-; 	 (if (<fx i old-bucks-len)
-; 	     (begin
-; 		(hashtable-put! tallies
-; 				(length (vector-ref-ur old-bucks i))
-; 				(if (hashtable-get tallies (length (vector-ref-ur old-bucks i)))
-; 				    (+ 1 (hashtable-get tallies (length (vector-ref-ur old-bucks i))))
-; 				    1))
-; 		(if (> (length (vector-ref-ur old-bucks i)) 5)
-; 		       (fprint (current-error-port) (length (vector-ref-ur old-bucks i)) ": "
-; 			       (map (lambda (a)
-; 				       (%entry-key a))
-; 				    (vector-ref-ur old-bucks i))))
-; 		(loop (+ i 1) tallies))
-; 	     (hashtable-for-each tallies
-; 		(lambda (k v)
-; 		   (fprint (current-error-port) "length " k " occurs " v " times.")))))
       (%php-hash-buckets-set! table new-bucks)
       (%php-hash-expand-threshold-set! table new-expand-threshold)
       (let loop ((i 0))
 	 (when (<fx i old-bucks-len)
 	     (begin
-;		(for-each (lambda (cell)
 		(let loop ((cell (vector-ref-ur old-bucks i)))
 		   (when (%entry? cell)
 		      (let* ((key (%entry-key cell))
@@ -1300,21 +1221,14 @@ the current index if it was this entry."
 			 (vector-set-ur! new-bucks
 					 h
 					 cell)
-; 					 (cons cell
-			 ; 					       (vector-ref-ur new-bucks h)))))
 			 (loop old-chained-entry))))
-;			  (vector-ref-ur old-bucks i))
 		(loop (+fx i 1)))))))
 
 (define-inline (php-hashnumber::int key)
-   ;&elong key *max-fixnum*)) ;(onum-hashnumber key))
    (cond
-      ;      ((elong? key) (pragma::int "(BELONG_TO_LONG($1) & 0x1fffffff)" key))
-      ((onum? key) (onum-hashnumber key)) ;(phpnum-hashnumber key) ;(pragma::int "(((phpnum *)$1)->value.lval &  0x1fffffff)" key))
+      ((onum? key) (onum-hashnumber key))
       ((string? key) (phpstring-hashnumber key))
       (else (error 'cosmic "unity" 'destroyed)) ))
-
-
 
 
 (define-inline (%php-hash-equal? obj1 obj2)

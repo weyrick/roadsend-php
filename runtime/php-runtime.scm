@@ -18,7 +18,6 @@
 ;; ***** END LICENSE BLOCK *****
 
 (module php-runtime
-;   (library common)
    (include "php-runtime.sch")
 
    (import (utils "utils.scm")
@@ -42,7 +41,6 @@
    
    (extern
     (include "math.h")
-;    (include "c-runtime.h")
     (c-binary-strcmp::int (::string ::int ::string ::int) "binary_strcmp")
     (macro isfinite::bool (::float) "isfinite")
     (macro isnan::bool (::float) "isnan")
@@ -106,14 +104,8 @@
     (convert-to-integer::onum rval)
     (convert-to-float rval)
     (php-number? rval)
-;    (inline convert-to-number rval)
     (convert-to-number::onum rval)
     (mkfixnum::int rval)
-;    (inline maybe-elong->flonum a)
-;    (maybe-elong->flonum a)
-;    (real->php-string a)
-;    (real->php-e-string a)
-;    (php-string->real::onum rval)
     (echo arg)
     (env-php-hash-view env)
     (php-%::onum a b)
@@ -176,7 +168,6 @@
     (php-<= a b)
     (php->= a b)
     (php-= a b)
-;    (arg-unbox fun-name arg)
     (var-lookup env name)
     *function-table*
     *interpreted-function-table*
@@ -267,10 +258,6 @@
 
 (define (debug-trace level . rest)
    "print REST when *DEBUG-LEVEL* is >= LEVEL"
-;    (when (eq? *debug-level* 'too-early)
-;       (error 'debug-trace
-;              "You can't use debug trace so early in the code; the debug-level hasn't been set yet."
-;              (cons level rest)))
    (let ((prefix (string-append ">>> " (make-string level #\space))))
       (when (>= *debug-level* level)
          (display prefix (current-error-port))
@@ -509,25 +496,10 @@
 	   (elong->string a)))
       ((null? a) "")
       ((php-resource? a) (string-append "Resource id #" (integer->string (resource-id a))))
-;       ((or (struct? a)
-; 	   (port? a)) "Resource")
-;      ((foreign? a)
-;       (stringulate (zval->phpval-coercion-routine a)))
       (else
        (debug-trace 3 "object cannot be coerced to a string")
        ;;if we emit a warning here, and the data is circular, it'll stack overflow (segfault)
        ":ufo:")))
-;; display-circle causes hangs and things.
-;        (with-output-to-string
-; 	  (lambda ()
-; 	     (display "don't know what :")
-; 	     (display-circle a)
-; ;	     (display a)
-; 	     (display ": is")
-; 	     )))))
-
-
-
 
 
 ;;;;these are the type coercion functions, except for
@@ -546,7 +518,6 @@
       ((eqv? rval NULL) #f)
       ((onum? rval) (not (= (onum-compare rval *zero*) 0)))
       ((and (number? rval) (= rval 0)) #f)
-;      ((and (elong? rval) (=elong rval #e0)) #f)
       ((and (string? rval)
 	    (or (string=? rval "")
 		(string=? rval "0")))
@@ -557,16 +528,6 @@
       (else #t)))
 
 
-; recreate the process php uses to coerce a float string
-; to a float
-; XXX needs work for cases like "1.23hvdiivhs"
-; (define (php-string->real::onum rval)
-;    (float->onum
-;     (let ((fval (string->real rval)))
-;        (if fval
-; 	   fval
-; 	   0.0))))
-   
 ; this is guaranteed to return an onum
 (define (convert-to-number::onum rval)
    (when (container? rval)
@@ -575,11 +536,7 @@
       ((onum? rval) rval)
       ((flonum? rval) (float->onum rval))      
       ((elong? rval) (elong->onum rval))
-;      ((fixnum? rval) (flonum->elong (fixnum->flonum rval)))
       ((fixnum? rval) (int->onum rval))
-      ; debug
-      ;((number? rval) (error 'convert-to-number "found fixnum, shouldn't be here:" rval))
-
       ((boolean? rval) (if rval (int->onum 1) (int->onum 0)))
       ((equal? rval NULL) (int->onum 0))
       ((equal? rval "") (int->onum 0))
@@ -615,7 +572,6 @@
    ;so, instead of with convert-onum-to-long!.
    (elong->onum (onum->elong (convert-to-number rval))))
 
-
 ; use instead of number?
 (define (php-number? rval)
    (onum? rval))
@@ -631,26 +587,6 @@
 
 (define (php-*::onum a b)
    (onum* (convert-to-number a) (convert-to-number b)))
-
-; (define (specialmult a::elong b::elong)
-;    (let ((lo::elong #e0)
-; 	 (toobig::float 0.0))
-;       (pragma 
-;        "{  register int _hi;                                   
-; 	   register int _lo;                                
-; 	      __asm__(\"imull %2\"                                       
-;                    : \"=d\" /* %edx */ (_hi), \"=a\" /* %eax */ (_lo)     
-;                    : \"rm\" ((unsigned int)($1)), \"1\" /* %eax */ ((unsigned int)($2))
-;                   );
-;              if (_hi && ~-1) {
-;                 $4 = (double)$1 * (double)$2;
-;              } else {
-;                 $3 = _lo;
-;              }
-;          }" a b lo toobig)
-;       (if (=fl 0.0 toobig)
-; 	  lo
-; 	  toobig)))
 
 (define (php-/::onum a b)
    (onum/ (convert-to-number a) (convert-to-number b)))
@@ -684,45 +620,6 @@
        #t
        #f))
 
-; these are exported
-; (define (real->php-string a)
-;    (onum->string (convert-to-number a) *float-precision*))
-
-; (define (real->php-e-string a)
-;    (onum->string (convert-to-number a) *float-precision*))
-
-; (define (maybe-yank-.0 a)
-;    (if (pregexp-match "\\.0$" a)
-;        (begin
-; 	  (substring a 0 (- (string-length a) 2)) )
-;        a))
-
-; ; convert float a to an E version if numbers of 0's is greater than threshold t
-; (define (float-e-convert a t)
-;    (let ((fp (maybe-yank-.0 (cl-format "~f" a)))
-; 	 (st (number->string (+ t 1)))
-; 	 (mt "4"))
-;       ; if there are >= t 0's make it E format
-;       (if (or (pregexp-match (string-append "0{" st "}$") fp))
-; ;	      (pregexp-match (string-append "\\.0{" mt "}") fp))
-; 	  (cl-format "~e" a)
-; 	  fp)))
-
-; stupidity
-; (define (echo-e-format a)
-;    (let ((as (real->php-e-string a)))
-;       (if (pregexp-match "\\.0E-[0-9]$" as)
-; 	  (pregexp-replace "\\.0E-" as "E-0")
-; 	  (pregexp-replace "\\.0E" as "E"))))
-
-; (define (display-float a)
-;    (cond
-;       ((zero? a) (display "0"))
-;       ((float-is-finite? a) (display (echo-e-format a)))
-;       ((float-is-nan? a) (display "NAN"))
-;       ((positive? a) (display "INF"))
-;       (else (display "-INF"))))
-
 (define (stringulate-float a)
    (cond
       ((zero? a) "0")
@@ -730,8 +627,6 @@
       ((float-is-nan? a) "NAN")
       ((positive? a) "INF")
       (else "-INF")))
-
-
 
 (define *output-buffer-implicit-flush?* #f)
 (define (unbuffered-echo a)
@@ -747,10 +642,6 @@
        (unbuffered-echo a))
    ;; PHP's print function returns 1
    *one*)
-
-
-;   (display (arg 'get)))
-
 
 (define (php-string-ref str char)
    (if (eqv? char :next)
@@ -789,17 +680,14 @@
 
 ;bitwise ops.. could probably constructively be rewritten using elongs and the C operators.
 (define (bitwise-or a b)
-;   (print "bitwise-or trace: a: " a  " b: " b)
    (int->onum
     (bit-or (mkfixnum a) (mkfixnum b))))
 
 (define (bitwise-xor a b)
-;   (print "bitwise-xor trace: a: " a  " b: " b)
    (int->onum
     (bit-xor (mkfixnum a) (mkfixnum b))))
 
 (define (bitwise-and a b)
-;   (print "bitwise-and trace: a: " a  " b: " b)
    (int->onum
     (bit-and (mkfixnum a) (mkfixnum b))))
 
@@ -864,22 +752,12 @@
 
 ;;;;;;;;;
 
-; (define (num-normalize a)
-;    (if (elong? a)
-;        (if (not (=elong a #e0))
-; 	   (if (>elong a #e0)  1 -1)
-; 	   0)
-;        (if (not (= a 0))
-; 	   (if (> a 0) 1 -1)
-; 	   0)))
-
 (define (compare-as-numbers a b)
    (onum-compare (convert-to-number a) (convert-to-number b)))
 
 (define (compare-as-boolean a b)
    (let ((c (convert-to-boolean a))
 	 (d (convert-to-boolean b)))
-;      (print "comparing bools: " c " / " d)
       (cond ((and c d) 0)
 	    ((and c (not d)) 1)  
 	    ((and (not c) d) -1)
@@ -890,7 +768,6 @@
 	  (d (mkstr b))
 	  (c-s (string-length c))
 	  (d-s (string-length d)))
-;      (print "comparing string in c: " c " / " d)
       (c-binary-strcmp c c-s d d-s)))
 
 (define (convert-scalar-to-number a)
@@ -946,55 +823,6 @@
 		((php-resource? r) -1)		
 		(else (error 'php-var-compare "not a php type" (cons l r)))))))))
 
-
-;;;; I've  left the old php-var-compare below for for a little while in case of bugs. --tpd 2005.1.30
-;    (let ((result 'unset)
-; 	 (l (maybe-unbox a))
-; 	 (r (maybe-unbox b)))
-;       (set! result 
-; 	    (cond ((or (and (string? l)
-; 			    (null? r))
-; 		       (and (null? l)
-; 			    (string? r))) (compare-as-strings l r))
-; 		  ; strings
-; 		  ((and (string? l)
-; 			(string? r))
-; 		   (begin
-; 		      ; both strings, possibly compare numericly
-; 		      (if (and (numeric-string? l)
-; 			       (numeric-string? r))
-; 			  (compare-as-numbers l r)
-; 			  (compare-as-strings l r))))
-; 		  ; either bools or nulls
-; 		  ((or (boolean? l)
-; 		       (boolean? r)
-; 		       (null? l)
-; 		       (null? r)) (compare-as-boolean l r))
-; 		  (else 'unset)))
-;       (when (eqv? result 'unset)
-; 	 ; if still unset, convert scalars to numbers
-; 	 (set! l (convert-scalar-to-number l))
-; 	 (set! r (convert-scalar-to-number r))
-; 	 (set! result
-; 	       (cond
-; 		  ; numbers
-; 		  ((and (php-number? l)
-; 			(php-number? r)) (compare-as-numbers l r))		   
-; 		  ; both arrays
-; 		  ((and (php-hash? l)
-; 			(php-hash? r)) (php-hash-compare l r #f))
-; 		  ; both objects
-; 		  ((and (php-object? l)
-; 			(php-object? r)) (php-object-compare l r #f))
-; 		  ; arrays / objects
-; 		  ((php-hash? l) 1)
-; 		  ((php-hash? r) -1)		    
-; 		  ((php-object? l) 1)
-; 		  ((php-object? r) -1)
-; 		  (else 'unset))))
-;       (if (eqv? result 'unset)
-; 	  #f
-; 	  result)))
 
 (define (equalp a b)
    (let ((rval (php-var-compare a b)))
@@ -1635,11 +1463,8 @@
 	 ((char? val) (make-string 1 val))
 	 (else
 	  NULL))))
-; 	 (else
-; 	  (error 'coerce-to-php-type "builtin returned something of unknown type" orig)) )))=======
 
-
-
+; XXX this should go in it's own module
 ; output buffering
 (defconstant PHP_OUTPUT_HANDLER_START 1)
 (defconstant PHP_OUTPUT_HANDLER_CONT  (bit-lsh 1 1))
@@ -1700,10 +1525,6 @@
 	    (debug-trace 4 "rewrite tags: a? " a? ", area? " area? ", frame? " frame?
 			 ", input? " input? ", form? " form?))
 	 (rewrite-urls output getvars postvars a? area? frame? input? form?))))
-;       (pregexp-replace* "<form>"
-; 			(pregexp-replace* "\\.php" output (mkstr "\\.php" getvars))
-; 			(mkstr "<form>" postvars))))
-   
 
 (define (ob-start callback)
    (ob-verify-stacks)

@@ -17,7 +17,6 @@
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 ;; ***** END LICENSE BLOCK *****
 
-;useful stuff that I can't decide where to put
 (module utils
    (extern
     (include "limits.h")
@@ -141,29 +140,6 @@
     "\""))
    
 
-; (define (copy-file string1 string2)
-;    (let ((pi (open-input-binary-file string1))
-; 	 (po (open-output-binary-file string2)))
-;       (cond
-; 	((not (binary-port? pi))
-; 	 (if (binary-port? po) (close-binary-port po))
-; 	 #f)
-; 	((not (binary-port? po))
-; 	 (close-binary-port pi)
-; 	 #f)
-; 	(else
-; 	 (let ((s (make-string 1024)))
-; 	    (let loop ((l (input-fill-string! pi s)))
-; 		 (if (=fx l 1024)
-; 		     (begin
-; 		      (output-string po s)
-; 		      (loop (input-fill-string! pi s)))
-; 		     (begin
-; 		      (output-string po (string-shrink! s l))
-; 		      (close-binary-port pi)
-; 		      (close-binary-port po)
-; 		      #t))))))))
-
 (define (input-fill-string! port s)
    (let ((len::int (string-length s))
 	 (s::string s))
@@ -181,11 +157,6 @@
 			    path)
 	   (let ((p (merge-pathnames (string-append path "\\") "")))
               (substring p 0 (- (string-length p) 1)))))
-;(and (file-exists? path) (pathname-relative? path))
-; 	   (normalize-path
-; 	    (merge-pathnames (string-append (pregexp-replace* "\\\\" (pwd) "/") "/") 
-; 			     (pregexp-replace* "\\\\" path "/")))
-;	   path))
       (else
        (let* ((pathbuf::string (make-string c-path-max))
 	      (path::string path)
@@ -258,21 +229,6 @@
              strings)
    (flush-string-port/bin *append-strings-port*))
 
-; I thought that this would be faster, but the implementation above is at
-; least 100x faster...
-; (define (append-strings strings)
-;    "return a new string that is the concatenation of strings"
-;    (let loop ((first-str (gcar strings))
-; 	      (rest-strings (gcdr strings))
-; 	      (new-str ""))
-;       (if (null? first-str)
-; 	  new-str
-; 	  (loop (gcar rest-strings)
-; 		(gcdr rest-strings)
-; 		(string-append new-str first-str)))))
-
-
-
 
 ;good car, good cdr
 (define-inline (gcar arg) (if (null? arg) arg (car arg)))
@@ -312,17 +268,6 @@
 (define (garbage->number/base str base)
    "read a whole number from a string in any base, ignoring garbage"
    (string->number/base str base #t #f))
-
-;    (let loop ((i 0)
-; 	      (num 0))
-;       (if (= i (string-length str))
-; 	  num
-; 	  (let ((digit (char->digit (string-ref str i))))
-; 	     (if (>= digit base)
-; 		 ;invalid digit: end of number.
-; 		 num
-; 		 (loop (+ i 1)
-; 		       (+ (* num base) digit)))))))
 
 
 (define *max-int* (expt 2.0 31))
@@ -432,17 +377,6 @@
 					   (generate-list-of-next-nodes node))))))
 	 (visit-once first-node))))
 
-; (define (walk-dag-breadth-first first-node generate-list-of-next-nodes frobber-to-apply)
-;    (let ((seen (make-grasstable :hashtable-equals eqv?)))
-;       (letrec ((traverse (lambda (node)
-; 			      (unless (grasstable-get seen node)
-; 				 (grasstable-put! seen node #t)
-; 				 (let ((next-nodes (generate-list-of-next-nodes node)))
-; 				    (for-each frobber-to-apply next-nodes)
-; 				    (for-each traverse next-nodes))))))     
-; 	 (frobber-to-apply first-node)
-; 	 (traverse first-node))))
-
 
 (define (least-power-of-2-greater-than x)
    "calculate the least power of 2 greater than x"
@@ -475,24 +409,6 @@ return str unchanged"
 	  (substring str prefix-len str-len)
 	  str)))
 
-;    (let ((str-len (string-length str))
-; 	 (prefix-len (string-length prefix)))
-;       (if (> prefix-len str-len)
-; 	  str
-; 	  (let loop ((i (-fx prefix-len 1))
-; 		     (match? #t))
-; 	     (cond
-; 		;scan from back to front 
-; 		((and match? (>=fx i 0))
-; 		 (loop (-fx i 1)
-; 		       (char=? (string-ref prefix i)
-; 			       (string-ref str i))))
-; 		;scan finished, matched the whole way, so strip the prefix
-; 		(match?
-; 		 (substring str prefix-len str-len))
-; 		;didn't match
-; 		(else str))))))
-
 ;;;;PATH STUFF
 
 (define *normalize-path-string-port* (open-output-string))
@@ -515,10 +431,6 @@ return str unchanged"
                       (set! sep-seen? #f))))
             (loop (+fx i 1))))
       (flush-string-port/bin out)))
-;    (if (string? loc)
-;        (pregexp-replace* (string-append (string (file-separator)) "{2,}") loc (string (file-separator)))
-;        loc))
-
 
 (define (append-paths a b . rest)
 ;   (print "append paths " a " " b " " rest)
@@ -629,68 +541,6 @@ for example:  /foo/bar/baz + ../bling/zot = /foo/bling/zot"
                                          (display (pcc-file-separator)))
                                       (reverse pwd))
                             (display (substring relative left right))))))))))
-
-; (define (merge-pathnames absolute::bstring relative::bstring)
-;    "merge an absolute path and a relative path, return the new path
-; for example:  /foo/bar/baz + ../bling/zot = /foo/bling/zot"
-; ;   (print "merge-pathnames: attempting to merge absolute " absolute " with relative " relative)
-;    (let ((absolute-len (string-length absolute))
-; 	 (relative-len (string-length relative)))
-;       ;;we collect the new directory as a stack (reversed list) in pwd
-;       (let ((pwd '())
-; 	    ;;the number of directories we've gone up past the root 
-; 	    ;;in the absolute path
-; 	    (past-root 0))
-; 	 (let ((cd (lambda (dir)
-; 		      ;(print "cding to " dir)
-; 		      (cond
-; 			 ((string=? dir "..") (if (null? pwd)
-; 						  (set! past-root (+ past-root 1))
-; 						  (set! pwd  (gcdr pwd))))
-; 			 ((string=? dir ".") #t)
-; 			 (else (set! pwd (cons dir pwd)))))))
-; 	    ;;cd up the absolute path, skipping a slash, if it starts with one
-; 	    (let ((start (if (and (not (zero? absolute-len))
-; 				  (or (char=? #\/ (string-ref absolute 0))
-; 				      (char=? #\\ (string-ref absolute 0))))
-; 			     1
-; 			     0)))
-; 	       (let loop ((left start)
-; 			  (right start))
-; 		  (when (<fx right absolute-len)
-; 		     (if (char=? #\/ (string-ref absolute right))
-; 			 (begin
-; 			    (cd (substring absolute left right))
-; 			    (loop (+fx right 1) (+fx right 1)))
-; 			 (loop left (+fx right 1))))))
-; 	    ;cd up the relative path
-; 	    (let loop ((left 0)
-; 		       (right 0))
-; 	       (if (<fx right relative-len)
-; 		   (if (char=? #\/ (string-ref relative right))
-; 		       (begin
-; 			  (cd (substring relative left right))
-; 			  (loop (+fx right 1) (+fx right 1)))
-; 		       (loop left (+fx right 1)))
-; 		   ;return the new path + the file part of the relative path
-; 		   (with-output-to-string
-; 		      (lambda ()
-; 			 ;;first, in case we went up past the root of the "absolute" path,
-; 			 ;;tack on the appropriate number of ../'s
-; 			 (do ((i 0 (+ i 1)))
-; 			     ((>= i past-root))
-; 			     (display "../"))
-; 			 ;;in case we didn't go past the root, and the left path is
-; 			 ;;absolute, generate an absolute path
-; 			 (when (and (> absolute-len 0)
-; 				    (char=? #\/ (string-ref absolute 0))
-; 				    (= 0 past-root))
-; 			    (display "/"))
-; 			 (for-each (lambda (p)
-; 				      (display p)
-; 				      (display "/"))
-; 				   (reverse pwd))
-; 			 (display (substring relative left right))))))))))
 
 
 (define (force-trailing-/ p)

@@ -215,29 +215,6 @@
 	  (old-bucks-len (vector-length old-bucks))
 	  (new-bucks-len (*fx 2 old-bucks-len))
 	  (new-bucks (make-vector new-bucks-len '())))
-;       (fprint (current-error-port)
-; 	      "Expanding hash from " old-bucks-len " to " new-bucks-len "(size " (%grasstable-size table) ")")
-;       (let loop ((i 0)
-; 		 (tallies (make-hashtable)))
-; 	 (if (<fx i old-bucks-len)
-; 	     (begin
-; 		(hashtable-put! tallies
-; 				(length (vector-ref-ur old-bucks i))
-; 				(if (hashtable-get tallies (length (vector-ref-ur old-bucks i)))
-; 				    (+ 1 (hashtable-get tallies (length (vector-ref-ur old-bucks i))))
-; 				    1))
-; ; 		(when (> (length (vector-ref-ur old-bucks i)) 5)
-; ; 		   (fprint (current-error-port) (length (vector-ref-ur old-bucks i)) ": ")
-; ; 		   (display-circle (map (lambda (a)
-; ; 					 (car a))
-; ; 				      (vector-ref-ur old-bucks i))
-; ; 				   (current-error-port)))
-; 		(loop (+ i 1) tallies))
-
-; 	     (hashtable-for-each tallies
-; 		(lambda (k v)
-; 		   (fprint (current-error-port) "length " k " occurs " v " times.")))))
-
       (%grasstable-buckets-set! table new-bucks)
       (let loop ((i 0))
 	 (if (<fx i old-bucks-len)
@@ -251,23 +228,6 @@
 						   (vector-ref-ur new-bucks h)))))
 			  (vector-ref-ur old-bucks i))
 		(loop (+fx i 1)))))))
-
-; (define-inline (grasstable-equal? obj1 obj2)
-;    (if (string? obj1)
-;        (if (string? obj2)
-; 	   (string=? obj1 obj2)
-; 	   #f)
-;        (equal? obj1 obj2)))
-
-
-
-; (define-inline (get-grassnumber::int key)
-;    (if (string? key)
-;        (phpstring-hashnumber1 key)
-;        (get-hashnumber key)))
-;    (cond
-;       ((string? key) )
-;       (else (error 'cosmic "unity" 'destroyed)) ))
 
 (define (least-power-of-2-greater-than x)
    "calculate the least power of 2 greater than x"

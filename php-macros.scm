@@ -53,10 +53,6 @@
 (define *fast-build* (member "-unsafe" (command-line)))
 
 (define (trace-wrap class-name name param-names code)
-;   (fprint (current-error-port)
-;	   "Fast build is " *fast-build*)
-;   (if #f;*fast-build* (we're only building one set of libs now :/ )
-;       code
    (let ((retvalname (gensym 'ret)))
       `((when *track-stack?* (push-stack ',class-name ',name ,@param-names))
 	(let ((,retvalname (begin ,@code)))
@@ -64,8 +60,6 @@
 	   ,retvalname))))
 
 (define (profile-wrap name code)
-   ;   (if #t ;mingw*fast-build*
-   ;       code
    (let ((retvalname (gensym 'ret)))
       `((when *source-level-profile* (profile-enter ',name))
 	(let ((,retvalname (begin ,@code)))
@@ -75,23 +69,14 @@
 (define-macro (defalias alias name)
    (hashtable-put! *aliases-for-errors* name alias)
    `(store-alias ',alias ',name))
-;   `(hashtable-put! *aliases* ',alias ',name))
 
 (define-macro (defconstant name value)
-   ;    (if (number? value)
-   ;        `(begin
-   ; 	   (hashtable-put! *builtin-constant-table* ,(symbol->string name) (convert-to-number ,value))
-   ; 	   ;       (store-constant ,(symbol->string name) ,value)
-   ; 	   (define ,name (convert-to-number ,value)))
    `(begin
-       ;	   (hashtable-put! *builtin-constant-table* ,(symbol->string name) (coerce-to-php-type ,value))
        (define ,name (coerce-to-php-type ,value))
        (store-persistent-constant ,(symbol->string name) ,name)))
 
 (define-macro (update-constant name value)
    `(begin
-       ;	   (hashtable-put! *builtin-constant-table* ,(symbol->string name) (coerce-to-php-type ,value))
-       ;       (store-constant ,(symbol->string name) ,value)
        (set! ,name (coerce-to-php-type ,value))
        (store-persistent-constant ,(symbol->string name) ,name)))
 
@@ -199,25 +184,10 @@
 			 (format "syntax error in function signature at ~a" a)
 			 params))))
 	   (reverse params))
-;      (fprint (current-error-port)       `(,store-routine ,name ,ft-builtin ',(current-extension) ',name ,minimum-arity ,maximum-arity ,@brief-params))
       `(,store-routine ,name ,ft-builtin ',(current-extension) ',name ,minimum-arity ,maximum-arity ,@brief-params)))
 
 (define (current-extension)
    (basename (pwd)))
-
-;    (string-case (basename (pwd))
-;       ("curl" "php-curl")
-;       ("xml" "php-xml")
-;       ("mysql" "php-mysql")
-;       ("gtk" "php-gtk")
-;       ("standard" "php-std")
-;       ("pcre" "php-pcre")
-;       ("compiler" "phpeval")
-;       ("webconnect" "webconnect")
-;       (else (error 'current-extension
-;                    "Please tell php-macros.scm about this extension"
-;                    (the-string)))))
-
 
 ;; utility function that magically rewrites code to include the
 ;; function name in the warnings.

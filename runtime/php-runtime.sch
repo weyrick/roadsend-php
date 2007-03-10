@@ -20,10 +20,6 @@
 (define-struct env
    bindings)
 
-; (define-struct container
-;    value)
-
-
 ; stack traces
 
 ; XXX this is responsible for a lot of inline code in

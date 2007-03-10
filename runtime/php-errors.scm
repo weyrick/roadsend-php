@@ -266,11 +266,6 @@
 	  (for-each
 	   (lambda (err)
 	      (fprint (current-error-port) "Error: " err))
-; 	   (lambda (a)
-; 		       (apply (lambda (p m o)
-; 				 (fprint (current-error-port)
-; 					 "Error in " p ": " m " -- " o))
-; 			      a))
 		    *delayed-errors*)
 	  (set! *delayed-errors* '())
 	  #t)

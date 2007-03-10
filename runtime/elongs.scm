@@ -17,38 +17,11 @@
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 ;; ***** END LICENSE BLOCK *****
 (module elong-lib
-   (extern  
-;     (infix macro c-elong<?::bool (::elong ::elong) "<")
-;     (infix macro c-elong>?::bool (::elong ::elong) ">")
-;     (infix macro c-elong<=?::bool (::elong ::elong) "<=")
-;     (infix macro c-elong>=?::bool (::elong ::elong) ">=")
-;     (infix macro c-elong-add::elong (::elong ::elong) "+")
-;     (infix macro c-elong-mul::elong (::elong ::elong) "*")
-;     (infix macro c-elong-sub::elong (::elong ::elong) "-")
-;     (infix macro c-elong-div::elong (::elong ::elong) "/")
-    )
    (export
     (elong->ustring::string s1::elong)
     (inline epositive?::bool ::elong)
     (inline enegative?::bool ::elong)
-;     (inline +elong::elong ::elong ::elong)
-;     (inline *elong::elong ::elong ::elong)
-;     (inline /elong::elong ::elong ::elong)
-;     (inline -elong::elong ::elong ::elong)
-;     (inline <elong::bool ::elong ::elong)
-;     (inline >elong::bool ::elong ::elong)
-;     (inline <=elong::bool ::elong ::elong)
-;     (inline >=elong::bool ::elong ::elong)
     )
-;    (pragma
-;     (<elong side-effect-free no-cfa-top nesting)
-;     (>elong side-effect-free no-cfa-top nesting)
-;     (<=elong side-effect-free no-cfa-top nesting)
-;     (>=elong side-effect-free no-cfa-top nesting)
-;     (+elong side-effect-free no-cfa-top nesting)
-;     (-elong side-effect-free no-cfa-top nesting)
-;     (*elong side-effect-free no-cfa-top nesting)
-;     (/elong side-effect-free no-cfa-top nesting))
    )
 
 ;*---------------------------------------------------------------------*/
@@ -70,52 +43,4 @@
 ;*---------------------------------------------------------------------*/
 (define-inline (enegative? s1)
    (<elong s1 0))
-
-;*---------------------------------------------------------------------*/
-;*    <elong ...                                                       */
-;*---------------------------------------------------------------------*/
-; (define-inline (<elong s1 s2)
-;    (c-elong<? s1 s2))
-
-; ;*---------------------------------------------------------------------*/
-; ;*    >elong ...                                                       */
-; ;*---------------------------------------------------------------------*/
-; (define-inline (>elong s1 s2)
-;    (c-elong>? s1 s2))
-
-; ;*---------------------------------------------------------------------*/
-; ;*    <=elong ...                                                      */
-; ;*---------------------------------------------------------------------*/
-; (define-inline (<=elong s1 s2)
-;    (c-elong<=? s1 s2))
-
-; ;*---------------------------------------------------------------------*/
-; ;*    >=elong ...                                                      */
-; ;*---------------------------------------------------------------------*/
-; (define-inline (>=elong s1 s2)
-;    (c-elong>=? s1 s2))
-
-; ;*---------------------------------------------------------------------*/
-; ;*    +elong ...                                                       */
-; ;*---------------------------------------------------------------------*/
-; (define-inline (+elong s1 s2)
-;    (c-elong-add s1 s2))
-
-; ;*---------------------------------------------------------------------*/
-; ;*    *elong ...                                                       */
-; ;*---------------------------------------------------------------------*/
-; (define-inline (*elong s1 s2)
-;    (c-elong-mul s1 s2))
-
-; ;*---------------------------------------------------------------------*/
-; ;*    -elong ...                                                       */
-; ;*---------------------------------------------------------------------*/
-; (define-inline (-elong s1 s2)
-;    (c-elong-sub s1 s2))
-
-; ;*---------------------------------------------------------------------*/
-; ;*    /elong ...                                                       */
-; ;*---------------------------------------------------------------------*/
-; (define-inline (/elong s1 s2)
-;    (c-elong-div s1 s2))
 

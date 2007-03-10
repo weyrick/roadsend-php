@@ -10,6 +10,5 @@
 	   (php-ini "php-ini.scm")
 	   (signatures "signatures.scm")
            (php-errors "php-errors.scm"))
-;	   (opaque-math "opaque-math-binding.scm"))
    (eval (export-all)) )
 

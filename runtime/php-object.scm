@@ -331,20 +331,6 @@ values the values."
 	  ;; We could just apply the method to (map maybe-box call-args), but
 	  ;; that won't signal a nice error for methods compiled in extensions.
           (apply the-method obj (adjust-argument-list the-method call-args)))))
-; 	  (let loop ((i 1)
-; 		     (args '())
-; 		     (call-args call-args))
-; 	     (if (pair? call-args)
-; 		 (loop (+fx i 1)
-; 		       (cons (maybe-box (car call-args)) args)
-; 		       (cdr call-args))
-; 		 (if (method-correct-arity? the-method i)
-; 		     (apply the-method obj;(maybe-box obj)
-; 			    (reverse! args))
-; 		     (php-warning "Wrong number of arguments for method "
-;                                   (%php-class-print-name (%php-object-class obj)) "->" method-name ": "
-;                                   (method-minimum-arity the-method) " expected, "
-;                                   (-fx i 1) " provided.")))))))
 
 (define (adjust-argument-list method args)
    ;; make sure the arguments are boxed and that the arity is okay.
@@ -620,8 +606,6 @@ values the values."
       clist))
 
 (define (init-php-object-lib)
-   ;can't allow the class registry to live between requests
-;   (unless (hashtable? %php-class-registry)
    (set! %php-class-registry (make-hashtable))
    ;define the root of the class hierarchy
    (let ((stdclass (%php-class "stdClass" "stdclass" #f #f
@@ -633,7 +617,6 @@ values the values."
 				(make-php-hash) (make-php-hash)
 				#f #f #f (make-php-hash)) ))
       ;;default constructor
-;      (php-hash-insert! (%php-class-methods stdclass) "stdclass" (lambda args #t))
       (hashtable-put! %php-class-registry "stdclass" stdclass)
       (hashtable-put! %php-class-registry "__php_incomplete_class" inc-class)))
 
@@ -660,18 +643,6 @@ values the values."
 					(%php-class-custom-prop-set parent-class)
 					(%php-class-custom-prop-copy parent-class)
                                         (copy-php-data (%php-class-class-constants parent-class)))))
-	     ;copy default constructor
-	     ;; (unless (convert-to-boolean (php-hash-lookup (%php-class-methods new-class)
-;; 							  canonical-name))
-;; ;		(fprint (current-error-port) "copying default constructor for class " canonical-name
-;; ;			" found " (%lookup-constructor parent-class))
-;; 		(php-hash-insert! (%php-class-methods new-class)
-;; 				  canonical-name
-;; 				  (%lookup-constructor parent-class)
-;; ; 				  (php-hash-lookup
-;; ; 				   (%php-class-methods parent-class)
-;; ; 				   (%method-name-canonicalize parent-name))
-;; 				  ))
 	     (hashtable-put! %php-class-registry canonical-name new-class)))))
 
 (define (define-extended-php-class name parent-name getter setter copier)
@@ -809,8 +780,6 @@ argument, before the continuation: (obj prop ref? value k)."
 
 (define (%lookup-prop obj property)
    (container-value (%lookup-prop-ref obj property)))
-;   (php-hash-lookup (%php-object-properties obj)
-;		    (%property-name-canonicalize property)))
 
 (define (%lookup-prop-honestly-just-for-reading obj property)
    (let* ((canon-name (%property-name-canonicalize property))
@@ -898,56 +867,27 @@ argument, before the continuation: (obj prop ref? value k)."
 ;;;string versions, for compiled code
 (define (php-object-property/string obj property::bstring)
    (php-object-property obj property))
-;    (if (php-object? obj)
-;        (%lookup-prop/string obj property)
-;        (begin
-; 	  (php-warning "Referencing a property of a non-object (did you use $this in a static method?)")
-; 	  #f)))
 
 (define (php-object-property-h-j-f-r/string obj property::bstring)
    (php-object-property-honestly-just-for-reading obj property))
-;    (if (php-object? obj)
-;        (%lookup-prop-h-j-f-r/string obj property)
-;        (begin
-; 	  (php-warning "Referencing a property of a non-object (did you use $this in a static method?)")
-; 	  #f)))
 
 (define (php-object-property-set!/string obj property::bstring value)
    (php-object-property-set! obj property value))
-;    (if (php-object? obj)
-;        (%assign-prop/string obj property value)
-;        (begin
-; 	  (php-warning "Assigning to a property of a non-object (did you use $this in a static method?)")
-; 	  #f))
-;    value)
 
 (define (php-object-property-ref/string obj property::bstring)
    (php-object-property-ref obj property))
-;    (if (php-object? obj)
-;        (%lookup-prop-ref/string obj property)
-;        (begin
-; 	  (php-warning "Referencing a property of a non-object (did you use $this in a static method?)")
-; 	  (make-container #f))))
 
 (define (%lookup-prop-ref/string obj property::bstring)
    (%lookup-prop-ref obj property))
-;    (php-hash-lookup-ref (%php-object-properties obj)
-; 			#t
-; 			property))
 
 (define (%lookup-prop/string obj property::bstring)
    (%lookup-prop obj property))
-;    (php-hash-lookup (%php-object-properties obj) property))
 
 (define (%lookup-prop-h-j-f-r/string obj property::bstring)
    (%lookup-prop-honestly-just-for-reading obj property))
-;    (php-hash-lookup (%php-object-properties obj) property))
-
 
 (define (%assign-prop/string obj property::bstring value)
    (%assign-prop obj property value))
-;    (php-hash-insert! (%php-object-properties obj) property value)
-;    value)
    
 ;;;end string versions
 
