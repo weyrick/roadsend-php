@@ -63,6 +63,12 @@ print_r(array_diff($array1, $array2));
 print_r(array_diff($testarr, $input_array));
 
 
+print("array_diff_assoc:\n");
+$array1 = array("a" => "green", "b" => "brown", "c" => "blue", "red");
+$array2 = array("a" => "green", "yellow", "red");
+$result = array_diff_assoc($array1, $array2);
+print_r($result);
+print_r(array_diff_assoc($testarr, $input_array));
 
 print("array_filter:\n");
 

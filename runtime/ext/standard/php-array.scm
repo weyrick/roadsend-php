@@ -31,7 +31,7 @@
     (array_chunk arr size preserve-keys)    
     ;(array_combine keys vals) ; PHP5
     (array_count_values arr)
-    ; array_diff_assoc
+    (array_diff_assoc arr1 . arr2-n)     
     (array_diff arr1 . arr2-n)
     (array_fill start num value)
     (array_filter arr callback)
@@ -251,8 +251,25 @@
 		  (php-hash-insert! difference key val))))
 	 difference)))
 	    
-			      
-		
+; array_diff_assoc -- Computes the difference of arrays with additional index check			      
+(defbuiltin-v (array_diff_assoc arr1 arr2-n)
+   ;check that we're working with php-hashes
+   (set! arr1 (ensure-hash 'array_diff_assoc arr1))
+   (set! arr2-n (map (lambda (a) (ensure-hash 'array_diff_assoc a)) arr2-n))
+   ;put every value into a hashtable
+   (let ((union-of-values (make-hashtable)))
+      (for-each (lambda (h)
+		   (php-hash-for-each h
+		      (lambda (key val)
+			 (hashtable-put! union-of-values (mkstr key "::" val) #t))))
+		arr2-n)
+      ;now compute and return the "difference"
+      (let ((difference (make-php-hash)))
+	 (php-hash-for-each arr1
+	    (lambda (key val)
+	       (unless (hashtable-get union-of-values (mkstr key "::" val))
+		  (php-hash-insert! difference key val))))
+	 difference)))
    
 ; array_filter -- returns an array containing all the elements of
 ; input filtered according a callback function. 
