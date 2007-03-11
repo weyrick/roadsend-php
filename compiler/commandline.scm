@@ -30,6 +30,8 @@
            (config "config.scm"))
    (main php-commandline) )
 
+; php compatible commandline switches
+(define *php-compat* #f)
 (define *initialdir* (pwd))
 (define (return-to-original-dir exit-status)
    (when *initialdir*
@@ -45,12 +47,17 @@
 	 (print (usage-header))
 	 (exit 1))
 
+      ; php compat mode
+      (when (string=? (basename (car pcc-argv)) "php")
+	 (set! *php-compat* #t))
+      
       ;; We read the config file prior to parsing the commandline
       ;; arguments, so that the commandline arguments will override
       ;; the config file.  
       (when (member "-c" pcc-argv)
 	  ;; -c is the option for an alternate config file.
          (set! *config-file* (cadr (member "-c" pcc-argv))))
+
       (read-config-file)
 
       ;; We check the license after reading the config file, so we
@@ -60,7 +67,9 @@
       ; start with no command line arguments for interpreter
       (set-target-option! script-argv: '())
 
-      (try (parse-commandline-arguments pcc-argv)
+      (try (if *php-compat*
+	       (parse-php-commandline-arguments pcc-argv)
+	       (parse-commandline-arguments pcc-argv))	       
 	   (lambda (e p m o)
 	      (print (format "pcc: argument parsing error: ~a ~a" m p))
 	      (exit 1)))
@@ -362,6 +371,67 @@
 			     (set! source-files (map util-realpath source-files)))))
 		   (target-source-files-set! *current-target* source-files)))))))))
 
+; 
+; Zend PHP compatible commandline arguments. These are enabled automatically
+; if pcc is started as "php", e.g. by a symlink or if it's renamed
+;
+(define (parse-php-commandline-arguments pcc-argv)
+   (let* ((eat-doubledash? #t)
+	  (argv-passthru #f)
+	  (add-script-argv (lambda (var)
+			      (set-target-option! script-argv: (cons var (target-option script-argv:)))))
+	  (maybe-add-script-argv (lambda (var)
+				    (if argv-passthru
+					(begin
+					   (add-script-argv var)
+					   #f)
+					#t))))
+      (args-parse (cdr pcc-argv)
+       (section "Help")
+
+       (("--")
+	(unless eat-doubledash?
+	   (add-script-argv "--"))
+	(set! argv-passthru #t))
+       
+       ((("-h" "--help") (help "This help message"))
+	(when (maybe-add-script-argv "-h")
+	   (print (usage-header))
+	   (args-parse-usage #f)
+	   (exit 1)))
+
+       ((("-v") (help "Verbose output"))
+	(print *RAVEN-VERSION-STRING*)
+	(exit 1))
+
+       ((("-c") ?config-file (help "Use the specified config file"))
+	(maybe-add-script-argv "-c")
+	; this option is actually checked for above because the *config-file* variable needs
+	; to be set before read-config-file is called, so this is just here to swallow the
+	; option and provide commandline help
+	)
+       
+       ((("-f") ?script (help "Execute code immediately, instead of compiling"))
+	(if (maybe-add-script-argv "-f")
+	    (begin
+	       (widen!::interpret-target *current-target*)
+	       (add-script-argv script)
+	       (target-source-files-set! *current-target* (list script)))
+	    ; we're in pass through, so add the script var too
+	    (add-script-argv script)))
+       
+       ((("-d") ?keyval (help "Define INI entry foo=bar"))
+	(maybe-add-script-argv "-d")
+	(unless (= (string-index keyval "=") -1)
+	   (let ((kv (string-split keyval "=")))
+	      (if (= (length kv) 1)
+		  (set-ini-entry (car kv) TRUE)
+		  (set-ini-entry (car kv) (cadr kv))))))
+
+       (else
+	(print "Illegal argument `" else "'.\n" (usage-header))
+	(args-parse-usage #f)
+	(exit 1)))))
 
 
 (define (usage-header)
