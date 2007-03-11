@@ -2513,7 +2513,7 @@ will use the directory @file{/var/www/myapp/}.
 We use the mod_rewrite module to grab all requests for PHP files in
 the application's web root directory and re-route them to the FastCGI
 binary.  We also allow for an index.php file. This is an example
-Apache configuration section which says roughly ``pass all requests
+lighttpd configuration section which says roughly ``pass all requests
 for files that end in @file{.php} in the directory
 @file{/var/www/myapp/} on to @file{/cgi-bin/myapp.fcgi}'':
 
