@@ -308,7 +308,7 @@
 					   "/"
 					   *RAVEN-VERSION-STRING*))
 
-(define *PHP-VERSION* "4.4.4") 
+(define *PHP-VERSION* "4.4.6") 
 
 
 ;this version number gets put into compiled programs and libraries.
