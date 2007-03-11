@@ -20,7 +20,6 @@
 (module xml-additional-c-bindings
    (include "../phpoo-extension.sch")
    (include "xml.sch")
-;   (library common)
    (import (xml-c-bindings "c-bindings.scm"))
    (type (subtype xmlChar* "xmlChar*" (cobj))
 	 (coerce cobj xmlChar* () (cobj->xmlChar*))

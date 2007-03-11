@@ -215,7 +215,7 @@
     (string-list->string*::string* sl::pair-nil)
     (last ::pair-nil)
     (remove::pair-nil ::procedure lis::pair-nil)
-    (delete-duplicates lis #!optional (elt=::procedure equal?))
+    (delete-duplicates lis)
     (string-join string-list #!optional (delimiter " ") (grammar 'infix))    
     (lset-difference elt=::procedure lis1 . lists)
     (lset-union!::pair-nil elt=::procedure . lists)
@@ -317,15 +317,8 @@
 	 (if (pred (car list)) list
 	     (lp (cdr list))))))
 
-(define (member x lis #!optional (elt=::procedure equal?))
-  (find-tail (lambda (y) (elt= x y)) lis))
-
 (define (ptr->0..255 o)
   (pragma::long "get_hash_number_from_int($1)" o))
-
-; delete-duplicates
-(define (delete x lis #!optional (elt=::procedure equal?))
-  (filter (lambda (y) (not (elt= x y))) lis))
 
 ; lset-union!
 (define (%cdrs lists)
@@ -498,12 +491,12 @@
 
 (define (remove  pred l) (filter  (lambda (x) (not (pred x))) l))
 
-(define (delete-duplicates lis #!optional (elt=::procedure equal?))
+(define (delete-duplicates lis)
   (let recur ((lis lis))
     (if (null-list? lis) lis
 	(let* ((x (car lis))
 	       (tail (cdr lis))
-	       (new-tail (recur (delete x tail elt=))))
+	       (new-tail (recur (delete x tail))))
 	  (if (eq? tail new-tail) lis (cons x new-tail))))))
 
 (define (string-join string-list #!optional (delimiter " ") (grammar 'infix))
@@ -537,7 +530,7 @@
     (cond ((null? lists)     lis1)	; Short cut
 	  ((memq lis1 lists) '())	; Short cut
 	  (else (filter (lambda (x)
-			  (every (lambda (lis) (not (member x lis elt=)))
+			  (every (lambda (lis) (not (member x lis)))
 				 lists))
 			lis1)))))
 

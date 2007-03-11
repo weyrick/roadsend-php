@@ -20,7 +20,6 @@
    (library php-runtime)
    (library phpeval)
    (library webconnect)
-;   (library common)
    (library profiler)
    (load (php-macros "../../php-macros.scm"))
    (include "../../runtime/php-runtime.sch")
@@ -503,11 +502,3 @@
 	       (http-fnf file)
 	       (http-reply (format "Error: ~A: ~A ~A" p m o)))
 	   (e #t))))
-
-
-;     (try
-;      (let ((result (run-url (substring file 1 (string-length file)) *micro-web-lib* *micro-web-index*)))
-; 	(when result
-; 	   (http-reply result)))
-;      handle-runtime-error))
-

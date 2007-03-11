@@ -101,19 +101,6 @@
 (defbuiltin (intval var)
    (convert-to-integer var))
 
-;    (cond
-;       ((php-number? var) var)
-;       ((flonum? var) (flonum->fixnum var))      
-;       ((boolean? var) (if var 1 0))
-;       ((equal? var NULL) 0)
-;       ((equal? var "") 0)
-;       ((string? var) (let ((result (string->number var)))
-; 			 (if result
-; 			     result
-; 			     0)))
-;       (else 0)))
-;
-
 ; is_array -- Finds whether a variable is an array
 (defbuiltin (is_array var)
    (php-hash? var))
@@ -257,25 +244,6 @@
 			     ;(fprint (current-error-port) "i'm a bool")
 			     (if v "b:1;" "b:0;"))))
 	 (fork-it var #f #f))))
-
-   
-;    (let ((vtype (gettype var)))
-;       ; XXX better way to check type?
-;       (if (string=? "unknown type" vtype)
-; 	  (begin
-; 	     (php-warning "can't serialize unknown type variable")
-; 	     #f)
-; 	  (begin
-; 	     ; if it's an object, call __sleep before serializing
-; 	     ; it will return an array of properties to serialize
-; 	     (if (and (php-object? var)
-; 		      (php-class-method-exists? (php-object-class var) "__sleep"))
-; 		 (let ((ser-vars (call-php-method var "__sleep")))
-; 		    ; XXX fixme, not sure how php is handling this??
-; 		    (obj->string var)
-; 		    ))
-; 	     ; XXX using urlencode/decode since bigloo uses some high characters.. slow???
-; 	     (urlencode (obj->string var))))))
 
 ; unserialize --  Creates a PHP value from a stored representation
 (defbuiltin (unserialize var)
@@ -467,42 +435,6 @@
                   (uncerealize #f)))))))
 
 			 
-			 
-
-;      (print "The tokens: " (map mkstr (get-tokens-from-string cereal (mkstr var))))
-;       (with-input-from-string (mkstr var)
-; 	 (lambda ()
-; 	    (read/rp cereal (current-input-port))))))
-
-;    ; XXX using urlencode/decode since bigloo uses some high characters.. slow???
-;    (let ((val (string->obj (urldecode (mkstr var)))))
-;       ; integrity checks
-;       (cond ((string=? (gettype val) "unknown type") (begin
-; 							(php-warning (format "unserialized an invalid php variable: ~a" var))
-; 							#f))
-; 	    ((and (php-object? val)
-; 		  (php-object-props val)) (begin
-; 					     ; recreate object
-; 					     (if (php-class-exists? (php-object-class val))
-; 						 (let ((new-obj (construct-php-object-sans-constructor (php-object-class val))))
-; 						    ; copy properties from unserialized val
-; 						    (php-object-property-list-replace new-obj (php-object-props val))
-; 						    ; call __wakeup
-; 						    (if (php-class-method-exists? (php-object-class val) "__wakeup")
-; 							(call-php-method new-obj "__wakeup"))
-; 						    ; return new object
-; 						    new-obj)
-; 						 (php-error (format "unable to unserialize undefined class ~a"
-; 								    (php-object-class val))))))
-		  
-; 	    ((and (php-hash? val)
-; 		  (not (php-hash-valid? val))) (begin
-; 						 (php-warning (format "unserialized an invalid php hash: ~a" var))
-; 						 #f))
-; 	    ; good unserialize
-; 	    (else val))))
-	  
-
 ; settype -- Set the type of a variable
 (defbuiltin (settype (ref . var) type)
    (let ((act 

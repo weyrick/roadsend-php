@@ -55,8 +55,6 @@
     (macro c-log10::double (::double) "log10")
     (macro _c-sqrt::double (::double) "sqrt")
     (macro _c-pow::double (::double ::double) "pow")
-;    (macro c-rand::elong () "rand")
-;    (macro c-srand::void (::double) "srand")
 
     (macro seedMT::void (::double) "seedMT")
     (macro randomMT-range::long (::elong ::elong) "randomMTrange")
@@ -127,12 +125,10 @@
     (php-pi)
     (pow base power)
     (rad2deg num)
-;    (php-rand min max)
     (php-round num prec)
     (php-sin num)
     (sinh num)
     (php-sqrt num)
-;    (php-srand seed)
     (php-tan num)
     (tanh num)
     ))
@@ -492,17 +488,8 @@
    (php-* 180 (php-/ num M_PI)))
 
 
-;(define *rand-seeded?* #f)
 (define *mt-rand-seeded?* #f)
 
-;n' = a + n(b-a+1)/(M+1)
-;(define (rand-range the-rand min max tmax)
-;   (convert-to-integer (php-+ min (php-* (php-+ (convert-to-number 1.0) (php-- max min))
-;					 (php-/ the-rand (php-+ tmax (convert-to-number 1.0)))))))
-
-;   (convert-to-integer
-;    (+ (mkflo min) (* (+ 1.0 (- (mkflo max) (mkflo min)))
-;                      (/ (elong->flonum the-rand) (+ tmax 1.0))))))
 
 ;generate a seed for srand
 (define (rand-seed)
@@ -514,17 +501,8 @@
 	  (pragma::int "getpid()")))))
 	  
 
-;(define *c-rand-max* (convert-to-number c-rand_max))
-
 ; rand -- Generate a random value
 (defalias rand mt_rand)
-;(defbuiltin (php-rand (min 0) (max PHP_RAND_MAX))
-;   (set! min (convert-to-number min))
-;   (set! max (convert-to-number max))
-;   ;implement this the interesting way that php does
-;   (unless *rand-seeded?*
-;      (php-srand (rand-seed)))
-;   (rand-range (convert-to-number (c-rand)) min max *c-rand-max*))
    
 
 ; round -- Rounds a float
@@ -557,11 +535,6 @@
 
 ; srand -- Seed the random number generator
 (defalias srand mt_srand)
-;(defbuiltin (php-srand seed)
-;   (c-srand (mkflo seed))
-;   (set! *rand-seeded?* #t)
-;   #t)
-
 
 ; tan -- Tangent
 (defalias tan php-tan)
@@ -577,7 +550,3 @@
 (define (mkflo num)
    (onum->float (convert-to-number num)))
 
-;    (let ((a (mkflo num)))
-;       (if (fixnum? a)
-; 	  (fixnum->flonum a)
-;  	  a)))

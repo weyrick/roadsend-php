@@ -19,7 +19,6 @@
 
 (module webconnect
    (library php-runtime)
-;   (library common)
    (library profiler)
    (load (php-macros "../php-macros.scm"))
    (include "../runtime/php-runtime.sch")
@@ -235,46 +234,6 @@
 		      ; normal value
 		      (php-hash-insert! php-hash (car v) (cdr v))))
 		parsed-args)))
-
-;
-; XXX this version doesn't handle more than one dimension of arrays
-;
-; ; convert CGI request variables in PHP variables, including possible arrays
-; (define (store-request-args-in-php-hash php-hash arg-string delim)
-;    (let ((parsed-args (cgi-args->list arg-string)))
-;       (for-each (lambda (v)
-; ;		   (debug-trace 3 (format "key: ~a val: ~a" (car v) (cdr v)))
-; 		   (if (maybe-array (car v))
-; 		       ; array value
-; 		       (let ((ares (cgi-array->php-array (car v)))
-; 			     (new-hash (make-php-hash))
-; 			     (val-added? #f))
-; ;			  (debug-trace 3 "making new array named: " (car ares) " with value: " (cdr v))
-; 			  (if (null? (cdr ares))
-; 			      ; no indexes specified, make our own
-; 			      (php-hash-insert! new-hash :next (cdr v))			      
-; 			      ; at least one dimension, possibly more
-; 			      ; loop through the results of our parse
-; 			      (let loop ((last-hash #f)
-; 					 (index (cdr ares)))
-; ;				 (debug-trace 3 "looped, index is " (car index))
-; 				 (let ((deep-hash (make-php-hash)))
-; 				    ; here we handle adding correct indexes and keys
-; 				    ; to correct hash based on which depth we're at
-; 				    (php-hash-insert! (if (null? (cdr index))
-; 							  new-hash
-; 							  deep-hash)
-; 						      (car index)
-; 						      (if last-hash
-; 							  last-hash
-; 							  (cdr v)))
-; 				    (unless (null? (cdr index))
-; 				       (loop deep-hash (cdr index))))))
-; 			  ; add the completed array to the main hash
-; 			  (php-hash-insert! php-hash (car ares) new-hash))
-; 		      ; normal value
-; 		      (php-hash-insert! php-hash (car v) (cdr v))))
-; 		parsed-args)))
 
 ; XXX this comes from standard/php-strings
 ; we copy it cuz we don't want to import the whole thing

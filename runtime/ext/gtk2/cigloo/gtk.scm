@@ -7,7 +7,6 @@
 ;; tweak some types
 ;; for some reason, GTK_TYPE_FOO didn't make it into monster.h
 (module gtk-binding
-;   (library common)
    (export
     (gtk-init)
     (gdk-color-new::GdkColor* red::uint green::uint blue::uint)

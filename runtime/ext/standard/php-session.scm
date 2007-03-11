@@ -19,12 +19,12 @@
 
 (module php-session-lib
    (library profiler)
+   (library webconnect)
    (import (php-variable-lib "php-variable.scm"))
    (import (php-string-lib "php-strings.scm"))
    (import (php-time-lib "php-time.scm"))
    (import (php-math-lib "php-math.scm"))
    (import (php-files-lib "php-files.scm"))
-;   (import (webconnect "../../../webconnect/webconnect.scm"))
    (include "../phpoo-extension.sch")
    ; exports
    (export
@@ -346,41 +346,41 @@
 		     (loop))))))))
 
 
-(define (send-session-cookie) #f)
-;mingw    (when (eqv? (session-status *current-session*) 'active)
-;mingw       (setcookie (session-name *current-session*)
-;mingw 		 (session-sid *current-session*)
-;mingw 		 (session-cookie-lifetime *current-session*)
-;mingw 		 (session-cookie-path *current-session*)
-;mingw 		 (session-cookie-domain *current-session*)
-;mingw 		 (session-cookie-secure *current-session*))))
+(define (send-session-cookie)
+   (when (eqv? (session-status *current-session*) 'active)
+      (setcookie (session-name *current-session*)
+		 (session-sid *current-session*)
+		 (session-cookie-lifetime *current-session*)
+		 (session-cookie-path *current-session*)
+		 (session-cookie-domain *current-session*)
+		 (session-cookie-secure *current-session*))))
 
 (define (limit-nocache)
-;mingw   (header "Expires: Mon, 26 Jul 1997 05:00:00 GMT" #f)
-;mingw   (header "Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0" #f)
-;mingw   (header "Pragma: no-cache" #f)
+   (header "Expires: Mon, 26 Jul 1997 05:00:00 GMT" #f)
+   (header "Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0" #f)
+   (header "Pragma: no-cache" #f)
    #t)
 
 (define (limit-private)
-;mingw   (header "Expires: Mon, 26 Jul 1997 05:00:00 GMT" #f)
-   (limit-private-no-expire))
+   (header "Expires: Mon, 26 Jul 1997 05:00:00 GMT" #f)
+   (limit-private-no-expire)
+   #t)
 
 (define (limit-private-no-expire)
-;mingw   (header (format "Cache-Control: private, max-age=~a, pre-check=~a"
-;mingw		   (* (session-cache-expire *current-session*) 60)
-;mingw		   (* (session-cache-expire *current-session*) 60)) #f)
-    #f)
+   (header (format "Cache-Control: private, max-age=~a, pre-check=~a"
+		   (* (session-cache-expire *current-session*) 60)
+		   (* (session-cache-expire *current-session*) 60)) #f)
+   #t)
 
 (define (limit-public)
-;mingw   (header (format "Expires: ~a GMT"
-;mingw		   (gmdate "D, d M Y H:i:s"
-;mingw			   (+second (current-seconds)
-;mingw				    (flonum->elong (fixnum->flonum
-;mingw
-;mingw						    (* (session-cache-expire *current-session*) 60)))))) #f)
-;mingw   (header (format "Cache-Control: public, max-age=~a"
-;mingw		   (* (session-cache-expire *current-session*) 60)) #f))
-    #f)
+   (header (format "Expires: ~a GMT"
+		   (gmdate "D, d M Y H:i:s"
+			   (+ (current-seconds)
+			      (flonum->elong (fixnum->flonum						   
+					      (* (session-cache-expire *current-session*) 60)))))) #f)
+   (header (format "Cache-Control: public, max-age=~a"
+		   (* (session-cache-expire *current-session*) 60)) #f)
+   #t)
 
 (define (session-cache-limit)
    (when (eqv? (session-status *current-session*) 'active)
@@ -391,7 +391,7 @@
 	 ("public" (limit-public))
 	 ("none" #t)
 	 (else
-	  (php-warning (format "unrecognized session cache limiter: ~a" (session-cache-limiter *current-session*))))))) 
+	  (php-warning (format "unrecognized session cache limiter: ~a" (session-cache-limiter *current-session*)))))))
 
 ;;;;;;
 

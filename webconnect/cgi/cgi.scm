@@ -21,7 +21,6 @@
    (library php-runtime)
    (library phpeval)
    (library webconnect)
-;   (library common)
    (library profiler)
    (load (php-macros "../../php-macros.scm"))
    (include "../../runtime/php-runtime.sch")

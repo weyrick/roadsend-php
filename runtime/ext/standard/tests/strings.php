@@ -92,7 +92,7 @@ echo strrpos('test.php.test','.');
 $a = parse_url("http://username:password@hostname/path?arg=value#anchor");
 var_dump($a);
 
-$a = parse_url("http://username@hostname/path?#anchor");
+$a = parse_url("http://username@hostname/path#anchor");
 var_dump($a);
 
 $a = parse_url("http://hostname/path?arg=value");

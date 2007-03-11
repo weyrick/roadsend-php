@@ -18,11 +18,8 @@
 ;; ***** END LICENSE BLOCK *****
 (module php-core-lib
    (include "../phpoo-extension.sch")
-;   (library common)
    (library phpeval)
    (library profiler)
-;use...
-;   (import (driver "../../../compiler/driver.scm")) ;for php-eval
    (extern
     (include "php-system.h")
     (macro php-c-system::obj (str1::string) "php_c_system"))
@@ -309,43 +306,6 @@
            (car result)
            "")))
 
-;; this implementation fails on windows with what looks like an extra
-;; double-quote on the front of the command.
-;this is the implementation of backticks
-; (defbuiltin (shell_exec command)
-; 					;     (let* ((c (mkstr "| " command))
-; 					; 	   (p (open-input-file c))
-; 					; 	   (retval (unwind-protect (read-string p)
-; 					; 		      (close-input-port p))))
-; 					;        (if retval
-; 					; 	   retval
-; 					; 	   (php-error "unable to execute " command))))
-;     (debug-trace 0 "command is: " command)
-;     (let* ((process (cond-expand
-; 		       (PCC_MINGW
-; 			(run-process "cmd" "/c" command
-; 				     output: pipe: input: pipe:))
-; 		       (else
-; 			(run-process "/bin/sh" "-c" command
-; 				     output: pipe: input: pipe:))))
-; 	   (out-port (process-output-port process))
-; 	   (output 
-; 	    (with-output-to-string
-; 	       (lambda ()
-; 		  (let loop ((line (read-line out-port)))
-; 		     (if (eof-object? line)
-; 			 (close-input-port out-port)
-; 			 (begin
-; 			    (print line)
-; 			    (loop (read-line out-port)))))))))
-;        (process-wait process)
-;        output))
-
-;        (mkstr output "\nThe exit status of " command " was " 
-; 	      (process-exit-status process))))
-	   
-			
-	     
 
 ; escapeshellarg
 (defbuiltin (escapeshellarg string)
@@ -408,13 +368,6 @@
 ; get a list of PHP libs loaded from pcc.conf
 (defbuiltin (get_loaded_libs)
    (list->php-hash *user-libs*))
-;    (let ((array (make-php-hash)))
-;       (let loop ((lst *user-libs*))
-; 	 (if (pair? lst)
-; 	     (begin
-; 		(php-hash-insert! array :next (caar lst))
-; 		(loop (cdr lst)))
-; 	     array))))
 			 
 
 (defbuiltin (roadsend_pcc)

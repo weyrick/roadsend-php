@@ -19,14 +19,9 @@
 (module php-xml
    (include "../phpoo-extension.sch")
    (include "xml.sch")
-;   (library common)
    (library profiler)
    (import (xml-c-bindings "c-bindings.scm")
 	   (xml-additional-c-bindings "xml-additional-c-bindings.scm"))
-   ; this code was mostly stolen from cgen output
-   
-
-   
    ; exports
    (export
     XML_OPTION_SKIP_WHITE

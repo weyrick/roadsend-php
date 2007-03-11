@@ -19,7 +19,6 @@
 
 (module php-string-lib
    (include "../phpoo-extension.sch")
-;   (library "common")
    (import (php-variable-lib "php-variable.scm"))
    (import (php-math-lib "php-math.scm"))
    (import (pcc-web-url "url.scm"))
@@ -568,7 +567,6 @@
    (crc32 str (string-length str)))
 
 ; explode -- Split a string by string
-; FIXME this would be a lot simpler with pregexp-split
 (defbuiltin (explode sep str (limit 'unpassed))
    (let* ((str (mkstr str))
           (str-len::long (string-length str))
@@ -630,37 +628,6 @@
 			      (add-result! str2)
 			      (finish-results))))))))
 	  ))))
-
-; (defbuiltin (explode sep str (limit 'unpassed))
-;    (let* ((str (mkstr str))
-;           (str-len (string-length str))
-;           (sep (mkstr sep))
-;           (sep-len (string-length sep))
-;           (limit (if (eqv? limit 'unpassed) #f (mkfixnum limit)))
-;           (result-array (make-php-hash)))
-;       (cond
-;          ((zero? sep-len)
-;           FALSE)
-;          ((or (> sep-len str-len) (and limit (zero? limit)))
-;           (php-hash-insert! result-array :next str)
-;           result-array)
-;          (else
-;           (let loop ((left 0)
-;                      (right 0)
-;                      (count 1))
-;              (cond
-;                 ;; reached the end of the string or the match limit
-;                 ((or (> right (-fx str-len sep-len))
-;                      (and limit (= count limit)))
-;                  (php-hash-insert! result-array :next (substring str left str-len))
-;                  result-array)
-;                 ;; separator matches
-;                 ((substring-at? str sep right)
-;                  (php-hash-insert! result-array :next (substring str left right))
-;                  (loop (+fx right sep-len) (+fx right sep-len) (+fx count 1)))
-;                 ;; no match
-;                 (else
-;                  (loop left (+fx right 1) count))))))))
 
 ; get_html_translation_table --  Returns the translation table used by htmlspecialchars() and htmlentities()
 ; this is all horribly ethnocentric. but hey, it works just fine here in the good ol' U.S.

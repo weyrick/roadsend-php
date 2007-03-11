@@ -1,5 +1,4 @@
 (module gtk-binding
-;   (library common)
    (export
     (gtk-init)
     (gdk-color-new::GdkColor* red::uint green::uint blue::uint)

@@ -25,7 +25,6 @@
 	  (struct (sec::elong "tv_sec")
 		  (usec::elong "tv_usec"))
 	  "struct timeval"))
-;   (library common)
    (export
     (select n::int readfds::fd-set writefds::fd-set exceptfds::fd-set timeout::timeval*)
     (make-timeval::timeval*)))
@@ -33,14 +32,6 @@
 
 (define (select n::int readfds::fd-set writefds::fd-set exceptfds::fd-set timeout::timeval*)
    (pragma::int "select($1, $2, $3, $4, $5)" n readfds writefds exceptfds timeout))
-;     ;    (type fd_set* (opaque) "fd_set *")
-;     (macro select::int (n::int
-; 			readfds::fd-set
-; 			writefds::fd-set
-; 			exceptfds::fd-set
-; 			timeout::timeval*)
-; 	   "select")) )
-
 
 (define (make-timeval::timeval*)
    (pragma::timeval* "GC_MALLOC_ATOMIC(sizeof(struct timeval))"))

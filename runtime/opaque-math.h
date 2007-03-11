@@ -51,7 +51,6 @@ typedef struct _phpnum {
 // 64bit friendly?
 #define MAXFIXNUM 0x1fffffff
 
-
 /* in the scheme code */
 BGL_EXPORTED_DECL obj_t  phpnum_fail(char *reason);
 
@@ -59,26 +58,9 @@ BGL_EXPORTED_DECL obj_t  phpnum_fail(char *reason);
 #define PHPNUM_HASHNUMBER(a) (BELONG_TO_LONG(a) & 0x1fffffff)
 
 #define ONUMP(a) (ELONGP(a) || REALP(a))
-/* #define PHPNUM_IS_LONG(a) ((((phpnum *)a)->type == DOUBLE_TYPE) ? 0 : 1) */
 #define PHPNUM_IS_LONG(a) ELONGP(a)
-/* #define PHPNUM_IS_FLOAT(a) ((((phpnum *)a)->type == DOUBLE_TYPE) ? 1 : 0) */
 #define PHPNUM_IS_FLOAT(a) REALP(a)
 
-/* #define PHPNUM_DOUBLEVAL(a) ((((phpnum *)a)->type == LONG_TYPE) ? \ */
-/*                    (double)((phpnum *)a)->value.lval : ((phpnum *)a)->value.dval) */
-
-/* #define PHPNUM_COMPARE(a,b) ((PHPNUM_DOUBLEVAL(a) - PHPNUM_DOUBLEVAL(b)) ? (((PHPNUM_DOUBLEVAL(a) - PHPNUM_DOUBLEVAL(b)) > 0) ? 1 : -1) : 0) */
-
-/* #define LONGVAL(a) (((phpnum *)a)->value.lval) */
-
-/* #define PHPNUM_COMPARE_LONG(a,b) ((LONGVAL(a) - LONGVAL(b)) ? (((LONGVAL(a) - LONGVAL(b)) > 0) ? 1 : -1) : 0) */
 #define PHPNUM_COMPARE_LONG(a,b) ((BELONG_TO_LONG(a) - BELONG_TO_LONG(b)) ? (((BELONG_TO_LONG(a) - BELONG_TO_LONG(b)) > 0) ? 1 : -1) : 0)
 
-/* side effects on a! sets it to one past b. */
-/* #define PHPNUM_INC_LONG(a,b) (((phpnum *)a)->value.lval = ((phpnum *)a)->value.lval + 1) */
-
-
-
 #endif /* OPQMTH */
-
-

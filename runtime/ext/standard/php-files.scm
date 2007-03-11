@@ -22,7 +22,6 @@
    (include "../phpoo-extension.sch")
    (include "php-streams.sch")
    (library php-runtime)
-;   (library common)
    (library profiler)
    (import (streams-c-bindings "streams-c-bindings.scm"))
    (import (php-streams-lib "php-streams.scm"))
@@ -1028,31 +1027,6 @@
 	   ""))))
 
 
-;        (let* ((buf::string (make-string length))
-; 	      (bytes-read 
-; 	       (pragma::int "recv($1, $2, $3, 0)"
-; 			    (php-stream-fd handle)
-; 			    buf length)))
-; 	  (if (or (zero? bytes-read)
-; 		    (and (= bytes-read -1)
-; 			 (not (= (pragma::int "WSAGetLastError()")
-; 				 (pragma::int "WSAEWOULDBLOCK")))))
-; 	      (begin
-; ;	       (stream-eof?-set! stream #t)
-; 	       "")
-; 	      (string-shrink! buf bytes-read)))))
-
-	      
-; 	;		      (stream-timeout-sec handle) (stream-timeout-usec handle))
-; ;       (let* ((amt-waiting (waiting-to-be-read handle))
-; ;	      (length (min length amt-waiting))
-
-; 	      (buf (make-string length))
-; 	      (actually-read (pfl-fread buf 1 length (stream-file-ptr handle))))
-; 	  (unless (= actually-read length)
-; 	     (set! buf (string-shrink! buf actually-read)))
-; 	  buf)
-;        ""))
 
 ;; fread -- Binary-safe file read
 (defbuiltin (fread handle length)

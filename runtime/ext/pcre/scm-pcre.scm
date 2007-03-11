@@ -18,11 +18,8 @@
 ;; ***** END LICENSE BLOCK *****
 (module php-pcre
    (include "../phpoo-extension.sch")
-;   (library common)
    (library profiler)
    (import (pcre-c-bindings "c-bindings.scm"))
-;   (use (driver "../../../compiler/driver.scm"))
-   ;this is too hairy
    (library phpeval)
    ; exports
    (export

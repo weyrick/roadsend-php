@@ -1,5 +1,4 @@
 (module cpy
-;   (library common)
    (main main))
 
 (define (main argv)

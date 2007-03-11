@@ -19,28 +19,8 @@
 
 (module php-time-lib
    (include "../phpoo-extension.sch")
-;   (import (php-time-c-bindings "time-bindings.scm"))
-;   (library common)
    (library profiler)
    (import (time-c-bindings "time-c-bindings.scm"))
-
-;     (type time-t elong "time_t")
-;     (type time-t* (pointer time-t) "time_t*")
-;     (macro c-time::time-t (::time-t*) "time")
-;     (type tm
-; 	  (struct (sec::int "tm_sec")
-; 		  (min::int "tm_min")
-; 		  (hour::int "tm_hour")
-; 		  (mday::int "tm_mday")
-; 		  (mon::int "tm_mon")
-; 		  (year::int "tm_year")
-; 		  (wday::int "tm_wday")
-; 		  (yday::int "tm_yday")
-; 		  (isdst::int "tm_isdst"))
-; 	  "struct tm")
-;    (type tm* (pointer tm) "struct tm*")
-;    (macro mktime-tm::time-t (::tm*) "mktime") )
-
    (import
     (parsedate "parsedate.scm"))
       
@@ -48,8 +28,6 @@
    (export
     (init-php-time-lib)
 
-    ; for parsedate
-;    (time-t->time-t* foo::time-t)
     ; standard lib
     (checkdate mon day year)
     (php-date format tstamp)

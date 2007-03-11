@@ -19,11 +19,9 @@
 
 (module php-mysql-lib
    (include "../phpoo-extension.sch")
-;   (library "common")
    (library profiler)
    (import (mysql-c-bindings "c-bindings.scm"))
    (export
-;    *null-string* ;; for default argument values
     MYSQL_ASSOC
     MYSQL_NUM 
     MYSQL_BOTH
@@ -34,7 +32,7 @@
     (php-mysql-close link)
     (php-mysql-connect server username password new-link flags)
     (php-mysql-pconnect server username password flags)
-;    (php-mysql-create-db name link) ; depreacted
+;    (php-mysql-create-db name link) ; deprecated
     (php-mysql-data-seek result row-number)
     (mysql_db_query database-name query link)
 ;    (php-mysql-drop-db db-name link) ; deprecated

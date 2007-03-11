@@ -21,12 +21,10 @@
    (library php-runtime)
    (library phpeval)
    (library webconnect)
-;   (library common)
    (library profiler)
    (import (fcgi-binding "fcgi-binding.scm"))
    (load (php-macros "../../php-macros.scm"))
    (include "../../runtime/php-runtime.sch")
-;   (eval (export-exports))
 ;   (main fastcgi-main)
    (export
     (fastcgi-main argv)

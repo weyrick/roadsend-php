@@ -19,9 +19,7 @@
 
 (module pcc-win
    (include "../phpoo-extension.sch")
-;   (library common)
    (library profiler)
-;   (import (win-c-bindings "c-bindings.scm"))
    (extern
      (include "pcc-win.h")
      (type hkey (opaque) "HKEY")

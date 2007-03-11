@@ -32,56 +32,14 @@ BGL_EXPORTED_DECL obj_t phpsub(obj_t a, obj_t b);
 BGL_EXPORTED_DECL obj_t phpmul(obj_t a, obj_t b);
 BGL_EXPORTED_DECL obj_t phpdiv(obj_t a, obj_t b);
 BGL_EXPORTED_DECL obj_t phpmod(obj_t a, obj_t b);
-/* obj_t long_to_phpnum(long num); */
-/* obj_t double_to_phpnum(double num); */
 BGL_EXPORTED_DECL long phpnum_to_long(obj_t a);
 BGL_EXPORTED_DECL double phpnum_to_double(obj_t a);
-/* void convert_to_long(obj_t a); */
-/* void convert_to_double(obj_t a); */
 BGL_EXPORTED_DECL int phpnum_compare(obj_t a, obj_t b);
-/* obj_t phpnum_clone(obj_t a); */
 BGL_EXPORTED_DECL obj_t phpnum_to_string(obj_t a, int precision, int efg);
 BGL_EXPORTED_DECL int phpnum_is_long(obj_t a);
 BGL_EXPORTED_DECL int phpnum_is_float(obj_t a);
 BGL_EXPORTED_DECL obj_t string_to_float_phpnum(char *str);
 BGL_EXPORTED_DECL obj_t string_to_long_phpnum(char *str);
-/* int phpnum_hashnumber(obj_t a); */
-
-
-
-
-/*
-use this to copy a heap allocated phpnum into a stack allocated phpnum.
-commented because it's not been tested yet.
-#define PHPNUMCOPY(from,to)   to.type = from->type; \
-                              if (to.type == DOUBLE_TYPE) { \
-                                 to.value.dval = from->value.dval; \
-                              } else { \
-                                 to.value.lval = from->value.lval; \
-                              }
-*/
-
-
-/* Uncomment this main() and the phpnum_fail() below and compile this
-   file using bigloo to test it as a standalone (without the rest of
-   pcc). */
-/* int main () */
-/* { */
-/*   obj_t i = long_to_phpnum(0); */
-/*   obj_t j = long_to_phpnum(120); */
-/*   obj_t zero = long_to_phpnum(0); */
-/*   obj_t one = long_to_phpnum(1); */
-/*   obj_t two = long_to_phpnum(2); */
-/*   obj_t big = long_to_phpnum(1000000); */
-
-
-/*   for (i=long_to_phpnum(0); phpnum_compare(i,big) < 0; i=phpadd(i, one)) { */
-/*     j=phpmul(j, two);//phpmul(i, two)); */
-/*     j=phpdiv(j, two); */
-/*   } */
-/*   printf("opaque math: j: %e, i: %d\n", phpnum_to_double(j), phpnum_to_long(i)); */
-/* } */
-
 
 /* The piddle is something that I saw mentioned in Gabriel's Lisp
    performance book.  It's something that Maclisp did to reduce number
@@ -115,27 +73,6 @@ int phpnum_is_long(obj_t a) {
 }
 
 
-/* allocate a new phpnum and stuff num into it as a long */
-/* obj_t long_to_phpnum(long num) { */
-/* /\*   if (WITHIN_PDL_RANGE(num)) { *\/ */
-/* /\*     return GET_PDL(num); *\/ */
-/* /\*   } else { *\/ */
-/*     obj_t result = (obj_t )GC_MALLOC_ATOMIC(sizeof(phpnum)); */
-/*     result->type = LONG_TYPE; */
-/*     result->value.lval = num; */
-/*     return result; */
-/* /\*   } *\/ */
-/* } */
-
-/* allocate a new phpnum and stuff num into it as a double */
-/* obj_t double_to_phpnum(double num) { */
-/*   obj_t result = (obj_t )GC_MALLOC_ATOMIC(sizeof(phpnum)); */
-/*   result->type = DOUBLE_TYPE; */
-/*   result->value.dval = num; */
-/*   return result; */
-/* } */
-
-
 /* get the value of a phpnum as a long. doesn't mutate the phpnum. */
 long phpnum_to_long(obj_t a) {
   if (REALP(a)) {
@@ -155,24 +92,6 @@ double phpnum_to_double(obj_t a) {
     return REAL_TO_DOUBLE(a);
   }
 }
-
-/* /\* change a phpnum into a long.  may mutate the phpnum. *\/ */
-/* void convert_to_long(obj_t a) { */
-/*   if (a->type == DOUBLE_TYPE) { */
-/*     a->type = LONG_TYPE; */
-/*     a->value.lval = (a->value.dval > PHP_LONGMAX) ?  */
-/*       (unsigned long) a->value.dval :  */
-/*       (long) a->value.dval; */
-/*   } */
-/* } */
-
-/* /\* change a phpnum into a double. may mutate the phpnum. *\/ */
-/* void convert_to_double(obj_t a) { */
-/*   if (a->type == LONG_TYPE) { */
-/*     a->type = DOUBLE_TYPE; */
-/*     a->value.dval = (double)a->value.lval; */
-/*   } */
-/* } */
 
 /* add two phpnums, potentially converting to a double. */
 obj_t phpadd(obj_t a, obj_t b) 
@@ -275,10 +194,6 @@ obj_t phpmul(obj_t a, obj_t b)
   double dval;
   unsigned char tx;
 
-/*   tx = a->type | (b->type << 1); */
-
-/*   switch (tx) { */
-/*   case (LONG_TYPE | (LONG_TYPE << 1)): { */
   if (ELONGP(a) && ELONGP(b)) {
     int use_dval;
     long alval = BELONG_TO_LONG(a);
@@ -288,25 +203,20 @@ obj_t phpmul(obj_t a, obj_t b)
 
     if (use_dval) {
       return DOUBLE_TO_REAL(dval);
-    } /* else if (WITHIN_PDL_RANGE(lval)) { */
-/*       return GET_PDL(lval); */
-/*     }  */
+    } 
     else {
       return LONG_TO_BELONG(lval);
     }
   }
 
-/*   case (DOUBLE_TYPE | (DOUBLE_TYPE << 1)): { */
   else if (REALP(a) && REALP(b)) {
     dval = REAL_TO_DOUBLE(a) * REAL_TO_DOUBLE(b);
     return DOUBLE_TO_REAL(dval);
   } 
-/*  case (DOUBLE_TYPE | (LONG_TYPE << 1)): { */
   else if (REALP (a) && ELONGP(b)) {
     dval = REAL_TO_DOUBLE(a) * (double) BELONG_TO_LONG(b);
     return DOUBLE_TO_REAL(dval);
   }
-/*   case (LONG_TYPE | (DOUBLE_TYPE << 1)): { */
   else if (ELONGP(a) && REALP(b)) {
     dval = (double) BELONG_TO_LONG(a) * REAL_TO_DOUBLE(b);
     return DOUBLE_TO_REAL(dval);
@@ -414,12 +324,9 @@ obj_t phpnum_to_string(obj_t a, int precision, int efg) {
       if (actual_length > -1 && actual_length < ARB_STRING_SIZE)
 	return string_to_bstring_len(result, actual_length);
       if (actual_length > -1)   /* glibc 2.1 */ 
-/* 	size = actual_length+1; /\* precisely what is needed *\/ */
         phpnum_fail("Arbitrary constant not large enough");
       else           /* glibc 2.0 */
         phpnum_fail("Arbitrary constant not large enough");
-/* 	size *= 2;  /\* twice the old size *\/ */
-/*       result = (char *)GC_MALLOC_ATOMIC(size); */
     }
   } else { //long
     long lval = BELONG_TO_LONG(a);
@@ -429,11 +336,8 @@ obj_t phpnum_to_string(obj_t a, int precision, int efg) {
       if (actual_length > -1 && actual_length < ARB_STRING_SIZE)
 	return string_to_bstring_len(result, actual_length);
       if (actual_length > -1) 
-/* 	size = actual_length+1;  */
         phpnum_fail("Arbitrary constant not large enough");
       else
-/* 	size *= 2; */
-/*      result = (char *)GC_MALLOC_ATOMIC(size); */
         phpnum_fail("Arbitrary constant not large enough");
     }
   }
@@ -466,31 +370,4 @@ obj_t string_to_float_phpnum(char *str) {
     return DOUBLE_TO_REAL(dval);
   }
 }
-
-/* obj_t phpnum_clone(obj_t a) { */
-/*   obj_t result = (obj_t )GC_MALLOC_ATOMIC(sizeof(phpnum)); */
-/*   result->type = a->type; */
-/*   if (a->type == DOUBLE_TYPE) { */
-/*     result->value.dval = REAL_TO_DOUBLE(a); */
-/*   } else { */
-/*     result->value.lval = BELONG_TO_LONG(a); */
-/*   } */
-/*   return result; */
-/* } */
-
-
-
-/* int phpnum_hashnumber(obj_t a) { */
-/*    //it's actually always going to be a long, per php-hash... */
-/*   return (phpnum_to_long(a) & 0x1fffffff); */
-/* } */
-
-
-
-/* BGL_EXPORTED_DECL obj_t  phpnum_fail(char *reason) { */
-/*    fprintf(stderr, "Arithmetic error -- %s!!\n", reason);  */
-/*    return (obj_t)NULL; */
-/* } */
-
-
 
