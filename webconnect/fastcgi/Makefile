@@ -32,7 +32,7 @@ fastcgi-libs: ../../libs/libfastcgi_$(SUV).$(SOEXT) ../../libs/libfastcgi_$(SUV)
 
 
 ../../libs/libfastcgi_$(SUV).$(SOEXT): ../../libs/fastcgi.heap $(POPULATION) make-lib.o
-	$(call dllcmd,../../libs/libfastcgi_$(SUV).$(SOEXT)) $(POPULATION) make-lib.o $(FASTCGI_DLL_LIBS)
+	$(call dllcmd,../../libs/libfastcgi_$(SUV).$(SOEXT)) $(POPULATION) make-lib.o -lfcgi $(FASTCGI_DLL_LIBS)
 
 ../../libs/libfastcgi_$(SUV).a: ../../libs/fastcgi.heap $(STATIC_POPULATION)
 	ar ruv ../../libs/libfastcgi_$(SUV).a $(STATIC_POPULATION)

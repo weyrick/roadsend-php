@@ -60,11 +60,7 @@
 (add-end-page-reset-func clean-upload-tmps)
 
 (define (fastcgi-main argv)
-   (let ((in::FCGX_Stream* (pragma::FCGX_Stream* "NULL"))
-         (out::FCGX_Stream* (pragma::FCGX_Stream* "NULL"))
-         (err::FCGX_Stream* (pragma::FCGX_Stream* "NULL"))
-         (envp::FCGX_ParamArray (pragma::FCGX_ParamArray "0"))
-         (web-doc-root (mkstr (getenv "WEB_DOC_ROOT")))
+   (let ((web-doc-root (mkstr (getenv "WEB_DOC_ROOT")))
          (count::int 0))
       
       (args-parse (cdr argv)
@@ -82,14 +78,10 @@
              (print "Illegal argument `" else "'. ")
              (args-parse-usage #f)
              (exit 1))))
-      
+
       (let loop ()
-         (when (>= (FCGX_Accept (pragma::FCGX_Stream** "&$1" in)
-                                (pragma::FCGX_Stream** "&$1" out)
-                                (pragma::FCGX_Stream** "&$1" err)
-                                (pragma::FCGX_ParamArray* "&$1" envp))
-                   0)
-            (fastcgi-init envp in)
+         (when (>= (FCGI_Accept) 0)
+            (fastcgi-init)
             (let* ((server-vars (container-value $HTTP_SERVER_VARS))
                    (script-path (if *fastcgi-webapp*
                                     (let ((path (mkstr (php-hash-lookup server-vars "PATH_INFO"))))
@@ -157,18 +149,18 @@
 				  ))
 			   (e #t))))
 		   (let ((headers (fastcgi-get-headers)))
-		      (FCGX_PutStr headers (string-length headers) out))
-		   (FCGX_PutStr content (string-length content) out)
-		   (FCGX_FFlush out)
+		      (FCGI_fwrite headers 1 (string-length headers) FCGI_stdout))
+		   (FCGI_fwrite content 1 (string-length content) FCGI_stdout)
+		   (FCGI_fflush FCGI_stdout)
 		   (loop))))))
 
-(define (print-env out::FCGX_Stream* label::string envp::string*)
-   (FCGX_FPrintF out "%s:<b>\n<pre>\n" label)
-   (let loop ((envp envp))
-      (when (pragma::bool "*$1 != NULL" envp)
-         (FCGX_FPrintF out "%s\n" (pragma::string "*$1" envp))
-         (loop (pragma::string* "$1+1" envp))))
-   (FCGX_FPrintF out "</pre><p>\n"))
+; (define (print-env out::FCGX_Stream* label::string envp::string*)
+;    (FCGX_FPrintF out "%s:<b>\n<pre>\n" label)
+;    (let loop ((envp envp))
+;       (when (pragma::bool "*$1 != NULL" envp)
+;          (FCGX_FPrintF out "%s\n" (pragma::string "*$1" envp))
+;          (loop (pragma::string* "$1+1" envp))))
+;    (FCGX_FPrintF out "</pre><p>\n"))
 
 
                
@@ -189,7 +181,7 @@
    (lambda (msg)
       (fprint (current-error-port) (format "Error: ~a " msg))))
 
-(define (fastcgi-init envp::string* in::FCGX_Stream*)
+(define (fastcgi-init)
    (let ((server-vars (container-value $HTTP_SERVER_VARS)))
       
       (set! *backend-type* "FASTCGI")
@@ -214,12 +206,16 @@
       (header "Content-type: text/html" #t) 
       
       ; $_SERVER vars
-      (let loop ((envp envp))
-         (when (pragma::bool "*$1 != NULL" envp)
-            (multiple-value-bind (var value)
-               (split-on-first #\= (pragma::string "*$1" envp))
-               (php-hash-insert! server-vars var value))           
-            (loop (pragma::string* "$1+1" envp))))
+      (for-each (lambda (a)
+		   (php-hash-insert! server-vars (car a) (cdr a)))
+		(environ))
+      
+;       (let loop ((envp envp))
+;          (when (pragma::bool "*$1 != NULL" envp)
+;             (multiple-value-bind (var value)
+;                (split-on-first #\= (pragma::string "*$1" envp))
+;                (php-hash-insert! server-vars var value))           
+;             (loop (pragma::string* "$1+1" envp))))
 
       ;; PHP_SELF is not set by fastcgi, for obvious reasons, but it
       ;; seems to be the same as PATH_INFO (apache1/mod_fastcgi) or SCRIPT_NAME
@@ -250,7 +246,7 @@
 				  (pregexp-match "^multipart/form-data; boundary=\"*(.+)\"*$" (mkstr ctype))
 				  #f))
 		    (post-data (if (> content-length 0)
-				   (read-post content-length in)
+				   (read-post content-length)
 				   "")))
 		(if boundary
 		    ; multipart post
@@ -318,9 +314,9 @@
       ;; finally, copy the server vars into $_SERVER. 
       (container-value-set! $_SERVER (copy-php-data (container-value $HTTP_SERVER_VARS)))))
 
-(define (read-post content-length in::FCGX_Stream*)
+(define (read-post content-length)
    (let ((buffer (make-string content-length)))
-      (FCGX_GetStr buffer content-length in)
+      (FCGI_fread buffer 1 content-length FCGI_stdin)
       buffer))
 
 ;      (parse-post-args buffer)))

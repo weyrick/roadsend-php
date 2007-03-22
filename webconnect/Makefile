@@ -19,8 +19,8 @@ CLEFTOVERS	 := $(patsubst %.o,%.c,$(POPULATION)) $(patsubst %.o,%.c,$(STATIC_POP
 CGEN		= $(shell which cgen)
 
 BE_LIST	= micro \
-	  cgi \
 	  fastcgi
+#	  cgi \
 #	  apache1 \
 #	  apache2
 
