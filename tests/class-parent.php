@@ -45,4 +45,9 @@ foo::foo();
 $b->onemethod(1);
 $b->anothermethod(1);
 
+echo get_class($b)."\n";
+echo get_parent_class($b)."\n";
+echo get_parent_class('bar')."\n";
+echo get_parent_class('stdClass')."\n";
+
 ?>

@@ -1152,7 +1152,7 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 (defbuiltin (get_parent_class obj)
    (if (is-php-obj 'get_parent_class obj)
        (php-object-parent-class obj)
-       #f))
+       (php-class-parent-class (mkstr obj))))
 
 ; is_a --  Returns true if the object is of this class or has this class as one of its parents
 (defbuiltin (is_a obj class-name)

@@ -63,6 +63,7 @@
     (internal-object-compare o1 o2 identical? seen)
     (php-object-class obj)
     (php-object-parent-class obj)
+    (php-class-parent-class class-name)
     (copy-php-object obj::struct old-new)
     (init-php-object-lib)
     (define-php-class name parent-name)
@@ -421,6 +422,9 @@ values the values."
 (define (php-object? obj)
    (%php-object? obj))
 
+(define (php-class? obj)
+   (%php-class? obj))
+
 (define (get-custom-lookup obj)
    (%php-class-custom-prop-lookup
     (%php-object-class obj)))
@@ -578,19 +582,30 @@ values the values."
        (%php-class-print-name
 	(%php-class-parent-class
 	 (%php-object-class obj)))))
-	
+
+(define (php-class-parent-class class-name)
+   (let ((the-class (%lookup-class class-name)))
+      (if (not (php-class? the-class))
+          #f
+	  (if (%php-class-parent-class the-class)
+	      (%class-name-canonicalize (%php-class-print-name (%php-class-parent-class the-class)))
+	      #f))))
+
+; XXX update for PHP5
 (define (%class-name-canonicalize name)
    "define class names as case-insensitive strings"
    ;   (string->symbol
    (string-downcase (mkstr name)))
     ;))
 
+; XXX update for PHP5
 (define (%method-name-canonicalize name)
    "define method names as case-insensitive strings"
    ;   (string->symbol
    (string-downcase (mkstr name)))
 ;)
 
+; XXX update for PHP5
 (define (%property-name-canonicalize name)
    "define property names as case-_sensitive_ strings"
    (if (string? name) name (mkstr name)))
