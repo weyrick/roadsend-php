@@ -269,7 +269,7 @@
  	(library mhttpd)
 	; if static, we need to init the library files
 	,@(if (target-option static?:)
-	      `((library ,filename)
+	      `((library ,(string->symbol filename))
 		(include ,(mkext filename ".sch")))
 	      '())
         ,@(scheme-libraries-and-includes)
@@ -334,7 +334,7 @@
    `((module ,(string->symbol (string-append filename "-stub"))
 	(main main)
 	,@(if (target-option static?:)
-	      `((library ,filename)
+	      `((library ,(string->symbol filename))
 		(include ,(mkext filename ".sch")))
 	      '())
         ,@(scheme-libraries-and-includes))
