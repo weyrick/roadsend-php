@@ -50,4 +50,10 @@ echo get_parent_class($b)."\n";
 echo get_parent_class('bar')."\n";
 echo get_parent_class('stdClass')."\n";
 
+echo "subclass? ".is_subclass_of($b, 'foo')."\n";
+echo "subclass? ".is_subclass_of($a, 'foo')."\n";
+echo "subclass? ".is_subclass_of($a, 'stdclass')."\n";
+// this is > php 5.0.5
+echo "subclass? ".is_subclass_of('bar', 'foo')."\n";
+
 ?>

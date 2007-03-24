@@ -1164,7 +1164,9 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 (defbuiltin (is_subclass_of obj class-name)
    (if (is-php-obj 'is_subclass obj)
        (php-object-is-subclass obj class-name)
-       #f))
+       (if PHP5?
+	   (php-class-is-subclass (mkstr obj) (mkstr class-name))
+	   #f)))
 
 ; method_exists -- Checks if the class method exists
 (defbuiltin (method_exists obj method-name)
