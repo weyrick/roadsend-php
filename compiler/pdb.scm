@@ -25,7 +25,6 @@
    (library profiler)
    (library mhttpd)
    (library webconnect)
-   (library cgi)
    (import (pcc-highlighter "synhighlight.scm")
            (driver "driver.scm")
            (declare "declare.scm")
