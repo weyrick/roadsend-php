@@ -121,10 +121,6 @@
 	   (args-parse-usage #f)
 	   (exit 1)))
 
-       ((("-5") (help "Enable PHP5 support"))
-	(when (maybe-add-script-argv "-5")
-	   (set! PHP5? #t)))
-
        ((("-v") (help "Verbose output"))
 	(when (maybe-add-script-argv "-v")
 	   (set! *verbosity* 1)))
@@ -134,53 +130,6 @@
 	   (print *RAVEN-VERSION-STRING*)
 	   (exit 1)))
 
-       (section "Compiler Options")
-       ((("-O" "--optimize") (help "Generate optimized dynamically linked binary"))
-	(when (maybe-add-script-argv "-O")
-	   (unless (not *track-stack?*)
-	      ;; just to keep from frobbing the *bigloo-optimization* twice
-	      (set! *track-stack?* #f)
-	      (set-target-option! bigloo-optimization: "-O6"))))
-       
-       ((("--static") (help "Generate optimized statically linked binary"))
-	(when (maybe-add-script-argv "--static")
-	   (add-target-option! static?: #t)))
-       
-       ((("-m" "--make-file") ?file (help "Build using specified project make file"))
-	(when (maybe-add-script-argv "-m")
-	   (parse-make-file file)))
-       
-       ((("--resource") ?file (help "Compile and use the specified windows resource file"))
-	(when (maybe-add-script-argv "--resource")
-	   (set-target-option! resource-file: file)))
-
-       ((("--port") ?port (help "Set the default port that the MicroServer should use"))
-	(add-target-option! micro-web-port: (mkfixnum port)))	
-       
-       ((("-u" "--use") ?lib-name (help "Use specified PCC library when compiling and linking"))
-	(when (maybe-add-script-argv "-u")
-	   (add-target-option! commandline-libs: lib-name)))
-
-       ((("-o" "--output-file") ?file (help "The output file"))
-	(when (maybe-add-script-argv "-o")
-	   (target-output-path-set! *current-target* file)))
-       
-       ((("-c") ?config-file (help "Use the specified config file"))
-	(maybe-add-script-argv "-c")
-	; this option is actually checked for above because the *config-file* variable needs
-	; to be set before read-config-file is called, so this is just here to swallow the
-	; option and provide commandline help
-	)
-       
-       ((("-I" "--include-path") ?dir (help "Add a directory to the include file search path")) ;
-        ;; XXX I would love these include-paths globals to go away. --timjr
-        (set! *include-paths* (cons dir *include-paths*))
-        (add-target-option! include-paths: dir))       
-
-       ((("-L" "--library-path") ?lib-path (help "Add lib-path to library search path"))
-	(when (maybe-add-script-argv "-L")
-	   (add-target-option! library-paths: lib-path)))
-       
        (section "Compile Mode (default: generate console application)")
 
        ((("-i" "-f" "--interpret") ?script (help "Execute code immediately, instead of compiling"))
@@ -192,7 +141,7 @@
 	    ; we're in pass through, so add the script var too
 	    (add-script-argv script)))
        
-       ((("--fastcgi") ?fastcgi-name (help "Generate stand alone FastCGI application"))
+       ((("--fastcgi" "--cgi") ?fastcgi-name (help "Generate stand alone FastCGI application (also runs as normal CGI)"))
         (do-library-mode fastcgi-name)
         (when (maybe-add-script-argv "--fastcgi")
 	   (add-target-option! fastcgi?: #t)
@@ -212,13 +161,70 @@
 	      (PCC_MINGW (add-target-option! gui?: #t))
 	      (else '()))))
        
-       ((("--cgi") (help "Generate stand alone (normal) CGI application"))
-        (when (maybe-add-script-argv "--cgi")
-	   (add-target-option! cgi?: #t)))
+;        ((("--cgi") (help "Generate stand alone (normal) CGI application"))
+;         (when (maybe-add-script-argv "--cgi")
+; 	   (add-target-option! cgi?: #t)))
        
        ((("-l" "--library-mode") ?library-name (help "Generate a library instead of an executable."))
         (do-library-mode library-name))
 
+       
+       (section "Compiler Options")
+
+       ((("-5") (help "Enable PHP5 support"))
+	(when (maybe-add-script-argv "-5")
+	   (set! PHP5? #t)))
+
+       ((("-c") ?config-file (help "Use the specified config file"))
+	(maybe-add-script-argv "-c")
+	; this option is actually checked for above because the *config-file* variable needs
+	; to be set before read-config-file is called, so this is just here to swallow the
+	; option and provide commandline help
+	)
+
+       ((("--static") (help "Generate optimized statically linked binary"))
+	(when (maybe-add-script-argv "--static")
+	   (add-target-option! static?: #t)))
+       
+       ((("-O" "--optimize") (help "Generate optimized dynamically linked binary"))
+	(when (maybe-add-script-argv "-O")
+	   (unless (not *track-stack?*)
+	      ;; just to keep from frobbing the *bigloo-optimization* twice
+	      (set! *track-stack?* #f)
+	      (set-target-option! bigloo-optimization: "-O6"))))
+       
+       ((("-m" "--make-file") ?file (help "Build using specified project make file"))
+	(when (maybe-add-script-argv "-m")
+	   (parse-make-file file)))
+       
+       ((("-u" "--use") ?lib-name (help "Use specified PCC library when compiling and linking"))
+	(when (maybe-add-script-argv "-u")
+	   (add-target-option! commandline-libs: lib-name)))
+
+       ((("-o" "--output-file") ?file (help "The output file"))
+	(when (maybe-add-script-argv "-o")
+	   (target-output-path-set! *current-target* file)))
+       
+       ((("-I" "--include-path") ?dir (help "Add a directory to the include file search path")) ;
+        ;; XXX I would love these include-paths globals to go away. --timjr
+        (set! *include-paths* (cons dir *include-paths*))
+        (add-target-option! include-paths: dir))       
+
+       ((("-L" "--library-path") ?lib-path (help "Add lib-path to library search path"))
+	(when (maybe-add-script-argv "-L")
+	   (add-target-option! library-paths: lib-path)))
+
+       (section "MicroServer Compile Options")
+
+       ((("--port") ?port (help "Set the default port that the MicroServer should use"))
+	(add-target-option! micro-web-port: (mkfixnum port)))	
+
+       (section "PHP-GTK Compile Options")
+
+       ((("--resource") ?file (help "Compile and use the specified windows resource file"))
+	(when (maybe-add-script-argv "--resource")
+	   (set-target-option! resource-file: file)))
+       
        (section "Library Related Options (requires -l, --fastcgi, or --microserver)")
        
        ((("--strip-path") ?strip-path (help "Strip leading path from source files when compiling a library"))
@@ -246,9 +252,9 @@
 	      (add-target-option! bigloo-args: "-g")
 	      (add-target-option! bigloo-args: "-cg"))))
 
-       ((("-g" "--debugger") (help "Run file in the PCC step debugger"))
-	(when (maybe-add-script-argv "-g")
-	   (widen!::debug-target *current-target*)))
+;        ((("-g" "--debugger") (help "Run file in the PCC step debugger"))
+; 	(when (maybe-add-script-argv "-g")
+; 	   (widen!::debug-target *current-target*)))
        
        ((("-P" "--profile") (help "Generate code for PHP source level profiling"))
 	; (set-target-option! source-level-profile: #t)
@@ -311,10 +317,10 @@
         (when *RAVEN-DEVEL-BUILD*
            (widen!::dump-target *current-target* (dump-type 'ast))))
        
-       (("--dump-containers" (help "Dump the syntax tree produced by the parser, after container analysis")
-         )
-        (when *RAVEN-DEVEL-BUILD*
-           (widen!::dump-target *current-target* (dump-type 'containers))))
+;        (("--dump-containers" (help "Dump the syntax tree produced by the parser, after container analysis")
+;          )
+;         (when *RAVEN-DEVEL-BUILD*
+;            (widen!::dump-target *current-target* (dump-type 'containers))))
        
        (("--dump-types" (help "Dump the syntax tree produced by the parser, after type inference")
          )
@@ -324,15 +330,15 @@
        ; 	 (("--show-copies" ;(help "Dump the syntax tree produced by the parser, after type inference")
        ; 			  )
        ;	  (set! show-copies? #t))
-       (("--dump-flow" (help "Dump the flow graph of the program")
-         )
-        (when *RAVEN-DEVEL-BUILD*
-           (widen!::dump-target *current-target* (dump-type 'flow-graph))))
+;        (("--dump-flow" (help "Dump the flow graph of the program")
+;          )
+;         (when *RAVEN-DEVEL-BUILD*
+;            (widen!::dump-target *current-target* (dump-type 'flow-graph))))
 
-       (("--dump-times" (help "Compile, printing the times required for each stage")
-         )
-        (when *RAVEN-DEVEL-BUILD*
-           (widen!::dump-target *current-target* (dump-type 'times))))
+;        (("--dump-times" (help "Compile, printing the times required for each stage")
+;          )
+;         (when *RAVEN-DEVEL-BUILD*
+;            (widen!::dump-target *current-target* (dump-type 'times))))
        
        ; this is for pretending to be in non devel mode so we can see what the user will see
        (("--fake-no-devel")
@@ -502,8 +508,8 @@
                                                         ;   (add-strip-path (windows->unix-path v)))
                                                         (add-target-option! strip-paths: (force-trailing-/ (windows->unix-path v))))))))))))
       (cond
-        ((string=? ptype *PROJ-TYPE-CGI*)          
-         (add-target-option! cgi?: #t))
+;        ((string=? ptype *PROJ-TYPE-CGI*)          
+;         (add-target-option! cgi?: #t))
         ((string=? ptype *PROJ-TYPE-GUI*) 
          (add-target-option! commandline-libs: "php-gtk")
 	 (cond-expand

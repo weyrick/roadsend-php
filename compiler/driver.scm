@@ -241,10 +241,12 @@
 					; check for auto session start
                 (init-php-runtime)
                 ,(generate-config-ini-entries)
-		,@(if (target-option cgi?:)
-		      `((cgi-init)
-			(cgi-print-headers))
-		      '())
+		
+; XXX cgi deprecated in favor or fastcgi in dual mode		
+; 		,@(if (target-option cgi?:)
+; 		      `((cgi-init)
+; 			(cgi-print-headers))
+; 		      '())
 
 		(run-startup-functions)
 

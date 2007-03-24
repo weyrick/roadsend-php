@@ -20,6 +20,9 @@ CGEN		= $(shell which cgen)
 
 BE_LIST	= micro \
 	  fastcgi
+
+# apache and cgi interfaces are deprecated.
+# fastcgi works as both normal cgi and fastcgi
 #	  cgi \
 #	  apache1 \
 #	  apache2
