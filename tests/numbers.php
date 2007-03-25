@@ -27,7 +27,8 @@ test_num("hex2b",0xFFFFFF);
 test_num("hex2c",0xFFFFFFFFF);
 test_num("hex2d",0xFFFFFFFFFF);
 test_num("hex3 ",0xFFFFFFFFFFF);
-test_num("hex4", 0xFFFFFFFFFFFFFFFFF);
+test_num("hex4a", 0xFFFFFFFFFFFFFFFF);
+test_num("hex4b", 0xFFFFFFFFFFFFFFFFF);
 
 test_num("oct1:",(077777777 * 2));
 test_num("oct2:",(077777777777 * 2));

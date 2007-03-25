@@ -76,8 +76,6 @@
     *RAVEN-VERSION-MAJOR*
     *RAVEN-VERSION-MINOR*
     *RAVEN-VERSION-RELEASE*
-    *MAX-INT-SIZE*
-    *MIN-INT-SIZE*
     *user-libs*
     (add-end-page-reset-func f)
     (reset-runtime-state)
@@ -328,9 +326,10 @@
 (define FALSE #f)
 (define NULL '())
 
+; XXX these are in opaque-math-bindings nows
 ; max size of an int (elong) expressed as a flonum
-(define *MAX-INT-SIZE* 2147483647.0)
-(define *MIN-INT-SIZE* (-fl (negfl *MAX-INT-SIZE*) 1.0))
+;(define *MAX-INT-SIZE* 2147483647.0)
+;(define *MIN-INT-SIZE* (-fl (negfl *MAX-INT-SIZE*) 1.0))
 
 ; list of functions to run before program execution
 (define *startup-functions* (make-hashtable))
@@ -490,10 +489,10 @@
       ((symbol? a) (symbol->string a))
       ((char? a) (string a))
       ((elong? a)
-       ; XXX hack. bigloo no likey print min ints
-       (if (=elong a (flonum->elong *MIN-INT-SIZE*))
-	   "-2147483648"
-	   (elong->string a)))
+;       ; XXX hack. bigloo no likey print min ints
+;       (if (=elong a *MIN-INT-SIZE-L*)
+;	   "-2147483648"
+	   (elong->string a))
       ((null? a) "")
       ((php-resource? a) (string-append "Resource id #" (integer->string (resource-id a))))
       (else
@@ -921,7 +920,7 @@
 ;implicitly declared global in every function
 (define *superglobals* 'unset)
 
-; global constants
+; standard constants
 (defconstant ROADSEND_PHPC *one*)
 (defconstant ROADSEND_PHP *one*)
 (defconstant ROADSEND_PCC *one*)
@@ -936,6 +935,8 @@
 (defconstant RAVEN_VERSION *RAVEN-VERSION-STRING*)
 (defconstant PCC_VERSION_TAG *RAVEN-VERSION-TAG*)
 (defconstant RAVEN_VERSION_TAG *RAVEN-VERSION-TAG*)
+(defconstant PHP_INT_MAX (convert-to-integer *MAX-INT-SIZE-L*))
+(defconstant PHP_INT_SIZE (convert-to-integer *SIZEOF-LONG*))
 (defconstant PATH_SEPARATOR (path-separator))
 (defconstant DIRECTORY_SEPARATOR (pcc-file-separator))
 

@@ -1040,7 +1040,14 @@ the current index if it was this entry."
       (cond
 	 ((onum? key) (if (fast-onum-is-long key) 
 			  (fix-max-key key)
-			  (fix-max-key (elong->onum (onum->elong key)))))
+			  (let ((lkey (elong->onum (onum->elong key))))
+			     ; check for overflow on the float when we convert to long
+			     ; XXX checking this by seeing if the float->long conversion returns 0
+			     ; is this correct?
+			     (if (= lkey 0)
+				 ; in this case, zend always uses MIN-INT-SIZE..?
+				 (fix-max-key (convert-to-integer *MIN-INT-SIZE-L*))
+				 (fix-max-key lkey)))))
 	 ((keyword? key)
 	  [assert (key) (eqv? key :next)]
 	  (let ((max-key (onum+ *one* (%php-hash-maximum-integer-key hash))))
@@ -1049,7 +1056,12 @@ the current index if it was this entry."
 	 ((string? key)
 	  (if (=fx 0 (is-numeric-key key (string-length key)))
 	      key
-	      (fix-max-key (string->onum/long key))))
+	      (let ((lkey (string->onum/long key)))
+		 ; check for overflow, in which case keep as string
+		 (if (or (=elong (onum->elong lkey) *MAX-INT-SIZE-L*)
+			 (=elong (onum->elong lkey) *MIN-INT-SIZE-L*))
+		     key
+		     (fix-max-key lkey)))))
 	 ((container? key) (->insert-key (container-value key) hash))
 	 ((fixnum? key) (fix-max-key (int->onum key)))
 	 ((elong? key) (fix-max-key (elong->onum key)))

@@ -34,6 +34,7 @@
 
     )
    (extern
+    (include "opaque-math.h")
     ;onum stands for opaque number.  we use void* instead of phpnum* so that
     ;nobody needs to include opaque-math.h.
     (onum+::onum (a::onum b::onum) "phpadd")
@@ -64,6 +65,11 @@
     (onum? (predicate-of onum) no-cfa-top nesting) )
    (export
     *float-precision*
+    *MAX-INT-SIZE-L*
+    *MIN-INT-SIZE-L*
+    *MAX-INT-SIZE-F*
+    *MIN-INT-SIZE-F*
+    *SIZEOF-LONG*
     (onum->string::bstring a::onum precision::int)
     (onum->string/e::bstring a::onum precision::int)
     (onum->string/f::bstring a::onum precision::int)
@@ -74,6 +80,22 @@
     (onum-long? a::onum)
     (onum-float? a::onum)
     (inline onum?::bool ::obj)))
+
+; the float version is used in the lexer
+(define *MAX-INT-SIZE-L*
+   (pragma::elong "PHP_LONGMAX"))
+
+(define *MAX-INT-SIZE-F*
+   (elong->flonum *MAX-INT-SIZE-L*))
+
+(define *MIN-INT-SIZE-L*
+   (pragma::elong "PHP_LONGMIN"))
+
+(define *MIN-INT-SIZE-F*
+   (elong->flonum *MIN-INT-SIZE-L*))
+
+(define *SIZEOF-LONG*
+   (pragma::elong "sizeof(long)"))
 
 (define-inline (onum?::bool obj::obj)
    (pragma::bool "(ELONGP($1) || REALP($1))" obj))

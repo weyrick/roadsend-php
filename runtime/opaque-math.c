@@ -98,14 +98,14 @@ obj_t phpadd(obj_t a, obj_t b)
 {
 
   if (ELONGP(a) && ELONGP(b)) {
-    double dval = (double) BELONG_TO_LONG( a ) + (double) BELONG_TO_LONG( b );
+    long lval = BELONG_TO_LONG( a ) + BELONG_TO_LONG( b );
 /*     if (WITHIN_PDL_RANGE(dval)) { */
 /*       return GET_PDL(dval); */
 /*     } else  */
-    if ((dval > (double) PHP_LONGMAX) || (dval < (double) PHP_LONGMIN)) {
-      return DOUBLE_TO_REAL( dval );
+    if ( (BELONG_TO_LONG(a) & PHP_LONGMIN) == (BELONG_TO_LONG(b) & PHP_LONGMIN)
+	 && (BELONG_TO_LONG(a) & PHP_LONGMIN) != (lval & PHP_LONGMIN) ) {
+      return DOUBLE_TO_REAL( (double)BELONG_TO_LONG( a ) + (double)BELONG_TO_LONG( b ) );
     } else {
-      long lval = BELONG_TO_LONG( a ) + BELONG_TO_LONG( b );
       return LONG_TO_BELONG( lval );
     }
   }
@@ -128,31 +128,30 @@ obj_t phpadd(obj_t a, obj_t b)
 /* subtract two phpnums, potentially converting to a double. */
 obj_t phpsub(obj_t a, obj_t b)
 {
-  if (ELONGP(a) && ELONGP(b)) {
-    double dval = (double) BELONG_TO_LONG(a) - (double) BELONG_TO_LONG(b);
-
-/*     if (WITHIN_PDL_RANGE(dval)) { */
-/*       return GET_PDL(dval); */
-/*     } else  */
-    if ((dval < (double) PHP_LONGMIN) || (dval > (double) PHP_LONGMAX)) {
-      return DOUBLE_TO_REAL(dval);
-    } else {
-      long lval = BELONG_TO_LONG(a) - BELONG_TO_LONG(b);
-      return LONG_TO_BELONG(lval);
+    if (ELONGP(a) && ELONGP(b)) {
+	long lval =  BELONG_TO_LONG(a) - BELONG_TO_LONG(b);
+	/*     if (WITHIN_PDL_RANGE(dval)) { */
+	/*       return GET_PDL(dval); */
+	/*     } else  */
+	if ( (BELONG_TO_LONG(a) & PHP_LONGMIN) != (BELONG_TO_LONG(b) & PHP_LONGMIN)
+	     && (BELONG_TO_LONG(a) & PHP_LONGMIN) != (lval & PHP_LONGMIN) ) {
+	    return DOUBLE_TO_REAL((double) BELONG_TO_LONG(a) - (double) BELONG_TO_LONG(b));
+	} else {
+	    return LONG_TO_BELONG(lval);
+	}
     }
-  }
-  if ((REALP(a) && ELONGP(b)) || 
-      (ELONGP(a) && REALP(b))) {
-    double dval = (REALP(a) ?
-		   (REAL_TO_DOUBLE(a) - ((double) BELONG_TO_LONG (b))) :
-		   ((double) BELONG_TO_LONG (a) - REAL_TO_DOUBLE(b)));
-    return DOUBLE_TO_REAL(dval);
-  }
-  if (REALP(a) && REALP(b)) {
-    double dval = REAL_TO_DOUBLE(a) - REAL_TO_DOUBLE(b);
-    return DOUBLE_TO_REAL(dval);
-  }
-  phpnum_fail("ya got me");
+    if ((REALP(a) && ELONGP(b)) || 
+	(ELONGP(a) && REALP(b))) {
+	double dval = (REALP(a) ?
+		       (REAL_TO_DOUBLE(a) - ((double) BELONG_TO_LONG (b))) :
+		       ((double) BELONG_TO_LONG (a) - REAL_TO_DOUBLE(b)));
+	return DOUBLE_TO_REAL(dval);
+    }
+    if (REALP(a) && REALP(b)) {
+	double dval = REAL_TO_DOUBLE(a) - REAL_TO_DOUBLE(b);
+	return DOUBLE_TO_REAL(dval);
+    }
+    phpnum_fail("phpsub: unknown operand types");
 }
 
 

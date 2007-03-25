@@ -55,7 +55,7 @@ typedef struct _phpnum {
 BGL_EXPORTED_DECL obj_t  phpnum_fail(char *reason);
 
 /* #define PHPNUM_HASHNUMBER(a) (((phpnum *)a)->value.lval & 0x1fffffff) */
-#define PHPNUM_HASHNUMBER(a) (BELONG_TO_LONG(a) & 0x1fffffff)
+#define PHPNUM_HASHNUMBER(a) (BELONG_TO_LONG(a) & MAXFIXNUM)
 
 #define ONUMP(a) (ELONGP(a) || REALP(a))
 #define PHPNUM_IS_LONG(a) ELONGP(a)
