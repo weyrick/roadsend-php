@@ -64,7 +64,7 @@ include ../extensions.mk
 OTHERLIBS       = $(RESOLVER_LIBRARY) -L$(BGL_DEFAULT_LIB_DIR) -L/usr/local/lib
 
 ifeq ($(PCC_OS), PCC_MINGW)
-OTHERLIBS       := $(OTHERLIBS) -lgw32c -lole32 -luuid
+OTHERLIBS       := $(OTHERLIBS) -lgw32c -lole32 -luuid -lwebconnect_$(SUV)
 endif
 
 # dependencies

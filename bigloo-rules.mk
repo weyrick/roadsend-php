@@ -8,7 +8,7 @@ BIGLOO		= bigloo
 BGL_DEFAULT_LIB_DIR = $(shell bigloo -eval '(begin (print *default-lib-dir*) (exit 0))')
 
 #SU is for the _s or _u extensions
-#SU is for the _s or _u extensions + perhaps the version
+#SUV is for the _s or _u extensions + perhaps the version
 #SAFETY is for when we use bigloo to link, like in compiler/Makefile
 ifeq ($(UNSAFE),t)
 	SU = u

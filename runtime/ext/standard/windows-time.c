@@ -1,4 +1,4 @@
-#include <windows.h>
+//#include <windows.h>
 #include "windows-time.h"
 
 /* //from http://lists.gnu.org/archive/html/bug-gnu-chess/2004-01/msg00020.html */
