@@ -113,25 +113,26 @@
 ;                (FCGX_FPrintF err "pwd is now %s\n" (pwd))
 ;                (FCGX_FFlush err)
 	       ; security - can't call directly
-	       (if (or (string=? script-path "")
+	       (if (or (eqv? script-path '())
+		       (string=? script-path "")
 		       (string=? script-path (car (command-line))))
 		   (begin
 		      (set-header "Status" "Status" HTTP-FORBIDDEN #t)
-		      (set! content "<font color=\"red\">Access Forbidden</font>"))		   
+		      (set! content "<font color=\"red\">Access Forbidden</font>\n"))
 		   (try (set! content (run-url script-path *fastcgi-webapp* *fastcgi-index*))
 			(lambda (e p m o)
 			   (if (eq? o 'file-not-found)
 			       (begin
 				  (set-header "Status" "Status" HTTP-NOT-FOUND #t)
 				  (set! content (format "
-                                  <!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">
-                                  <html><head>
-                                  <title>404 Not Found</title>
-                                  </head><body>
-                                  <h1>Not Found</h1>
-                                  <p>The requested URL ~a was not found on this server.</p>
-                                  <hr>
-                                  </body></html>" script-path)))
+<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">
+<html><head>
+<title>404 Not Found</title>
+</head><body>
+<h1>Not Found</h1>
+<p>The requested URL ~a was not found on this server.</p>
+<hr>
+</body></html>\n" script-path)))
 			       (begin
 				  (set-header "Status" "Status" HTTP-INTERNAL-SERVER-ERROR #t)
                                   ;; using out or err in this error handler seems to screw something up,
