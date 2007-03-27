@@ -165,7 +165,7 @@
 ;         (when (maybe-add-script-argv "--cgi")
 ; 	   (add-target-option! cgi?: #t)))
        
-       ((("-l" "--library-mode") ?library-name (help "Generate a library instead of an executable."))
+       ((("-l" "--library-mode") ?library-name (help "Generate a library"))
         (do-library-mode library-name))
 
        
@@ -219,6 +219,11 @@
        ((("--port") ?port (help "Set the default port that the MicroServer should use"))
 	(add-target-option! micro-web-port: (mkfixnum port)))	
 
+       (section "FastCGI Compile Options")
+
+       ((("--default-index") ?iname (help "Set the default index page [default: index.php]"))
+	(add-target-option! fastcgi-index: (mkstr iname)))	
+       
        (section "PHP-GTK Compile Options")
 
        ((("--resource") ?file (help "Compile and use the specified windows resource file"))

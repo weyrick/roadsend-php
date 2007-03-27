@@ -71,6 +71,8 @@
           (pragma "close(0)")
           (unless (zero? (FCGX_OpenSocket (string-append ":" (integer->string (string->integer port))) 100))
              (php-error "Unable to open socket.")))
+	 ((("-i" "--index") ?iname (help (mkstr "Set the default index page name [default: " *fastcgi-index* "]")))
+	  (set! *fastcgi-index* iname))
          ((("-r" "--web-doc-root") ?root (help "Set the web document root"))
           (set! web-doc-root (mkstr root)))
          (else
@@ -79,6 +81,9 @@
              (args-parse-usage #f)
              (exit 1))))
 
+      (when (getenv "DEFAULT_INDEX")
+	 (set! *fastcgi-index* (mkstr (getenv "DEFAULT_INDEX"))))
+      
       (let loop ()
          (when (>= (FCGI_Accept) 0)
             (fastcgi-init)
@@ -112,19 +117,19 @@
 ;                (FCGX_FPrintF err "other webdocroot is now %s\n" (mkstr (getenv "WEB_DOC_ROOT")))
 ;                (FCGX_FPrintF err "pwd is now %s\n" (pwd))
 ;                (FCGX_FFlush err)
-	       ; security - can't call directly
-	       (if (or (eqv? script-path '())
-		       (string=? script-path "")
-		       (string=? script-path (car (command-line))))
-		   (begin
-		      (set-header "Status" "Status" HTTP-FORBIDDEN #t)
-		      (set! content "<font color=\"red\">Access Forbidden</font>\n"))
-		   (try (set! content (run-url script-path *fastcgi-webapp* *fastcgi-index*))
-			(lambda (e p m o)
-			   (if (eq? o 'file-not-found)
-			       (begin
-				  (set-header "Status" "Status" HTTP-NOT-FOUND #t)
-				  (set! content (format "
+	       
+	       ; if no script is passed, default to index page in root
+	       (when (or (eqv? script-path '())
+			 (string=? script-path "")
+			 (string=? script-path (car (command-line))))
+		  (set! script-path (file-name-canonicalize (mkstr "/" *fastcgi-index*))))
+	       
+	       (try (set! content (run-url script-path *fastcgi-webapp* *fastcgi-index*))
+		    (lambda (e p m o)
+		       (if (eq? o 'file-not-found)
+			   (begin
+			      (set-header "Status" "Status" HTTP-NOT-FOUND #t)
+			      (set! content (format "
 <!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">
 <html><head>
 <title>404 Not Found</title>
@@ -133,27 +138,27 @@
 <p>The requested URL ~a was not found on this server.</p>
 <hr>
 </body></html>\n" script-path)))
-			       (begin
-				  (set-header "Status" "Status" HTTP-INTERNAL-SERVER-ERROR #t)
-                                  ;; using out or err in this error handler seems to screw something up,
-                                  ;; giving us segfaults when we print on them (even outside the error
-                                  ;; handler -- bigloo's boxing it or something)
-				  (let ((error-message (format "Error: ~A: ~A ~A" p m o))
-					(stack (if (> *debug-level* 2)
-						   (with-output-to-string (lambda ()
-									     (dump-bigloo-stack
-									      (current-output-port) 10)))
-						   "")))
-				     (set! content (mkstr "<h2><font color=\"red\">" error-message
-							  "</h2><pre>" stack "</pre></font>")))
-				  ;   (FCGX_PutStr error-message (string-length error-message)  out) )
-				  ))
-			   (e #t))))
-		   (let ((headers (fastcgi-get-headers)))
-		      (FCGI_fwrite headers 1 (string-length headers) FCGI_stdout))
-		   (FCGI_fwrite content 1 (string-length content) FCGI_stdout)
-		   (FCGI_fflush FCGI_stdout)
-		   (loop))))))
+			   (begin
+			      (set-header "Status" "Status" HTTP-INTERNAL-SERVER-ERROR #t)
+			      ;; using out or err in this error handler seems to screw something up,
+			      ;; giving us segfaults when we print on them (even outside the error
+			      ;; handler -- bigloo's boxing it or something)
+			      (let ((error-message (format "Error: ~A: ~A ~A" p m o))
+				    (stack (if (> *debug-level* 2)
+					       (with-output-to-string (lambda ()
+									 (dump-bigloo-stack
+									  (current-output-port) 10)))
+					       "")))
+				 (set! content (mkstr "<h2><font color=\"red\">" error-message
+						      "</h2><pre>" stack "</pre></font>")))
+			      ;   (FCGX_PutStr error-message (string-length error-message)  out) )
+			      ))
+		       (e #t)))
+	       (let ((headers (fastcgi-get-headers)))
+		  (FCGI_fwrite headers 1 (string-length headers) FCGI_stdout))
+	       (FCGI_fwrite content 1 (string-length content) FCGI_stdout)
+	       (FCGI_fflush FCGI_stdout)
+	       (loop))))))
 
 ; (define (print-env out::FCGX_Stream* label::string envp::string*)
 ;    (FCGX_FPrintF out "%s:<b>\n<pre>\n" label)

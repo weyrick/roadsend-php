@@ -344,6 +344,10 @@
      (define (main argv)
         ;	(set! *debug-level* ,*debug-level*)
         (set! *fastcgi-webapp* ,filename)
+
+	,@(if (target-option fastcgi-index:)
+	      `((set! *fastcgi-index* ,@(target-option fastcgi-index:)))
+	      '())
         
 	; if we will link statically, we compile in the extension libraries
 	; so we don't want to load them at runtime. this will prevent that
