@@ -292,7 +292,16 @@
         ,@(if (target-option micro-web-port:)
 	      `((set! *micro-web-port* ,@(target-option micro-web-port:)))
 	      '())
-				     
+
+	; possibly override index/404 pages
+	,@(if (target-option webapp-index-page:)
+	      `((set! *webapp-index-page* ,@(target-option webapp-index-page:)))
+	      '())
+        
+        ,@(if (target-option webapp-404-page:)
+              `((set! *webapp-404-page* ,@(target-option webapp-404-page:)))
+              '())
+	
 	(set! *micro-web-lib* ,filename)
 
 	; if we will link statically, we compile in the extension libraries
@@ -345,10 +354,14 @@
         ;	(set! *debug-level* ,*debug-level*)
         (set! *fastcgi-webapp* ,filename)
 
-	,@(if (target-option fastcgi-index:)
-	      `((set! *fastcgi-index* ,@(target-option fastcgi-index:)))
+	,@(if (target-option webapp-index-page:)
+	      `((set! *webapp-index-page* ,@(target-option webapp-index-page:)))
 	      '())
         
+        ,@(if (target-option webapp-404-page:)
+              `((set! *webapp-404-page* ,@(target-option webapp-404-page:)))
+              '())
+
 	; if we will link statically, we compile in the extension libraries
 	; so we don't want to load them at runtime. this will prevent that
 	,@(if (target-option static?:)

@@ -616,7 +616,7 @@
                                    (cond
                                       ((or (target-option cgi?:) 
                                            (target-option microserver?:))
-                                       '("cgi" "phpeval" "webconnect"))
+                                       '("phpeval" "webconnect"))
 ;                                       ((target-option fastcgi?:)
 ;                                        '("cgi" "phpeval" "webconnect" "fastcgi"))
                                       (else

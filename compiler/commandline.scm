@@ -219,11 +219,14 @@
        ((("--port") ?port (help "Set the default port that the MicroServer should use"))
 	(add-target-option! micro-web-port: (mkfixnum port)))	
 
-       (section "FastCGI Compile Options")
+       (section "Web Application (MicroServer/FastCGI) Compile Options")
 
        ((("--default-index") ?iname (help "Set the default index page [default: index.php]"))
-	(add-target-option! fastcgi-index: (mkstr iname)))	
+	(add-target-option! webapp-index-page: (mkstr iname)))	
        
+       ((("--not-found") ?iname (help "Set the default not found page [default: 404.php]"))
+        (add-target-option! webapp-404-page: (mkstr iname)))
+
        (section "PHP-GTK Compile Options")
 
        ((("--resource") ?file (help "Compile and use the specified windows resource file"))

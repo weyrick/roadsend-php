@@ -32,6 +32,10 @@
     *response-code*
     *ignore-user-abort*
     *static-webapp?*
+    ; web app pages
+    *webapp-index-page*
+    *webapp-404-page*
+    ;
     log-message
     log-warning
     log-error
@@ -118,6 +122,11 @@
 ; used in driver.scm, run-url to signal that we shouldn't
 ; try to load the webapp (and extensions) dynamically, since they're already compiled in
 (define *static-webapp?* #f)
+
+; default page micro/fastcgi
+(define *webapp-index-page* "index.php")
+; default 404 not found page
+(define *webapp-404-page* "404.php")
 
 ;;;written with lambda to emphasize their variable aspect
 

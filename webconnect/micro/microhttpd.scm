@@ -28,7 +28,6 @@
    (export
     *micro-web-lib*
     *micro-web-port*
-    *micro-web-index*
     *micro-web-log*
     *micro-web-current-server*
     *micro-debugger?*
@@ -52,7 +51,6 @@
 (define *micro-web-version* (mkstr "Roadsend PHP microhttpd " *RAVEN-VERSION-STRING*))
 
 (define *micro-web-port* 8000)
-(define *micro-web-index* "index.php")
 (define *micro-web-log* 0)
 
 ; running from pdb debugger?
@@ -273,7 +271,7 @@
 
       ; if a directory is requested, try the index page
       (when (char=? (string-ref request (- (string-length request) 1)) #\/)
-	 (set! request (mkstr request *micro-web-index*)))
+	 (set! request (mkstr request *webapp-index-page*)))
 
       (php-hash-insert! (container-value $HTTP_SERVER_VARS) "PHP_SELF" request)
       (php-hash-insert! (container-value $HTTP_SERVER_VARS) "SCRIPT_NAME" request)
@@ -419,7 +417,7 @@
        (begin
 	  ; if it's a directory, try the index of that directory
 	  (if (directory? bin-file)
-	      (http-get-php (mkstr file-name "/" *micro-web-index*))
+	      (http-get-php (mkstr file-name "/" *webapp-index-page*))
 	      (http-fnf bin-file))))
       (else
        (web-client-h-ttpdirective (mkstr "HTTP/1.1 " *response-code* " OK"))
@@ -433,9 +431,17 @@
        (display "\r\n" *micro-web-output-port*)
        (web-client-addfile bin-file)))))
 
+; try to run user defined 404 page, otherwise default Not Found
 (define (http-fnf fname)
    (set! *response-code* HTTP-NOT-FOUND)
-   (http-reply (format "
+   (try (let ((content (run-url (make-web-path *webapp-404-page*)
+				*micro-web-lib*
+				*webapp-index-page*)))
+	   (http-reply content))
+	(lambda (e p m o)
+	   (if (eq? o 'file-not-found)
+	       (begin
+		  (http-reply (format "
 <!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">
 <html><head>
 <title>404 Not Found</title>
@@ -445,6 +451,9 @@
 <hr>
 <address>~a port ~a</address>
 </body></html>" fname *micro-web-version* *micro-web-port*)))
+	       (http-reply (format "Error: ~A: ~A ~A" p m o)))
+	   (e #t))))
+
 
 (define (http-reply str)
 
@@ -495,7 +504,7 @@
 
 (define (http-get-php file)
    (try (let ((content (run-url (make-web-path (substring file 1 (string-length file)))
-				*micro-web-lib* *micro-web-index*)))
+				*micro-web-lib* *webapp-index-page*)))
 	   (http-reply content))
 	(lambda (e p m o)
 	   (if (eq? o 'file-not-found)

@@ -28,8 +28,7 @@
 ;   (main fastcgi-main)
    (export
     (fastcgi-main argv)
-    *fastcgi-webapp*
-    *fastcgi-index*)
+    *fastcgi-webapp*)
 ;    (export
 ;     (init-fastcgi-lib)
 ;     (fastcgi-init)
@@ -39,7 +38,6 @@
 
 (define *fastcgi-version* (mkstr "Roadsend PHP FastCGI " *RAVEN-VERSION-STRING*))
 (define *fastcgi-webapp* #f)
-(define *fastcgi-index* "index.php")
 
 (set! *backend-type* *fastcgi-version*)
 
@@ -71,8 +69,10 @@
           (pragma "close(0)")
           (unless (zero? (FCGX_OpenSocket (string-append ":" (integer->string (string->integer port))) 100))
              (php-error "Unable to open socket.")))
-	 ((("-i" "--index") ?iname (help (mkstr "Set the default index page name [default: " *fastcgi-index* "]")))
-	  (set! *fastcgi-index* iname))
+	 ((("-i" "--default-index") ?name (help (mkstr "Set the default index page name [default: " *webapp-index-page* "]")))
+	  (set! *webapp-index-page* name))
+         ((("-n" "--not-found") ?name (help (mkstr "Set the default not found page [default: " *webapp-404-page* "]")))
+          (set! *webapp-404-page* name))
          ((("-r" "--web-doc-root") ?root (help "Set the web document root"))
           (set! web-doc-root (mkstr root)))
          (else
@@ -81,9 +81,12 @@
              (args-parse-usage #f)
              (exit 1))))
 
-      (when (getenv "DEFAULT_INDEX")
-	 (set! *fastcgi-index* (mkstr (getenv "DEFAULT_INDEX"))))
+      (when (getenv "PCC_INDEX_PAGE")
+	 (set! *webapp-index-page* (mkstr (getenv "PCC_INDEX_PAGE"))))
       
+      (when (getenv "PCC_NOTFOUND_PAGE")
+         (set! *webapp-404-page* (mkstr (getenv "PCC_NOTFOUND_PAGE"))))
+
       (let loop ()
          (when (>= (FCGI_Accept) 0)
             (fastcgi-init)
@@ -122,14 +125,48 @@
 	       (when (or (eqv? script-path '())
 			 (string=? script-path "")
 			 (string=? script-path (car (command-line))))
-		  (set! script-path (file-name-canonicalize (mkstr "/" *fastcgi-index*))))
+		  (set! script-path (file-name-canonicalize (mkstr "/" *webapp-index-page*))))
 	       
-	       (try (set! content (run-url script-path *fastcgi-webapp* *fastcgi-index*))
+	       (try (set! content (run-url script-path *fastcgi-webapp* *webapp-index-page*))
 		    (lambda (e p m o)
 		       (if (eq? o 'file-not-found)
-			   (begin
-			      (set-header "Status" "Status" HTTP-NOT-FOUND #t)
-			      (set! content (format "
+			   (set! content (404-handler script-path))
+			   (set! content (runtime-error-handler p m o)))
+		       (e #t)))
+	       (let ((headers (fastcgi-get-headers)))
+		  (FCGI_fwrite headers 1 (string-length headers) FCGI_stdout))
+	       (FCGI_fwrite content 1 (string-length content) FCGI_stdout)
+	       (FCGI_fflush FCGI_stdout)
+	       (loop))))))
+
+; show the runtime error in a nice page, with backtrace
+(define (runtime-error-handler p m o)
+   (let ((content ""))
+      (set-header "Status" "Status" HTTP-INTERNAL-SERVER-ERROR #t)
+      ;; using out or err in this error handler seems to screw something up,
+      ;; giving us segfaults when we print on them (even outside the error
+      ;; handler -- bigloo's boxing it or something)
+      (let ((error-message (format "Error: ~A: ~A ~A" p m o))
+	    (stack (if (> *debug-level* 2)
+		       (with-output-to-string (lambda ()
+						 (dump-bigloo-stack
+						  (current-output-port) 10)))
+		       "")))
+	 (set! content (mkstr "<h2><font color=\"red\">" error-message
+			      "</h2><pre>" stack "</pre></font>")))
+      content))
+
+; try to run the user defined 404 page, otherwise a default Not Found page
+(define (404-handler script-path)
+   (let ((content ""))
+      (try (set! content (run-url (file-name-canonicalize (mkstr "/" *webapp-404-page*))
+				  *fastcgi-webapp*
+				  *webapp-index-page*))
+	   (lambda (e p m o)
+	      (if (eq? o 'file-not-found)
+		  (begin
+		     (set-header "Status" "Status" HTTP-NOT-FOUND #t)
+		     (set! content (format "
 <!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">
 <html><head>
 <title>404 Not Found</title>
@@ -138,27 +175,9 @@
 <p>The requested URL ~a was not found on this server.</p>
 <hr>
 </body></html>\n" script-path)))
-			   (begin
-			      (set-header "Status" "Status" HTTP-INTERNAL-SERVER-ERROR #t)
-			      ;; using out or err in this error handler seems to screw something up,
-			      ;; giving us segfaults when we print on them (even outside the error
-			      ;; handler -- bigloo's boxing it or something)
-			      (let ((error-message (format "Error: ~A: ~A ~A" p m o))
-				    (stack (if (> *debug-level* 2)
-					       (with-output-to-string (lambda ()
-									 (dump-bigloo-stack
-									  (current-output-port) 10)))
-					       "")))
-				 (set! content (mkstr "<h2><font color=\"red\">" error-message
-						      "</h2><pre>" stack "</pre></font>")))
-			      ;   (FCGX_PutStr error-message (string-length error-message)  out) )
-			      ))
-		       (e #t)))
-	       (let ((headers (fastcgi-get-headers)))
-		  (FCGI_fwrite headers 1 (string-length headers) FCGI_stdout))
-	       (FCGI_fwrite content 1 (string-length content) FCGI_stdout)
-	       (FCGI_fflush FCGI_stdout)
-	       (loop))))))
+		  (set! content (runtime-error-handler p m o)))
+	      (e #t)))
+      content))
 
 ; (define (print-env out::FCGX_Stream* label::string envp::string*)
 ;    (FCGX_FPrintF out "%s:<b>\n<pre>\n" label)
