@@ -1,6 +1,6 @@
 ;
-; XXX this is from a beta bigloo distribution of 2.8, with a few
-; fixes. replace with release version from 2.8
+; this is originally from a beta bigloo distribution of 2.8, with a few
+; fixes and PHP specific changes
 ;
 
 ;*=====================================================================*/
@@ -75,6 +75,17 @@
 			   (unhex (the-substring (-fx (the-length) 2)
 						 (the-length)))))
 		    (ignore))
+                   ((when (not (rgc-context? 'val))
+                       (+ (out "=%&")))
+                    (set! field-name
+                          (string-append
+                           field-name
+                           (decode (the-string))))
+                    (set! fields-list (cons (cons field-name field-value)
+                                            fields-list))
+                    (set! field-name "")
+                    (set! field-value "")
+                     (ignore))
 		   ((when (rgc-context? 'val)
 		       (+ (or (: (? #a013) #\newline) #\&)))
 		    (set! fields-list (cons (cons field-name field-value)
