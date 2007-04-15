@@ -56,7 +56,10 @@
 ; used by php land code and .htaccess to override
 (define (set-ini-entry name value)
    (debug-trace 9 (format "(runtime) setting ~a to ~a" name value))
-   (hashtable-put! *ini-table* (mkstr name) value))
+   (hashtable-put! *ini-table* (mkstr name) value)
+   ; precision?
+   (when (string=? (mkstr name) "precision")
+      (set! *float-precision* (mkfixnum value))))
 
 ; used only by config file reader
 ; ini table will be reset to this after every page load
@@ -215,3 +218,4 @@
 ; url rewriter tag defaults
 (default-ini-entry "url_rewriter.tags" "a=href,area=href,frame=src,input=src,form=fakeentry")
 (default-ini-entry "arg_separator.input" "&")
+(default-ini-entry "precision" "12")

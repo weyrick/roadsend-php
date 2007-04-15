@@ -540,7 +540,7 @@
 						")\n"))
 			  ((is_int var) (mkstr indent rtag "int(" var ")\n"))
 			  ((is_float var) 
-                           (mkstr indent rtag "float(" (onum->string var *float-precision*) ")\n"))
+                           (mkstr indent rtag "float(" (onum->string/g-vardump var *float-precision*) ")\n"))
 			  ((is_string var) (mkstr indent rtag "string("
 						  (string-length var) ") \"" var "\"\n"))
 			  ((is_array var)

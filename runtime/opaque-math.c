@@ -35,7 +35,7 @@ BGL_EXPORTED_DECL obj_t phpmod(obj_t a, obj_t b);
 BGL_EXPORTED_DECL long phpnum_to_long(obj_t a);
 BGL_EXPORTED_DECL double phpnum_to_double(obj_t a);
 BGL_EXPORTED_DECL int phpnum_compare(obj_t a, obj_t b);
-BGL_EXPORTED_DECL obj_t phpnum_to_string(obj_t a, int precision, int efg);
+BGL_EXPORTED_DECL obj_t phpnum_to_string(obj_t a, int precision, int efg, int style);
 BGL_EXPORTED_DECL int phpnum_is_long(obj_t a);
 BGL_EXPORTED_DECL int phpnum_is_float(obj_t a);
 BGL_EXPORTED_DECL obj_t string_to_float_phpnum(char *str);
@@ -282,23 +282,13 @@ int phpnum_compare(obj_t a, obj_t b)
   return ((aval - bval) ? (((aval - bval) > 0) ? 1 : -1) : 0);
 }
 
-#ifdef PCC_MINGW
-
 // mingw doesn't like the uppercase versions
-#define E_FORMAT "%.*e"
-#define F_FORMAT "%.*f"
-#define G_FORMAT "%.*g"
-
-#else
-
 #define E_FORMAT "%.*E"
-#define F_FORMAT "%.*F"
+#define F_FORMAT "%.*f"
 #define G_FORMAT "%.*G"
 
-#endif
-
 /* convert a phpnum to a string.  precision is irrelevant for longs. */
-obj_t phpnum_to_string(obj_t a, int precision, int efg) {
+obj_t phpnum_to_string(obj_t a, int precision, int efg, int style) {
   int actual_length;
 #define ARB_STRING_SIZE 1024
   char result[ARB_STRING_SIZE];
@@ -308,13 +298,20 @@ obj_t phpnum_to_string(obj_t a, int precision, int efg) {
     while (1) {
       switch (efg) {
       case 0:
-        actual_length = snprintf(result, ARB_STRING_SIZE, E_FORMAT, precision, dval);
+        actual_length = pcc_snprintf(result, ARB_STRING_SIZE, E_FORMAT, precision, dval);
         break;
       case 1:
-        actual_length = snprintf(result, ARB_STRING_SIZE, F_FORMAT, precision, dval);
+        actual_length = pcc_snprintf(result, ARB_STRING_SIZE, F_FORMAT, precision, dval);
         break;
       case 2:
-        actual_length = snprintf(result, ARB_STRING_SIZE, G_FORMAT, precision, dval);
+	  if (style == 0) {
+	      // echo
+	      actual_length = snprintf(result, ARB_STRING_SIZE, G_FORMAT, precision, dval);
+	  }
+	  else {
+	      // var_dump
+	      actual_length = pcc_snprintf(result, ARB_STRING_SIZE, G_FORMAT, precision, dval);
+	  }
         break;
       default:
         phpnum_fail("bad value for efg");

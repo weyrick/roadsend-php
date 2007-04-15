@@ -10,7 +10,7 @@ SLIB_FILES	= slib/format  slib/slib  slib/sort  slib/soundex  slib/strcase  slib
 SOURCE_LIST	= php-runtime php-hash php-object php-ini utils elongs opaque-math-binding \
                   grasstable url-rewriter signatures extended-streams constants finalizers \
                   fast-string-append php-errors resources blib $(SLIB_FILES)
-C_SOURCE_LIST   = c-runtime opaque-math php-hash-helper
+C_SOURCE_LIST   = c-runtime opaque-math php-hash-helper pcc_snprintf
 
 C_POPULATION     := $(patsubst %,%_$(SU).o,$(C_SOURCE_LIST))
 C_STATIC_POPULATION     := $(patsubst %,%_$(SU)$(STATIC_SUFFIX).o,$(C_SOURCE_LIST))

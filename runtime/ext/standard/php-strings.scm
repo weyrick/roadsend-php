@@ -1148,16 +1148,16 @@
 							       precision
 							       (php-- precision 1))
 							   ; default precision
-							   6)))
+							   (if (string=? form "f") 6 5))))							       
 				       (parts (re-string-split #\. ; (string-downcase (cl-format (mkstr "~," prec form) (consume-flonum pos)))
                                                             (if (string=? form "f")
                                                                 (onum->string/f (convert-to-float (consume pos)) prec)
                                                                 ;; downcase the E and make lose any leading zeros on the exponent
                                                                 ;; (the libc printf always uses a double-digit exponent)
-                                                                (pregexp-replace "e\\+0"
-                                                                                 (string-downcase 
-                                                                                  (onum->string/e (convert-to-float (consume pos)) prec))
-                                                                                 "e\\+")))))
+                                                                (pregexp-replace "e([\\-+])0"
+										 (string-downcase 
+										  (onum->string/e (convert-to-float (consume pos)) prec))
+                                                                                 "e\\1")))))
 				   (pad-string (string-append  (car parts) "."
 							       (pad-string (cadr parts) prec "0" STR_PAD_RIGHT))
 					       width padding alignment))))

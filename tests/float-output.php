@@ -82,9 +82,7 @@ $a[] = 1235567890123.0;
 $a[] = 12345678901234.0;
 $a[] = 123456789012345.0;
 $a[] = 1234567890123456.0;
-// the last digit is an 8 when we printf this one. I've decided not to
-//worry about it for now.  --timjr
-//$a[] = 12345678901234567.0;
+$a[] = 12345678901234567.0;
 
 $a[] = 0.7;
 $a[] = 0.07;
@@ -150,7 +148,8 @@ $a[] = (1000000*1000000);
 foreach ($a as $f) {
     var_dump($f);
     echo("echo: $f\n");
-    printf("printf: %f\n",$f);
+    printf("printf(f): %f\n",$f);
+    printf("printf(e): %e\n",$f);
 }
 
 

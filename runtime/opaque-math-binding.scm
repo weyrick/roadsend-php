@@ -49,7 +49,7 @@
     (onum->elong::elong (num::onum) "phpnum_to_long")
     (onum->float::double (num::onum) "phpnum_to_double")
     (onum-compare::int (a::onum b::onum) "phpnum_compare")
-    (%onum->string::bstring (a::onum precision::int efg::int) "phpnum_to_string")
+    (%onum->string::bstring (a::onum precision::int efg::int style::int) "phpnum_to_string")
     (string->onum/float::onum (str::string) "string_to_float_phpnum")
     (string->onum/long::onum (str::string) "string_to_long_phpnum")
     (macro onum-is-long::int (a::onum) "phpnum_is_long")
@@ -74,6 +74,7 @@
     (onum->string/e::bstring a::onum precision::int)
     (onum->string/f::bstring a::onum precision::int)
     (onum->string/g::bstring a::onum precision::int)
+    (onum->string/g-vardump::bstring a::onum precision::int)    
     (phpnum_fail reason::string)
     (onum->int::int num::onum) 
     (int->onum::onum num::int)
@@ -110,7 +111,7 @@
 (define (phpnum_fail reason::string)
    (error "" (string-append "Arithmetic Error: " reason) ""))
 
-(define *float-precision* 14) ;should come from an INI entry
+(define *float-precision* 12) ;should come from an INI entry
 
 (define (onum->int::int num::onum)
    (flonum->fixnum (elong->flonum (onum->elong num))))
@@ -150,11 +151,16 @@
 ;; least significant digits seem to differ from php.  Maybe it's worth
 ;; switching to ap-php-[efg]cvt.
 (define (onum->string/e::bstring a::onum precision::int)
-   (%onum->string a precision 0))
+   (%onum->string a precision 0 0))
 
 (define (onum->string/f::bstring a::onum precision::int)
-   (%onum->string a precision 1))
+   (%onum->string a precision 1 0))
 
+; this is a ridiculous hack to get around the fact that zend php uses no less than 4
+; different sprintf implementations
 (define (onum->string/g::bstring a::onum precision::int)
-   (%onum->string a precision 2))
+   (%onum->string a precision 2 0))
+
+(define (onum->string/g-vardump::bstring a::onum precision::int)
+   (%onum->string a precision 2 1))
 

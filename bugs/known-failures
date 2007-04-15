@@ -1,9 +1,8 @@
-last updated: 3/1/07
+last updated: 4/15/07
 
 ** KNOWN REGRESSIONS **
 linux:
 1123: base64 encode/decode (only amd64?)
-1125: numbers (only amd64?)
 
 
 Other Known (acceptable) Failures:
