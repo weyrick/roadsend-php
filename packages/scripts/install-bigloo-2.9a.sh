@@ -29,6 +29,7 @@ install -m 755 -d $install_root/$install_prefix/libs/bigloo/2.9a
 install -m 755 -s $source_root/bin/bigloo $install_root/$install_prefix/bin/bigloo
 install -m 755  $source_root/runtime/Include/bigloo.h $install_root/$install_prefix/libs/bigloo/2.9a/bigloo.h
 install -m 755  $source_root/lib/2.9a/bigloo.h $install_root/$install_prefix/libs/bigloo/2.9a/bigloo.h
+install -m 755  $source_root/lib/2.9a/bigloo_gc.h $install_root/$install_prefix/libs/bigloo/2.9a/bigloo_gc.h
 install -m 755  $source_root/lib/2.9a/bigloo_config.h $install_root/$install_prefix/libs/bigloo/2.9a/bigloo_config.h
 install -m 755  $source_root/lib/2.9a/bigloo.heap $install_root/$install_prefix/libs/bigloo/2.9a/bigloo.heap
 install -m 755  -s $source_root/lib/2.9a/libbigloo_u-2.9a.so $install_root/$install_prefix/libs/bigloo/2.9a/libbigloo_u-2.9a.so
