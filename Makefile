@@ -122,11 +122,10 @@ install:
 	@echo "sorry, there is no 'make install' right now - you should run pcc from the source directory"
 	@echo "the binary is located at compiler/pcc - you should put the compiler/ directory into your PATH"
 	@echo "you also need bigloo and other items in your path: see the wiki online at http://code.roadsend.com/"
-	@echo ".. a real 'make install' is under development"
 
-#install: unsafe
-#	./install.sh $(INSTALL_ROOT) $(INSTALL_PREFIX)
+package-install: unsafe
+	./install.sh $(INSTALL_ROOT) $(INSTALL_PREFIX)
 
-#install-runtime: unsafe
-#	./install-runtime.sh $(INSTALL_ROOT) $(INSTALL_PREFIX)
+package-install-runtime: unsafe
+	./install-runtime.sh $(INSTALL_ROOT) $(INSTALL_PREFIX)
 

@@ -22,28 +22,6 @@ then
 fi
 
 ###
-### make sure user agrees to license
-### ================================
-
-# cat <<EOF | more
-# LICENSE_HERE
-# EOF
-
-# agreed=
-# while [ x$agreed = x ]; do
-#     echo
-#     echo "Do you agree to the above license terms? [yes or no] "
-#     read reply leftover
-#     case $reply in
-#         y* | Y*)
-#             agreed=1;;
-#         n* | N*)
-#     echo "If you don't agree to the license you can't install this software";
-#     exit 1;;
-#     esac
-# done
-
-###
 ### start the uninstaller script
 ### ============================
 
@@ -52,7 +30,7 @@ cat <<EOF > $UNINSTALLER
 #!/bin/sh
 #
 # This is an automatically generated uninstaller script for the
-# Roadsend PHP Compiler package
+# Roadsend PHP package
 
 ## require root
 me=\`id -u\`
@@ -62,7 +40,7 @@ then
     exit 1
 fi
 
-echo "Uninstalling Roadsend Compiler Binaries..."
+echo "Uninstalling Roadsend PHP Binaries..."
 
 EOF
 
@@ -70,8 +48,8 @@ EOF
 ### install files
 ### =============
 
-echo "Roadsend Compiler for PHP"
-echo "http://www.roadsend.com/"
+echo "Roadsend PHP"
+echo "http://code.roadsend.com/"
 echo
 echo "Installing Compiler binaries... "
 echo "installation root directory is $TARGET_ROOT"
@@ -103,7 +81,7 @@ fi
  agreed=
  while [ x$agreed = x ]; do
      echo
-     echo -n "Do you want to symlink the Roadsend binaries to the system path? [y/n/?]: "
+     echo -n "Do you want to symlink the Roadsend PHP binaries to the system path? [y/n/?]: "
      read reply leftover
      case $reply in
          y* | Y*)
@@ -111,7 +89,7 @@ fi
          n* | N*)
              agreed=n;;
          ?)
-	     echo "Your system will need to know where to find the Roadsend binaries.";
+	     echo "Your system will need to know where to find the Roadsend PHP binaries.";
 	     echo "If you plan to manually add $TARGET_ROOT/bin to your system's PATH";
 	     echo "then you should say N here.";
 	     echo "";
@@ -149,7 +127,7 @@ if [ -z $? ]; then
 
 cat <<EOF
 
-WARNING: The Roadsend Compiler has been installed in
+WARNING: Roadsend PHP has been installed in
 /opt/roadsend/pcc, but your configuration file is from an older
 version of the compiler that was previously installed elsewhere.  
 Please update the home directive in /etc/pcc.conf to:

@@ -290,23 +290,20 @@
 (define *RAVEN-VERSION-MAJOR* 2)
 (define *RAVEN-VERSION-MINOR* 9)
 (define *RAVEN-VERSION-RELEASE* 0)
-(define *RAVEN-VERSION-STRING* (format "~a.~a.~a~a~a"
+(define *RAVEN-VERSION-STRING* (format "~a.~a.~a~a"
 				       *RAVEN-VERSION-MAJOR*
 				       *RAVEN-VERSION-MINOR*
 				       *RAVEN-VERSION-RELEASE*
-				       (if (odd? *RAVEN-VERSION-MINOR*)
+				       (if *RAVEN-DEVEL-BUILD*
 					   "_beta"
 					   "")
-				       (if *RAVEN-DEVEL-BUILD*
-					   "_internal"
-					   "")
 				       ))
-(define *RAVEN-NAME* "Roadsend PHP Compiler")
+(define *RAVEN-NAME* "Roadsend PHP")
 (define *RAVEN-VERSION-TAG* (string-append *RAVEN-NAME*
 					   "/"
 					   *RAVEN-VERSION-STRING*))
 
-(define *PHP-VERSION* "4.4.6") 
+(define *PHP-VERSION* "4.4.7") 
 
 
 ;this version number gets put into compiled programs and libraries.

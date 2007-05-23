@@ -111,7 +111,7 @@
 (define (phpnum_fail reason::string)
    (error "" (string-append "Arithmetic Error: " reason) ""))
 
-(define *float-precision* 12) ;should come from an INI entry
+(define *float-precision* 12) ; might be updated by an INI entry
 
 (define (onum->int::int num::onum)
    (flonum->fixnum (elong->flonum (onum->elong num))))
