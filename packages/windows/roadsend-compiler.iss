@@ -2,63 +2,80 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-AppName=Roadsend Compiler
-AppVerName=Roadsend Compiler 1.8.0
+AppName=Roadsend PHP
+AppVerName=Roadsend PHP 2.9.0 beta
 AppPublisher=Roadsend
 AppPublisherURL=http://www.roadsend.com
 AppSupportURL=http://www.roadsend.com
 AppUpdatesURL=http://www.roadsend.com
-DefaultDirName=C:\roadsend
-DefaultGroupName=Roadsend Compiler
-LicenseFile=C:\msys\1.0\home\tim\phpoo\packages\LICENSE
-Compression=lzma
-SolidCompression=yes
+DefaultDirName={sd}\roadsend
+DefaultGroupName=Roadsend
+Compression=none
+SolidCompression=true
+SourceDir=D:\msys\1.0\home\Owner
+OutputBaseFilename=roadsend-pcc
+VersionInfoCompany=Roadsend
+UsePreviousAppDir=false
+UninstallDisplayIcon={app}\reCompIcon.ico
+ShowLanguageDialog=no
+InfoAfterFile=D:\msys\1.0\home\Owner\pcc\packages\windows\README.txt
+ChangesEnvironment=true
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
+Name: desktopicon; Description: {cm:CreateDesktopIcon}; GroupDescription: {cm:AdditionalIcons}; Flags: checkedonce
 
 [Files]
-Source: "C:\msys\1.0\home\tim\phpoo\compiler\pcc.exe"; DestDir: "{app}\local\bin"; Flags: ignoreversion
-Source: "C:\msys\1.0\home\tim\phpoo\compiler\pcctags.exe"; DestDir: "{app}\local\bin"; Flags: ignoreversion
-Source: "C:\msys\1.0\home\tim\phpoo\webconnect\fastcgi\pcc.fcgi"; DestDir: "{app}\local\bin"; Flags: ignoreversion
-;; the shortpath utility
-Source: "C:\msys\1.0\home\tim\phpoo\tools\shortpath\shortpath.exe"; DestDir: "{app}\local\bin"; Flags: ignoreversion
-Source: "C:\msys\1.0\home\tim\phpoo\packages\windows\pccpi.sh"; DestDir: "{app}\local\bin"; Flags: ignoreversion
-Source: "C:\msys\1.0\home\tim\phpoo\packages\windows\pccpi.bat"; DestDir: "{app}\local\bin"; Flags: ignoreversion
-Source: "C:\msys\1.0\home\tim\phpoo\packages\windows\pcc.conf.tmpl"; DestDir: "{app}\etc"; Flags: ignoreversion
-;Source: "C:\msys\1.0\home\tim\phpoo\packages\windows\README.txt"; DestDir: "{app}"; Flags: ignoreversion
-; Source: "C:\msys\1.0\home\tim\phpoo\packages\windows\ROADSEND.lic"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\msys\1.0\home\tim\loon\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs; Excludes: "loon.exe,loonLaunch.exe"
-Source: "C:\msys\1.0\home\tim\loon\loon.exe"; DestDir: "{app}\local\bin"; Flags: ignoreversion
-Source: "C:\msys\1.0\home\tim\loon\loonLaunch.exe"; DestDir: "{app}\local\bin"; Flags: ignoreversion
-Source: "C:\MinGW\*"; DestDir: "{app}\minglicious"; Flags: ignoreversion recursesubdirs
-Source: "C:\msys\1.0\msys.bat"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\msys\1.0\m.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\msys\1.0\bin\*"; DestDir: "{app}\bin"; Flags: ignoreversion recursesubdirs
-Source: "C:\msys\1.0\etc\*"; DestDir: "{app}\etc"; Flags: ignoreversion recursesubdirs
-Source: "C:\msys\1.0\lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs
-Source: "C:\msys\1.0\local\*"; DestDir: "{app}\local"; Flags: ignoreversion recursesubdirs; Excludes: "*.dll"
-;this is the default project dir for the IDE. now comes from loon.
-;Source: "C:\msys\1.0\projects\*"; DestDir: "{app}\projects"; Flags: ignoreversion recursesubdirs
-Source: "C:\msys\1.0\home\tim\bigloo\2.6e\*"; DestDir: "{app}\bigloo\2.6e"; Flags: ignoreversion recursesubdirs; Excludes: "*.dll,*_s.*"
-Source: "C:\msys\1.0\home\tim\phpoo\libs\*"; DestDir: "{app}\libs"; Flags: ignoreversion; Excludes: "*.dll"
-Source: "C:\msys\1.0\home\tim\phpoo\webconnect\apache1\mod_pcc.so"; DestDir: "{app}\libs"; Flags: ignoreversion
-; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-; these are the dlls
-Source: "C:\msys\1.0\home\tim\phpoo\libs\*.dll"; DestDir: "{sys}";
-Source: "C:\msys\1.0\local\bin\*.dll"; DestDir: "{sys}";
-Source: "C:\msys\1.0\home\tim\bigloo\2.6e\lib\bigloo\2.6e\*.dll"; DestDir: "{sys}"; Excludes: "*_s.*"
+; pcc binaries
+Source: pcc\compiler\pcc.exe; DestDir: {app}\pcc\bin; Flags: ignoreversion
+Source: pcc\compiler\pcctags.exe; DestDir: {app}\pcc\bin; Flags: ignoreversion
+Source: pcc\compiler\pdb.exe; DestDir: {app}\pcc\bin; Flags: ignoreversion
+Source: pcc\webconnect\fastcgi\pcc.fcgi; DestDir: {app}\pcc\bin; Flags: ignoreversion
+; install binaries
+Source: pcc\tools\shortpath\shortpath.exe; DestDir: {app}\pcc\bin; Flags: ignoreversion
+Source: pcc\packages\windows\pccpi.sh; DestDir: {app}\pcc\bin; Flags: ignoreversion
+Source: pcc\packages\windows\pccpi.bat; DestDir: {app}\pcc\bin; Flags: ignoreversion
+Source: pcc\packages\windows\SetEnv.exe; DestDir: {app}\bin
+; pcc libraries (non dlls)
+Source: pcc\libs\*; DestDir: {app}\pcc\lib; Flags: ignoreversion; Excludes: *.dll
+; dlls
+Source: pcc\libs\*.dll; DestDir: {app}\dll; Flags: ignoreversion
+Source: bigloo\lib\bigloo\2.9a\*.dll; DestDir: {app}\dll; Flags: ignoreversion; Excludes: *_s-*.*,*_e-*.*
+Source: d:\msys\1.0\local\bin\*.dll; DestDir: {app}\dll; Flags: ignoreversion
+; ide binaries
+Source: restudio\loon.exe; DestDir: {app}\pcc\bin; Flags: ignoreversion
+Source: restudio\launcher\loonLaunch.exe; DestDir: {app}\pcc\bin; Flags: ignoreversion
+; config
+Source: pcc\packages\windows\pcc.conf.tmpl; DestDir: {app}\etc; Flags: ignoreversion
+Source: pcc\packages\windows\pccFE.ini.tmpl; DestDir: {app}; Flags: ignoreversion
+Source: pcc\packages\windows\README.txt; DestDir: {app}; Flags: ignoreversion
+; sample projects
+Source: pcc\packages\windows\projects\*; DestDir: {app}\projects; Flags: ignoreversion recursesubdirs
+; mingw and msys
+Source: d:\MinGW\*; DestDir: {app}\mingw; Flags: ignoreversion recursesubdirs
+Source: d:\msys\1.0\msys.bat; DestDir: {app}; Flags: ignoreversion
+Source: d:\msys\1.0\m.ico; DestDir: {app}; Flags: ignoreversion
+Source: d:\msys\1.0\bin\*; DestDir: {app}\bin; Flags: ignoreversion recursesubdirs
+Source: d:\msys\1.0\etc\*; DestDir: {app}\etc; Flags: ignoreversion recursesubdirs
+Source: d:\msys\1.0\local\*; DestDir: {app}\local; Flags: ignoreversion recursesubdirs; Excludes: *.dll
+; bigloo
+Source: bigloo\bin\*; DestDir: {app}\bigloo\bin; Flags: ignoreversion; Excludes: bigloo????.exe
+Source: bigloo\lib\bigloo\2.9a\*; DestDir: {app}\bigloo\lib; Excludes: *_s-*.*,*_e-*.*,*.dll
+; icons
+;Source: "restudio\reCIconTerm.ico"; DestDir: "{app}";
+Source: restudio\reCompIcon.ico; DestDir: {app}
 
 [Icons]
-Name: "{group}\Roadsend Commandline"; Filename: "{app}\msys.bat"; WorkingDir: "{app}"; IconFilename: "{app}\reCIconTerm.ico"
-Name: "{userdesktop}\Roadsend Commandline"; Filename: "{app}\msys.bat"; WorkingDir: "{app}"; Tasks: desktopicon; IconFilename: "{app}\reCIconTerm.ico"
-Name: "{group}\Roadsend IDE"; Filename: "{app}\local\bin\loonLaunch.exe"; WorkingDir: "{app}\local\bin"; Flags: runminimized; IconFilename: "{app}\reCompIcon.ico"
-Name: "{userdesktop}\Roadsend IDE"; Filename: "{app}\local\bin\loonLaunch.exe "; WorkingDir: "{app}\local\bin"; Tasks: desktopicon; Flags: runminimized; IconFilename: "{app}\reCompIcon.ico"
+Name: {group}\Roadsend Commandline; Filename: {app}\msys.bat; WorkingDir: {app}; IconFilename: {app}\reCompIcon.ico
+Name: {userdesktop}\Roadsend Commandline; Filename: {app}\msys.bat; WorkingDir: {app}; Tasks: desktopicon; IconFilename: {app}\reCompIcon.ico
+Name: {group}\Roadsend IDE; Filename: {app}\pcc\bin\loonLaunch.exe; WorkingDir: {app}\pcc\bin; Flags: runminimized; IconFilename: {app}\reCompIcon.ico
+Name: {userdesktop}\Roadsend IDE; Filename: "{app}\pcc\bin\loonLaunch.exe "; WorkingDir: {app}\pcc\bin; Tasks: desktopicon; Flags: runminimized; IconFilename: {app}\reCompIcon.ico
 
 [Registry]
-Root: HKLM; Subkey: "SOFTWARE\Roadsend\Compiler\1.8"; ValueType: string; ValueName: "root"; ValueData: "{app}"; Flags: uninsdeletekey
+Root: HKLM; Subkey: SOFTWARE\Roadsend\Compiler\2.9; ValueType: string; ValueName: root; ValueData: {app}; Flags: uninsdeletekey
 
 [Run]
-Filename: "{app}\local\bin\pccpi.bat"; Description: "Finalize"; WorkingDir: "{app}\local\bin\"; Parameters: "{app}"; StatusMsg: "Finalizing Installation"; Flags: runhidden
-Filename: "{app}\local\bin\loonLaunch.exe"; Description: "{cm:LaunchProgram,Roadsend IDE}"; WorkingDir: "{app}\local\bin"; Flags: nowait postinstall skipifsilent runhidden
-;Filename: "{app}\README.txt"; Description: "View the README file"; Flags: postinstall shellexec
+Filename: {app}\pcc\bin\pccpi.bat; Description: Finalize; WorkingDir: {app}\pcc\bin\; Parameters: {app}; StatusMsg: Finalizing Installation; Flags: runhidden
+Filename: {app}\pcc\bin\loonLaunch.exe; Description: {cm:LaunchProgram,Roadsend IDE}; WorkingDir: {app}\pcc\bin; Flags: nowait postinstall skipifsilent runhidden
+Filename: {app}\bin\SetEnv.exe; Parameters: "-a PATH %""{app}\dll"""; Flags: runhidden
+[UninstallRun]
+Filename: {app}\bin\SetEnv.exe; Parameters: "-d PATH %""{app}\dll"""; Flags: runhidden

@@ -1,9 +1,17 @@
-Errata for Roadsend Compiler version 1.6 on Windows:
 
-  * Apache must have the setting "ThreadsPerChild 1" in httpd.conf to
-    remain stable while running the mod_pcc.so apache module.
+Roadsend PHP is released under the GPL and LGPL open source licenses.
+You can find more information and support at:
 
-You can find the most up-to-date list of errata at:
+http://www.roadsend.com
+http://code.roadsend.com
+http://forums.roadsend.com
 
-  http://www.roadsend.com/home/index.php?pageID=errata
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+For the full license, see:
+http://www.gnu.org/licenses/gpl.txt
+http://www.gnu.org/licenses/lgpl.txt
 

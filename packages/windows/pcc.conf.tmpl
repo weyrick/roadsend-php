@@ -1,3 +1,4 @@
+
 ; Roadsend PCC Configuration File
 ;;
 ;; lines starting with a semi-colon are considered comments
@@ -10,7 +11,7 @@
 ;; DIRECTIVE: include
 ; the default include path is home/include.  Include directives add
 ;directories to the include path.
-(include "./")
+(include "@@@app@@@/projects")
 
 ; example of multiple paths 
 ;(include "./" "/usr/local/lib/php/")
@@ -18,21 +19,12 @@
 ;; DIRECTIVE: library
 ;the default library path is home/libs.  Library directives add
 ;directories to the dynamic-load search path.
-(library "@@@app@@@/libs" "./")
+(library "@@@app@@@/pcc/lib")
 
 ; this example shows how to list your own library directory
 ; NOTE you might also have to put this directory in /etc/ld.so.conf to
 ; get installed libraries to work!
 ;(library "./" "/usr/local/pcclibs/")
-
-;; DIRECTIVE: optimize-web-libs
-; may be #t or #f
-; this tells the apache module to load either the optimized or the
-; debug (safe) version of ALL extensions and libraries. if you are loading a
-; custom library, make sure you have both versions (optimized/non) available
-
-; if you are debugging, set this to #f. otherwise, leave #t
-(optimize-web-libs #f)
 
 ;; DIRECTIVE: web-libs
 ; these libraries will be loaded by the apache module and
@@ -51,7 +43,7 @@
 ; these libraries will be used as if with -u on the commandline
 
 ; the default enables all extensions
-(default-commandline-lib php-std php-xml php-pcre php-mysql php-gtk php-curl pcc-win php-odbc php-sqlite)
+(default-commandline-lib php-std php-xml php-pcre php-mysql php-curl pcc-win php-odbc php-sqlite)
 
 ; this is minimal. you need at least php-std
 ;(default-commandline-lib php-std)
@@ -87,7 +79,7 @@
 (ini
    (file_uploads		1)
    ; leave this unset for the system default
-   ;(upload_tmp_dir		"/tmp")
+   ;(upload_tmp_dir		"c:\\windows\\temp")
    ; note this is specified in bytes
    (upload_max_filesize		2048000))
 
@@ -97,10 +89,6 @@
 ; compiling and running 
 
 ; debug level
-(debug-level 0)
+(debug-level 1)
                         
-;; DIRECTIVE: default-compile-ext                                                                                                      
-; default extensions of files to compile into libraries and web apps
-; change this list if you want to compile other types of files
-(default-compile-ext "php" "inc")
 
