@@ -1,6 +1,5 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-
 AC_PREREQ(2.61)
 AC_INIT(roadsend-pcc)
 AC_CONFIG_SRCDIR([runtime/opaque-math.h])
@@ -19,24 +18,29 @@ AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 AC_CANONICAL_SYSTEM
 
+# requirements
+want_bigloo=2.9a
+want_curl=7.15.1
+
 # bigloo
-#AC_MSG_CHECKING([for a proper version of bigloo])
-#BIGLOO_VERSION=`bigloo -revision`
-#if [
-#AC_MSG_RESULT([$bversion])
-AC_CHECK_PROG_VER([HAVE_BIGLOO],[bigloo],[-revision],[3.0],[yes],[no])
+AC_CHECK_PROG_VER([HAVE_BIGLOO],
+		  bigloo, 
+		  -revision,
+		  [\([2-9].[0-9][a-z]\)],
+		  [$want_bigloo],
+		  AC_MSG_FAILURE([Bigloo version $want_bigloo required]))
 
+BIGLOO_VERSION=$ac_prog_version
 
-# Checks for libraries.
-#AC_CHECK_LIB([curl], [curl_version])
-#AC_CHECK_LIB([fcgi], [FCGX_Accept_r])
-#AC_CHECK_LIB([sqlite3], [sqlite3_open])
+# curl
+AC_CHECK_CURL([$want_curl],
+	      AC_DEFINE([HAVE_CURL], [1],[Define if you have MySQL]),
+	      AC_MSG_FAILURE([libcurl version $want_curl required]))
+with_curl=yes
 
 # Arguments 
-AC_ARG_ENABLE(cgi, AS_HELP_STRING([--enable-cgi],[build with (normal) cgi support]),enable_cgi=$enableval,enable_cgi=yes)
 #AC_ARG_ENABLE(gtk, AS_HELP_STRING([--enable-gtk],[build with PHP-GTK 1 support]),enable_gtk=$enableval,enable_gtk=auto)
 #AC_ARG_ENABLE(gtk2, AS_HELP_STRING([--enable-gtk2],[build with PHP-GTK 2 support (experimental)]),enable_gtk2=$enableval,enable_gtk2=auto)
-#AC_ARG_ENABLE(mysql, AS_HELP_STRING([--enable-mysql],[build with MySQL support]),enable_mysql=$enableval,enable_mysql=auto)
 #AC_ARG_ENABLE(odbc, AS_HELP_STRING([--enable-odbc],[build with ODBC support]),enable_odbc=$enableval,enable_odbc=auto)
 #AC_ARG_ENABLE(sqlite, AS_HELP_STRING([--enable-sqlite],[build with SQLite3 support]),enable_sqlite=$enableval,enable_sqlite=auto)
 #AC_ARG_ENABLE(xml, AS_HELP_STRING([--enable-xml],[build with libxml2 support]),enable_xml=$enableval,enable_xml=auto)
@@ -104,6 +108,30 @@ XML_LIBS=
             [--with-xml was given, but test for libxml2 failed])
            fi
 	   with_xml=no
+          ])
+        ])
+
+# MYSQL
+AC_ARG_WITH([mysql],
+  [AS_HELP_STRING([--with-mysql],
+     [support mysql extension @<:@default=check@:>@])],
+  [],
+  [with_mysql=check])
+          
+MYSQL_LIBS=
+  AS_IF([test "x$with_mysql" != xno],
+        [AC_CHECK_LIB([mysqlclient], [mysql_info],
+          [AC_SUBST([MYSQL_LIBS], ["-lmysqlclient"])
+	   with_mysql=yes
+           AC_DEFINE([HAVE_MYSQL], [1],[Define if you have MySQL])
+	   AC_PATH_PROG(mysqlconfig,mysql_config)
+	   MYSQL_LIBS=`${mysqlconfig} --libs`
+          ],
+          [if test "x$with_mysql" != xcheck; then
+           AC_MSG_FAILURE(
+            [--with-mysql was given, but test for libmysqlclient failed])
+           fi
+	   with_mysql=no
           ])
         ])
 
@@ -182,16 +210,15 @@ echo "
 	= Web Backends =
 
 	MicroServer:		  always enabled
-	Normal CGI:		  ${enable_cgi}
         FastCGI extension:        ${with_fcgi}
     
         = Extensions =
 
 	Standard:		  always enabled
         PCRE:                     ${with_pcre}
-	MySQL:			  ${with_mysql}
+	MySQL:			  ${with_mysql}, $MYSQL_LIBS
 	XML:			  ${with_xml}
-	CURL:			  ${with_curl}
+	CURL:			  ${with_curl}, $CURL_LIBS
 	SQLite:			  ${with_sqlite}
 	ODBC:			  ${with_odbc}
 	PHP-GTK 1:		  ${with_gtk}
