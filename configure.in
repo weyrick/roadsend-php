@@ -63,6 +63,7 @@ AS_IF([test "x$with_pcre" != xno],
 	   with_pcre=yes
            AC_DEFINE([HAVE_PCRE], [1],[Define if you have pcre])
 	   PCRE_LIBS=`${pcreconfig} --libs`
+	   PCRE_CFLAGS=`${pcreconfig} --cflags`
          fi
 	 ])
 
@@ -78,6 +79,7 @@ AC_ARG_WITH([fcgi],
           [AC_SUBST([FCGI_LIBS], ["-lfcgi"])
 	   with_fcgi=yes
 	   FCGI_LIBS=-lfcgi
+	   FCGI_CFLAGS=
            AC_DEFINE([HAVE_FCGI], [1],[Define if you have FastCGI])
           ],
           [if test "x$with_fcgi" != xcheck; then
@@ -107,6 +109,7 @@ AS_IF([test "x$with_xml" != xno],
 	   with_xml=yes
            AC_DEFINE([HAVE_XML], [1],[Define if you have libxml2])
 	   XML_LIBS=`${pkgconfig} --libs libxml-2.0`
+	   XML_CFLAGS=`${pkgconfig} --cflags libxml-2.0`
          fi
 	 ])
 
@@ -129,10 +132,35 @@ AS_IF([test "x$with_mysql" != xno],
 	   with_mysql=yes
            AC_DEFINE([HAVE_MYSQL], [1],[Define if you have MySQL])
 	   MYSQL_LIBS=`${mysqlconfig} --libs`
+	   MYSQL_CFLAGS=`${mysqlconfig} --cflags`
          fi
 	 ])
 
+# SQLITE (see acinclude)
+AX_LIB_SQLITE3
 
+# ODBC
+AC_ARG_WITH([odbc],
+  [AS_HELP_STRING([--with-odbc],
+     [support ODBC extension @<:@default=check@:>@])],
+  [],
+  [with_odbc=check])
+          
+  AS_IF([test "x$with_odbc" != xno],
+	[AC_PATH_PROG(odbcconfig,odbc_config)
+	 if test [ -z "$odbcconfig" ]
+	 then
+           if test "x$with_odbc" != xcheck; then
+	      AC_MSG_FAILURE([--with-odbc was given, but test for odbc-config not found])
+           fi
+	   with_odbc=no
+         else
+	   with_odbc=yes
+           AC_DEFINE([HAVE_ODBC], [1],[Define if you have ODBC])
+	   ODBC_LIBS=`${odbcconfig} --libs`
+	   ODBC_CFLAGS=`${odbcconfig} --cflags`
+         fi
+	 ])
 
 # target OS
 case "$target_os" in 
@@ -213,12 +241,12 @@ echo "
         = Extensions =
 
 	Standard:		  always enabled
-        PCRE:                     ${with_pcre} $PCRE_LIBS
-	MySQL:			  ${with_mysql} $MYSQL_LIBS
-	XML:			  ${with_xml} $XML_LIBS
-	CURL:			  ${with_curl} $CURL_LIBS
-	SQLite:			  ${with_sqlite}
-	ODBC:			  ${with_odbc}
+        PCRE:                     ${with_pcre} $PCRE_CFLAGS $PCRE_LIBS
+	MySQL:			  ${with_mysql} $MYSQL_CFLAGS $MYSQL_LIBS
+	XML:			  ${with_xml} $XML_CFLAGS $XML_LIBS
+	CURL:			  ${with_curl} $CURL_CFLAGS $CURL_LIBS
+	SQLite3:		  ${with_sqlite3} $SQLITE3_CFLAGS $SQLITE3_LDFLAGS
+	ODBC:			  ${with_odbc} $ODBC_CFLAGS $ODBC_LIBS
 	PHP-GTK 1:		  ${with_gtk}
 	PHP-GTK 2:		  ${with_gtk2}
 	PCC-WIN:		  ${with_pccwin}
