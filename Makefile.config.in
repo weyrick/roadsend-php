@@ -1,0 +1,91 @@
+# -*- Mode: Makefile; -*-
+# this is a constant for #ifdefs and such
+PCC_OS = @PCC_OS@
+SOEXT = @SO_EXT@
+BIGLOOVERSION = @BIGLOO_VERSION@
+STATIC_SUFFIX = 
+BIGLOO_PIC = -copt -fPIC
+C_PIC = -fPIC
+
+# build .so libraries
+# no difference between these commands in linux, only mingw
+dllcmd = gcc -shared -o $(1)
+dllcmd_i = gcc -shared -o $(1)
+
+PCC_LINK_OPTIONS = 
+RUNTIME_DLL_LIBS = $(BIGLOO_LIBS)
+COMPILER_DLL_LIBS = $(BIGLOO_LIBS)
+WEBCONNECT_DLL_LIBS = $(BIGLOO_LIBS)
+EXTENSION_DLL_LIBS = $(BIGLOO_LIBS)
+PROFILER_DLL_LIBS = $(BIGLOO_LIBS)
+DOTEST_LIBS = 
+
+RESOLVER_LIBRARY = -lresolv
+
+WINDOWS_TIME_SUPPORT	= 
+
+
+# mysql
+MYSQL_INCLUDE = @MYSQL_CFLAGS@
+MYSQL_LIBRARY = @MYSQL_LIBS@
+
+# odbc
+ODBC_INCLUDE = @ODBC_CFLAGS@
+ODBC_LIBRARY_PATH = @ODBC_CFLAGS@
+ODBC_LIBRARY = @ODBC_LIBS@
+
+# sqlite
+SQLITE_INCLUDE = @SQLITE3_CFLAGS@
+SQLITE_LIBRARY_PATH = @SQLITE3_CFLAGS@
+
+# curl
+CURL_INCLUDE = @CURL_CFLAGS@
+
+# xml
+XML_SCHEME_CFLAGS = @XML_CFLAGS@
+XML_CFLAGS = @XML_CFLAGS@
+XML_LIBS = @XML_CFLAGS@
+
+# pcre
+PCRE_INCLUDE = @PCRE_CFLAGS@
+
+# gtk
+GLADE_INCLUDE = -copt -I/usr/include/libglade-1.0 -copt -I/usr/include/gnome-xml
+
+
+###############
+
+# this might be overriden from a distro specific makefile
+#ifndef APXS
+#APXS = /usr/bin/apxs
+#endif
+
+#ifndef APXS2
+#APXS2 = /usr/bin/apxs2
+#endif
+
+#ifndef APR
+#APR = /usr/bin/apr-config
+#endif
+
+#APACHE_INC	= $(shell $(APXS) -q INCLUDEDIR)
+#APACHE_CFLAGS = -I $(APACHE_INC)
+#APACHE_BFLAGS = -L $(APACHE_INC)
+
+#APACHE2_INC	= $(shell $(APXS2) -q INCLUDEDIR)
+#APACHE2_CFLAGS = -I $(APACHE2_INC)
+#APACHE2_BFLAGS = -L $(APACHE2_INC)
+
+# apache portable runtime, used in apache 2
+#APR_INC	= $(shell $(APR) --includedir)
+#APR_LINK = $(shell $(APR) --link-ld)
+
+#these are pretty bad
+#LINK_APACHE_MODULE = $(APXS) -I$(BGL_DEFAULT_LIB_DIR) -c mod_pcc.c $(MOD_OBJS) -o mod_pcc_s.so -I/usr/local/include/libxml2  -s  -lcrypt     -L../../libs -L. -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_$(SU)  -lphp-runtime_$(SU) -lphpeval_$(SU) -lwebconnect_$(SU)  -lbigloo_$(SU)-$(BIGLOO_VERSION) -lbigloogc-$(BIGLOO_VERSION) $(OS_LIBS) -lm
+
+#LINK_APACHE_MODULE_UNSAFE = $(APXS) -I$(BGL_DEFAULT_LIB_DIR) -c mod_pcc.c -o mod_pcc_u.so $(MOD_OBJS) -I/usr/local/include/libxml2  -s  -lcrypt     -L../../libs -L. -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_u  -lphp-runtime_u -lphpeval_u -lwebconnect_u  -lbigloo_u-$(BIGLOO_VERSION) -lbigloogc-$(BIGLOO_VERSION) $(OS_LIBS) -lm
+
+#LINK_APACHE2_MODULE = $(APXS2) -I$(BGL_DEFAULT_LIB_DIR) -c mod_pcc2.c $(MOD2_OBJS) -export-dynamic -I/usr/local/include/libxml2  -s $(APR_LINK) -lcrypt     -L../../libs -L. -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_$(SU)  -lphp-runtime_$(SU) -lphpeval_$(SU) -lwebconnect_$(SU)  -lbigloo_$(SU)-$(BIGLOO_VERSION) -lbigloogc-$(BIGLOO_VERSION) $(OS_LIBS) -lm
+
+#LINK_APACHE2_MODULE_UNSAFE = $(APXS2) -I$(BGL_DEFAULT_LIB_DIR) -c mod_pcc2.c $(MOD2_OBJS) -I/usr/local/include/libxml2  -s $(APR_LINK) -lcrypt     -L../../libs -L. -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_u  -lphp-runtime_u -lphpeval_u -lwebconnect_u  -lbigloo_u-$(BIGLOO_VERSION) -lbigloogc-$(BIGLOO_VERSION) $(OS_LIBS) -lm
+
