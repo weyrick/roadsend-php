@@ -5,15 +5,6 @@
 PCC_ROOT = ../..
 include $(PCC_ROOT)/bigloo-rules.mk
 
-EXT_LIST	= standard \
-		  pcre \
-		  mysql \
-		  xml \
-		  curl \
-		  gtk \
-		  sqlite \
-		  odbc
-
 WIN_EXT_LIST	= pcc-win
 
 all:

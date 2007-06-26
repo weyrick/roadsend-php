@@ -30,14 +30,13 @@ C_SOURCE_LIST   = php-pcre
 
 #libraries that should be in the dependency list for the shared lib
 #for this extension, so that dlopen() loads them
-OTHERLIBS       = -L/usr/local/lib -lpcre
+OTHERLIBS       = $(PCRE_LIBS)
 
-#frob both of these to add an include path for pcre.h 
-CFLAGS		= -copt $(PCRE_INCLUDE)
-STATICFLAGS	= -copt $(PCRE_STATICFLAG)
-C_STATICFLAGS	= $(PCRE_STATICFLAG)
+CFLAGS		= -copt "$(PCRE_CFLAGS)"
+STATICFLAGS	= -copt "$(PCRE_CFLAGS)"
+C_STATICFLAGS	= $(PCRE_CFLAGS)
 
-C_SOURCE_FLAGS	= $(PCRE_INCLUDE)
+C_SOURCE_FLAGS	= $(PCRE_CFLAGS)
 
 # include common extension makefile
 include ../extensions.mk

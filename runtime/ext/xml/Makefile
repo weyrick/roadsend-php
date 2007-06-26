@@ -30,11 +30,7 @@ SOURCE_LIST     = xml \
 C_SOURCE_LIST	= scm-xml
 
 
-
-#$(shell xml2-config --libs)
-# include directories
-DEBUG		= 
-CFLAGS	 	= $(DEBUG) $(XML_SCHEME_CFLAGS)
+CFLAGS	 	= -copt "$(XML_CFLAGS)"
 
 C_SOURCE_FLAGS  = $(XML_CFLAGS)
 

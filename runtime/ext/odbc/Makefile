@@ -28,9 +28,9 @@ SOURCE_LIST     = php-odbc \
 
 C_SOURCE_LIST   = odbc-utils
 
-CFLAGS	= -copt $(ODBC_INCLUDE) -copt $(ODBC_LIBRARY_PATH)
+CFLAGS	= -copt "$(ODBC_CFLAGS)"
 
-OTHERLIBS       = $(ODBC_LIBRARY_PATH) $(ODBC_LIBRARY)
+OTHERLIBS       = $(ODBC_LIBS)
 
 # include common extension makefile
 include ../extensions.mk

@@ -32,8 +32,11 @@ BIGLOO 	= bigloo
 INSTALL_ROOT	= /
 INSTALL_PREFIX	= /usr/
 
-all: libs libs/libwebserver.$(SOEXT) profiler runtime webconnect \
+all: Makefile.config libs libs/libwebserver.$(SOEXT) profiler runtime webconnect \
      compiler extensions web-backends debugger shortpath dotest 
+
+Makefile.config:
+	touch $(PCC_ROOT)/Makefile.config
 
 unsafe: 
 	UNSAFE=t $(MAKE) all
@@ -98,6 +101,9 @@ clean:
 #	(cd doc && $(MAKE) clean && UNSAFE=t $(MAKE) clean)
 	(cd tools/profiler && $(MAKE) clean && UNSAFE=t $(MAKE) clean)
 	-(cd tools/libwebserver && $(MAKE) clean)
+
+clean-all: Makefile.config clean
+	-rm config.log config.status Makefile.config
 
 dotest: dotest.scm 
 	$(BIGLOO) -srfi $(PCC_OS) -copt -D$(PCC_OS) dotest.scm -o dotest $(DOTEST_LIBS)

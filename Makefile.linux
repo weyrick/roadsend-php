@@ -1,3 +1,8 @@
+
+# this is deprecated by autoconf, and will be removed
+
+###############
+
 # -*- Mode: Makefile; -*-
 # this is a constant for #ifdefs and such
 PCC_OS = PCC_LINUX  

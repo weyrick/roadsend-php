@@ -29,10 +29,10 @@ SOURCE_LIST     = php-sqlite \
 C_SOURCE_LIST   = encode \
 		  sqlite-utils
 
-CFLAGS		= -copt $(SQLITE_INCLUDE) -copt $(SQLITE_LIBRARY_PATH)
-C_SOURCE_FLAGS	= $(SQLITE_INCLUDE)
+CFLAGS		= -copt "$(SQLITE_CFLAGS)"
+C_SOURCE_FLAGS	= $(SQLITE_CFLAGS)
 
-OTHERLIBS       = $(SQLITE_LIBRARY_PATH) -lsqlite3
+OTHERLIBS       = $(SQLITE_LIBS)
 
 # include common extension makefile
 include ../extensions.mk

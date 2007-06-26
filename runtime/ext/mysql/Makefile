@@ -26,9 +26,9 @@ MY_DIR		= ./runtime/ext/mysql/
 SOURCE_LIST     = php-mysql \
                   c-bindings
 
-CFLAGS	= -copt $(MYSQL_INCLUDE) -copt $(MYSQL_LIBRARY)
+CFLAGS	= -copt "$(MYSQL_CFLAGS)"
 
-OTHERLIBS       = $(MYSQL_LIBRARY) -lmysqlclient
+OTHERLIBS       = $(MYSQL_LIBS)
 
 # include common extension makefile
 include ../extensions.mk

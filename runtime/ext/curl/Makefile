@@ -27,10 +27,10 @@ SOURCE_LIST     = php-curl curl-c-bindings curl-bindings
 
 C_SOURCE_LIST   = 
 
-CFLAGS		= -copt $(CURL_INCLUDE)
-STATICFLAGS	= -copt $(CURL_STATICFLAG)
+CFLAGS		= -copt "$(CURL_CFLAGS)"
+STATICFLAGS	= -copt "$(CURL_STATIC_CFLAGS)"
 
-OTHERLIBS       = -L/usr/local/lib -lcurl
+OTHERLIBS       = $(CURL_LIBS)
 
 # include common extension makefile
 include ../extensions.mk
