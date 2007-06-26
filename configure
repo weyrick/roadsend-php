@@ -3104,7 +3104,7 @@ want_curl=7.15.1
 with_pccwin=no
 
 # default ext list
-EXT_LIST=standard
+EXT_LIST="standard curl"
 
 # bigloo
 for ac_prog in bigloo
@@ -3348,7 +3348,7 @@ _ACEOF
 
 	   PCRE_LIBS=`${pcreconfig} --libs`
 	   PCRE_CFLAGS=`${pcreconfig} --cflags`
-	   EXT_LIST="$EXT_LIST curl"
+	   EXT_LIST="$EXT_LIST pcre"
          fi
 
 fi
@@ -6945,7 +6945,7 @@ ODBC_LIBS=$ODBC_LIBS
 
 SQLITE_CFLAGS=$SQLITE3_CFLAGS
 
-SQLITE_LIBS=$SQLITE3_LIBS
+SQLITE_LIBS=$SQLITE3_LDFLAGS
 
 CURL_CFLAGS=$CURL_CFLAGS
 

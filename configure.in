@@ -29,7 +29,7 @@ want_curl=7.15.1
 with_pccwin=no
 
 # default ext list
-EXT_LIST=standard
+EXT_LIST="standard curl"
 
 # bigloo
 AC_CHECK_PROG_VER([HAVE_BIGLOO],
@@ -43,7 +43,7 @@ BIGLOO_VERSION=$ac_prog_version
 
 # curl
 AC_CHECK_CURL([$want_curl],
-	      AC_DEFINE([HAVE_CURL], [1],[Define if you have MySQL]),
+	      AC_DEFINE([HAVE_CURL], [1],[Define if you have curl]),
 	      AC_MSG_FAILURE([libcurl version $want_curl required]))
 with_curl=yes
 
@@ -67,7 +67,7 @@ AS_IF([test "x$with_pcre" != xno],
            AC_DEFINE([HAVE_PCRE], [1],[Define if you have pcre])
 	   PCRE_LIBS=`${pcreconfig} --libs`
 	   PCRE_CFLAGS=`${pcreconfig} --cflags`
-	   EXT_LIST="$EXT_LIST curl"
+	   EXT_LIST="$EXT_LIST pcre"
          fi
 	 ])
 
@@ -268,7 +268,7 @@ AC_SUBST(MYSQL_LIBS, $MYSQL_LIBS)
 AC_SUBST(ODBC_CFLAGS, $ODBC_CFLAGS)
 AC_SUBST(ODBC_LIBS, $ODBC_LIBS)
 AC_SUBST(SQLITE_CFLAGS, $SQLITE3_CFLAGS)
-AC_SUBST(SQLITE_LIBS, $SQLITE3_LIBS)
+AC_SUBST(SQLITE_LIBS, $SQLITE3_LDFLAGS)
 AC_SUBST(CURL_CFLAGS, $CURL_CFLAGS)
 AC_SUBST(CURL_STATIC_CFLAGS, $CURL_CFLAGS) # ??
 AC_SUBST(CURL_LIBS, $CURL_LIBS)
