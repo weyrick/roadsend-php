@@ -41,6 +41,12 @@ AC_CHECK_PROG_VER([HAVE_BIGLOO],
 
 BIGLOO_VERSION=$ac_prog_version
 
+# XXX for now we require PCC_HOME variable
+AC_MSG_CHECKING([for existence of PCC_HOME variable])
+AS_IF([test -z $PCC_HOME ],
+   AC_MSG_ERROR([You *MUST* define the PCC_HOME environment variable to point to the source root directory!]),
+   AC_MSG_RESULT($PCC_HOME))
+
 # curl
 AC_CHECK_CURL([$want_curl],
 	      AC_DEFINE([HAVE_CURL], [1],[Define if you have curl]),
@@ -290,6 +296,8 @@ dnl ==========================================================================
 echo "
                     Roadsend PHP Configuration Summary
                   ======================================
+
+        PCC_HOME:                 ${PCC_HOME}
 
 	prefix:                   ${prefix}
         libdir:                   ${libdir}
