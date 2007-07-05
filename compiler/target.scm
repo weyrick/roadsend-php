@@ -500,6 +500,11 @@
 
 
 (define (run-command errors-fatal? command . args)
+   ; in MinGW, translate paths to unix style
+   (cond-expand
+    (PCC_MINGW
+     (string-replace! command #\\ #\/)
+     (map! (lambda (p) (string-replace p #\\ #\/)) args)))
    (debug-trace 2 "running command: " command ", args: " args)
    (let* ((proc (try (apply run-process command (append args '(output: pipe: error: pipe: wait: #f)))
                      ;; it's interesting that the error handler seems
@@ -660,6 +665,10 @@
       (pushf (string-append "-l" "bigloo" (safety-ext) "-" (bigloo-version)) libs)
       (pushf (string-append "-l" "bigloogc" "-" (bigloo-version)) libs)
 
+      ; verbose if we're really debugging
+      (when (> *debug-level* 2)
+	    (pushf "-Wl,--verbose" libs))
+
       (cond-expand
 	 (PCC_MINGW
 	  ;; these are needed for the profiler, which uses gettimeofday
@@ -760,8 +769,7 @@
    (with-output-to-string
        (lambda ()
           (let loop ()
-               (when ;(char-ready? port)
-                   (> (chars-available port) 0)
+               (when (char-ready? port)
                   (let ((char (read-char port)))
                      (unless (eof-object? char)
                         (display char)
@@ -769,9 +777,6 @@
                            (display prefix))
                         (loop))))))))
 
-(define (chars-available port)
-  (if (char-ready? port) 1 0))
-  
 ;; only compile again if source file last mod is greater than .o
 (define (needs-rebuild? file)
    (if (target-option force-rebuild?:)

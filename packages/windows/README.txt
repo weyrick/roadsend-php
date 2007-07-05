@@ -1,4 +1,10 @@
 
+2.9.0 Beta Windows Release Notes:
+
+ * PHP-GTK does NOT work in this release
+
+---------------------------------------------------------------------
+
 Roadsend PHP is released under the GPL and LGPL open source licenses.
 You can find more information and support at:
 

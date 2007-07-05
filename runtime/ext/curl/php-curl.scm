@@ -99,7 +99,7 @@
                     ;; multiple definitions is not nice because it
                     ;; might hide real errors.
                     (cond-expand
-                       (PCC_MINGW '("-lcurl" "-lz" "-lwinmm" "-lws2_32" "-lssl" "-lcrypto" "-lgw32c"
+                       (PCC_MINGW '("-lcurl" "-lz" "-lwinmm" "-lws2_32" "-lssl" "-lcrypto" "-lgw32c" "-lgdi32"
                                              "-Wl,--allow-multiple-definition"))
                        (PCC_FREEBSD '("-lcurl" "-lssl" "-lcrypto" "-lz"
                                                "-Wl,--allow-multiple-definition"))

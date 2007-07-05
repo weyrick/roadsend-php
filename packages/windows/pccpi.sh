@@ -14,11 +14,11 @@ export PCC_CONF=\$PCC_HOME/etc/pcc.conf
 export LD_LIBRARY_PATH=/bigloo/lib:/usr/local/lib:/pcc/lib:/dll
 EOF
 
-echo "dollar1 is $1" >> c:/installer.log
-echo "dollar2 is $2" >> c:/installer.log
-echo "dollar3 is $3" >> c:/installer.log
-echo "PATH is $PATH" >> c:/installer.log
-echo "SHORTDIR is $SHORTDIR" >> c:/installer.log
+#echo "dollar1 is $1" >> c:/installer.log
+#echo "dollar2 is $2" >> c:/installer.log
+#echo "dollar3 is $3" >> c:/installer.log
+#echo "PATH is $PATH" >> c:/installer.log
+#echo "SHORTDIR is $SHORTDIR" >> c:/installer.log
 
 # use the longdir for the IDE
 # this doubles the backslashes and strips trailing whitespace
