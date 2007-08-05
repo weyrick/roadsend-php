@@ -71,7 +71,7 @@
     (construct-php-object class-name . args)
     (construct-php-object-sans-constructor class-name)
     (get-declared-php-classes)
-    (define-php-property class-name property-name value visibility)
+    (define-php-property class-name property-name value #!optional visibility)
     (define-php-method class-name method-name method)
     (define-class-constant class-name constant-name value)
     (lookup-class-constant class-name constant-name)))
@@ -742,7 +742,9 @@ argument, before the continuation: (obj prop ref? value k)."
       ((eqv? 'protected visibility)
        (mangle-property-protected name))))
 
-(define (define-php-property class-name property-name value visibility)
+(define (define-php-property class-name property-name value #!optional visibility)
+   (unless visibility
+      (set! visibility 'public))
    (let ((the-class (%lookup-class class-name)))
       (unless the-class
 	 (php-error "Defining property " property-name ": unknown class " class-name))
