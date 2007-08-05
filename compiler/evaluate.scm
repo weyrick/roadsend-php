@@ -749,7 +749,8 @@ gives the debugger a chance to run."
 		      (substring prop-name 1 (string-length prop-name))
 		      (if (null? (property-decl-value prop))
 			  (make-container '())
-			  (d/evaluate (property-decl-value prop))))))
+			  (d/evaluate (property-decl-value prop)))
+		      (property-decl-visibility prop))))
 
              ;; PHP5 class constants
              (php-hash-for-each class-constants

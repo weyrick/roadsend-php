@@ -781,8 +781,9 @@ onum.  Append the bindings for the new symbols and code."
 ;				     '(make-container '())
 ;				     (get-location (property-decl-value prop))
 				      ''()
-				      (get-value (property-decl-value prop))
-				     ))
+				      (get-value (property-decl-value prop)))
+				 ',(property-decl-visibility prop)
+				 )
 			     code)))
                 (php-hash-for-each class-constants
                    (lambda (prop-name prop)

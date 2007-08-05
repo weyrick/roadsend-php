@@ -109,7 +109,8 @@
     (final-class property-decl::declaration
        name
        value
-       static?)
+       static?
+       visibility)
     (final-class method-decl::declaration
        name
        decl-arglist

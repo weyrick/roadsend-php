@@ -71,8 +71,8 @@
     (construct-php-object class-name . args)
     (construct-php-object-sans-constructor class-name)
     (get-declared-php-classes)
-    (define-php-property class-name property-name value)
-    (define-php-method class-name method-name method)    
+    (define-php-property class-name property-name value visibility)
+    (define-php-method class-name method-name method)
     (define-class-constant class-name constant-name value)
     (lookup-class-constant class-name constant-name)))
 
@@ -99,8 +99,12 @@
    constructor
    ;;a hashtable mapping names of declared properties to an index in a property vector
    declared-property-offsets
-   ;;properties is a vector of properties
+   ;;properties is a vector of all properties (which points to actual php data)
    properties
+   ;; a list of protected properties (unmangled)
+   protected-properties
+   ;; a list of private properties (unmangled)
+   private-properties
    ;;extended properties is either #f or a php-hash of non-declared properties
    extended-properties
    ;;methods is a php-hash of methods
@@ -591,12 +595,9 @@ values the values."
 	      (%class-name-canonicalize (%php-class-print-name (%php-class-parent-class the-class)))
 	      #f))))
 
-; XXX update for PHP5
 (define (%class-name-canonicalize name)
    "define class names as case-insensitive strings"
-   ;   (string->symbol
    (string-downcase (mkstr name)))
-    ;))
 
 ; XXX update for PHP5
 (define (%method-name-canonicalize name)
@@ -624,17 +625,23 @@ values the values."
    (set! %php-class-registry (make-hashtable))
    ;define the root of the class hierarchy
    (let ((stdclass (%php-class "stdClass" "stdclass" #f #f
-			       (make-hashtable) (make-vector 0)
+			       (make-hashtable) (make-vector 0) '() '()
 			       (make-php-hash) (make-php-hash)
 			       #f #f #f (make-php-hash)))
 	 (inc-class (%php-class "__PHP_Incomplete_Class" "__php_incomplete_class" #f #f
-				(make-hashtable) (make-vector 0)
+				(make-hashtable) (make-vector 0) '() '()
 				(make-php-hash) (make-php-hash)
 				#f #f #f (make-php-hash)) ))
       ;;default constructor
       (hashtable-put! %php-class-registry "stdclass" stdclass)
       (hashtable-put! %php-class-registry "__php_incomplete_class" inc-class)))
 
+;; XXX this is in newer versions of bigloo, yank it when we upgrade
+(define (list-copy list)
+   (if (null? list)
+       '()
+       (cons (car list)
+	     (list-copy (cdr list)))))
 
 (define (define-php-class name parent-name)
    (if (%lookup-class name)
@@ -645,13 +652,17 @@ values the values."
 	  (unless parent-class
 	     (php-error "Defining class " name ": unable to find parent class " parent-name))
 	  (let* ((canonical-name (%class-name-canonicalize name))
-		 (new-class (%php-class (string-downcase (mkstr name))
+		 (new-class (%php-class (if PHP5?
+					    (mkstr name)
+					    (string-downcase (mkstr name)))
 					canonical-name
 					parent-class
                                         #f
 					(copy-hashtable
 					 (%php-class-declared-property-offsets parent-class))
 					(copy-properties-vector (%php-class-properties parent-class))
+					'() ; private props
+					(list-copy (%php-class-protected-properties parent-class))
 					(copy-php-data (%php-class-extended-properties parent-class))
 					(copy-php-data (%php-class-methods parent-class))
 					(%php-class-custom-prop-lookup parent-class)
@@ -714,14 +725,32 @@ argument, before the continuation: (obj prop ref? value k)."
                            method-name
                            method))))
 
-(define (define-php-property class-name property-name value)
+(define (mangle-property-private prop)
+   "mangle given property string to private visibility"
+   (mkstr prop ":private"))
+
+(define (mangle-property-protected prop)
+   "mangle given property string to protected visibility"
+   (mkstr prop ":protected"))
+
+(define (%property-name-mangle name visibility)
+   (cond
+      ((eqv? 'public visibility)
+       name)
+      ((eqv? 'private visibility)
+       (mangle-property-private name))
+      ((eqv? 'protected visibility)
+       (mangle-property-protected name))))
+
+(define (define-php-property class-name property-name value visibility)
    (let ((the-class (%lookup-class class-name)))
       (unless the-class
 	 (php-error "Defining property " property-name ": unknown class " class-name))
       (let* ((properties (%php-class-properties the-class))
 	     (offset (vector-length properties))
-             (canonical-name (%property-name-canonicalize property-name)))
-         (aif (hashtable-get (%php-class-declared-property-offsets the-class) canonical-name)
+             (canonical-name (%property-name-canonicalize property-name))
+	     (mangled-name (%property-name-mangle canonical-name visibility)))
+         (aif (hashtable-get (%php-class-declared-property-offsets the-class) mangled-name)
               ;; already defined, just set it
               (vector-set! properties it (make-container (maybe-unbox value)))
               ;; not defined yet, extend the properties vector and add
@@ -731,12 +760,17 @@ argument, before the continuation: (obj prop ref? value k)."
                   the-class
                   (cruddy-push-extend (make-container (maybe-unbox value)) properties))
                  (hashtable-put! (%php-class-declared-property-offsets the-class)
-                                 canonical-name
+                                 mangled-name
                                  offset)
                  ;store the reverse, too
                  (hashtable-put! (%php-class-declared-property-offsets the-class)
                                  offset
-                                 canonical-name))))))
+                                 mangled-name)
+		 ;store visibility
+		 (when (eqv? 'private visibility)
+		  (%php-class-private-properties-set! the-class (cons canonical-name (%php-class-private-properties the-class))))
+		 (when (eqv? 'protected visibility)
+		  (%php-class-protected-properties-set! the-class (cons canonical-name (%php-class-protected-properties the-class)))))))))
 
 (define (%lookup-class name)
    (hashtable-get %php-class-registry (%class-name-canonicalize name)))
@@ -777,12 +811,30 @@ argument, before the continuation: (obj prop ref? value k)."
               c)
            #f))))
 
+;; this handles visibility mangling
+;; it will check in order: public (no mangle), protected, private
+;; it makes no attempt to restrict the property, it simply returns it if available in mangled form
 (define (%prop-offset obj prop-canon-name)
-   (hashtable-get
-    (%php-class-declared-property-offsets
-     (%php-object-class obj))
-    prop-canon-name))
-
+   (let ((prop (hashtable-get
+		(%php-class-declared-property-offsets
+		 (%php-object-class obj))
+		prop-canon-name)))
+      (if (or prop (not PHP5?))
+	  ; found a public
+	  prop
+	  (let ((prop (hashtable-get
+		       (%php-class-declared-property-offsets
+			(%php-object-class obj))
+		       (mangle-property-protected prop-canon-name))))
+	     (if prop
+		 ; found a protected
+		 prop
+		 ; either privte or nothin'
+		 (hashtable-get
+		  (%php-class-declared-property-offsets
+		   (%php-object-class obj))
+		  (mangle-property-private prop-canon-name)))))))
+		
 ;;;;the actual property looker-uppers
 (define (%lookup-prop-ref obj property)
    (let* ((canon-name (%property-name-canonicalize property))

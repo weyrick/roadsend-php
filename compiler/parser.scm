@@ -233,16 +233,15 @@
       (class-statement
        ((class-function) class-function)
        ((varkey class-vars semi) class-vars)
-       ;; XXX public, private, and protected don't do anything yet
-       ((private class-vars semi)
-        (parse-require-php5)
-        class-vars)
        ((public class-vars semi)
         (parse-require-php5)
-        class-vars)
+	class-vars)
+       ((private class-vars semi)
+        (parse-require-php5)
+        (map (lambda (c) (property-decl-visibility-set! c 'private) c) class-vars))
        ((protected class-vars semi)
         (parse-require-php5)
-        class-vars)
+        (map (lambda (c) (property-decl-visibility-set! c 'protected) c) class-vars))
        ((static class-vars semi)
         (parse-require-php5)
         (map (lambda (c) (property-decl-static?-set! c #t) c) class-vars)))
@@ -253,9 +252,9 @@
 
       (class-var
        ((var equals decl-literal)
-	(make-property-decl *parse-loc* var decl-literal #f))
+	(make-property-decl *parse-loc* var decl-literal #f 'public))
        ((var)
-	(make-property-decl *parse-loc* var '() #f)))
+	(make-property-decl *parse-loc* var '() #f 'public)))
 
       (decl-literal
        ((simple-literal) simple-literal)
