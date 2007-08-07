@@ -18,8 +18,7 @@
 # check      	- run main test suite, using dotest program
 # check5     	- run PHP5 specific test suite
 # check-all  	- run main test suite, and all extension test suites
-#
-# ** there is no 'install' target yet!! **
+# install	- install libraries and binaries
 #
 PCC_ROOT = .
 include bigloo-rules.mk
@@ -28,9 +27,11 @@ PWD 	= `pwd`
 VERBOSE =
 BIGLOO 	= bigloo 
 
-# paths needed for the install script
-INSTALL_ROOT	= /
-INSTALL_PREFIX	= /usr/
+prefix  	= @prefix@
+exec_prefix 	= @exec_prefix@
+bindir  	= @bindir@
+libdir		= @libdir@
+sysconfdir	= @sysconfdir@
 
 all: Makefile.config libs libs/libwebserver.$(SOEXT) profiler runtime webconnect \
      compiler extensions web-backends debugger shortpath dotest 
@@ -125,10 +126,27 @@ docs:
 	(cd doc && $(MAKE))
 
 install:
-	@echo "sorry, there is no 'make install' right now - you should run pcc from the source directory"
-	@echo "the binary is located at compiler/pcc - you should put the compiler/ directory into your PATH"
-	@echo "you also need bigloo and other items in your path: see the wiki online at http://code.roadsend.com/"
+#config
+	install -m 755 -d $(sysconfdir)
+	install -m 644 -b ./doc/pcc.conf $(sysconfdir)/pcc.conf	
+#binaries
+	install -m 755 -d $(bindir)
+	install -m 755 ./compiler/pcc $(bindir)/pcc
+	install -m 755 ./compiler/pdb $(bindir)/pdb
+	install -m 755 ./compiler/pcctags $(bindir)/pcctags
+	install -m 755 ./webconnect/fastcgi/pcc.fcgi $(bindir)/pcc.fcgi
+#libraries
+	install -m 755 -d $(libdir)
+	install -m 644 ./libs/libwebserver.so $(libdir)
+	install -m 644 ./libs/libwebserver.a $(libdir)
+	install -m 644 ./libs/*_[su]*.so $(libdir)
+	install -m 644 ./libs/*_[su]*.a $(libdir)
+	install -m 644 ./libs/*.sch $(libdir)
+	install -m 644 ./libs/*.h $(libdir)
+	install -m 644 ./libs/*.heap $(libdir)
+	install -m 644 ./libs/*.init $(libdir)
 
+# used by the self installing package maker
 package-install: unsafe
 	./install.sh $(INSTALL_ROOT) $(INSTALL_PREFIX)
 

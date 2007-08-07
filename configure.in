@@ -245,24 +245,24 @@ AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h malloc.h netdb.h netinet/in.h stddef.h stdlib.h string.h sys/socket.h sys/time.h syslog.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
-AC_HEADER_STAT
-AC_C_CONST
-AC_TYPE_UID_T
-AC_TYPE_MODE_T
-AC_TYPE_PID_T
-AC_C_RESTRICT
-AC_TYPE_SIZE_T
-AC_HEADER_TIME
-AC_STRUCT_TM
-AC_CHECK_TYPES([ptrdiff_t])
+#AC_HEADER_STAT
+#AC_C_CONST
+#AC_TYPE_UID_T
+#AC_TYPE_MODE_T
+#AC_TYPE_PID_T
+#AC_C_RESTRICT
+#AC_TYPE_SIZE_T
+#AC_HEADER_TIME
+#AC_STRUCT_TM
+#AC_CHECK_TYPES([ptrdiff_t])
 
 # Checks for library functions.
-AC_FUNC_MALLOC
-AC_FUNC_MEMCMP
-AC_FUNC_REALLOC
-AC_FUNC_SELECT_ARGTYPES
-AC_FUNC_STAT
-AC_CHECK_FUNCS([gethostbyname inet_ntoa memchr memmove memset select socket strcasecmp strchr strerror strstr strtol])
+#AC_FUNC_MALLOC
+#AC_FUNC_MEMCMP
+#AC_FUNC_REALLOC
+#AC_FUNC_SELECT_ARGTYPES
+#AC_FUNC_STAT
+#AC_CHECK_FUNCS([gethostbyname inet_ntoa memchr memmove memset select socket strcasecmp strchr strerror strstr strtol])
 
 # Substitutions
 AC_SUBST(PCC_OS, $PCC_OS)
@@ -282,15 +282,26 @@ AC_SUBST(XML_CFLAGS, $XML_CFLAGS)
 AC_SUBST(XML_LIBS, $XML_LIBS)
 AC_SUBST(PCRE_CFLAGS, $PCRE_CFLAGS)
 AC_SUBST(PCRE_LIBS, $PCRE_LIBS)
+
+AC_SUBST(prefix, $prefix)
+AC_SUBST(exec_prefix, $exec_prefix)
+AC_SUBST(libdir, $libdir)
+AC_SUBST(bindir, $bindir)
+AC_SUBST(sysconfdir, $sysconfdir)
+
+AC_DEFINE_DIR(CONF_HOME, sysconfdir, [pcc conf home])
+AC_DEFINE_DIR(PCC_LIBS, libdir, [pcc lib dir])
+
 # need PCRE_STATIC_CLAGS?
 # gtk missing
 #AC_SUBST(_CFLAGS, $_CFLAGS)
 #AC_SUBST(_LIBS, $_LIBS)
 AC_CONFIG_FILES([Makefile.config])
+AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([doc/pcc.conf])
 
 #AC_CONFIG_SUBDIRS([tools/libwebserver])
 AC_OUTPUT
-
 
 dnl ==========================================================================
 echo "
@@ -302,6 +313,7 @@ echo "
 	prefix:                   ${prefix}
         libdir:                   ${libdir}
         bindir:                   ${bindir}
+        sysconfir:                ${sysconfdir}
         mandir:                   ${mandir}
 	source code location:	  ${srcdir}
 
@@ -330,8 +342,3 @@ echo "
 
 "
 
-echo "
-BETA NOTICE:
-This configuration system is beta. You should check Makefile.config
-for accuracy.
-"
