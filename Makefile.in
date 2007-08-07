@@ -94,7 +94,7 @@ libs:
 
 clean: 
 	-rm -rf testoutput
-	-rm -f *.c *.o *.so libs/*.so libs/*.heap libs/*.a libs/*.dll libs/*.init libs/*.sch
+	-rm -f *.c *.o *.so libs/*.so libs/*.heap libs/*.a libs/*.dll libs/*.init libs/*.sch libs/*.h
 	(cd runtime && $(MAKE) clean && UNSAFE=t $(MAKE) clean)
 	(cd compiler && $(MAKE) clean && UNSAFE=t $(MAKE) clean)
 	(cd webconnect && $(MAKE) clean && UNSAFE=t $(MAKE) clean)

@@ -3102,7 +3102,9 @@ test -n "$target_alias" &&
   program_prefix=${target_alias}-
 
 # requirements
-want_bigloo=2.9a
+
+# can't figure out how to get this into AC_CHECK_PROG_VER below?
+#want_bigloo="2.9a | 3.0b"
 want_curl=7.15.1
 
 # defaults
@@ -3164,7 +3166,7 @@ echo $ECHO_N "checking version of $HAVE_BIGLOO... $ECHO_C" >&6; }
   ac_prog_version=`$HAVE_BIGLOO -revision 2>&1 | sed -n 's/^.*\([2-9].[0-9][a-z]\).*$/\1/p'`
   case $ac_prog_version in
     '') ac_prog_version_m="v. ?.??, bad"; ac_verc_fail=yes;;
-    $want_bigloo)
+    2.9a | 3.0b)
        ac_prog_version_m="$ac_prog_version, ok"; ac_verc_fail=no;;
     *) ac_prog_version_m="$ac_prog_version, bad"; ac_verc_fail=yes;;
 

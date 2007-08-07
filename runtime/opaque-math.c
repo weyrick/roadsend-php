@@ -23,6 +23,7 @@
 #include "opaque-math.h"
 /* #include "opaque-piddle.h" */
 
+
 /* in string_to_double.h */
 double string_to_double(const char *s00, char **se);
 
@@ -55,6 +56,17 @@ BGL_EXPORTED_DECL obj_t string_to_long_phpnum(char *str);
 
 #define WITHIN_PDL_RANGE(n) ((-1024 < n) && (n < 1024))   //!((n+1024)&2047)
 #define GET_PDL(n) &piddle[(int)n + 1023]
+
+/* MS: 5 aug 2007, bigloo2.9a->bigloo3.0b port */
+#if( defined( BGL_2_9a ) )
+#  define LONG_TO_ONUM(o) (LONG_TO_BELONG(o))
+#else
+#  define LONG_TO_ONUM(o) (make_belong(o))
+#endif
+
+obj_t long_to_onum(long a) {
+    return LONG_TO_ONUM(a);
+}
 
 /* so that php can check the type */
 int phpnum_is_float(obj_t a) {
@@ -106,7 +118,7 @@ obj_t phpadd(obj_t a, obj_t b)
 	 && (BELONG_TO_LONG(a) & PHP_LONGMIN) != (lval & PHP_LONGMIN) ) {
       return DOUBLE_TO_REAL( (double)BELONG_TO_LONG( a ) + (double)BELONG_TO_LONG( b ) );
     } else {
-      return LONG_TO_BELONG( lval );
+      return LONG_TO_ONUM( lval );
     }
   }
 
@@ -137,7 +149,7 @@ obj_t phpsub(obj_t a, obj_t b)
 	     && (BELONG_TO_LONG(a) & PHP_LONGMIN) != (lval & PHP_LONGMIN) ) {
 	    return DOUBLE_TO_REAL((double) BELONG_TO_LONG(a) - (double) BELONG_TO_LONG(b));
 	} else {
-	    return LONG_TO_BELONG(lval);
+	    return LONG_TO_ONUM(lval);
 	}
     }
     if ((REALP(a) && ELONGP(b)) || 
@@ -204,7 +216,7 @@ obj_t phpmul(obj_t a, obj_t b)
       return DOUBLE_TO_REAL(dval);
     } 
     else {
-      return LONG_TO_BELONG(lval);
+      return LONG_TO_ONUM(lval);
     }
   }
 
@@ -236,7 +248,7 @@ obj_t phpdiv(obj_t a, obj_t b)
 /*       if (WITHIN_PDL_RANGE(lval)) { */
 /* 	return GET_PDL(lval); */
 /*       }  else { */
-      return LONG_TO_BELONG(lval);
+      return LONG_TO_ONUM(lval);
 /*       } */
     } else {
       double dval = ((double) BELONG_TO_LONG (a)) / BELONG_TO_LONG(b);
@@ -269,7 +281,7 @@ obj_t phpmod(obj_t a, obj_t b)
   }
 
   result = aval % bval;
-  return LONG_TO_BELONG(result);
+  return LONG_TO_ONUM(result);
 }
 
 /* return 0 if the same, 1 if a is bigger, -1 if a is smaller */
@@ -347,7 +359,7 @@ obj_t string_to_long_phpnum(char *str) {
   if (!scanfretval || scanfretval == EOF) {
     phpnum_fail("Failed to read a long.");
   } else {
-    return LONG_TO_BELONG(lval);
+    return LONG_TO_ONUM(lval);
   }
 }
 

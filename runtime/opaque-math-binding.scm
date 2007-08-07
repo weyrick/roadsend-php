@@ -43,7 +43,7 @@
     (onum/::onum (a::onum b::onum) "phpdiv")
     (onum%::onum (a::onum b::onum) "phpmod")
 
-    (macro elong->onum::onum (num::elong) "LONG_TO_BELONG") ;"long_to_phpnum")
+    (macro elong->onum::onum (num::elong) "long_to_onum") ;"long_to_phpnum")
     (macro float->onum::onum (num::double) "DOUBLE_TO_REAL") ;"double_to_phpnum")
 
     (onum->elong::elong (num::onum) "phpnum_to_long")
