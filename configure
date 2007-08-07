@@ -711,8 +711,10 @@ XML_CFLAGS
 XML_LIBS
 PCRE_CFLAGS
 PCRE_LIBS
+srcdir
 CONF_HOME
 PCC_LIBS
+PCC_BIN
 LIBOBJS
 LTLIBOBJS'
 ac_subst_files=''
@@ -3180,17 +3182,10 @@ fi
 BIGLOO_VERSION=$ac_prog_version
 
 # XXX for now we require PCC_HOME variable
-{ echo "$as_me:$LINENO: checking for existence of PCC_HOME variable" >&5
-echo $ECHO_N "checking for existence of PCC_HOME variable... $ECHO_C" >&6; }
-if test -z $PCC_HOME ; then
-  { { echo "$as_me:$LINENO: error: You *MUST* define the PCC_HOME environment variable to point to the source root directory!" >&5
-echo "$as_me: error: You *MUST* define the PCC_HOME environment variable to point to the source root directory!" >&2;}
-   { (exit 1); exit 1; }; }
-else
-  { echo "$as_me:$LINENO: result: $PCC_HOME" >&5
-echo "${ECHO_T}$PCC_HOME" >&6; }
-fi
-
+#AC_MSG_CHECKING([for existence of PCC_HOME variable])
+#AS_IF([test -z $PCC_HOME ],
+#   AC_MSG_ERROR([You *MUST* define the PCC_HOME environment variable to point to the source root directory!]),
+#   AC_MSG_RESULT($PCC_HOME))
 
 # curl
 
@@ -5293,6 +5288,8 @@ libdir=$libdir
 
 bindir=$bindir
 
+srcdir=$srcdir
+
 sysconfdir=$sysconfdir
 
 
@@ -5325,6 +5322,23 @@ _ACEOF
 
 cat >>confdefs.h <<_ACEOF
 #define PCC_LIBS "$ac_define_dir"
+_ACEOF
+
+  test "$prefix_NONE" && prefix=NONE
+  test "$exec_prefix_NONE" && exec_prefix=NONE
+
+
+  prefix_NONE=
+  exec_prefix_NONE=
+  test "x$prefix" = xNONE && prefix_NONE=yes && prefix=$ac_default_prefix
+  test "x$exec_prefix" = xNONE && exec_prefix_NONE=yes && exec_prefix=$prefix
+  eval ac_define_dir="\"$bindir\""
+  eval ac_define_dir="\"$ac_define_dir\""
+  PCC_BIN="$ac_define_dir"
+
+
+cat >>confdefs.h <<_ACEOF
+#define PCC_BIN "$ac_define_dir"
 _ACEOF
 
   test "$prefix_NONE" && prefix=NONE
@@ -6099,13 +6113,15 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+srcdir!$srcdir$ac_delim
 CONF_HOME!$CONF_HOME$ac_delim
 PCC_LIBS!$PCC_LIBS$ac_delim
+PCC_BIN!$PCC_BIN$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 4; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 6; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -6539,14 +6555,10 @@ echo "
                     Roadsend PHP Configuration Summary
                   ======================================
 
-        PCC_HOME:                 ${PCC_HOME}
-
 	prefix:                   ${prefix}
-        libdir:                   ${libdir}
-        bindir:                   ${bindir}
-        sysconfir:                ${sysconfdir}
-        mandir:                   ${mandir}
-	source code location:	  ${srcdir}
+        libdir:                   ${PCC_LIBS}
+        bindir:                   ${PCC_BIN}
+        sysconfir:                ${CONF_HOME}
 
 	c compiler:		  ${CC}
 	cflags:		          ${CFLAGS}

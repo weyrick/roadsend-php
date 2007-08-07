@@ -47,7 +47,7 @@ tags: unsafe
 
 libs/libwebserver.$(SOEXT):
 	(cd tools/libwebserver && \
-         ./configure --libdir=$(PCC_HOME)/libs --includedir=$(PCC_HOME)/libs && \
+         ./configure && \
          $(MAKE) all && \
          $(MAKE) install)
 

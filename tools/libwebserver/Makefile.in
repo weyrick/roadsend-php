@@ -48,13 +48,6 @@ dist: distclean
 
 
 install: all
-#	if [ ! -d ${bindir} ]; then mkdir -p ${bindir}; fi
-	if [ ! -d ${libdir} ]; then mkdir -p ${libdir}; fi
-	if [ ! -d ${includedir} ]; then mkdir -p ${includedir}; fi
-	install -b -m 755 src/libwebserver.$(SOEXT) ${libdir}/libwebserver.$(SOEXT).@RELEASE@
-	rm -f ${libdir}/libwebserver.$(SOEXT)
-	@ln -s ${libdir}/libwebserver.$(SOEXT).@RELEASE@ ${libdir}/libwebserver.$(SOEXT)
-	install -b -m 644 src/libwebserver.a ${libdir}/libwebserver.a
-	install -b -m 644 include/web_server.h ${includedir}/web_server.h
-#	install -b -m 755 libwebserver-config ${bindir}/libwebserver-config
-
+	install -m 755 src/libwebserver.$(SOEXT) $(PCC_ROOT)/libs/libwebserver.$(SOEXT)
+	install -m 644 src/libwebserver.a $(PCC_ROOT)/libs/libwebserver.a
+	install -m 644 include/web_server.h $(PCC_ROOT)/libs/web_server.h

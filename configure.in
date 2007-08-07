@@ -42,10 +42,10 @@ AC_CHECK_PROG_VER([HAVE_BIGLOO],
 BIGLOO_VERSION=$ac_prog_version
 
 # XXX for now we require PCC_HOME variable
-AC_MSG_CHECKING([for existence of PCC_HOME variable])
-AS_IF([test -z $PCC_HOME ],
-   AC_MSG_ERROR([You *MUST* define the PCC_HOME environment variable to point to the source root directory!]),
-   AC_MSG_RESULT($PCC_HOME))
+#AC_MSG_CHECKING([for existence of PCC_HOME variable])
+#AS_IF([test -z $PCC_HOME ],
+#   AC_MSG_ERROR([You *MUST* define the PCC_HOME environment variable to point to the source root directory!]),
+#   AC_MSG_RESULT($PCC_HOME))
 
 # curl
 AC_CHECK_CURL([$want_curl],
@@ -181,9 +181,9 @@ AC_ARG_WITH([odbc],
 # gtk1
 AC_ARG_WITH([gtk],
   [AS_HELP_STRING([--with-gtk],
-     [support PHP-GTK extension @<:@default=check@:>@])],
+     [support PHP-GTK extension @<:@default=no@:>@])],
   [],
-  [with_gtk=check])
+  [with_gtk=no])
           
   AS_IF([test "x$with_gtk" != xno],
 	[AC_PATH_PROG(gtkconfig,gtk-config)
@@ -287,10 +287,12 @@ AC_SUBST(prefix, $prefix)
 AC_SUBST(exec_prefix, $exec_prefix)
 AC_SUBST(libdir, $libdir)
 AC_SUBST(bindir, $bindir)
+AC_SUBST(srcdir, $srcdir)
 AC_SUBST(sysconfdir, $sysconfdir)
 
 AC_DEFINE_DIR(CONF_HOME, sysconfdir, [pcc conf home])
 AC_DEFINE_DIR(PCC_LIBS, libdir, [pcc lib dir])
+AC_DEFINE_DIR(PCC_BIN, bindir, [pcc bin dir])
 
 # need PCRE_STATIC_CLAGS?
 # gtk missing
@@ -308,14 +310,10 @@ echo "
                     Roadsend PHP Configuration Summary
                   ======================================
 
-        PCC_HOME:                 ${PCC_HOME}
-
 	prefix:                   ${prefix}
-        libdir:                   ${libdir}
-        bindir:                   ${bindir}
-        sysconfir:                ${sysconfdir}
-        mandir:                   ${mandir}
-	source code location:	  ${srcdir}
+        libdir:                   ${PCC_LIBS}
+        bindir:                   ${PCC_BIN}
+        sysconfir:                ${CONF_HOME}
 
 	c compiler:		  ${CC}
 	cflags:		          ${CFLAGS}
