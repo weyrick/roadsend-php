@@ -81,7 +81,8 @@
 (define-struct %php-object
    ;;class is a pointer to the class of this object
    class
-   ;;properties is a vector of properties
+   ;;properties is a vector of properties. it starts as a copy of
+   ;;the defaults from php-class properties vector
    properties
    ;;extended properties is either #f or a php-hash of additional properties
    extended-properties
@@ -100,11 +101,10 @@
    ;;a hashtable mapping names of declared properties to an index in a property vector
    declared-property-offsets
    ;;properties is a vector of all properties (which points to actual php data)
+   ;;the values here are declared defaults
    properties
-   ;; a list of protected properties (unmangled)
-   protected-properties
-   ;; a list of private properties (unmangled)
-   private-properties
+   ;;hash of property visibility (protected and private only)
+   prop-visibility
    ;;extended properties is either #f or a php-hash of non-declared properties
    extended-properties
    ;;methods is a php-hash of methods
@@ -625,23 +625,16 @@ values the values."
    (set! %php-class-registry (make-hashtable))
    ;define the root of the class hierarchy
    (let ((stdclass (%php-class "stdClass" "stdclass" #f #f
-			       (make-hashtable) (make-vector 0) '() '()
+			       (make-hashtable) (make-vector 0) (make-hashtable)
 			       (make-php-hash) (make-php-hash)
 			       #f #f #f (make-php-hash)))
 	 (inc-class (%php-class "__PHP_Incomplete_Class" "__php_incomplete_class" #f #f
-				(make-hashtable) (make-vector 0) '() '()
+				(make-hashtable) (make-vector 0) (make-hashtable)
 				(make-php-hash) (make-php-hash)
 				#f #f #f (make-php-hash)) ))
       ;;default constructor
       (hashtable-put! %php-class-registry "stdclass" stdclass)
       (hashtable-put! %php-class-registry "__php_incomplete_class" inc-class)))
-
-;; XXX this is in newer versions of bigloo, yank it when we upgrade
-(define (list-copy list)
-   (if (null? list)
-       '()
-       (cons (car list)
-	     (list-copy (cdr list)))))
 
 (define (define-php-class name parent-name)
    (if (%lookup-class name)
@@ -661,8 +654,8 @@ values the values."
 					(copy-hashtable
 					 (%php-class-declared-property-offsets parent-class))
 					(copy-properties-vector (%php-class-properties parent-class))
-					'() ; private props
-					(list-copy (%php-class-protected-properties parent-class))
+					(copy-prop-visibility
+					 (%php-class-declared-property-offsets parent-class))				 
 					(copy-php-data (%php-class-extended-properties parent-class))
 					(copy-php-data (%php-class-methods parent-class))
 					(%php-class-custom-prop-lookup parent-class)
@@ -689,6 +682,13 @@ argument, before the continuation: (obj prop ref? value k)."
 	     (%php-class-print-name-set! klass name))
 	  (error 'define-extended-php-class "could not define extended class" name))))
 
+(define (copy-prop-visibility table)
+   (let ((new-table (make-hashtable)))
+      (hashtable-for-each table
+	 (lambda (k v)
+	    (unless (eqv? v 'private)
+	       (hashtable-put! new-table k v))))
+      new-table))
 
 (define (copy-hashtable table)
    (let ((new-table (make-hashtable)))
@@ -697,7 +697,8 @@ argument, before the continuation: (obj prop ref? value k)."
 	    (hashtable-put! new-table k v)))
       new-table))
 
-(define (cruddy-push-extend el vec)
+; XXX use copy-vector?
+(define (cruddy-push-extend el vec)   
    ;yay, quadratic
    (let ((new (make-vector (+ 1 (vector-length vec)) '())))
       (let loop ((i 0))
@@ -769,10 +770,10 @@ argument, before the continuation: (obj prop ref? value k)."
                                  offset
                                  mangled-name)
 		 ;store visibility
-		 (when (eqv? 'private visibility)
-		  (%php-class-private-properties-set! the-class (cons canonical-name (%php-class-private-properties the-class))))
-		 (when (eqv? 'protected visibility)
-		  (%php-class-protected-properties-set! the-class (cons canonical-name (%php-class-protected-properties the-class)))))))))
+		 (unless (eqv? 'public visibility)
+		  (hashtable-put! (%php-class-prop-visibility the-class)
+				  canonical-name
+				  visibility)))))))
 
 (define (%lookup-class name)
    (hashtable-get %php-class-registry (%class-name-canonicalize name)))
@@ -815,7 +816,6 @@ argument, before the continuation: (obj prop ref? value k)."
 
 ;; this handles visibility mangling
 ;; it will check in order: public (no mangle), protected, private
-;; it makes no attempt to restrict the property, it simply returns it if available in mangled form
 (define (%prop-offset obj prop-canon-name)
    (let ((prop (hashtable-get
 		(%php-class-declared-property-offsets
@@ -831,7 +831,7 @@ argument, before the continuation: (obj prop ref? value k)."
 	     (if prop
 		 ; found a protected
 		 prop
-		 ; either privte or nothin'
+		 ; either private or nothin'
 		 (hashtable-get
 		  (%php-class-declared-property-offsets
 		   (%php-object-class obj))
