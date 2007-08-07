@@ -698,6 +698,7 @@ GREP
 EGREP
 PCC_OS
 EXT_LIST
+BE_LIST
 SO_EXT
 BIGLOO_VERSION
 MYSQL_CFLAGS
@@ -3109,6 +3110,7 @@ with_pccwin=no
 
 # default ext list
 EXT_LIST="standard curl"
+BE_LIST="micro"
 
 # bigloo
 for ac_prog in bigloo
@@ -3448,6 +3450,7 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_FCGI 1
 _ACEOF
 
+	   BE_LIST="$BE_LIST fastcgi"
 
 else
   if test "x$with_fcgi" != xcheck; then
@@ -5249,6 +5252,8 @@ PCC_OS=$PCC_OS
 
 EXT_LIST=$EXT_LIST
 
+BE_LIST=$BE_LIST
+
 SO_EXT=$SO_EXT
 
 BIGLOO_VERSION=$BIGLOO_VERSION
@@ -5354,6 +5359,8 @@ ac_config_files="$ac_config_files Makefile.config"
 ac_config_files="$ac_config_files Makefile"
 
 ac_config_files="$ac_config_files doc/pcc.conf"
+
+ac_config_files="$ac_config_files webconnect/Makefile"
 
 
 #AC_CONFIG_SUBDIRS([tools/libwebserver])
@@ -5914,6 +5921,7 @@ do
     "Makefile.config") CONFIG_FILES="$CONFIG_FILES Makefile.config" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "doc/pcc.conf") CONFIG_FILES="$CONFIG_FILES doc/pcc.conf" ;;
+    "webconnect/Makefile") CONFIG_FILES="$CONFIG_FILES webconnect/Makefile" ;;
 
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
@@ -6059,6 +6067,7 @@ GREP!$GREP$ac_delim
 EGREP!$EGREP$ac_delim
 PCC_OS!$PCC_OS$ac_delim
 EXT_LIST!$EXT_LIST$ac_delim
+BE_LIST!$BE_LIST$ac_delim
 SO_EXT!$SO_EXT$ac_delim
 BIGLOO_VERSION!$BIGLOO_VERSION$ac_delim
 MYSQL_CFLAGS!$MYSQL_CFLAGS$ac_delim
@@ -6071,7 +6080,6 @@ CURL_STATIC_CFLAGS!$CURL_STATIC_CFLAGS$ac_delim
 XML_CFLAGS!$XML_CFLAGS$ac_delim
 XML_LIBS!$XML_LIBS$ac_delim
 PCRE_CFLAGS!$PCRE_CFLAGS$ac_delim
-PCRE_LIBS!$PCRE_LIBS$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -6113,6 +6121,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+PCRE_LIBS!$PCRE_LIBS$ac_delim
 srcdir!$srcdir$ac_delim
 CONF_HOME!$CONF_HOME$ac_delim
 PCC_LIBS!$PCC_LIBS$ac_delim
@@ -6121,7 +6130,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 6; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 7; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

@@ -30,6 +30,7 @@ with_pccwin=no
 
 # default ext list
 EXT_LIST="standard curl"
+BE_LIST="micro"
 
 # bigloo
 AC_CHECK_PROG_VER([HAVE_BIGLOO],
@@ -91,6 +92,7 @@ AC_ARG_WITH([fcgi],
 	   FCGI_LIBS=-lfcgi
 	   FCGI_CFLAGS=
            AC_DEFINE([HAVE_FCGI], [1],[Define if you have FastCGI])
+	   BE_LIST="$BE_LIST fastcgi"
           ],
           [if test "x$with_fcgi" != xcheck; then
            AC_MSG_FAILURE(
@@ -267,6 +269,7 @@ AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h malloc.h netdb.h netinet/in.h std
 # Substitutions
 AC_SUBST(PCC_OS, $PCC_OS)
 AC_SUBST(EXT_LIST, $EXT_LIST)
+AC_SUBST(BE_LIST, $BE_LIST)
 AC_SUBST(SO_EXT, $SO_EXT)
 AC_SUBST(BIGLOO_VERSION, $BIGLOO_VERSION)
 AC_SUBST(MYSQL_CFLAGS, $MYSQL_CFLAGS)
@@ -301,6 +304,7 @@ AC_DEFINE_DIR(PCC_BIN, bindir, [pcc bin dir])
 AC_CONFIG_FILES([Makefile.config])
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([doc/pcc.conf])
+AC_CONFIG_FILES([webconnect/Makefile])
 
 #AC_CONFIG_SUBDIRS([tools/libwebserver])
 AC_OUTPUT

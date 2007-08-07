@@ -18,8 +18,7 @@ CLEFTOVERS	 := $(patsubst %.o,%.c,$(POPULATION)) $(patsubst %.o,%.c,$(STATIC_POP
 # cgen binary
 CGEN		= $(shell which cgen)
 
-BE_LIST	= micro \
-	  fastcgi
+BE_LIST	= @BE_LIST@
 
 # apache and cgi interfaces are deprecated.
 # fastcgi works as both normal cgi and fastcgi
