@@ -1310,7 +1310,7 @@ Optional Packages:
   --with-sqlite3=[ARG]    use SQLite 3 library [default=yes], optionally
                           specify the prefix for sqlite3 library
   --with-odbc             support ODBC extension [default=check]
-  --with-gtk              support PHP-GTK extension [default=check]
+  --with-gtk              support PHP-GTK extension [default=no]
   --with-gtk2             support PHP-GTK 2 extension [default=no]
 
 Some influential environment variables:
@@ -4238,7 +4238,7 @@ fi
 if test "${with_gtk+set}" = set; then
   withval=$with_gtk;
 else
-  with_gtk=check
+  with_gtk=no
 fi
 
 
