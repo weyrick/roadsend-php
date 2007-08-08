@@ -43,7 +43,9 @@
     (onum/::onum (a::onum b::onum) "phpdiv")
     (onum%::onum (a::onum b::onum) "phpmod")
 
-    (macro elong->onum::onum (num::elong) "long_to_onum") ;"long_to_phpnum")
+    ;; MS: 5 aug 2007, bigloo2.9a -> bigloo3.0b port
+    ;; (macro elong->onum::onum (num::elong) "LONG_TO_BELONG")
+    (macro elong->onum::onum (num::elong) "ELONG_TO_BELONG") ;"long_to_phpnum")
     (macro float->onum::onum (num::double) "DOUBLE_TO_REAL") ;"double_to_phpnum")
 
     (onum->elong::elong (num::onum) "phpnum_to_long")
@@ -76,10 +78,10 @@
     (onum->string/g::bstring a::onum precision::int)
     (onum->string/g-vardump::bstring a::onum precision::int)    
     (phpnum_fail reason::string)
-    (onum->int::int num::onum) 
-    (int->onum::onum num::int)
-    (onum-long? a::onum)
-    (onum-float? a::onum)
+    (inline onum->int::int num::onum) 
+    (inline int->onum::onum num::int)
+    (inline onum-long? a::onum)
+    (inline onum-float? a::onum)
     (inline onum?::bool ::obj)))
 
 ; the float version is used in the lexer
@@ -101,10 +103,10 @@
 (define-inline (onum?::bool obj::obj)
    (pragma::bool "(ELONGP($1) || REALP($1))" obj))
 
-(define (onum-long? a::onum)
+(define-inline (onum-long? a::onum)
    (>fx (onum-is-long a) 0))
 
-(define (onum-float? a::onum)
+(define-inline (onum-float? a::onum)
    (>fx (onum-is-float a) 0))
 
 ;this routine is used by the C code to signal an arithmetic error
@@ -113,11 +115,14 @@
 
 (define *float-precision* 12) ; might be updated by an INI entry
 
-(define (onum->int::int num::onum)
+(define-inline (onum->int::int num::onum)
    (flonum->fixnum (elong->flonum (onum->elong num))))
 
-(define (int->onum::onum num::int)
-   (elong->onum (make-elong num)))
+(define-inline (int->onum::onum num::int)
+    ;; MS: 5 aug 2007, bigloo2.9a -> bigloo3.0b port
+    ;; CARE: I don't understand why using MAKE-ELONG is correct
+   ;; (elong->onum (make-elong num))
+   (elong->onum ($long->elong ($int->long num))))
 
 ; (define (main argv)
 ;    (let ((bob (float->onum 1.1447298858494))

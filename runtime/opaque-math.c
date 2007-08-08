@@ -23,6 +23,13 @@
 #include "opaque-math.h"
 /* #include "opaque-piddle.h" */
 
+/* MS: 5 aug 2007, bigloo2.9a->bigloo3.0b port */
+#if( defined( BGL_2_9a ) )
+#  define LONG_TO_ONUM(o) (LONG_TO_BELONG(o))
+#else
+#  define LONG_TO_ONUM(o) (make_belong(o))
+#endif
+
 
 /* in string_to_double.h */
 double string_to_double(const char *s00, char **se);
