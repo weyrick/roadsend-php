@@ -1,0 +1,172 @@
+Test files end in phpt.
+
+
+Sections:
+
+	--TEST-- (Required)
+		This is the name of the test. Whatever text is here is what is
+		displayed at the time the test is run.
+
+		i.e.:
+			Helo World test
+
+
+	--POST-- (Optional)
+		This section houses any POST data that would need to get passed to
+		the page.
+
+		i.e.:
+			TODO: make example
+
+
+	--GET-- (Optional)
+		This section is any GET data that needs to get passed to the page.
+
+		i.e.:
+			TODO: make example
+
+
+	--PCCARGS-- (Optional)
+		This Section contains any arguments that need to be passed to pcc.
+		If you want to interpret a file, you must make sure the -f flag is
+		the last argument.
+
+		i.e.:
+			-u library-one -f
+
+
+	--FILE-- (Required)
+		This section contains the actual php code you want to test. This
+		text is coppied into a temporary php file and execute/compiled from
+		there, so you need to include the '<?' and '?>' tags.
+
+		i.e.:
+			<?php
+			
+			echo "Hello World"
+			
+			?>
+
+
+	--EXPECT-- (Required)
+		Expected output from the operation. This test must match EXACTLY
+		what is spit out by the compiler. If you are compiling a single
+		file, this woudl be the output of the compile. If you are
+		interperting a script, this would be the output of the script.
+
+		i.e.:
+			<---snip--->
+
+			--PCCARGS--
+			-f
+			--FILE--
+			<? echo "Hello World" ?>
+			--EXPECT--
+			Hello World
+
+			<---snip--->
+
+
+			<---snip--->
+
+			--FILE--
+			<? echo "Hello World" ?>
+			--EXPECT--
+
+			<---snip--->
+			(no output expected when just compiling)
+
+	--RTEXPECT-- (Optional)
+		Expected output from running the compiled code. If this section is
+		definde, then the test suite will run the previously compiled
+		executable and compaire the output to what is in this section. This
+		section must match EXACTLy what is spit out by running the program.
+
+		i.e.:
+
+            --FILE--
+            <? echo "Hello World" ?>
+            --EXPECT--
+			--RTEXPECT--
+			Hello World
+
+    --ARGS-- (Optional)
+        arguments to pass to the test file being run.
+
+    --SKIPIF-- (Optional)
+        is condition when to skip this test.
+
+    --INI-- (Optional)
+        each line contains an ini setting
+
+        i.e.:
+            --INI--
+            foo=bar
+
+    --EXPECTF-- (Not Fully Implemented)(Alternative)
+        is an alternative of --EXPECT--. The difference is that this form uses
+        sscanf for output validation.
+
+    --EXPECTREGEX-- (Not Fully Implemented)(Alternative)
+        is an alternative of --EXPECT--. This form allows the tester to specify
+        the result in a regular expression.
+
+
+Test Variables:
+
+    There are some "test file variables" defined that allow the specfication of 
+    things that may not be known until runtime (for example Current Working
+    Directory). These variables are valid in the following sections:
+
+        PCCARGS
+        RTEXPECT
+        EXPECT
+
+    These variables are currently defined in an array called $testFileVars in
+    the run-tests.php file. Current list of valid vars:
+
+        %CWD% => Current Working Directory (getcwd();)
+
+
+Examples:
+
+    Simple Compile Example:
+
+    >-- start test file --<
+        --TEST--
+        compile safe "Hello World" test
+        --PCCARGS--
+        --FILE--    
+        <?php echo "Hello World"?>
+        --EXPECT--
+        --RTEXPECT--
+        Hello World
+    >-- end test file --<
+
+
+    Simple Interpret Example:
+
+    >-- start test file --<
+        --TEST--
+        Interpreted "Hello World" test
+        --PCCARGS--
+        -f
+        --FILE--
+        <?php echo "Hello World"?>
+        --EXPECT--
+        Hello World
+    >-- end test file --<
+
+
+    Test Variable Example:
+
+    >-- start test file --<
+        --TEST--
+        CWD test
+        --PCCARGS--
+        --FILE--
+        <?php echo posix_getcwd() ?>
+        --EXPECT--
+        --RTEXPECT--
+        %CWD%
+    >-- end test file --<

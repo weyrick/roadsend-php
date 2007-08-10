@@ -10,15 +10,19 @@
 # unsafe     	- same as "all", but build "unsafe" (production) version
 #              	  the production version is called "unsafe" for historical bigloo
 #              	  reasons
+# install	- install libraries and binaries
+# clean      	- clean entire devel tree
+#
 # runtime    	- build the runtime libraries (including extensions)
 # web-backends	  build web backends (microserver, fastcgi)
 # tags       	- generate tags files for extensions
-# clean      	- clean entire devel tree
+#
 # dotest     	- build "dotest" regression testing program
-# check      	- run main test suite, using dotest program
-# check5     	- run PHP5 specific test suite
+# test		- run the stand alone test suite
+# check      	- run main test suite, using dotest program (compares against Zend PHP)
+# check5     	- run PHP5 specific test suite (compares against Zend PHP)
 # check-all  	- run main test suite, and all extension test suites
-# install	- install libraries and binaries
+#
 #
 PCC_ROOT = .
 include bigloo-rules.mk
@@ -102,12 +106,17 @@ clean:
 #	(cd doc && $(MAKE) clean && UNSAFE=t $(MAKE) clean)
 	(cd tools/profiler && $(MAKE) clean && UNSAFE=t $(MAKE) clean)
 	-(cd tools/libwebserver && $(MAKE) clean)
+	-(cd sa-tests && $(MAKE) clean)
 
 clean-all: Makefile.config clean
 	-rm config.log config.status Makefile.config
 
 dotest: dotest.scm 
 	$(BIGLOO) -srfi $(PCC_OS) -copt -D$(PCC_OS) dotest.scm -o dotest $(DOTEST_LIBS)
+
+test:
+	-(cd sa-tests && $(MAKE) clean)
+	(cd sa-tests && $(MAKE))
 
 check: dotest #all
 	-rm -rf testoutput
