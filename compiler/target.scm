@@ -241,7 +241,8 @@
                    ((target-option fastcgi?:)
                     (fastcgi-link-libs))
                    (else '()))
-              ,@(standalone-link-libs))))
+              ,@(standalone-link-libs)
+              ,@(reverse (or (target-option ld-args:) '())))))	      
 
 (define-method (build-target target::library-target)
    (setup-library-paths)

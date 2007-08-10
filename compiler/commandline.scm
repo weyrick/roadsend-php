@@ -197,7 +197,7 @@
 	(when (maybe-add-script-argv "-m")
 	   (parse-make-file file)))
        
-       ((("-u" "--use") ?lib-name (help "Use specified PCC library when compiling and linking"))
+       ((("-u" "--use") ?lib-name (help "Use specified PCC library (created with -l) when compiling and linking"))
 	(when (maybe-add-script-argv "-u")
 	   (add-target-option! commandline-libs: lib-name)))
 
@@ -214,6 +214,21 @@
 	(when (maybe-add-script-argv "-L")
 	   (add-target-option! library-paths: lib-path)))
 
+       ((("--bopt") ?string (help "Invoke bigloo (scheme compiler) with STRING"))
+	(when (maybe-add-script-argv "--bopt")
+	   (add-target-option! bigloo-args: (mkstr string))))
+       
+       ((("--copt") ?string (help "Invoke cc (c compiler) with STRING"))
+	(when (maybe-add-script-argv "--copt")
+	   (add-target-option! bigloo-args: "-copt")
+	   (add-target-option! bigloo-args: (mkstr #\" string #\"))))
+
+       ((("--ldopt") ?string (help "Invoke ld (linker) with STRING"))
+	(when (maybe-add-script-argv "--ldopt")
+	   (add-target-option! bigloo-args: "-ldopt")
+	   (add-target-option! bigloo-args: (mkstr #\" string #\"))
+	   (add-target-option! ld-args: string)))
+       
        (section "MicroServer Compile Options")
 
        ((("--port") ?port (help "Set the default port that the MicroServer should use"))
