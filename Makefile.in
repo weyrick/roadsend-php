@@ -134,7 +134,7 @@ install:
 	install -m 755 ./compiler/pcc $(bindir)/pcc
 	install -m 755 ./compiler/pdb $(bindir)/pdb
 	install -m 755 ./compiler/pcctags $(bindir)/pcctags
-	install -m 755 ./webconnect/fastcgi/pcc.fcgi $(bindir)/pcc.fcgi
+	@install -m 755 ./webconnect/fastcgi/pcc.fcgi $(bindir)/pcc.fcgi
 #libraries
 	install -m 755 -d $(libdir)
 	install -m 644 ./libs/libwebserver.so $(libdir)
@@ -144,7 +144,7 @@ install:
 	install -m 644 ./libs/*.sch $(libdir)
 	install -m 644 ./libs/*.h $(libdir)
 	install -m 644 ./libs/*.heap $(libdir)
-	install -m 644 ./libs/*.init $(libdir)
+	@install -m 644 ./libs/*.init $(libdir)
 
 # used by the self installing package maker
 package-install: unsafe
