@@ -50,15 +50,16 @@
     (php-object? obj)
     (php-object-for-each-with-ref-status obj::struct thunk::procedure)
     (php-object-property/index obj::struct property::int property-name)
-    (php-object-property/string obj property::bstring)
-    (php-object-property-ref/string obj property::bstring)
-    (php-object-property-set!/string obj property::bstring value)
-    (php-object-property-h-j-f-r/string obj property::bstring)
-    (php-object-property obj property)
-    (php-object-property-ref obj property)
-    (php-object-property-set! obj property value)
+    (php-object-property/string obj property::bstring access-type)
+    (php-object-property-ref/string obj property::bstring access-type)
+    (php-object-property-set!/string obj property::bstring value access-type)
+    (php-object-property-h-j-f-r/string obj property::bstring access-type)
+    (php-object-property obj property access-type)
+    (php-object-property-ref obj property access-type)
+    (php-object-property-set! obj property value access-type)
 ;    (php-class-property klass property)
-    (php-object-property-honestly-just-for-reading obj property)
+    (php-object-property-honestly-just-for-reading obj property access-type)
+    (php-object-property-visibility obj prop caller)
     (php-object-compare obj1 obj2 identical?)
     (internal-object-compare o1 o2 identical? seen)
     (php-object-class obj)
@@ -447,41 +448,41 @@ values the values."
    )
 
 
-(define (php-object-property obj property)
+(define (php-object-property obj property access-type)
    (if (php-object? obj)
        (if (procedure? (get-custom-lookup obj))
 	   (do-custom-lookup obj property #f)
-	   (%lookup-prop obj property))
+	   (%lookup-prop obj property access-type))
        (begin
 	  (php-warning "Referencing a property of a non-object")
 	  NULL)))
 
-(define (php-object-property-honestly-just-for-reading obj property)
+(define (php-object-property-honestly-just-for-reading obj property access-type)
    (if (php-object? obj)
        (let ((l (get-custom-lookup obj)))
 	  (if (procedure? l)
 	      (do-custom-lookup obj property #f)	      
-	      (%lookup-prop-honestly-just-for-reading obj property)))
+	      (%lookup-prop-honestly-just-for-reading obj property access-type)))
        (begin
 	  (php-warning "Referencing a property of a non-object")
 	  NULL)))
 
-(define (php-object-property-ref obj property)
+(define (php-object-property-ref obj property access-type)
    (if (php-object? obj)
        (let ((l (get-custom-lookup obj)))
 	  (if (procedure? l)
 	      (do-custom-lookup obj property #t)
-	      (%lookup-prop-ref obj property)))
+	      (%lookup-prop-ref obj property access-type)))
        (begin
 	  (php-warning "Referencing a property of a non-object")
 	  (make-container NULL))))
 
-(define (php-object-property-set! obj property value)
+(define (php-object-property-set! obj property value access-type)
    (if (php-object? obj)
        (let ((l (get-custom-set obj)))
 	  (if (procedure? l)
 	      (do-custom-set! obj property value)
-	      (%assign-prop obj property value)))
+	      (%assign-prop obj property value access-type)))
        (begin
 	  (php-warning "Assigning to a property of a non-object")
 	  NULL))
@@ -500,8 +501,8 @@ values the values."
 							 (loop (%php-class-parent-class cls))))))
 		    (if ref? (maybe-box val) (maybe-unbox val)))
 		 (if ref?
-		     (%lookup-prop-ref obj property)
-		     (%lookup-prop obj property))))))
+		     (%lookup-prop-ref obj property 'all)
+		     (%lookup-prop obj property 'all))))))
 ;)
 
 (define (do-custom-set! obj property value)
@@ -510,7 +511,7 @@ values the values."
 	 (if (procedure? set)
 	     (set obj property (container? value) value  (lambda ()
 							   (loop (%php-class-parent-class cls))))
-	     (%assign-prop obj property value)))))
+	     (%assign-prop obj property value 'public)))))
 
 (define (php-object-compare o1 o2 identical?)
    (internal-object-compare o1 o2 identical? (make-grasstable)))
@@ -655,7 +656,7 @@ values the values."
 					 (%php-class-declared-property-offsets parent-class))
 					(copy-properties-vector (%php-class-properties parent-class))
 					(copy-prop-visibility
-					 (%php-class-declared-property-offsets parent-class))				 
+					 (%php-class-prop-visibility parent-class))				 
 					(copy-php-data (%php-class-extended-properties parent-class))
 					(copy-php-data (%php-class-methods parent-class))
 					(%php-class-custom-prop-lookup parent-class)
@@ -814,9 +815,39 @@ argument, before the continuation: (obj prop ref? value k)."
               c)
            #f))))
 
+; decide what kind of visibility caller has to obj->prop
+(define (php-object-property-visibility obj prop caller)
+   (let ((access-type 'public))
+      (let ((ovis (hashtable-get
+		   (%php-class-prop-visibility
+		    (%php-object-class obj))
+		   (%property-name-canonicalize prop))))
+	 ; ovis holds the declared visibility of prop. if it's private,
+	 ; only allow it if caller is the same class. if it's protected,
+	 ; allow it if caller has obj as a decendant
+	 (when ovis
+	    ; private
+	    (when (eqv? ovis 'private)
+	       (if (and (php-object? caller)
+			(eqv? (%php-object-class caller)
+			      (%php-object-class obj)))
+		   (set! access-type 'all)
+		   (set! access-type (cons ovis 'none))))
+	    ; protected
+	    (when (eqv? ovis 'protected)
+	       (if (and (php-object? caller)
+			(or (eqv? (%php-object-class caller)
+				  (%php-object-class obj))
+			    (%subclass? (%php-object-class caller)
+					(%php-object-class obj))))
+		   (set! access-type 'protected)
+		   (set! access-type (cons ovis 'none))))))
+      access-type))
+
 ;; this handles visibility mangling
 ;; it will check in order: public (no mangle), protected, private
-(define (%prop-offset obj prop-canon-name)
+;; based on access-type, which should be either: public, protected, or all
+(define (%prop-offset obj prop-canon-name access-type)
    (let ((prop (hashtable-get
 		(%php-class-declared-property-offsets
 		 (%php-object-class obj))
@@ -824,35 +855,42 @@ argument, before the continuation: (obj prop ref? value k)."
       (if (or prop (not PHP5?))
 	  ; found a public
 	  prop
-	  (let ((prop (hashtable-get
-		       (%php-class-declared-property-offsets
-			(%php-object-class obj))
-		       (mangle-property-protected prop-canon-name))))
-	     (if prop
-		 ; found a protected
-		 prop
-		 ; either private or nothin'
-		 (hashtable-get
-		  (%php-class-declared-property-offsets
-		   (%php-object-class obj))
-		  (mangle-property-private prop-canon-name)))))))
+	  (if (or (eqv? access-type 'protected)
+		  (eqv? access-type 'all))
+	      (let ((prop (hashtable-get
+			   (%php-class-declared-property-offsets
+			    (%php-object-class obj))
+			   (mangle-property-protected prop-canon-name))))
+		 (if prop
+		     ; found a protected
+		     prop
+		     ; either private or nothin'
+		     (if (eqv? access-type 'all)
+			 (hashtable-get
+			  (%php-class-declared-property-offsets
+			   (%php-object-class obj))
+			  (mangle-property-private prop-canon-name))
+			 ; no visibility
+			 #f)))
+	      ; no visibility
+	      #f))))
 		
 ;;;;the actual property looker-uppers
-(define (%lookup-prop-ref obj property)
+(define (%lookup-prop-ref obj property access-type)
    (let* ((canon-name (%property-name-canonicalize property))
-	  (offset (%prop-offset obj canon-name)))
+	  (offset (%prop-offset obj canon-name access-type)))
       (if offset	  
 	  (vector-ref (%php-object-properties obj) offset)
 	  (php-hash-lookup-ref (%php-object-extended-properties obj)
 			       #t
 			       canon-name))))
 
-(define (%lookup-prop obj property)
-   (container-value (%lookup-prop-ref obj property)))
+(define (%lookup-prop obj property access-type)
+   (container-value (%lookup-prop-ref obj property access-type)))
 
-(define (%lookup-prop-honestly-just-for-reading obj property)
+(define (%lookup-prop-honestly-just-for-reading obj property access-type)
    (let* ((canon-name (%property-name-canonicalize property))
-	  (offset (%prop-offset obj canon-name)))
+	  (offset (%prop-offset obj canon-name access-type)))
       (if offset
 	  (container-value (vector-ref (%php-object-properties obj) offset))
 	  ;XXX this wasn't here.. copying bug?
@@ -861,9 +899,9 @@ argument, before the continuation: (obj prop ref? value k)."
 	   canon-name) )))
 
 
-(define (%assign-prop obj property value)
+(define (%assign-prop obj property value access-type)
    (let* ((canon-name (%property-name-canonicalize property))
-	  (offset (%prop-offset obj canon-name)))
+	  (offset (%prop-offset obj canon-name access-type)))
       (if offset
 	  ;declared property
 	  (if (container? value)
@@ -934,29 +972,29 @@ argument, before the continuation: (obj prop ref? value k)."
 
 
 ;;;string versions, for compiled code
-(define (php-object-property/string obj property::bstring)
-   (php-object-property obj property))
+(define (php-object-property/string obj property::bstring access-type)
+   (php-object-property obj property access-type))
 
-(define (php-object-property-h-j-f-r/string obj property::bstring)
-   (php-object-property-honestly-just-for-reading obj property))
+(define (php-object-property-h-j-f-r/string obj property::bstring access-type)
+   (php-object-property-honestly-just-for-reading obj property access-type))
 
-(define (php-object-property-set!/string obj property::bstring value)
-   (php-object-property-set! obj property value))
+(define (php-object-property-set!/string obj property::bstring value access-type)
+   (php-object-property-set! obj property value access-type))
 
-(define (php-object-property-ref/string obj property::bstring)
-   (php-object-property-ref obj property))
+(define (php-object-property-ref/string obj property::bstring access-type)
+   (php-object-property-ref obj property access-type))
 
-(define (%lookup-prop-ref/string obj property::bstring)
-   (%lookup-prop-ref obj property))
+(define (%lookup-prop-ref/string obj property::bstring access-type)
+   (%lookup-prop-ref obj property access-type))
 
-(define (%lookup-prop/string obj property::bstring)
-   (%lookup-prop obj property))
+(define (%lookup-prop/string obj property::bstring access-type)
+   (%lookup-prop obj property access-type))
 
-(define (%lookup-prop-h-j-f-r/string obj property::bstring)
-   (%lookup-prop-honestly-just-for-reading obj property))
+(define (%lookup-prop-h-j-f-r/string obj property::bstring access-type)
+   (%lookup-prop-honestly-just-for-reading obj property access-type))
 
 (define (%assign-prop/string obj property::bstring value)
-   (%assign-prop obj property value))
+   (%assign-prop obj property value 'public))
    
 ;;;end string versions
 

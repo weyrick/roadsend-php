@@ -385,7 +385,7 @@
                                                                        ; copy properties from unserialized val
                                                                        (php-hash-for-each props
                                                                           (lambda (k v)
-                                                                             (php-object-property-set! new-obj k v)))
+                                                                             (php-object-property-set! new-obj k v 'all)))
                                                                        ; call __wakeup
                                                                        (if (php-class-method-exists? classname "__wakeup")
                                                                            (call-php-method new-obj "__wakeup"))

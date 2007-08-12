@@ -582,11 +582,16 @@ gives the debugger a chance to run."
 
 (define-method (eval-assign lval::property-fetch rval)
    (with-access::property-fetch lval (obj prop)
-      (php-object-property-set! (maybe-unbox (d/evaluate obj))
-				(if (ast-node? prop)
-				    (maybe-unbox (d/evaluate prop))
-				    (php-error "noise property " prop))
-				(maybe-unbox rval))))
+      (let* ((obj-val (maybe-unbox (d/evaluate obj)))
+	     (prop-val (maybe-unbox (d/evaluate prop)))
+	     (access-type (php-object-property-visibility obj-val prop-val *current-instance*)))
+	 (when (and PHP5? (pair? access-type))
+	    (let ((vis (car access-type)))
+	       (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class obj-val) prop-val))))	 
+	 (php-object-property-set! obj-val
+				   prop-val
+				   (maybe-unbox rval)
+				   access-type))))
 
 
 (define-method (evaluate node::list-assignment)
@@ -647,11 +652,16 @@ gives the debugger a chance to run."
 
 (define-method (update-location lval::property-fetch rval)
    (with-access::property-fetch lval (obj prop)
-      (php-object-property-set! (maybe-unbox (d/evaluate obj))
-				(if (ast-node? prop)
-				    (maybe-unbox (d/evaluate prop))
-				    (php-error "noise property " prop))
-				rval)))
+      (let* ((obj-val (maybe-unbox (d/evaluate obj)))
+	     (prop-val (maybe-unbox (d/evaluate prop)))
+	     (access-type (php-object-property-visibility obj-val prop-val *current-instance*)))
+	 (when (and PHP5? (pair? access-type))
+	    (let ((vis (car access-type)))
+	       (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class obj-val) prop-val))))	 	 
+	 (php-object-property-set! obj-val
+				   prop-val
+				   (maybe-unbox rval)
+				   access-type))))
 				
 (define-method (evaluate node::unset-stmt)
    (set! *PHP-LINE* (car (ast-node-location node)))
@@ -870,9 +880,13 @@ gives the debugger a chance to run."
 (define-method (evaluate node::property-fetch)
    (set! *PHP-LINE* (car (ast-node-location node)))
    (with-access::property-fetch node (obj prop)
-      (let ((obj-val (maybe-unbox (d/evaluate obj)))
-	    (prop-val (maybe-unbox (d/evaluate prop))))
-	 (php-object-property-ref obj-val prop-val))))
+      (let* ((obj-val (maybe-unbox (d/evaluate obj)))
+	    (prop-val (maybe-unbox (d/evaluate prop)))
+	    (access-type (php-object-property-visibility obj-val prop-val *current-instance*)))
+	 (when (and PHP5? (pair? access-type))
+	    (let ((vis (car access-type)))
+	       (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class obj-val) prop-val))))
+	 (php-object-property-ref obj-val prop-val access-type))))
 
 (define-method (evaluate node::class-constant)
    (with-access::class-constant node (location class name)

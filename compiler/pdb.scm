@@ -695,7 +695,7 @@
 		       (if (php-hash-contains? (env-bindings *current-env*) object-name)
 			   (let ((object (maybe-unbox (env-lookup *current-env* object-name))))
 			      (if (php-object? object)
-				  (debug-dump (php-object-property object property))
+				  (debug-dump (php-object-property object property 'all))
 				  (if *slavemode*				      
 				      (debug-print "<unset>")
 				      (debug-warn object-variable " is not an object."))))

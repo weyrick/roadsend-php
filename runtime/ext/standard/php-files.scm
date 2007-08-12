@@ -99,7 +99,7 @@
     (umask mask) ; mask is optional
     (unlink filename)
     ; other file related builtins
-    (dir path)
+    ;(dir path)
     (getcwd)
     (opendir path)
     (readdir dirhandle)
@@ -1635,143 +1635,143 @@
 
 ;; Directory class
 ; this is horrible
-(define Directory=>Directory
-  (let ()
-    (lambda ($this . args)
-       (let (($p (if (>= 0 (length args))
-                   (error 'Directory "not enough params" 0)
-                   (container-value (list-ref args 0)))))
-         (push-stack '"Directory" '"Directory" $p)
-         (let ((retval
-		(bind-exit
-		      (return)
-                   (let ()
-		      (set! $this (maybe-box $this))
-		      (let ((env #f))
-			 #t
-			 (begin
-			    (php-object-property-set!
-			     (container-value $this)
-			     "path"
-			     (maybe-unbox (copy-php-data $p)))
-			    (php-object-property-set!
-			     (container-value $this)
-			     "handle"
-			     (maybe-unbox
-			      (copy-php-data
-                               (maybe-unbox
-				(begin
-                                   (let ((retval1001 (opendir $p)))
-				      retval1001)))))))
-			 (make-container NULL))))))
-	    (pop-stack)
-	    retval)))))
+; (define Directory=>Directory
+;   (let ()
+;     (lambda ($this . args)
+;        (let (($p (if (>= 0 (length args))
+;                    (error 'Directory "not enough params" 0)
+;                    (container-value (list-ref args 0)))))
+;          (push-stack '"Directory" '"Directory" $p)
+;          (let ((retval
+; 		(bind-exit
+; 		      (return)
+;                    (let ()
+; 		      (set! $this (maybe-box $this))
+; 		      (let ((env #f))
+; 			 #t
+; 			 (begin
+; 			    (php-object-property-set!
+; 			     (container-value $this)
+; 			     "path"
+; 			     (maybe-unbox (copy-php-data $p)))
+; 			    (php-object-property-set!
+; 			     (container-value $this)
+; 			     "handle"
+; 			     (maybe-unbox
+; 			      (copy-php-data
+;                                (maybe-unbox
+; 				(begin
+;                                    (let ((retval1001 (opendir $p)))
+; 				      retval1001)))))))
+; 			 (make-container NULL))))))
+; 	    (pop-stack)
+; 	    retval)))))
 
 
-(define Directory=>read
-  (let ()
-    (lambda ($this . args)
-       (let ()
-         (push-stack '"Directory" '"read")
-         (let ((retval
-                 (bind-exit
-                   (return)
-                   (let ()
-                     (set! $this (maybe-box $this))
-                     (let ((env #f))
-                       #t
-                       (begin
-                         (return
-                           (copy-php-data
-                             (maybe-box
-                               (begin
-                                 (let ((retval1002
-                                         (readdir
-                                           (maybe-unbox
-                                             (php-object-property-ref
-                                               (container-value $this)
-                                               (string->symbol
-                                                 (mkstr "handle")))))))
-                                   retval1002))))))
-                       (make-container NULL))))))
-           (pop-stack)
-           retval)))))
+; (define Directory=>read
+;   (let ()
+;     (lambda ($this . args)
+;        (let ()
+;          (push-stack '"Directory" '"read")
+;          (let ((retval
+;                  (bind-exit
+;                    (return)
+;                    (let ()
+;                      (set! $this (maybe-box $this))
+;                      (let ((env #f))
+;                        #t
+;                        (begin
+;                          (return
+;                            (copy-php-data
+;                              (maybe-box
+;                                (begin
+;                                  (let ((retval1002
+;                                          (readdir
+;                                            (maybe-unbox
+;                                              (php-object-property-ref
+;                                                (container-value $this)
+;                                                (string->symbol
+;                                                  (mkstr "handle")))))))
+;                                    retval1002))))))
+;                        (make-container NULL))))))
+;            (pop-stack)
+;            retval)))))
  
  
-(define Directory=>rewind
-  (let ()
-    (lambda ($this . args)
-       (let ()
-         (push-stack '"Directory" '"rewind")
-         (let ((retval
-                 (bind-exit
-                   (return)
-                   (let ()
-                     (set! $this (maybe-box $this))
-                     (let ((env #f))
-                       #t
-                       (begin
-                         (return
-                           (copy-php-data
-                             (maybe-box
-                               (begin
-                                 (let ((retval1003
-                                         (rewinddir
-                                           (maybe-unbox
-                                             (php-object-property-ref
-                                               (container-value $this)
-                                               (string->symbol
-                                                 (mkstr "handle")))))))
-                                   retval1003))))))
-                       (make-container NULL))))))
-           (pop-stack)
-           retval)))))
+; (define Directory=>rewind
+;   (let ()
+;     (lambda ($this . args)
+;        (let ()
+;          (push-stack '"Directory" '"rewind")
+;          (let ((retval
+;                  (bind-exit
+;                    (return)
+;                    (let ()
+;                      (set! $this (maybe-box $this))
+;                      (let ((env #f))
+;                        #t
+;                        (begin
+;                          (return
+;                            (copy-php-data
+;                              (maybe-box
+;                                (begin
+;                                  (let ((retval1003
+;                                          (rewinddir
+;                                            (maybe-unbox
+;                                              (php-object-property-ref
+;                                                (container-value $this)
+;                                                (string->symbol
+;                                                  (mkstr "handle")))))))
+;                                    retval1003))))))
+;                        (make-container NULL))))))
+;            (pop-stack)
+;            retval)))))
  
  
-(define Directory=>close
-  (let ()
-    (lambda ($this . args)
-       (let ()
-         (push-stack '"Directory" '"close")
-         (let ((retval
-                 (bind-exit
-                   (return)
-                   (let ()
-                     (set! $this (maybe-box $this))
-                     (let ((env #f))
-                       #t
-                       (begin
-                         (return
-                           (copy-php-data
-                             (maybe-box
-                               (begin
-                                 (let ((retval1004
-                                         (closedir
-                                           (maybe-unbox
-                                             (php-object-property-ref
-                                               (container-value $this)
-                                               (string->symbol
-                                                 (mkstr "handle")))))))
-                                   retval1004))))))
-                       (make-container NULL))))))
-           (pop-stack)
-           retval)))))
+; (define Directory=>close
+;   (let ()
+;     (lambda ($this . args)
+;        (let ()
+;          (push-stack '"Directory" '"close")
+;          (let ((retval
+;                  (bind-exit
+;                    (return)
+;                    (let ()
+;                      (set! $this (maybe-box $this))
+;                      (let ((env #f))
+;                        #t
+;                        (begin
+;                          (return
+;                            (copy-php-data
+;                              (maybe-box
+;                                (begin
+;                                  (let ((retval1004
+;                                          (closedir
+;                                            (maybe-unbox
+;                                              (php-object-property-ref
+;                                                (container-value $this)
+;                                                (string->symbol
+;                                                  (mkstr "handle")))))))
+;                                    retval1004))))))
+;                        (make-container NULL))))))
+;            (pop-stack)
+;            retval)))))
 
-(define (def-dir-class)
-   (define-php-class 'Directory '())
-   (define-php-property 'Directory "path" (make-container '()))
-   (define-php-property 'Directory "handle" (make-container '()))
-   (define-php-method 'Directory "Directory" Directory=>Directory)
-   (define-php-method 'Directory "read"  Directory=>read)
-   (define-php-method 'Directory "rewind" Directory=>rewind)
-   (define-php-method 'Directory "close"  Directory=>close))
+; (define (def-dir-class)
+;    (define-php-class 'Directory '())
+;    (define-php-property 'Directory "path" (make-container '()))
+;    (define-php-property 'Directory "handle" (make-container '()))
+;    (define-php-method 'Directory "Directory" Directory=>Directory)
+;    (define-php-method 'Directory "read"  Directory=>read)
+;    (define-php-method 'Directory "rewind" Directory=>rewind)
+;    (define-php-method 'Directory "close"  Directory=>close))
 
 ; this is a startup function because at top level init the object
 ; system hasn't been initialized
-(add-startup-function def-dir-class)
+;(add-startup-function def-dir-class)
 
-(defbuiltin (dir path)
-   (construct-php-object "Directory" path))
+;(defbuiltin (dir path)
+;   (construct-php-object "Directory" path))
 
 ;;mingw!
 ;(define (stat-mode a)

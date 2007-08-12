@@ -521,6 +521,10 @@
    ;; and error.
    (set! *PHP-FILE* (loc-file *parse-loc*))
    (set! *PHP-LINE* (loc-line *parse-loc*))
-   (require-php5))
+   ;(require-php5)
+   (unless PHP5?
+      (debug-trace 1 "PHP 5 syntax detected: version 5 language compatibility enabled")
+      (set! PHP5? #t)))
+   
 
 
