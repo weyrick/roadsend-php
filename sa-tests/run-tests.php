@@ -103,6 +103,10 @@ if (getenv('TEST_PHP_DETAILED')) {
 	define('DETAILED', 0);
 }
 
+if (getenv('ZEND_COMPAT') == 1) {
+    echo "running in ZEND_COMPAT mode: all EXPECT sections moved to RTEXPECT\n";
+}
+
 // Check whether user test dirs are requested.
 if (getenv('TEST_PHP_USER')) {
 	$user_tests = explode (',', getenv('TEST_PHP_USER'));
@@ -216,12 +220,15 @@ $ignored_by_ext = 0;
 sort($exts_to_test);
 $test_dirs = array('tests', 'ext');
 
-foreach ($test_dirs as $dir) {
-	find_files("{$cwd}/{$dir}", ($dir == 'ext'));
+if (empty($user_tests)) {
+  foreach ($test_dirs as $dir) {
+	  find_files("{$cwd}/{$dir}", ($dir == 'ext'));
+  }
 }
-
-foreach ($user_tests as $dir) {
+else {
+  foreach ($user_tests as $dir) {
 	find_files($dir, ($dir == 'ext'));
+  }
 }
 
 function find_files($dir,$is_ext_dir=FALSE,$ignore=FALSE)
@@ -428,6 +435,12 @@ TEST $file
 		$section_text[$section] .= $line;
 	}
 	fclose($fp);
+
+    // if we're running zend type tests, substitute EXPECT for RTEXPECT
+    if (getenv('ZEND_COMPAT') == 1) {
+        $section_text['RTEXPECT'] = $section_text['EXPECT'];
+        $section_text['EXPECT'] = '';
+    }
 
 	/* For GET/POST tests, check if cgi sapi is avaliable and if it is, use it. */
 	if ((!empty($section_text['GET']) || !empty($section_text['POST']))) {
