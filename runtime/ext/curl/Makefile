@@ -27,7 +27,7 @@ SOURCE_LIST     = php-curl curl-c-bindings curl-bindings
 
 C_SOURCE_LIST   = 
 
-CFLAGS		= -copt "$(CURL_CFLAGS)"
+BCFLAGS		= -copt "$(CURL_CFLAGS)"
 STATICFLAGS	= -copt "$(CURL_STATIC_CFLAGS)"
 
 OTHERLIBS       = $(CURL_LIBS)

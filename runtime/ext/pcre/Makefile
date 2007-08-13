@@ -32,7 +32,7 @@ C_SOURCE_LIST   = php-pcre
 #for this extension, so that dlopen() loads them
 OTHERLIBS       = $(PCRE_LIBS)
 
-CFLAGS		= -copt "$(PCRE_CFLAGS)"
+BCFLAGS		= -copt "$(PCRE_CFLAGS)"
 STATICFLAGS	= -copt "$(PCRE_CFLAGS)"
 C_STATICFLAGS	= $(PCRE_CFLAGS)
 

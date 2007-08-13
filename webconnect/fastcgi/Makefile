@@ -41,7 +41,7 @@ fastcgi-libs: ../../libs/libfastcgi_$(SUV).$(SOEXT) ../../libs/libfastcgi_$(SUV)
 	$(BIGLOO) $(BHEAPFLAGS) make-lib.scm -heap-library fastcgi -addheap ../../libs/fastcgi.heap
 
 make-lib.o: $(POPULATION)
-	$(BIGLOO) -copt -fPIC -rm  $(CFLAGS) -mkaddlib -dload-sym -c make-lib.scm
+	$(BIGLOO) -copt -fPIC -rm  $(BCFLAGS) -mkaddlib -dload-sym -c make-lib.scm
 
 fastcgi_$(SU).o: fcgi-binding_$(SU).o
 

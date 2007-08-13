@@ -28,7 +28,7 @@ SOURCE_LIST     = php-odbc \
 
 C_SOURCE_LIST   = odbc-utils
 
-CFLAGS	= -copt "$(ODBC_CFLAGS)"
+BCFLAGS	= -copt "$(ODBC_CFLAGS)"
 
 OTHERLIBS       = $(ODBC_LIBS)
 

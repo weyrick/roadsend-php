@@ -30,7 +30,7 @@ SOURCE_LIST     = xml \
 C_SOURCE_LIST	= scm-xml
 
 
-CFLAGS	 	= -copt "$(XML_CFLAGS)"
+BCFLAGS	 	= -copt "$(XML_CFLAGS)"
 
 C_SOURCE_FLAGS  = $(XML_CFLAGS)
 

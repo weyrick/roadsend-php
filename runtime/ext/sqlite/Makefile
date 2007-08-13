@@ -29,7 +29,7 @@ SOURCE_LIST     = php-sqlite \
 C_SOURCE_LIST   = encode \
 		  sqlite-utils
 
-CFLAGS		= -copt "$(SQLITE_CFLAGS)"
+BCFLAGS		= -copt "$(SQLITE_CFLAGS)"
 C_SOURCE_FLAGS	= $(SQLITE_CFLAGS)
 
 OTHERLIBS       = $(SQLITE_LIBS)

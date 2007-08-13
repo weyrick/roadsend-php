@@ -26,7 +26,7 @@ MY_DIR		= ./runtime/ext/mysql/
 SOURCE_LIST     = php-mysql \
                   c-bindings
 
-CFLAGS	= -copt "$(MYSQL_CFLAGS)"
+BCFLAGS	= -copt "$(MYSQL_CFLAGS)"
 
 OTHERLIBS       = $(MYSQL_LIBS)
 

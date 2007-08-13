@@ -51,7 +51,7 @@ EXT_LIBS	= #-library bgtk
 #for this extension, so that dlopen() loads them
 OTHERLIBS       = `pkg-config --libs gtk+-2.0 libglade-2.0` -L`bigloo -eval '(begin (print *default-lib-dir*) (exit 0))'` #-lgtkscintilla
 
-CFLAGS		= -copt `pkg-config --cflags gtk+-2.0 libglade-2.0 |sed  -r s/[[:blank:]]\+-/\ \-copt\ -/g` #$(GLADE_INCLUDE)
+BCFLAGS		= -copt `pkg-config --cflags gtk+-2.0 libglade-2.0 |sed  -r s/[[:blank:]]\+-/\ \-copt\ -/g` #$(GLADE_INCLUDE)
 
 # include common extension makefile
 include ../extensions.mk
