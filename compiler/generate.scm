@@ -872,6 +872,22 @@ onum.  Append the bindings for the new symbols and code."
 			     (format "generate-code-parent-method-invoke: no parent class to be found ~a"
 				     node)))))
 
+(define (generate-get-access-type the-object the-property)
+   (if PHP5?
+       `(php-object-property-visibility ,the-object
+					,the-property
+					,(if *current-class-name*
+					     `this-unboxed
+					     `#f))
+       `'public))
+
+(define (generate-prop-visibility-check the-object the-property)
+   (if PHP5?
+       `(when (pair? access-type)
+	   (let ((vis (car access-type)))
+	      (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class ,the-object) ,the-property))))
+       '()))
+
 (define-method (generate-code node::property-fetch)
    (with-access::property-fetch node (obj prop)
       (let* ((the-object (get-value obj))
@@ -881,14 +897,8 @@ onum.  Append the bindings for the new symbols and code."
 	     (property-is-constant? (compile-time-constant? the-property)))
 	 (when (and property-is-constant? (not (string? the-property)))
 	    (warning/loc node "property name is not a string, but should be."))
-	 `(let ((access-type (php-object-property-visibility ,the-object
-							     ,the-property
-							     ,(if *current-class-name*
-								  `this-unboxed
-								  `#f))))
-	     (when (and PHP5? (pair? access-type))
-		(let ((vis (car access-type)))
-		   (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class ,the-object) ,the-property))))
+	 `(let ((access-type ,(generate-get-access-type the-object the-property)))
+	     ,(generate-prop-visibility-check the-object the-property)
 	     ,(if *hash-lookup-writable*
 		  (if property-is-constant?
 		      `(php-object-property/string
@@ -1272,14 +1282,8 @@ onum.  Append the bindings for the new symbols and code."
 	     (property-is-constant? (compile-time-constant? the-property)))	 
 	 (when (and property-is-constant? (not (string? the-property)))
 	    (warning/loc rval "property name is not a string, but should be."))
-	 `(let ((access-type (php-object-property-visibility ,the-object
-							     ,the-property
-							     ,(if *current-class-name*
-								  `this-unboxed
-								  `#f))))
-	     (when (and PHP5? (pair? access-type))
-		(let ((vis (car access-type)))
-		   (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class ,the-object) ,the-property))))	 	 
+	 `(let ((access-type ,(generate-get-access-type the-object the-property)))
+	     ,(generate-prop-visibility-check the-object the-property)	 
 	     ,(if property-is-constant?
 		  `(php-object-property-ref/string
 		    ,the-object ,(mkstr the-property) access-type)
@@ -1404,14 +1408,8 @@ onum.  Append the bindings for the new symbols and code."
 	     (property-is-constant? (compile-time-constant? the-property)))
 	 (when (and property-is-constant? (not (string? the-property)))
 	    (warning/loc lval "property name is not a string, but should be."))
-	 `(let ((access-type (php-object-property-visibility ,the-object
-							     ,the-property
-							     ,(if *current-class-name*
-								  `this-unboxed
-								  `#f))))
-	     (when (and PHP5? (pair? access-type))
-		(let ((vis (car access-type)))
-		   (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class ,the-object) ,the-property))))	 
+	 `(let ((access-type ,(generate-get-access-type the-object the-property)))
+	     ,(generate-prop-visibility-check the-object the-property)	 
 	     ,(if property-is-constant?
 		  `(php-object-property-set!/string
 		    ,the-object
@@ -1492,14 +1490,8 @@ onum.  Append the bindings for the new symbols and code."
 	     (property-is-constant? (compile-time-constant? the-property)))
 	 (when (and property-is-constant? (not (string? the-property)))
 	    (warning/loc lval "property name is not a string, but should be."))
-	 `(let ((access-type (php-object-property-visibility ,the-object
-							     ,the-property
-							     ,(if *current-class-name*
-								  `this-unboxed
-								  `#f))))
-	     (when (and PHP5? (pair? access-type))
-		(let ((vis (car access-type)))
-		   (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class ,the-object) ,the-property))))	 	 
+	 `(let ((access-type ,(generate-get-access-type the-object the-property)))
+	     ,(generate-prop-visibility-check the-object the-property)	 	 
 	     ,(if property-is-constant?
 		  `(php-object-property-set!/string
 		    ,the-object ,(mkstr the-property) (maybe-box ,rval-code) access-type)
