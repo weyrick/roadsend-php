@@ -123,7 +123,7 @@
 
        ((("-5") (help "Enable PHP5 support"))
 	(when (maybe-add-script-argv "-5")
-	   (set! PHP5? #t)))
+	   (go-php5)))
 
        ((("-v") (help "Verbose output"))
 	(when (maybe-add-script-argv "-v")

@@ -173,7 +173,7 @@
 
        ((("-5") (help "Enable PHP5 support"))
 	(when (maybe-add-script-argv "-5")
-	   (set! PHP5? #t)))
+	   (go-php5)))
 
        ((("-c") ?config-file (help "Use the specified config file"))
 	(maybe-add-script-argv "-c")
@@ -511,7 +511,7 @@
                            ((string=? k "libName") (set! libname v))
 			   ((and (string=? k "langCompat")
 				 (string=? v *LANG-COMPAT-PHP5*))
-			    (set! PHP5? #t))
+			    (go-php5))
                            ((string=? k "mainFile") (set! mainFile (windows->unix-path v)))
                            ((string=? k "microWebPort") (add-target-option! micro-web-port: (mkfixnum v)))
                            ((string=? k "profile") (when (string=? v "1")

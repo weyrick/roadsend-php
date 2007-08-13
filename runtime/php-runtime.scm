@@ -76,6 +76,8 @@
     *RAVEN-VERSION-MAJOR*
     *RAVEN-VERSION-MINOR*
     *RAVEN-VERSION-RELEASE*
+    *ZEND-VERSION*
+    *ZEND2-VERSION*
     *user-libs*
     (add-end-page-reset-func f)
     (reset-runtime-state)
@@ -238,9 +240,15 @@
     ;; php-compat compat
     zval->phpval-coercion-routine
     PHP5?
-    (require-php5)) )
+    (require-php5)
+    (go-php5)
+    ) )
 
 (define PHP5? #f)
+
+(define (go-php5)
+   (set! PHP5? #t)
+   (defconstant PHP_VERSION *PHP5-VERSION*))
 
 (define (require-php5)
    (unless PHP5?
@@ -303,8 +311,10 @@
 					   "/"
 					   *RAVEN-VERSION-STRING*))
 
-(define *PHP-VERSION* "4.4.7") 
-
+(define *PHP-VERSION* "4.4.7")
+(define *PHP5-VERSION* "5.2.2") 
+(define *ZEND-VERSION* "1.3.0")
+(define *ZEND2-VERSION* "2.2.0")
 
 ;this version number gets put into compiled programs and libraries.
 ;Whenever non-backwards compatible changes are made to the runtime,

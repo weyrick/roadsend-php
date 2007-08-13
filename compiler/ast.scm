@@ -524,7 +524,7 @@
    ;(require-php5)
    (unless PHP5?
       (debug-trace 1 "PHP 5 syntax detected: version 5 language compatibility enabled")
-      (set! PHP5? #t)))
+      (go-php5)))
    
 
 

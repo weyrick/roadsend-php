@@ -477,10 +477,6 @@
 
 ;;;;;;;;;; php info, versioning, etc
 
-; this stuff obviously shouldn't be hard coded
-
-(define *zend-version* "1.3.0")
-
 ; XXX dehardcodify
 (defbuiltin (php_sapi_name)
    (if *commandline?*
@@ -600,7 +596,9 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
    (lookup-constant "PHP_VERSION"))
 
 (defbuiltin (zend_version)
-   *zend-version*)
+   (if PHP5?
+       *ZEND2-VERSION*
+       *ZEND-VERSION*))
 
 ;;;; miscellaneous functions
 
