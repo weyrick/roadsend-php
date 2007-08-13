@@ -2,7 +2,7 @@
 all: check
 
 check:
-	TEST_PHP_EXECUTABLE="../compiler/pcc" ../compiler/pcc -f run-tests.php
+	PCC_CONF="./pcc-test.conf" TEST_PHP_EXECUTABLE="../compiler/pcc" ../compiler/pcc -f run-tests.php
 
 clean: 
 	-rm `find ./ -name "*.o" -or -name "*.a" -or -name "*.sc[hm]" -or -name "*.so" -or -iname "*.dll" -or -iname "*.heap"`
