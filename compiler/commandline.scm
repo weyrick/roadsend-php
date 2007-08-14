@@ -132,6 +132,12 @@
 
        (section "Compile Mode (default: generate console application)")
 
+
+       ((("-a") (help "Interactive mode (REPL)"))
+	(if (maybe-add-script-argv "-a")
+	    (begin
+	       (widen!::repl-target *current-target*))))
+       
        ((("-i" "-f" "--interpret") ?script (help "Execute code immediately, instead of compiling"))
 	(if (maybe-add-script-argv "-f")
 	    (begin
