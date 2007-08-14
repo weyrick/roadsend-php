@@ -21,6 +21,7 @@
    (include "php-runtime.sch")
    (import (php-runtime "php-runtime.scm")
            (php-hash "php-hash.scm")
+	   (constants "constants.scm")
            (signatures "signatures.scm"))
    (load (php-macros "../php-macros.scm"))
    (export
@@ -89,6 +90,22 @@
 (define *error-level* E_ALL)
 
 (define *anti-error-recurse* #f)
+
+; magic constants
+(store-special-constant "__FUNCTION__" (lambda ()
+					  (when (pair? *stack-trace*)
+					     (let ((top (car *stack-trace*)))
+						(stack-entry-function top)))))
+(store-special-constant "__METHOD__" (lambda ()
+					(when (pair? *stack-trace*)
+					   (let ((top (car *stack-trace*)))
+					      (if (stack-entry-class-name top)
+						  (mkstr (stack-entry-class-name top) "::" (stack-entry-function top))
+						  "")))))
+(store-special-constant "__CLASS__" (lambda ()
+					  (when (pair? *stack-trace*)
+					     (let ((top (car *stack-trace*)))
+						(stack-entry-class-name top)))))
 
 ; ALWAYS FATAL
 (define (php-error . msgs)

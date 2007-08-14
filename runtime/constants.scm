@@ -24,6 +24,7 @@
     (lookup-constant/smash name::pair)
     (store-constant name::string value case-insensitive?)
     (store-persistent-constant name::string value)
+    (store-special-constant name::string value)
     (constants-for-each k)
     (php-constant? value)
     *PHP-LINE*
@@ -38,8 +39,18 @@
 (define *PHP-LINE* 0)
 (define *PHP-FILE* "unknown")
 
-(hashtable-put! *special-constants* "__FILE__" (lambda () *PHP-FILE*))
-(hashtable-put! *special-constants* "__LINE__" (lambda () *PHP-LINE*))
+; magical constants
+(store-special-constant "__FILE__" (lambda () *PHP-FILE*))
+(store-special-constant "__LINE__" (lambda () *PHP-LINE*))
+
+; these are defined in php-errors, where the stack tracing happens
+;(store-special-constant "__CLASS__" (lambda () ""))
+;(store-special-constant "__METHOD__" (lambda () ""))
+;(store-special-constant "__FUNCTION__" (lambda () ""))
+
+; store a magical "dynamic constant"
+(define (store-special-constant name::string value)
+   (hashtable-put! *special-constants* name value))
 
 (define %constant-not-defined% (cons '() '()))
 
