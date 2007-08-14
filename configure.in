@@ -30,8 +30,10 @@ want_curl=7.15.1
 # defaults
 with_pccwin=no
 
-# default ext list
+# default ext list. unfortunately we have two, because the lib names are different
+# from the directory names, and we need both
 EXT_LIST="standard curl"
+PCC_EXT_LIST="php-std php-curl"
 BE_LIST="micro"
 
 # bigloo
@@ -77,6 +79,7 @@ AS_IF([test "x$with_pcre" != xno],
 	   PCRE_LIBS=`${pcreconfig} --libs`
 	   PCRE_CFLAGS=`${pcreconfig} --cflags`
 	   EXT_LIST="$EXT_LIST pcre"
+	   PCC_EXT_LIST="$PCC_EXT_LIST php-pcre"
          fi
 	 ])
 
@@ -125,6 +128,7 @@ AS_IF([test "x$with_xml" != xno],
 	   XML_LIBS=`${pkgconfig} --libs libxml-2.0`
 	   XML_CFLAGS=`${pkgconfig} --cflags libxml-2.0`
 	   EXT_LIST="$EXT_LIST xml"
+	   PCC_EXT_LIST="$PCC_EXT_LIST php-xml"
          fi
 	 ])
 
@@ -149,6 +153,7 @@ AS_IF([test "x$with_mysql" != xno],
 	   MYSQL_LIBS=`${mysqlconfig} --libs`
 	   MYSQL_CFLAGS=`${mysqlconfig} --cflags`
 	   EXT_LIST="$EXT_LIST mysql"
+	   PCC_EXT_LIST="$PCC_EXT_LIST php-mysql"
          fi
 	 ])
 
@@ -156,6 +161,7 @@ AS_IF([test "x$with_mysql" != xno],
 AX_LIB_SQLITE3
 if test "x$with_sqlite3" == xyes; then
    EXT_LIST="$EXT_LIST sqlite"
+   PCC_EXT_LIST="$PCC_EXT_LIST php-sqlite"
 fi
 
 # ODBC
@@ -179,6 +185,7 @@ AC_ARG_WITH([odbc],
 	   ODBC_LIBS=`${odbcconfig} --libs`
 	   ODBC_CFLAGS=`${odbcconfig} --cflags`
 	   EXT_LIST="$EXT_LIST odbc"
+	   PCC_EXT_LIST="$PCC_EXT_LIST php-odbc"
          fi
 	 ])
 
@@ -204,6 +211,7 @@ AC_ARG_WITH([gtk],
 	   #GTK_LIBS=`${odbcconfig} --libs`
 	   #GTK_CFLAGS=`${odbcconfig} --cflags`
 	   EXT_LIST="$EXT_LIST gtk"
+	   PCC_EXT_LIST="$PCC_EXT_LIST php-gtk"
          fi
 	 ])
 
@@ -287,6 +295,7 @@ AC_SUBST(XML_CFLAGS, $XML_CFLAGS)
 AC_SUBST(XML_LIBS, $XML_LIBS)
 AC_SUBST(PCRE_CFLAGS, $PCRE_CFLAGS)
 AC_SUBST(PCRE_LIBS, $PCRE_LIBS)
+AC_SUBST(PCC_EXT_LIST, $PCC_EXT_LIST)
 
 AC_SUBST(prefix, $prefix)
 AC_SUBST(exec_prefix, $exec_prefix)
@@ -329,7 +338,7 @@ echo "
 	= Web Backends =
 
 	MicroServer:		  always enabled
-        FastCGI extension:        ${with_fcgi}
+        FastCGI:                  ${with_fcgi}
     
         = Extensions =
 

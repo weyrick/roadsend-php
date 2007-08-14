@@ -712,6 +712,7 @@ XML_CFLAGS
 XML_LIBS
 PCRE_CFLAGS
 PCRE_LIBS
+PCC_EXT_LIST
 srcdir
 CONF_HOME
 PCC_LIBS
@@ -3110,8 +3111,10 @@ want_curl=7.15.1
 # defaults
 with_pccwin=no
 
-# default ext list
+# default ext list. unfortunately we have two, because the lib names are different
+# from the directory names, and we need both
 EXT_LIST="standard curl"
+PCC_EXT_LIST="php-std php-curl"
 BE_LIST="micro"
 
 # bigloo
@@ -3363,6 +3366,7 @@ _ACEOF
 	   PCRE_LIBS=`${pcreconfig} --libs`
 	   PCRE_CFLAGS=`${pcreconfig} --cflags`
 	   EXT_LIST="$EXT_LIST pcre"
+	   PCC_EXT_LIST="$PCC_EXT_LIST php-pcre"
          fi
 
 fi
@@ -3541,6 +3545,7 @@ _ACEOF
 	   XML_LIBS=`${pkgconfig} --libs libxml-2.0`
 	   XML_CFLAGS=`${pkgconfig} --cflags libxml-2.0`
 	   EXT_LIST="$EXT_LIST xml"
+	   PCC_EXT_LIST="$PCC_EXT_LIST php-xml"
          fi
 
 fi
@@ -3617,6 +3622,7 @@ _ACEOF
 	   MYSQL_LIBS=`${mysqlconfig} --libs`
 	   MYSQL_CFLAGS=`${mysqlconfig} --cflags`
 	   EXT_LIST="$EXT_LIST mysql"
+	   PCC_EXT_LIST="$PCC_EXT_LIST php-mysql"
          fi
 
 fi
@@ -4159,6 +4165,7 @@ _ACEOF
 
 if test "x$with_sqlite3" == xyes; then
    EXT_LIST="$EXT_LIST sqlite"
+   PCC_EXT_LIST="$PCC_EXT_LIST php-sqlite"
 fi
 
 # ODBC
@@ -4232,6 +4239,7 @@ _ACEOF
 	   ODBC_LIBS=`${odbcconfig} --libs`
 	   ODBC_CFLAGS=`${odbcconfig} --cflags`
 	   EXT_LIST="$EXT_LIST odbc"
+	   PCC_EXT_LIST="$PCC_EXT_LIST php-odbc"
          fi
 
 fi
@@ -4309,6 +4317,7 @@ _ACEOF
 	   #GTK_LIBS=`${odbcconfig} --libs`
 	   #GTK_CFLAGS=`${odbcconfig} --cflags`
 	   EXT_LIST="$EXT_LIST gtk"
+	   PCC_EXT_LIST="$PCC_EXT_LIST php-gtk"
          fi
 
 fi
@@ -5286,6 +5295,8 @@ PCRE_CFLAGS=$PCRE_CFLAGS
 
 PCRE_LIBS=$PCRE_LIBS
 
+PCC_EXT_LIST=$PCC_EXT_LIST
+
 
 prefix=$prefix
 
@@ -6124,6 +6135,7 @@ ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
 PCRE_LIBS!$PCRE_LIBS$ac_delim
+PCC_EXT_LIST!$PCC_EXT_LIST$ac_delim
 srcdir!$srcdir$ac_delim
 CONF_HOME!$CONF_HOME$ac_delim
 PCC_LIBS!$PCC_LIBS$ac_delim
@@ -6132,7 +6144,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 7; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 8; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

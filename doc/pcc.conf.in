@@ -28,14 +28,14 @@
 ; remove it from this list
 
 ; the default enables all extensions
-(default-commandline-lib php-std php-pcre php-xml php-mysql php-curl)
+(default-commandline-lib @PCC_EXT_LIST@)
 
 ;; DIRECTIVE: web-libs
 ; these libraries will be loaded by the web modules and
 ; the interpreter before the script is run
 
 ; the default enables all extensions
-(web-libs php-std php-pcre php-xml php-mysql php-curl)
+(web-libs @PCC_EXT_LIST@)
 
 ; this is minimal. you need at least php-std
 ;(web-libs php-std)
