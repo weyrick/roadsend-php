@@ -24,7 +24,8 @@ AC_CANONICAL_SYSTEM
 # requirements
 
 # can't figure out how to get this into AC_CHECK_PROG_VER below?
-#want_bigloo="2.9a | 3.0b"
+# have to change it there too
+want_bigloo="2.9a or 3.0b"
 want_curl=7.15.1
 
 # defaults
