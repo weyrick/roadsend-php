@@ -62,6 +62,7 @@
     (php-object-property-visibility obj prop caller)
     (php-object-compare obj1 obj2 identical?)
     (internal-object-compare o1 o2 identical? seen)
+    (php-object-id obj)
     (php-object-class obj)
     (php-object-parent-class obj)
     (php-class-parent-class class-name)
@@ -80,6 +81,8 @@
 
 ;;;;objects, woohoo!
 (define-struct %php-object
+   ;;instantiation id
+   id
    ;;class is a pointer to the class of this object
    class
    ;;properties is a vector of properties. it starts as a copy of
@@ -141,7 +144,7 @@
       new-properties))
 
 (define (copy-php-object obj::struct old-new)
-   (let* ((new-obj (%php-object (%php-object-class obj) #f #f #f)))
+   (let* ((new-obj (%php-object (%next-instantiation-id) (%php-object-class obj) #f #f #f)))
       ;;copy the old declared properties
       (%php-object-properties-set!
        new-obj (copy-properties-vector (%php-object-properties obj)))
@@ -575,6 +578,10 @@ values the values."
 		 0
 		 1)))))
 
+(define (php-object-id obj)
+   (if (not (php-object? obj))
+       #f
+       (%php-object-id obj)))
    
 (define (php-object-class obj)
    (if (not (php-object? obj))
@@ -926,12 +933,18 @@ argument, before the continuation: (obj prop ref? value k)."
 	     (set! lst (cons (mkstr name) lst))))
        lst)))
 
+(define *highest-instantiation* 0)
+(define (%next-instantiation-id)
+   (set! *highest-instantiation* (+ 1 *highest-instantiation*))
+   *highest-instantiation*)
+
 (define +constructor-failed+ (cons '() '()))
 (define (construct-php-object class-name . args)
    (let ((the-class (%lookup-class class-name)))
       (unless the-class
 	 (php-error "Unable to instantiate " class-name ": undefined class."))
-      (let ((new-object (%php-object the-class
+      (let ((new-object (%php-object (%next-instantiation-id)
+			             the-class
 				     (copy-properties-vector
 				      (%php-class-properties the-class))
 				     (copy-php-data
@@ -953,7 +966,8 @@ argument, before the continuation: (obj prop ref? value k)."
    (let ((the-class (%lookup-class class-name)))
       (unless the-class
 	 (php-error "Unable to instantiate " class-name ": undefined class."))
-      (let ((new-object (%php-object the-class
+      (let ((new-object (%php-object (%next-instantiation-id)
+			             the-class
 				     (copy-properties-vector
 				      (%php-class-properties the-class))
 				     (copy-php-data

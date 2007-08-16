@@ -554,7 +554,7 @@
 			   (multiple-value-bind (entries cardinality)
 			      (dump-object-entries var seen indent)
 			      (leave seen var) 
-			      (mkstr indent rtag "object(" (php-object-class var) ")("
+			      (mkstr indent rtag "object(" (php-object-class var) ")" (if PHP5? (mkstr "#" (php-object-id var) " ") "") "("
 				     cardinality ") {\n" entries indent "}\n")));)
 			  ((is_resource var) (mkstr indent rtag "resource(" (resource-id var)
                                                     ") of type (" (resource-description var) ")\n"))

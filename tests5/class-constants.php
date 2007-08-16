@@ -10,16 +10,15 @@ class bar extends foo {
     static $p3 = 2;
 }
 
-// I'm using print_r because it doesn't print object store numbers
-// like var_dump does... even when we support the object store
-// numbers, I don't think we'll have the same numbering.
 $o1 = new foo();
 print_r($o1);
+var_dump($o1);
 // class constants cannot be accessed via normal -> syntax
 var_dump($o1->p1);
 $o2 = new bar();
 // class constants are not printed by print_r or var_dump
 print_r($o2);
+var_dump($o2);
 
 // class constants are inherited
 var_dump(foo::$p1);
