@@ -59,6 +59,7 @@ necho(350, getservbyport(7,'udp'));
 necho(360, getservbyport(119,'tcp'));
 necho(370, getservbyport(123,'udp'));
 
+/*
 if (PHP_OS != 'WINNT') {
     
 // openlog, syslog, closelog
@@ -82,6 +83,7 @@ foreach ($openlog_options as $option) {
     closelog();
   }
 }
+*/
 
 necho(400, "log output: ");
 if (posix_geteuid() == 0) {
