@@ -312,7 +312,7 @@
 					   *RAVEN-VERSION-STRING*))
 
 (define *PHP-VERSION* "4.4.7")
-(define *PHP5-VERSION* "5.2.2") 
+(define *PHP5-VERSION* "5.2.4") 
 (define *ZEND-VERSION* "1.3.0")
 (define *ZEND2-VERSION* "2.2.0")
 
