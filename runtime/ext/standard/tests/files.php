@@ -116,6 +116,7 @@ chdir($a);
 $a = pathinfo("/home/php/some/directory/filename.ext");
 var_dump($a);
 
+/*
 if (file_exists("/etc/")) {
     // directory class, unix
     $d = dir("/etc/");
@@ -135,6 +136,6 @@ if (file_exists("/etc/")) {
     }
     $d->close();
 }
-
+*/
 
 ?>
