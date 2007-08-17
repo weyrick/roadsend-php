@@ -45,7 +45,7 @@
 
 ; optimize?
 (when (getenv "OPTIMIZE")
-   (flush-fprint (current-error-port) "compiling all tests in UNSAFE dynamic")
+   (flush-fprint (current-error-port) "compiling all tests with optimization")
    ;;looks like static is no longer fastest.. ?!
    (set! *phpoo* (string-append *phpoo* " -O"))); --static")))
 
