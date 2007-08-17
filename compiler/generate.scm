@@ -872,7 +872,7 @@ onum.  Append the bindings for the new symbols and code."
 			     (format "generate-code-parent-method-invoke: no parent class to be found ~a"
 				     node)))))
 
-(define (generate-get-access-type the-object the-property)
+(define (generate-get-prop-access-type the-object the-property)
    (if PHP5?
        `(php-object-property-visibility ,the-object
 					,the-property
@@ -897,17 +897,18 @@ onum.  Append the bindings for the new symbols and code."
 	     (property-is-constant? (compile-time-constant? the-property)))
 	 (when (and property-is-constant? (not (string? the-property)))
 	    (warning/loc node "property name is not a string, but should be."))
-	 `(let ((access-type ,(generate-get-access-type the-object the-property)))
-	     ,(generate-prop-visibility-check the-object the-property)
+	 `(let* ((obj-evald ,the-object)
+		 (access-type ,(generate-get-prop-access-type 'obj-evald the-property)))
+	     ,(generate-prop-visibility-check 'obj-evald the-property)
 	     ,(if *hash-lookup-writable*
 		  (if property-is-constant?
 		      `(php-object-property/string
-			,the-object ,(mkstr the-property) access-type)
-		      `(php-object-property ,the-object ,the-property access-type))
+			obj-evald ,(mkstr the-property) access-type)
+		      `(php-object-property obj-evald ,the-property access-type))
 		  (if property-is-constant?
 		      `(php-object-property-h-j-f-r/string
-			,the-object ,(mkstr the-property) access-type)
-		      `(php-object-property-honestly-just-for-reading ,the-object ,the-property access-type)))))))
+			obj-evald ,(mkstr the-property) access-type)
+		      `(php-object-property-honestly-just-for-reading obj-evald ,the-property access-type)))))))
 
 (define-method (generate-code node::class-constant)
    (with-access::class-constant node (class name)
@@ -1282,12 +1283,13 @@ onum.  Append the bindings for the new symbols and code."
 	     (property-is-constant? (compile-time-constant? the-property)))	 
 	 (when (and property-is-constant? (not (string? the-property)))
 	    (warning/loc rval "property name is not a string, but should be."))
-	 `(let ((access-type ,(generate-get-access-type the-object the-property)))
-	     ,(generate-prop-visibility-check the-object the-property)	 
+	 `(let* ((obj-evald ,the-object)
+		 (access-type ,(generate-get-prop-access-type 'obj-evald the-property)))
+	     ,(generate-prop-visibility-check 'obj-evald the-property)
 	     ,(if property-is-constant?
 		  `(php-object-property-ref/string
-		    ,the-object ,(mkstr the-property) access-type)
-		  `(php-object-property-ref ,the-object ,the-property access-type))))))
+		    obj-evald ,(mkstr the-property) access-type)
+		  `(php-object-property-ref obj-evald ,the-property access-type))))))
    
 
 (define-method (get-location rval::var)
@@ -1408,15 +1410,16 @@ onum.  Append the bindings for the new symbols and code."
 	     (property-is-constant? (compile-time-constant? the-property)))
 	 (when (and property-is-constant? (not (string? the-property)))
 	    (warning/loc lval "property name is not a string, but should be."))
-	 `(let ((access-type ,(generate-get-access-type the-object the-property)))
-	     ,(generate-prop-visibility-check the-object the-property)	 
+	 `(let* ((obj-evald ,the-object)
+		 (access-type ,(generate-get-prop-access-type 'obj-evald the-property)))
+	     ,(generate-prop-visibility-check 'obj-evald the-property)	 
 	     ,(if property-is-constant?
 		  `(php-object-property-set!/string
-		    ,the-object
+		    obj-evald
 		    ,(mkstr the-property)
 		    ,rval-code
 		    access-type)
-		  `(php-object-property-set! ,the-object ,the-property ,rval-code access-type))))))
+		  `(php-object-property-set! obj-evald ,the-property ,rval-code access-type))))))
 
 ;;;;unset
 (define-generic (unset lval)
@@ -1490,12 +1493,13 @@ onum.  Append the bindings for the new symbols and code."
 	     (property-is-constant? (compile-time-constant? the-property)))
 	 (when (and property-is-constant? (not (string? the-property)))
 	    (warning/loc lval "property name is not a string, but should be."))
-	 `(let ((access-type ,(generate-get-access-type the-object the-property)))
-	     ,(generate-prop-visibility-check the-object the-property)	 	 
+	 `(let* ((obj-evald ,the-object)
+		 (access-type ,(generate-get-prop-access-type 'obj-evald the-property)))
+	     ,(generate-prop-visibility-check 'obj-evald the-property)	 	 
 	     ,(if property-is-constant?
 		  `(php-object-property-set!/string
-		    ,the-object ,(mkstr the-property) (maybe-box ,rval-code) access-type)
-		  `(php-object-property-set! ,the-object ,the-property (maybe-box ,rval-code) access-type))))))
+		    obj-evald ,(mkstr the-property) (maybe-box ,rval-code) access-type)
+		  `(php-object-property-set! obj-evald ,the-property (maybe-box ,rval-code) access-type))))))
 
 
 (define-method (update-location lval::hash-lookup rval-code)

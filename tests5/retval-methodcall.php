@@ -12,12 +12,18 @@ class foo {
         print "Method called\n";
         return $this;
     }
+    function method2() {
+        print "Method 2 called\n";
+        return $this;
+    }
 }
 
 $foo = new foo('an argument');
 $foo->method()->method();
 // Can you do it on properties too?
 print "property is :" . $foo->method()->prop . "\n";
+$foo->method()->method2()->prop = 'newval';
+print "property is :" . $foo->method()->method2()->prop . "\n";
 // Don't forget the double-quoted string parser:
 
 print "property is : {$foo->method()->prop}\n";
