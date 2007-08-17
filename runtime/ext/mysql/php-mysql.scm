@@ -675,9 +675,10 @@
    (if (not (mysql-result? result))
        (bad-mysql-result-resource)
        (begin
-          (mysql-free-result (mysql-result-result result))
-          (mysql-result-freed?-set! result #t)
-          (set! *mysql-result-counter* (- *mysql-result-counter* 1))
+	  (unless (mysql-result-freed? result)
+	     (mysql-free-result (mysql-result-result result))
+	     (mysql-result-freed?-set! result #t)
+	     (set! *mysql-result-counter* (- *mysql-result-counter* 1)))
           #t))) ;mysql-free-result returns void
 
 ;Get the id generated from the previous INSERT operation
