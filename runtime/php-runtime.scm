@@ -948,6 +948,10 @@
 (defconstant PHP_INT_SIZE (convert-to-integer *SIZEOF-LONG*))
 (defconstant PATH_SEPARATOR (path-separator))
 (defconstant DIRECTORY_SEPARATOR (pcc-file-separator))
+; XXX do a better job of this. also see php_sapi_name in php-core.scm in ext/standard
+(store-special-constant "PHP_SAPI" (lambda() (if *commandline?*
+						 "cli"
+						 "apache")))
 
 ; session ID
 (defconstant SID "")
