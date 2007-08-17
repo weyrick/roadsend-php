@@ -584,8 +584,10 @@ gives the debugger a chance to run."
    (with-access::property-fetch lval (obj prop)
       (let* ((obj-val (maybe-unbox (d/evaluate obj)))
 	     (prop-val (maybe-unbox (d/evaluate prop)))
-	     (access-type (php-object-property-visibility obj-val prop-val *current-instance*)))
-	 (when (and PHP5? (pair? access-type))
+	     (access-type (if PHP5?
+			      (php-object-property-visibility obj-val prop-val *current-instance*)
+			      'public)))
+	 (when (pair? access-type)
 	    (let ((vis (car access-type)))
 	       (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class obj-val) prop-val))))	 
 	 (php-object-property-set! obj-val
@@ -654,13 +656,15 @@ gives the debugger a chance to run."
    (with-access::property-fetch lval (obj prop)
       (let* ((obj-val (maybe-unbox (d/evaluate obj)))
 	     (prop-val (maybe-unbox (d/evaluate prop)))
-	     (access-type (php-object-property-visibility obj-val prop-val *current-instance*)))
-	 (when (and PHP5? (pair? access-type))
+	     (access-type (if PHP5?
+			      (php-object-property-visibility obj-val prop-val *current-instance*)
+			      'public)))
+	 (when (pair? access-type)
 	    (let ((vis (car access-type)))
 	       (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class obj-val) prop-val))))	 	 
 	 (php-object-property-set! obj-val
 				   prop-val
-				   (maybe-unbox rval)
+				   rval
 				   access-type))))
 				
 (define-method (evaluate node::unset-stmt)
@@ -882,8 +886,10 @@ gives the debugger a chance to run."
    (with-access::property-fetch node (obj prop)
       (let* ((obj-val (maybe-unbox (d/evaluate obj)))
 	    (prop-val (maybe-unbox (d/evaluate prop)))
-	    (access-type (php-object-property-visibility obj-val prop-val *current-instance*)))
-	 (when (and PHP5? (pair? access-type))
+	    (access-type (if PHP5?
+			     (php-object-property-visibility obj-val prop-val *current-instance*)
+			     'public)))
+	 (when (pair? access-type)
 	    (let ((vis (car access-type)))
 	       (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class obj-val) prop-val))))
 	 (php-object-property-ref obj-val prop-val access-type))))

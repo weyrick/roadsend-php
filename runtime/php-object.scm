@@ -824,32 +824,35 @@ argument, before the continuation: (obj prop ref? value k)."
 
 ; decide what kind of visibility caller has to obj->prop
 (define (php-object-property-visibility obj prop caller)
-   (let ((access-type 'public))
-      (let ((ovis (hashtable-get
-		   (%php-class-prop-visibility
-		    (%php-object-class obj))
-		   (%property-name-canonicalize prop))))
-	 ; ovis holds the declared visibility of prop. if it's private,
-	 ; only allow it if caller is the same class. if it's protected,
-	 ; allow it if caller has obj as a decendant
-	 (when ovis
-	    ; private
-	    (when (eqv? ovis 'private)
-	       (if (and (php-object? caller)
-			(eqv? (%php-object-class caller)
-			      (%php-object-class obj)))
-		   (set! access-type 'all)
-		   (set! access-type (cons ovis 'none))))
-	    ; protected
-	    (when (eqv? ovis 'protected)
-	       (if (and (php-object? caller)
-			(or (eqv? (%php-object-class caller)
-				  (%php-object-class obj))
-			    (%subclass? (%php-object-class caller)
-					(%php-object-class obj))))
-		   (set! access-type 'protected)
-		   (set! access-type (cons ovis 'none))))))
-      access-type))
+   (if (php-object? obj)
+       (let ((access-type 'public))
+	  (let ((ovis (hashtable-get
+		       (%php-class-prop-visibility
+			(%php-object-class obj))
+		       (%property-name-canonicalize prop))))
+	     ; ovis holds the declared visibility of prop. if it's private,
+	     ; only allow it if caller is the same class. if it's protected,
+	     ; allow it if caller has obj as a decendant
+	     (when ovis
+		; private
+		(when (eqv? ovis 'private)
+		   (if (and (php-object? caller)
+			    (eqv? (%php-object-class caller)
+				  (%php-object-class obj)))
+		       (set! access-type 'all)
+		       (set! access-type (cons ovis 'none))))
+		; protected
+		(when (eqv? ovis 'protected)
+		   (if (and (php-object? caller)
+			    (or (eqv? (%php-object-class caller)
+				      (%php-object-class obj))
+				(%subclass? (%php-object-class caller)
+					    (%php-object-class obj))))
+		       (set! access-type 'protected)
+		       (set! access-type (cons ovis 'none))))))
+	  access-type)
+       ; will result in referencing a property of a non object
+       'public))
 
 ;; this handles visibility mangling
 ;; it will check in order: public (no mangle), protected, private
