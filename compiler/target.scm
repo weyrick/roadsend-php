@@ -162,6 +162,7 @@
 (define-method (build-target target::standalone-target)
    (fluid-let ((*dynamic-load-path* (append (or (target-option library-paths:) '())
                                             *dynamic-load-path*)))
+      (set! *compile-mode?* #t) ; for error output (see php-errors)
       (setup-library-paths)
       ;; first, check our inputs, default some things
       (with-access::standalone-target target
@@ -224,10 +225,10 @@
 
 (define (bigloo-compile-scheme-to-object-file scheme-file o-file)
    ;; Bigloo compiles the Scheme to a native executable for us.
-   (apply run-command #t BIGLOO scheme-file "-saw" "-c" "-o" o-file
+   (apply run-command #t BIGLOO scheme-file "-c" "-o" o-file
           (or (target-option bigloo-optimization:) "-O3")
           `(,@(cond-expand 
-                 (unsafe '("-unsafe"))
+                 (unsafe '("-unsafe" "-saw"))
                  (else '()))
               ,@(if (target-option static?:) '("-static-bigloo") '())
               ,@(reverse (or (target-option bigloo-args:) '()))
@@ -272,6 +273,7 @@
               ,@(reverse (or (target-option ld-args:) '())))))	      
 
 (define-method (build-target target::library-target)
+   (set! *compile-mode?* #t) ; for error output (see php-errors)
    (setup-library-paths)
    (load-runtime-libs (or (target-option default-libs:) '()))
    (load-runtime-libs (or (target-option commandline-libs:) '()))

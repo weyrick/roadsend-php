@@ -5,7 +5,7 @@ OS 		= $(shell uname -s)
 
 BIGLOO_VERSION  = `bigloo -eval '(begin (print *bigloo-version*) (exit 0))'`     
 PHPOO_INC	= -I ../.. -library profiler
-BCOMMONFLAGS	= -L ../../libs -copt -I/usr/local/include -copt -I$(PCC_ROOT)/../include  -copt -L$(PCC_ROOT)/../lib -cg
+BCOMMONFLAGS	= -L ../../libs -copt -I/usr/local/include -copt -I$(PCC_ROOT)/../include  -copt -L$(PCC_ROOT)/../lib
 
 SOURCE_LIST	= fastcgi fcgi-binding
 

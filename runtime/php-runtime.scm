@@ -293,7 +293,9 @@
 ;;
 
 ; this should be true for devlopment, false for a release build
-(define *RAVEN-DEVEL-BUILD* #t)
+(define *RAVEN-DEVEL-BUILD* (cond-expand
+			       (unsafe #f)
+			       (else #t)))
 
 (define *RAVEN-VERSION-MAJOR* 2)
 (define *RAVEN-VERSION-MINOR* 9)

@@ -52,8 +52,8 @@ lexers_$(SU).o: ../runtime/php-runtime.sch ast_$(SU).o
 containers_$(SU).o: declare_$(SU).o ast_$(SU).o ../runtime/php-runtime.sch
 
 #this is to override -O3 with -O for parser.scm, since -O3 takes perversely long.
-parser_$(SU).o: ast_$(SU).o parser.scm
-	$(BIGLOO) $(BSAFEFLAGS) -mkaddlib -unsafe -saw -copt -fPIC -c parser.scm -o parser_$(SU).o
+#parser_$(SU).o: ast_$(SU).o parser.scm
+#	$(BIGLOO) $(BSAFEFLAGS) -mkaddlib -unsafe -saw -copt -fPIC -c parser.scm -o parser_$(SU).o
 
 #parser_$(SU)t.o: ast_$(SU).o parser.scm
 #	$(BIGLOO) -static-bigloo $(BUNSAFEFLAGS) -c parser.scm -o parser_$(SU)t.o

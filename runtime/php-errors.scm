@@ -151,11 +151,12 @@
    (php-warning/notice (apply mkstr msgs) E_NOTICE))
 
 (define (dump-bigloo-stack port num)
-;    (cond-expand
-;       (PCC_MINGW 
-;        (fprint port "dump-trace-stack not available in bigloo 2.6e"))
-;       (else 
-       (dump-trace-stack port num));))
+    (cond-expand
+       (unsafe
+	; no stack dump in unsafe mode 
+        #f)
+       (else 
+	(dump-trace-stack port num))))
 
 (define (handle-runtime-error escape proc msg obj)
    (cond ((or (and (eqv? proc 'php-exit) (eqv? obj 'php-exit))
