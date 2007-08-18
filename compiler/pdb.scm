@@ -55,6 +55,8 @@
 (define *web-ext-list* '("php" "inc"))
 (define *web-files* '())
 
+(define *syntax-highlight* #t)
+
 (define (debug-main argv)
    (let ((pcc-argv argv))
 
@@ -539,7 +541,12 @@
 							(mkstr level (file-separator))) v) flist)))))
 		 level-list)))
       (set! *web-files* (sort flist string<?))))
-      
+
+(define (get-hl-source-at-file-line file line)
+   (let ((line (debugger-get-source-at-file-line file line)))
+      (if *syntax-highlight*
+	  (syntax-highlight-line line 'ansi)
+	  line)))
 
 ;;;## Command Definitions
 
@@ -559,7 +566,7 @@
 			    (current-error-port)
 			    (current-output-port))
 			#\newline *debugger-file* #\newline *debugger-line* #\tab
-			(debugger-get-source-at-file-line *debugger-file* *debugger-line*)))
+			(get-hl-source-at-file-line *debugger-file* *debugger-line*)))
 	     ; prompt
 	     (display "\n(pdb) "
 		      (if *web-debugger?*
@@ -568,6 +575,9 @@
       (flush-output-port (current-output-port))
       (flush-output-port (current-error-port))
       (let ((command (read-line)))
+	 (when (eof-object? command)
+	    (print)
+	    (exit 0))
 	 (string-case command
 ;;; The all important help command.
 	    ((or "h" "help")
@@ -669,7 +679,7 @@
 		       (if (= i *debugger-line*)
 			   (display "-> ")
 			   (display "   "))
-		       (debug-print (debugger-get-source-at-file-line *debugger-file* i))
+		       (debug-print (get-hl-source-at-file-line *debugger-file* i))
 		       (loop (+ i 1)))))
 	     (loop))
 ;;; Entering a variable's name (including the $) will print the

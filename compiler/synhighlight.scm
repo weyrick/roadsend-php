@@ -23,23 +23,51 @@
    (include "php-runtime.sch")
    (library profiler)
    (export
-    (syntax-highlight-file file format))
+    (syntax-highlight-file file format)    
+    (syntax-highlight-string str format)
+    (syntax-highlight-line line format))
    (import (lexers "lexers.scm")))
 
 
-;; return a hashtable of syntax highlighted source, keyed by line number
 (define (syntax-highlight-file file format)
+   (with-input-from-file file
+      (lambda ()
+	 (syntax-highlight-port (current-input-port) format))))
+
+(define (syntax-highlight-string str format)
+   (with-input-from-string str
+      (lambda () 
+	 (syntax-highlight-port (current-input-port) format))))
+
+(define (syntax-highlight-line line format)
+   (let*((has-twib (string-contains line "<?"))
+	 (line-hash (with-input-from-string (if has-twib
+						line
+						(mkstr "<? " line))
+			(lambda () 
+			   (syntax-highlight-port (current-input-port) format))))
+	  (last-line ""))
+       (hashtable-for-each line-hash
+			   (lambda (k v)
+			      (set! last-line v)))
+       (if has-twib
+	   last-line
+	   (substring last-line 3 (string-length last-line)))))
+
+(define (syntax-highlight-port port format)
    (let ((source (make-hashtable))
 	 (tok-list '()))
       (fluid-let ((*syntax-highlight?* #t))
-		 (with-input-from-file file
+		 (set-input-port-position! port 0)
+		 (with-input-from-port port
 		    (lambda ()
-		       (with-input-from-string (php-preprocess (current-input-port) file #t)
+		       (with-input-from-string (php-preprocess (current-input-port) "syntaxhighlight" #t)
 			  (lambda ()
 			     (set! tok-list (get-tokens (php-surface) (current-input-port))))))))
       (with-input-from-string (with-output-to-string
 				 (lambda ()
-				    (with-input-from-file file
+				    (set-input-port-position! port 0)
+				    (with-input-from-port port
 				       (lambda ()
 					  (for-each (lambda (t)
 						       (let* ((token (car t))
@@ -78,7 +106,7 @@
 		       (let ((pass-1 (mkstr "<span class=\"" c "\">"
 					    (clean-str str)
 					    "</span>")))
-			  ; we have to do the span for each new oine
+			  ; we have to do the span for each new line
 			  (pregexp-replace* "\n" pass-1 (mkstr "</span>\n<span class=\"" c "\">")))
 		       ; ansi - hard coded colors
 		       (case c
@@ -88,7 +116,7 @@
 			  ((number) (ansi-color yellow str))
 			  ((var) (ansi-color red str))
 			  ((whitespace) str))))))
-
+      ;(debug-trace 0 "looking at token: " token)
       (case token
 	 ((whitespace) (mark 'whitespace))
 	 ((string) (mark 'string))
