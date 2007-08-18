@@ -1160,6 +1160,16 @@ onum.  Append the bindings for the new symbols and code."
       `(and ,(get-boolean p)
 	    ,(get-boolean q))))
 
+(define-method (generate-code node::boolean-xor)
+   (with-access::boolean-xor node (p q)
+      `(if ,(get-boolean p)
+	   (if ,(get-boolean q)
+	       #f
+	       #t)
+	   (if ,(get-boolean q)
+	       #t
+	       #f))))
+
 
 ;;;;typed stuff
 (define (is-numeric? thingy)
