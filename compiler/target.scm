@@ -530,6 +530,23 @@
 
 
 (define (run-command errors-fatal? command . args)
+   ; on the mac, if the command is the linker, translate -L foo to
+   ; -Lfoo to keep it happy.
+   (cond-expand
+    (PCC_MACOSX
+     (when (string=? command LD)
+	(let ((new-args '())
+	      (arg-is-L #f))
+	   (for-each (lambda (arg)
+			(cond
+			   (arg-is-L
+			    (pushf (mkstr "-L" arg) new-args)
+			    (set! arg-is-L #f))
+			   ((string=? arg "-L")
+			    (set! arg-is-L #t))
+			   (else (pushf arg new-args))))
+		     args)
+	   (set! args (reverse! new-args))))))
    ; in MinGW, translate paths to unix style
    (cond-expand
     (PCC_MINGW

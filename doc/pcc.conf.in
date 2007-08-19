@@ -17,6 +17,9 @@
 ; Library directives add directories to the dynamic-load search path.
 (library "./" "@PCC_LIBS@")
 
+;; on Mac OS X, macports installs libpcre here
+(library "/opt/local/lib")
+
 ; this example shows how to list your own library directory
 ; NOTE you might also have to put this directory in /etc/ld.so.conf to
 ; get installed libraries to work!

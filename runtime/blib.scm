@@ -561,7 +561,11 @@
           (cons (string-before str #\=)
                 (string-after str #\=)))
        (string*->string-list
-         (pragma::string* #"environ"))))
+	(cond-expand
+	   ; (PCC_MACOSX
+; 	    (pragma::string* #"*_NSGetEnviron()"))
+	   (else
+	    (pragma::string* #"environ"))))))
 
 (define (tm-sec::int o::tm)
   (let ((result (pragma::int #"$1->tm_sec" o)))
@@ -603,6 +607,8 @@
     (pragma::int #"_timezone"))
    (PCC_FREEBSD
     0)
+   (PCC_MACOSX
+    (pragma::int #"timezone"))
    (else
     (pragma::int #"__timezone"))))
 
@@ -613,6 +619,8 @@
     (pragma::int #"_daylight"))
    (PCC_FREEBSD
     0)
+   (PCC_MACOSX
+    (pragma::int #"daylight"))
    (else
     (pragma::int #"__daylight"))))
 

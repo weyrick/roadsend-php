@@ -101,6 +101,7 @@
                     (cond-expand
                        (PCC_MINGW '("-lcurl" "-lz" "-lwinmm" "-lws2_32" "-lssl" "-lcrypto" "-lgw32c" "-lgdi32"
                                              "-Wl,--allow-multiple-definition"))
+		       (PCC_MACOSX '("-lcurl" "-ldl" "-lssl" "-lcrypto" "-lz"))
                        (PCC_FREEBSD '("-lcurl" "-lssl" "-lcrypto" "-lz"
                                                "-Wl,--allow-multiple-definition"))
                        (else '("-lcurl" "-ldl" "-lssl" "-lcrypto" "-lz"

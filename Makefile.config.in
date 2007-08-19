@@ -9,8 +9,13 @@ C_PIC = -fPIC
 
 # build .so libraries
 # no difference between these commands in linux, only mingw
+ifeq ($(PCC_OS),PCC_MACOSX)
+dllcmd = gcc -r -dynamiclib -undefined dynamic_lookup -o $(1) -install_name `basename $(1)`
+dllcmd_i = gcc -r -dynamiclib -undefined dynamic_lookup -o $(1) -install_name `basename $(1)`
+else
 dllcmd = gcc -shared -o $(1)
 dllcmd_i = gcc -shared -o $(1)
+endif
 
 PCC_LINK_OPTIONS = 
 RUNTIME_DLL_LIBS = $(BIGLOO_LIBS)

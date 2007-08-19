@@ -154,6 +154,7 @@
                     "php-std" (cond-expand
                                  (PCC_MINGW '("-lws2_32"))
                                  (PCC_FREEBSD '("-lcrypt"))
+				 (PCC_MACOSX '("-lresolv" "-lm"))
                                  (else '("-lresolv" "-lm" "-lcrypt")))
 		    ;; XXX we don't really want this to require the
 		    ;; curl extension, but right now it has to, in

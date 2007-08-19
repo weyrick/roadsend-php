@@ -233,20 +233,30 @@ linux*)
 #	AC_MSG_NOTICE([configuring for linux]) 
 	AC_DEFINE(PCC_OS, ["PCC_LINUX"])
 	PCC_OS="PCC_LINUX"
+#	SHARED_FLAG="-shared"
 	SO_EXT="so"
 	;;
 freebsd*)
 #	AC_MSG_NOTICE([configuring for FreeBSD])
 	AC_DEFINE(PCC_OS, ["PCC_FREEBSD"])
 	PCC_OS="PCC_FREEBSD"
+#	SHARED_FLAG="-shared"
 	SO_EXT="so"
 	;;
 mingw*)
 #	AC_MSG_NOTICE([configuring for windows/mingw])
 	AC_DEFINE(PCC_OS, ["PCC_MINGW"])
 	PCC_OS="PCC_MINGW"
+#	SHARED_FLAG="-shared"
 	SO_EXT="dll"
 	with_pccwin=yes
+	;;
+darwin*)
+	AC_MSG_NOTICE([configuring for Mac OS/X])
+	AC_DEFINE(PCC_OS, ["PCC_MACOSX"])
+	PCC_OS="PCC_MACOSX"
+#	SHARED_FLAG="-r -dynamiclib -undefined dynamic_lookup"
+	SO_EXT="dylib"
 	;;
 *)
 	AC_MSG_NOTICE([unknown/unsupported target operating system: $target_os])
@@ -281,6 +291,7 @@ AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h malloc.h netdb.h netinet/in.h std
 AC_SUBST(PCC_OS, $PCC_OS)
 AC_SUBST(EXT_LIST, $EXT_LIST)
 AC_SUBST(BE_LIST, $BE_LIST)
+#AC_SUBST(SHARED_FLAG, $SHARED_FLAG)
 AC_SUBST(SO_EXT, $SO_EXT)
 AC_SUBST(BIGLOO_VERSION, $BIGLOO_VERSION)
 AC_SUBST(MYSQL_CFLAGS, $MYSQL_CFLAGS)

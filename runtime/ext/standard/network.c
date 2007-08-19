@@ -35,6 +35,10 @@
   #include <arpa/nameser.h>
 #endif
 
+#ifdef PCC_MACOSX
+  #include <nameser8_compat.h>
+#endif
+
 /* FreeBSD requires this *before* resolv.h */
 #include <netinet/in.h>
 

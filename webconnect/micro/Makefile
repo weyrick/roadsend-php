@@ -2,7 +2,7 @@ PCC_ROOT = ../../
 include $(PCC_ROOT)/bigloo-rules.mk
 
 BIGLOO_VERSION  = `bigloo -eval '(begin (print *bigloo-version*) (exit 0))'`     
-BCOMMONFLAGS	= -L $(PCC_ROOT)libs -copt -I$(PCC_ROOT)libs -copt -I$(PCC_ROOT)../include
+BCOMMONFLAGS	= -L $(PCC_ROOT)libs -copt -I$(PCC_ROOT)libs -copt -I$(PCC_ROOT)/tools/libwebserver/include
 
 # cgen binary
 CGEN		= $(shell which cgen)

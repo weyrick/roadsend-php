@@ -265,6 +265,7 @@
 ; -Nate
 (cond-expand
    (PCC_MINGW #t)
+   (PCC_MACOSX #t)
    (else
     (define (workaround-uname)
        ;; basically we create a string large enough to hold all the values
@@ -292,6 +293,8 @@
 (defbuiltin (posix_uname)
    (cond-expand
       (PCC_MINGW
+       (mingw-missing 'posix_uname))
+      (PCC_MACOSX
        (mingw-missing 'posix_uname))
       (else
        (multiple-value-bind (retval uname-list)

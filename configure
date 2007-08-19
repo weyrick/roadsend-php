@@ -4349,6 +4349,7 @@ linux*)
 _ACEOF
 
 	PCC_OS="PCC_LINUX"
+#	SHARED_FLAG="-shared"
 	SO_EXT="so"
 	;;
 freebsd*)
@@ -4358,6 +4359,7 @@ freebsd*)
 _ACEOF
 
 	PCC_OS="PCC_FREEBSD"
+#	SHARED_FLAG="-shared"
 	SO_EXT="so"
 	;;
 mingw*)
@@ -4367,8 +4369,20 @@ mingw*)
 _ACEOF
 
 	PCC_OS="PCC_MINGW"
+#	SHARED_FLAG="-shared"
 	SO_EXT="dll"
 	with_pccwin=yes
+	;;
+darwin*)
+	{ echo "$as_me:$LINENO: configuring for Mac OS/X" >&5
+echo "$as_me: configuring for Mac OS/X" >&6;}
+	cat >>confdefs.h <<\_ACEOF
+#define PCC_OS "PCC_MACOSX"
+_ACEOF
+
+	PCC_OS="PCC_MACOSX"
+#	SHARED_FLAG="-r -dynamiclib -undefined dynamic_lookup"
+	SO_EXT="dylib"
 	;;
 *)
 	{ echo "$as_me:$LINENO: unknown/unsupported target operating system: $target_os" >&5
@@ -5266,6 +5280,7 @@ EXT_LIST=$EXT_LIST
 
 BE_LIST=$BE_LIST
 
+#AC_SUBST(SHARED_FLAG, $SHARED_FLAG)
 SO_EXT=$SO_EXT
 
 BIGLOO_VERSION=$BIGLOO_VERSION

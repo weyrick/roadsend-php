@@ -25,9 +25,12 @@
   #include "pwd.h"
   #include "fnmatch.h"
   #include "sys/socket.h"
- #ifndef PCC_FREEBSD
-  #include "sys/statfs.h"
- #endif 
+  #ifdef PCC_MACOSX
+    #include <sys/param.h>
+    #include <sys/mount.h>
+  #elif !defined(PCC_FREEBSD)
+    #include "sys/statfs.h"
+  #endif 
 #endif /* NOT PCC_MINGW */
 
 #include "string.h"
