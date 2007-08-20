@@ -4,7 +4,7 @@
 @settitle Roadsend PHP Compiler
 
 @copying
-Copyright @copyright{} 2006 Roadsend, Inc.
+Copyright @copyright{} 2007 Roadsend, Inc.
 @end copying
 
 @c only in printable formats

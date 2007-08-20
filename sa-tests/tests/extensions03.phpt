@@ -1,5 +1,13 @@
 --TEST--
 xml extension test
+--SKIPIF--
+<? 
+
+$libs = `ls ../libs/`;
+if (!strstr($libs, 'xml'))
+    echo "skip extension library not found";
+
+?>
 --POST--
 --GET--
 --PCCARGS--
