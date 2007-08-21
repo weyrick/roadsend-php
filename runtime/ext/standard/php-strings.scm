@@ -307,13 +307,11 @@
 ; You can also specify the characters you want to strip, by means of the charlist parameter.
 ; Simply list all characters that you want to be stripped. With .. you can specify a range of characters.
 
-; FIXME
-; 1) if we use this version, need to handle character ranges
 (define (do-ltrim s chars-to-trim)
    (let ((len (string-length s)))
       (let loop ((i 0))
 	 (if (<fx i len)
-	     (if (char-member? (string-ref s i) chars-to-trim)
+	     (if (char-member-or-in-range? (string-ref s i) chars-to-trim)
 		 (loop (+fx i 1))
 		 (substring s i len))
 	     ""))))
@@ -329,7 +327,7 @@
    (let ((len (string-length s)))
       (let loop ((i (-fx len 1)))
 	 (if (>=fx i 0)
-	     (if (char-member? (string-ref s i) chars-to-trim)
+	     (if (char-member-or-in-range? (string-ref s i) chars-to-trim)
 		 (loop (-fx i 1))
 		 (substring s 0 (+fx i 1)))
 	     ""))))
@@ -337,44 +335,100 @@
 (define (do-trim s c)
    (do-ltrim (do-rtrim s c) c))
 
-(define (char-member? c bag)
-   (if (null? bag)
-       #f
-       (let loop ((flag #f)
-		  (bag bag))
-	  (if (or flag (null? bag))
-	      flag
-	      (loop (char=? c (car bag))
-		    (cdr bag))))))
+;; does a string start with a valid range such as "a..z"
+(define (start-with-range? s)
+  (if (>fx 4 (string-length s)) #f
+      (and (char=? (string-ref s 1) #\.)
+           (char=? (string-ref s 2) #\.)
+           (char<=? (string-ref s 0) (string-ref s 3)))))
+
+;; (defbuiltin (swr str)
+;;   (if (start-with-range? str)
+;;       "yes"
+;;       "no"))
+
+;; Turn a string with possible range specifications into a list of chars
+;; and strings that contain the begin and end character of a range.
+;; In some cases ".." doesn't mean a range such as the second ".." in "h..j..k".
+;; Zend thinks this means "h..jk." so we follow for now.
+;; This funciton should turn it into '(#\k #\. #\. "hj")
+(define (string-with-ranges->list s)
+  (let* ( (len (string-length s)) (no-more-ranges (-fx len 4)) )
+    (let loop ((res '()) (i 0))
+      (if (>fx i no-more-ranges)
+          (let end ((res res) (i i))
+            (if (=fx i len) res
+                (end (cons (string-ref s i) res) (+fx i 1))))
+          (if (start-with-range? (substring s i (min len (+fx i 4))))
+              (loop (cons (string (string-ref s i) (string-ref s (+fx i 3))) res) (+fx i 4))
+              (loop (cons (string-ref s i) res) (+fx i 1)))))))
+
+;; (define (concat-string l)
+;;   (let loop ((res "\"") (l l))
+;;     (if (null? l) res
+;;         (loop (string-append res (car l) "\"") (cdr l)))))
+
+;; (define (char?->string c?)
+;;   (if (char? c?) (string c?) c?))
+
+;; (defbuiltin (swrl str)
+;;   (concat-string (map char?->string (string-with-ranges->list (mkstr str)))))
+
+(define (char-member-or-in-range? c l)
+  (let loop ((l l))
+    (if (null? l) #f
+        (let ((elt (car l)))
+          (if (char? elt)
+              (if (char=? c elt) #t
+                  (loop (cdr l)))
+              (if (and (char>=? c (string-ref elt 0))
+                       (char<=? c (string-ref elt 1)))
+                  #t
+                  (loop (cdr l))))))))
+
+;; (defbuiltin (cmoir c str)
+;;   (if (char-member-or-in-range? (string-ref c 0) (string-with-ranges->list str))
+;;       "yes"
+;;       "no"))
+
+;; (define (char-member? c bag)
+;;    (if (null? bag)
+;;        #f
+;;        (let loop ((flag #f)
+;; 		  (bag bag))
+;; 	  (if (or flag (null? bag))
+;; 	      flag
+;; 	      (loop (char=? c (car bag))
+;; 		    (cdr bag))))))
 
 (defbuiltin (ltrim str (to-trim '(#a032 #a009 #a010 #a013 #a000 #a011)))
    ;   (let ((s (string->list (mkstr str))))
    (unless (list? to-trim)
-      (set! to-trim (string->list to-trim)))
+      (set! to-trim (string-with-ranges->list to-trim)))
    (do-ltrim (mkstr str) to-trim))
 ;      (list->string (do-ltrim s to-trim))))   
 
 ; chop is an alias to rtrim
 (defalias chop rtrim)
 (defbuiltin (rtrim str (to-trim '(#a032 #a009 #a010 #a013 #a000 #a011)))
-   (set! str (mkstr str))
+;   (set! str (mkstr str))
 ;   (let ((s (string->list str)))
    (unless (list? to-trim)
-      (set! to-trim (string->list to-trim)))
-   (do-rtrim str to-trim))
+      (set! to-trim (string-with-ranges->list to-trim)))
+   (do-rtrim (mkstr str) to-trim))
 ;      (list->string (do-rtrim s to-trim))))
 
 (defbuiltin (trim str (to-trim '(#a032 #a009 #a010 #a013 #a000 #a011)))
-   (set! str (mkstr str))
+;   (set! str (mkstr str))
 ;   (let ((s (string->list str)))
    (unless (list? to-trim)
-      (set! to-trim (string->list to-trim)))
-   (do-trim str to-trim))
+      (set! to-trim (string-with-ranges->list to-trim)))
+   (do-trim (mkstr str) to-trim))
 ;      (list->string (do-trim s to-trim))))
 
 ; FIXME
 ; 1) if we use version below, it should also handle ltrim and rtrim
-; 2) need to check expasion, php example in manual uses 0x00 format to specify ascii chars
+; 2) need to check expansion, php example in manual uses 0x00 format to specify ascii chars
 
 ;auxiliary for builtin trim - does range expansion
 ; (define (bag-expand bag)
