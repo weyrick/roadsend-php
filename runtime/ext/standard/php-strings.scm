@@ -480,30 +480,47 @@
 ; 	((> end (string-length str)) (substring str start (string-length str)))
 ; 	(else (substring str start end))))
 
-(defbuiltin (substr str start (len 'unpassed))
-    (set! str (mkstr str))
-   (set! start (mkfixnum (convert-to-number start)))
-   (if (not (eqv? len 'unpassed))
-       (set! len (mkfixnum (convert-to-number len))))
-   (letrec ((do-substr
-	     (lambda (str start end)
-		(cond ((< start 0) (let ((s (- (string-length str) (abs start))))
-				      (if (< s 0)
-					  (do-substr str 0 end)
-					  (do-substr (substring str (- (string-length str) (abs start)) (string-length str) ) 0 end))))
-		      ((< end 0) (do-substr str start
-					    (max 0 (- (string-length str) (abs end)))))
-		      ((> start end) FALSE)
-		      ((> start (string-length str)) FALSE)
-		      ((> end (string-length str)) (substring str start (string-length str)))
-		      (else (substring str start end))))))
-      (when (eqv? len 'unpassed) (set! len (string-length str)))
-      (cond ((or (< start 0) (< len 0)) (do-substr str start len))
-	    ((> start (string-length str)) FALSE)
-	    (else (do-substr str start (+ start len))))))
+;; PHP 4 implementation
+;; (defbuiltin (substr str start (len 'unpassed))
+;;     (set! str (mkstr str))
+;;    (set! start (mkfixnum (convert-to-number start)))
+;;    (if (not (eqv? len 'unpassed))
+;;        (set! len (mkfixnum (convert-to-number len))))
+;;    (letrec ((do-substr
+;; 	     (lambda (str start end)
+;; 		(cond ((< start 0) (let ((s (- (string-length str) (abs start))))
+;; 				      (if (< s 0)
+;; 					  (do-substr str 0 end)
+;; 					  (do-substr (substring str (- (string-length str) (abs start)) (string-length str) ) 0 end))))
+;; 		      ((< end 0) (do-substr str start
+;; 					    (max 0 (- (string-length str) (abs end)))))
+;; 		      ((> start end) FALSE)
+;; 		      ((> start (string-length str)) FALSE)
+;; 		      ((> end (string-length str)) (substring str start (string-length str)))
+;; 		      (else (substring str start end))))))
+;;       (when (eqv? len 'unpassed) (set! len (string-length str)))
+;;       (cond ((or (< start 0) (< len 0)) (do-substr str start len))
+;; 	    ((> start (string-length str)) FALSE)
+;; 	    (else (do-substr str start (+ start len))))))
 
-      
 
+(define (do-substr str start max-ret-len)
+  (let* ((len (string-length str))
+         (max-ret-len (if max-ret-len max-ret-len len))) ;set it to length if it was not given
+    (if (<= len start) FALSE
+        (let* ((real-start (if (< start 0)
+                               (let ((st+len (+ len start)))
+                                 (if (>= st+len 0) st+len len))
+                               start))
+               (real-end (if (< max-ret-len 0)
+                             (max (+ len max-ret-len) real-start)
+                             (min (+ real-start max-ret-len) len))))
+          (substring str real-start real-end)))))
+
+(defbuiltin (substr str start (max-ret-len #f))
+  (let ((str (mkstr str)) (start (mkfixnum (convert-to-number start))))
+    (do-substr str start (if max-ret-len (mkfixnum (convert-to-number max-ret-len)) #f))))
+        
 ; (let loop ((i 32))
 ;    (when (< i 127)
 ;       (if (= 0 (modulo i 8))
