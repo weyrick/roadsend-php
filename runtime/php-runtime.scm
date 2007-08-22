@@ -299,7 +299,7 @@
 
 (define *RAVEN-VERSION-MAJOR* 2)
 (define *RAVEN-VERSION-MINOR* 9)
-(define *RAVEN-VERSION-RELEASE* 2)
+(define *RAVEN-VERSION-RELEASE* 3)
 (define *RAVEN-VERSION-STRING* (format "~a.~a.~a~a"
 				       *RAVEN-VERSION-MAJOR*
 				       *RAVEN-VERSION-MINOR*
@@ -470,10 +470,6 @@
 (define *interpreted-function-table* (make-hashtable))
 
 
-;;;; functions used in emitted code
-
-; the float printing noise is basically just so that
-; the test suite works better
 (define (mkstr::bstring a . args)
    (case (length args)
       ((0) (stringulate a))
