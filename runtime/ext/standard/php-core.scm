@@ -1124,7 +1124,7 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 
 ; get_class -- Returns the name of the class of an object
 (defbuiltin (get_class obj)
-  (if (php-obj? obj)
+  (if (php-object? obj)
       (mkstr (php-object-class obj))
       FALSE))
 
@@ -1143,25 +1143,25 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 
 ; get_object_vars -- Returns an associative array of object properties
 (defbuiltin (get_object_vars obj)
-   (if (php-obj? obj)
+   (if (php-object? obj)
        (copy-php-data (php-object-props obj))
        #f))
 
 ; get_parent_class -- Retrieves the parent class name for object or class
 (defbuiltin (get_parent_class obj)
-   (if (php-obj? obj)
+   (if (php-object? obj)
        (php-object-parent-class obj)
        (php-class-parent-class (mkstr obj))))
 
 ; is_a --  Returns true if the object is of this class or has this class as one of its parents
 (defbuiltin (is_a obj class-name)
-   (if (php-obj? obj)
+   (if (php-object? obj)
        (php-object-is-a obj class-name)
        #f))
 
 ; is_subclass_of --  Returns true if the object has this class as one of its parents
 (defbuiltin (is_subclass_of obj class-name)
-   (if (php-obj? obj)
+   (if (php-object? obj)
        (php-object-is-subclass obj class-name)
        (if PHP5?
 	   (php-class-is-subclass (mkstr obj) (mkstr class-name))
@@ -1169,7 +1169,7 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 
 ; method_exists -- Checks if the class method exists
 (defbuiltin (method_exists obj method-name)
-   (if (php-obj? obj)
+   (if (php-object? obj)
        (php-class-method-exists? (php-object-class obj) method-name)
        #f))
 
