@@ -398,20 +398,21 @@
       
       
 
-; array_merge -- Merge two or more arrays
+;; array_merge -- Merge two or more arrays
+;; return NULL if there is any non-array
 (define (array-merge arr1 arr2-n)
-   ;; we don't use ensure-hash because php doesn't warn here if it's not a hash 
-   (set! arr1 (convert-to-hash arr1))
-   (set! arr2-n (map convert-to-hash arr2-n))
-   (let ((merged (make-php-hash)))
-      (for-each (lambda (arr)
-		   (php-hash-for-each arr
-		      (lambda (key val)
-			 (if (php-number? key)
-			     (php-hash-insert! merged :next val)
-			     (php-hash-insert! merged key val)))))
-		(cons arr1 arr2-n))
-      merged))
+  (if (and (php-hash? arr1)
+           (every php-hash? arr2-n))
+      (let ((merged (make-php-hash)))
+        (for-each (lambda (arr)
+                    (php-hash-for-each arr
+                                       (lambda (key val)
+                                         (if (php-number? key)
+                                             (php-hash-insert! merged :next val)
+                                             (php-hash-insert! merged key val)))))
+                  (cons arr1 arr2-n))
+        merged)
+      NULL))
 
 (defbuiltin-v (array_merge arr1 arr2-n)
    (array-merge arr1 arr2-n))
