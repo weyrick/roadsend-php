@@ -1173,7 +1173,7 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
        (php-class-method-exists? (php-object-class obj) method-name)
        #f))
 
-;;;;;;
+;;;;;
 
 ; call_user_func -- Call a user function given by the first parameter
 (defbuiltin-v (call_user_func cb)
