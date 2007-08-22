@@ -1090,15 +1090,11 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 		      (let ((entry (make-php-hash)))
 			 (php-hash-insert! entry "file" (mkstr (stack-entry-file a)))
 			 (php-hash-insert! entry "line" (convert-to-number (stack-entry-line a)))
-			 (php-hash-insert! entry "function" (if PHP5?
-								(mkstr (stack-entry-function a))
-								(string-downcase (mkstr (stack-entry-function a)))))
-			 (php-hash-insert! entry "class" (if (eqv? 'unset (stack-entry-class-name a))
+			 (php-hash-insert! entry "function" (mkstr (stack-entry-function a)))
+                         (php-hash-insert! entry "class" (if (eqv? 'unset (stack-entry-class-name a))
 							     ""
-							     (if PHP5?
-								 (mkstr (stack-entry-class-name a))
-								 (string-downcase (mkstr (stack-entry-class-name a))))))
-			 (php-hash-insert! entry "args" (list->php-hash (stack-entry-args a)))
+                                                             (mkstr (stack-entry-class-name a))))
+                         (php-hash-insert! entry "args" (list->php-hash (stack-entry-args a)))
 			 (php-hash-insert! hash :next entry)))
 		   (cdr *stack-trace*)))
       hash))
