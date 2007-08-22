@@ -314,8 +314,9 @@ values the values."
 
 (define (php-class-method-exists? class-name method-name)
    (let ((mlist (php-class-methods class-name)))
-      (if (not (eqv? mlist #f))
-	  (php-hash-in-array? mlist (string-downcase (mkstr method-name)) #f)
+      (if mlist ;is this test REALLY necessary?
+;	  (php-hash-in-array? mlist (string-downcase (mkstr method-name)) #f)
+          (php-hash-in-array? mlist (mkstr method-name) #f)
 	  #f)))
 
 (define (method-minimum-arity method)
