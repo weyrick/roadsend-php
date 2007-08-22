@@ -29,12 +29,12 @@ call_user_method_array('someFunction', $c, array('wibble', 'wobble'));
 // preferred method for calling method functions
 call_user_func(array(&$c, 'someFunction'),'here','there');
 
-echo "1:".class_exists('someblahclass');
-echo "2:".class_exists('myClass');
+echo "1:".class_exists('someblahclass'); echo "\n";
+echo "2:".class_exists('myClass'); echo "\n";
 
-echo "3:".method_exists('myClass','someFunction');
-echo "4:".method_exists('myClass','aFunction');
-echo "5:".method_exists('noClass','someFunction');
+echo "3:".method_exists('myClass','someFunction'); echo "\n";
+echo "4:".method_exists('myClass','aFunction'); echo "\n";
+echo "5:".method_exists('noClass','someFunction'); echo "\n";
 
 /////
 
