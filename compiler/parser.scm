@@ -234,16 +234,16 @@
        ((class-function) class-function)
        ((varkey class-vars semi) class-vars)
        ((public class-vars semi)
-        (parse-require-php5)
+;        (parse-require-php5)
 	class-vars)
        ((private class-vars semi)
-        (parse-require-php5)
+;        (parse-require-php5)
         (map (lambda (c) (property-decl-visibility-set! c 'private) c) class-vars))
        ((protected class-vars semi)
-        (parse-require-php5)
+;        (parse-require-php5)
         (map (lambda (c) (property-decl-visibility-set! c 'protected) c) class-vars))
        ((static class-vars semi)
-        (parse-require-php5)
+;        (parse-require-php5)
         (map (lambda (c) (property-decl-static?-set! c #t) c) class-vars)))
 
       (class-vars
@@ -568,10 +568,10 @@
        ;expression
        (rval
         ((id@class static-classderef id@name)
-         (parse-require-php5)
+;         (parse-require-php5)
          (make-class-constant *parse-loc* class (mkstr name)))
         ((id@class static-classderef var@name)
-         (parse-require-php5)
+;         (parse-require-php5)
          (make-class-constant *parse-loc* class (mkstr name)))
         
         ((rval@a ugly-then rval@b colon rval@c)
@@ -759,10 +759,10 @@
          (make-property-fetch *parse-loc* lval rval))
 	; PHP5
         ((function-call classderef id-or-var)
-         (parse-require-php5)
+;         (parse-require-php5)
          (make-property-fetch *parse-loc* function-call id-or-var))
         ((function-call classderef lcurly rval rcurly)
-         (parse-require-php5)
+;         (parse-require-php5)
          (make-property-fetch *parse-loc* function-call rval)))
        
        ;place

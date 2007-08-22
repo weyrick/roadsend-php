@@ -240,19 +240,19 @@
     ;; php-compat compat
     zval->phpval-coercion-routine
     PHP5?
-    (require-php5)
-    (go-php5)
+;    (require-php5)
+;    (go-php5)
     ) )
 
-(define PHP5? #f)
+(define PHP5? #t)
 
-(define (go-php5)
-   (set! PHP5? #t)
-   (defconstant PHP_VERSION *PHP5-VERSION*))
+;(define (go-php5)
+;   (set! PHP5? #t)
+;   (defconstant PHP_VERSION *PHP5-VERSION*))
 
-(define (require-php5)
-   (unless PHP5?
-      (php-error "This feature requires PHP5 compatibility to be enabled (in Project Properties, or -5 on the commandline)")))
+;(define (require-php5)
+;   (unless PHP5?
+;      (php-error "This feature requires PHP5 compatibility to be enabled (in Project Properties, or -5 on the commandline)")))
 
 ;; it can be confusing that actually quite a bit of code gets executed
 ;; before commandline.scm or driver.scm has setup the *debug-level*.
@@ -313,10 +313,12 @@
 					   "/"
 					   *RAVEN-VERSION-STRING*))
 
-(define *PHP-VERSION* "4.4.7")
+;(define *PHP-VERSION* "4.4.7")
 (define *PHP5-VERSION* "5.2.4") 
-(define *ZEND-VERSION* "1.3.0")
+(define *PHP-VERSION* *PHP5-VERSION*)
+;(define *ZEND-VERSION* "1.3.0")
 (define *ZEND2-VERSION* "2.2.0")
+(define *ZEND-VERSION* *ZEND2-VERSION*)
 
 ;this version number gets put into compiled programs and libraries.
 ;Whenever non-backwards compatible changes are made to the runtime,

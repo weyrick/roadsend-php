@@ -123,9 +123,9 @@
 	   (args-parse-usage #f)
 	   (exit 1)))
 
-       ((("-5") (help "Enable PHP5 support"))
-	(when (maybe-add-script-argv "-5")
-	   (go-php5)))
+;       ((("-5") (help "Enable PHP5 support"))
+;	(when (maybe-add-script-argv "-5")
+;	   (go-php5)))
 
        ((("-v") (help "Verbose output"))
 	(when (maybe-add-script-argv "-v")

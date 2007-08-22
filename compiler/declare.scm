@@ -326,7 +326,7 @@
 			   (php-hash-insert! properties (undollar (property-decl-name p)) p))
                          ;; PHP5 "class constant"
                          ((and (property-decl? p) (property-decl-static? p))
-                          (require-php5)
+;                          (require-php5)
                           (php-hash-insert! class-constants (property-decl-name p) p))
 			 ((method-decl? p)
 ;			  (fprint (current-error-port) "Method: " (method-decl-name p))

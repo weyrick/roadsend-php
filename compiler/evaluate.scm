@@ -769,7 +769,7 @@ gives the debugger a chance to run."
              ;; PHP5 class constants
              (php-hash-for-each class-constants
                 (lambda (prop-name prop)
-                   (require-php5)
+;                   (require-php5)
                    (define-class-constant name prop-name
                       (if (null? (property-decl-value prop))
                           (make-container '())
@@ -1073,7 +1073,7 @@ returning the value of the last. "
 			 ((property-decl? p)
                           (if (property-decl-static? p)
                               (begin
-                                 (require-php5)
+;                                 (require-php5)
                                  (php-hash-insert! class-constants (property-decl-name p) p))
                               (php-hash-insert! properties (property-decl-name p) p)))
 			 ((method-decl? p)

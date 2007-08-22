@@ -40,7 +40,7 @@
     (walk-ast php-ast thunk)
     (walk-ast/parent php-ast thunk)
     (types-eqv? t1 t2)
-    (parse-require-php5)
+;    (parse-require-php5)
     (final-class php-ast 
        original-filename ;the filename as given to us by the user
        real-filename ;the filename as given to us by realpath
@@ -515,16 +515,16 @@
 		    t2)
 	  flag)))
 
-(define (parse-require-php5)
-   ;; Check if PHP5 support is enabled, and if not fixup the runtime
-   ;; line numbers so that the error message comes out right and throw
-   ;; and error.
-   (set! *PHP-FILE* (loc-file *parse-loc*))
-   (set! *PHP-LINE* (loc-line *parse-loc*))
-   ;(require-php5)
-   (unless PHP5?
-      (debug-trace 1 "PHP 5 syntax detected: version 5 language compatibility enabled")
-      (go-php5)))
+;(define (parse-require-php5)
+;   ;; Check if PHP5 support is enabled, and if not fixup the runtime
+;   ;; line numbers so that the error message comes out right and throw
+;   ;; and error.
+;   (set! *PHP-FILE* (loc-file *parse-loc*))
+;   (set! *PHP-LINE* (loc-line *parse-loc*))
+;   ;(require-php5)
+;   (unless PHP5?
+;      (debug-trace 1 "PHP 5 syntax detected: version 5 language compatibility enabled")
+;      (go-php5)))
    
 
 

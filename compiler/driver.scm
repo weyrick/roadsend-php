@@ -236,9 +236,9 @@
 			 (register-exit-function! (lambda (s) (finish-profiling) s))))
 		      '())
 		(check-runtime-library-version ,%runtime-library-version)
-                ,@(if PHP5?
-		      '((go-php5))
-		      '())
+;                ,@(if PHP5?
+;		      '((go-php5))
+;		      '())
 					; check for auto session start
                 (init-php-runtime)
                 ,(generate-config-ini-entries)
@@ -330,9 +330,9 @@
 		(exit 1)))))
 
 	(check-runtime-library-version ,%runtime-library-version)
-	,@(if PHP5?
-	      '((go-php5))
-	      '())	
+;	,@(if PHP5?
+;	      '((go-php5))
+;	      '())	
 	(setup-library-paths)
         (init-php-runtime)
 	,(generate-config-ini-entries)
@@ -372,9 +372,9 @@
 	      '())
         
         (check-runtime-library-version ,%runtime-library-version)
-	,@(if PHP5?
-	      '((go-php5))
-	      '())	
+;	,@(if PHP5?
+;	      '((go-php5))
+;	      '())	
 	(setup-library-paths)
         (init-php-runtime)
 	(run-startup-functions)
@@ -563,9 +563,9 @@
 	       
 	       (maybe-pp `(define ,mangled-name
 			     (check-runtime-library-version ,%runtime-library-version)
-			     ,@(if PHP5?
-				   '((go-php5))
-				   '())	
+;			     ,@(if PHP5?
+;				   '((go-php5))
+;				   '())	
 			     ;;this is the actual main function, including stuff like storing
 			     ;;the function signatures for the file, and the global code in the
 			     ;;file.
