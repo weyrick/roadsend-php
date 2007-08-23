@@ -18,6 +18,8 @@
 ;; ***** END LICENSE BLOCK *****
 (module php-hash
    (include "php-runtime.sch")
+   ; for pcc scheme repl
+   (eval (export-module))
    (extern
     (include "opaque-math.h")
     (is-numeric-key::int (str::string length::int) "is_numeric")

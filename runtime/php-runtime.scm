@@ -19,7 +19,8 @@
 
 (module php-runtime
    (include "php-runtime.sch")
-
+   ; for pcc scheme repl
+   (eval (export-module))   
    (import (utils "utils.scm")
 	   (php-hash "php-hash.scm")
 	   (php-object "php-object.scm")

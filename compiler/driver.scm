@@ -22,7 +22,8 @@
    (library php-runtime)
    (library profiler webconnect)
    (include "../runtime/php-runtime.sch")
-   
+   ; for pcc scheme repl
+   (eval (export-module))
    (load (php-macros "../php-macros.scm"))
    (import
     (lexers "lexers.scm")

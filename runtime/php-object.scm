@@ -25,6 +25,8 @@
 	   (php-hash "php-hash.scm")
 	   (utils "utils.scm")
 	   (php-errors "php-errors.scm"))
+   ; for pcc scheme repl
+   (eval (export-module))
    (export
     +constructor-failed+
     (make-php-object properties)

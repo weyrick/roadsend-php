@@ -130,13 +130,13 @@
 	   (print *RAVEN-VERSION-STRING*)
 	   (exit 1)))
 
-       (section "Compile Mode (default: generate console application)")
+       (section "Run Mode (default: compile console application)")
 
 
-       ((("-a") (help "Interactive mode (REPL)"))
+       ((("-a") (help "Interactive PHP mode (PHP REPL)"))
 	(if (maybe-add-script-argv "-a")
 	    (begin
-	       (widen!::repl-target *current-target*))))
+	       (widen!::php-repl-target *current-target*))))
        
        ((("-i" "-f" "--interpret") ?script (help "Execute code immediately, instead of compiling"))
 	(if (maybe-add-script-argv "-f")
@@ -284,6 +284,11 @@
 ;        ((("-g" "--debugger") (help "Run file in the PCC step debugger"))
 ; 	(when (maybe-add-script-argv "-g")
 ; 	   (widen!::debug-target *current-target*)))
+
+        ((("--repl") (help "A scheme REPL with access to the roadsend-php runtime"))
+	 (if (maybe-add-script-argv "-a")
+	     (begin
+		(widen!::scheme-repl-target *current-target*))))
        
        ((("-P" "--profile") (help "Generate code for PHP source level profiling"))
 	; (set-target-option! source-level-profile: #t)
