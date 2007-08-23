@@ -31,8 +31,10 @@ call_user_func(array(&$c, 'someFunction'),'here','there');
 
 echo "1:".class_exists('someblahclass'); echo "\n";
 echo "2:".class_exists('myClass'); echo "\n";
+echo "2.5:".class_exists('myclass'); echo "\n";
 
 echo "3:".method_exists('myClass','someFunction'); echo "\n";
+echo "3.5:".method_exists('myclass','somefunction'); echo "\n";
 echo "4:".method_exists('myClass','aFunction'); echo "\n";
 echo "5:".method_exists('noClass','someFunction'); echo "\n";
 
@@ -92,7 +94,7 @@ $methodVariable = array($anObject, 'someMethod');
 
 var_dump(is_callable($methodVariable, true, $callable_name));  //  bool(true)
 var_dump(is_callable($methodVariable, false, $callable_name));  //  bool(true)
-echo $callable_name, "\n";  //  someClass:someMethod
+echo $callable_name, "\n";  //  someClass::someMethod
 
 // these are intential screwups
 var_dump(is_callable(array(), true, $callable_name));  //  bool(true)

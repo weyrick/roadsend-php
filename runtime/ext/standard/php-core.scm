@@ -1205,7 +1205,7 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
        FALSE))
 
 ; is_callable --  Verify that the contents of a variable can be called as a function
-(defbuiltin (is_callable var (syntax-only 'unpassed) ((ref . name) 'unpassed))
+(defbuiltin (is_callable var (syntax-only #f) ((ref . name) 'unpassed))
    (let* ((valid-syntax (if (php-hash? var)
 			    ; proper array
 			    (and (= (php-hash-size var) 2)
@@ -1214,9 +1214,7 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 				 (string? (php-hash-lookup var 1)))
 			    ; string function name only
 			    (string? var)))
-	  (exists (if (and (or (eqv? syntax-only 'unpassed)
-			       (eqv? syntax-only #f))
-			   valid-syntax)
+	  (exists (if (and valid-syntax (not syntax-only))
 		      (if (php-hash? var)
 			  (method_exists (php-hash-lookup var 0) (php-hash-lookup var 1))
 			  (function_exists (mkstr var)))
