@@ -94,10 +94,10 @@ clean:
 	-/bin/rm -rf $(TOPLEVEL)$(MY_TESTOUTDIR)
 
 check: all
-	-mkdir $(TOPLEVEL)$(MY_TESTOUTDIR)
+	mkdir -p $(TOPLEVEL)$(MY_TESTOUTDIR)
 	@(cd $(TOPLEVEL) && $(DOTEST) $(MY_TESTDIR) $(MY_TESTOUTDIR))
 
 check5: all
-	-mkdir $(TOPLEVEL)$(MY_TEST5OUTDIR)
+	mkdir -p $(TOPLEVEL)$(MY_TEST5OUTDIR)
 	@(cd $(TOPLEVEL) && PHP=$(PHP5) PCC_OPTS=-5 $(DOTEST) $(MY_TEST5DIR) $(MY_TEST5OUTDIR))
 
