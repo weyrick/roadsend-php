@@ -69,7 +69,7 @@
        rbrak echokey functionkey returnkey string extends
        array-arrow dokey unset foreach endforeach endfor foreach-as parent
        boolean integer float nullkey listkey ;globalhash
-       this continue public private protected)
+       this continue public private protected throwkey trykey catchkey)
 
       (start
        ((statements) (finish-ast (reverse statements))))
@@ -135,7 +135,15 @@
         (make-foreach-loop foreach rval '() value (reverse statements)))
        ((foreach lpar rval foreach-as lval@key array-arrow lval@value rpar colon statements endforeach semi)
         (make-foreach-loop foreach rval key value (reverse statements)))
+
+       ; throw
+       ((throwkey rval semi)
+	(make-throw *parse-loc* rval))
        
+       ; try/catch
+       ((trykey statement catches)
+	(make-try *parse-loc* statement catches))
+
        ((forloop) forloop)
        ((break semi)
 	(make-break-stmt *parse-loc* '()))
@@ -156,6 +164,8 @@
        ((semi)
 	(make-nop *parse-loc*)))
 
+      ;; end statement
+      
       (exit-stmt
        ((exitkey rval)
 	(make-exit-stmt *parse-loc* rval))
@@ -195,6 +205,15 @@
        ((default switch-delim)
 	(make-default-switch-case *parse-loc* '())))
 
+      ; catches
+      (catches
+       ((catch-block catches) (cons catch-block catches))
+       ((catch-block) (list catch-block)))
+
+      (catch-block       
+       ((catchkey lpar id@classname lval@varname rpar statement)
+	(make-catch *parse-loc* classname varname statement)))
+       
       ;forloop
       (forloop-stmt
        ((nonempty-forloop-stmt) nonempty-forloop-stmt)

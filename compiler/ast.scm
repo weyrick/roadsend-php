@@ -96,6 +96,16 @@
        step
        body)
 
+    (final-class throw::ast-node
+       rval)
+    (final-class try::ast-node
+       try-body
+       catches)
+    (final-class catch::ast-node
+       catch-class
+       catch-var
+       catch-body)
+	  
     (abstract-class declaration::ast-node)
     (final-class constant-decl::declaration
        name

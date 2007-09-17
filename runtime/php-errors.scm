@@ -20,12 +20,14 @@
 (module php-errors
    (include "php-runtime.sch")
    (import (php-runtime "php-runtime.scm")
+	   (php-object "php-object.scm")
            (php-hash "php-hash.scm")
 	   (constants "constants.scm")
            (signatures "signatures.scm"))
    (load (php-macros "../php-macros.scm"))
    (export
     *error-handler*
+    *default-exception-handler*
     *error-level* ; per php error_reporting
     *errors-disabled*
     *stack-trace*
@@ -47,11 +49,13 @@
      E_USER_NOTICE 
      E_ALL
      ;
+    (init-php-error-lib)
     (push-stack class-name name . args)
     (pop-stack)
     (print-stack-trace)
     (print-stack-trace-html)
     delayed-error
+    (php-exception try-stack except-obj)
     (php-error . msgs)
     (php-warning . msgs)
     (php-notice . msgs)
@@ -84,8 +88,9 @@
 (defconstant E_USER_NOTICE 1024)
 (defconstant E_ALL 2047)
 
-; found in ext/standard/php-core.scm
+; implementations found in ext/standard/php-core.scm
 (define *error-handler* "_default_error_handler")
+(define *default-exception-handler* "_default_exception_handler")
 
 (define *error-level* E_ALL)
 
@@ -106,6 +111,57 @@
 					  (when (pair? *stack-trace*)
 					     (let ((top (car *stack-trace*)))
 						(stack-entry-class-name top)))))
+
+; called at start and on page resets
+(define (init-php-error-lib)
+   (set! *error-handler* "_default_error_handler")
+   (set! *default-exception-handler* "_default_exception_handler")
+   (set! *error-level* E_ALL)
+   (set! *anti-error-recurse* #f)
+   ; always have to rebuild, because object system resets
+   (build-Exception-class))
+
+; Exception base class
+; XXX this is incomplete
+(define (build-Exception-class)
+   (define-php-class 'Exception '())
+   (define-php-property 'Exception "message" "Unknown exception" 'protected)
+   (define-php-property 'Exception "code" *zero* 'protected)
+   (define-php-method 'Exception "__construct" Exception:__construct)
+   (define-php-method 'Exception "getMessage" Exception:getMessage))
+
+(define (Exception:__construct this optional-args)
+   (let ((message '())
+	 (code '()))
+      (when (pair? optional-args)
+	 (set! message
+	       (maybe-unbox (car optional-args)))
+	 (set! optional-args (cdr optional-args)))
+      (when (pair? optional-args)
+	 (set! code
+	       (maybe-unbox (car optional-args)))
+	 (set! optional-args (cdr optional-args)))
+      (when message
+	 (php-object-property-set!/string this "message" message 'all))
+      (when code
+	 (php-object-property-set!/string this "code" code 'all))))
+
+(define (Exception:getMessage this optional-args)
+   (php-object-property-h-j-f-r/string this "message" 'all))
+
+; try-stack is a list of pairs: (Classname . <exception proc>)
+; we traverse the list, checking Classname's for is-a match
+; if we find it, we call the associated exception proc
+; if we don't we handle it via the default exception handler
+(define (php-exception try-stack except-obj)
+;   (debug-trace 0 "in php-exception stack is " try-stack " and obj is " except-obj)
+   (when (null? try-stack)
+      (php-funcall *default-exception-handler* except-obj))
+   (let loop ((ex (car try-stack)))
+      (when (pair? ex)
+	 (if (php-object-is-a except-obj (mkstr (car ex)))
+	     ((cdr ex) (cons (car ex) except-obj)) ; match: call the escape proc, with the matching class name . except-obj as an argument
+	     (loop (cdr try-stack))))))
 
 ; ALWAYS FATAL
 (define (php-error . msgs)

@@ -286,6 +286,10 @@
 
 	 ((uncase "null") (stok 'nullkey))
 
+	 ((uncase "try") (stok 'trykey))
+	 ((uncase "throw") (stok 'throwkey))
+	 ((uncase "catch") (stok 'catchkey))
+	 
 
 	 ;typecasts
 	 ((: "(" (* space) "bool" (* space) ")" )    (stok 'boolcast "bool"))

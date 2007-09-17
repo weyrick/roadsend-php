@@ -988,7 +988,13 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
        (set_error_handler *old-error-handler*)))
 
 
+; restore_exception_handler --  Restores the previous exception handler function
+(defbuiltin (restore_exception_handler)
+   (if (not (eqv? *old-exception-handler* #f))
+       (set_exception_handler *old-exception-handler*)))
+
 (define *old-error-handler* #f)
+(define *old-exception-handler* #f)
 
 ; based on current error level return either #f if we shouldn't
 ; show this error, or a string detailing the error type
@@ -1011,6 +1017,9 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
        ; they don't want to see this error
        ; based on error-level
        #f))
+
+(defbuiltin (_default_exception_handler exception_obj)
+   (php-error "Uncaught exception '" (php-object-class exception_obj) "'"))
 
 (defbuiltin (_default_error_handler errno errstr (errfile "unknown file") (errline "unknown line") (vars 'unset))
    (let ((etype (check-etype (mkfixnum (convert-to-number errno)))))
@@ -1049,6 +1058,15 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 	  (set! *old-error-handler* *error-handler*)
 	  (set! *error-handler* handler-name)
 	  *old-error-handler*)
+       (php-warning "no function by the name of " handler-name " exists")))
+
+; set_exception_handler --  Sets a user-defined exception handler function.
+(defbuiltin (set_exception_handler handler-name)
+   (if (function_exists handler-name)
+       (begin
+	  (set! *old-exception-handler* *error-handler*)
+	  (set! *default-exception-handler* handler-name)
+	  *old-exception-handler*)
        (php-warning "no function by the name of " handler-name " exists")))
 
 ; trigger_error --  Generates a user-level error/warning/notice message

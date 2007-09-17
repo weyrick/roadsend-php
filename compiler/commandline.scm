@@ -177,9 +177,10 @@
        
        (section "Compiler Options")
 
-;       ((("-5") (help "Enable PHP5 support"))
-;	(when (maybe-add-script-argv "-5")
-;	   (go-php5)))
+       ; deprecated: swallow
+       ((("-5") );(help "Enable PHP5 support"))
+	(maybe-add-script-argv "-5"))
+
 
        ((("-c") ?config-file (help "Use the specified config file"))
 	(maybe-add-script-argv "-c")

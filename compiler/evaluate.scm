@@ -65,6 +65,9 @@
 ;functions 1..n will break out 1..n levels
 (define *break-stack* '())
 
+;current stack of catch blocks to try a thrown exception on
+(define *try-stack* '())
+
 ;call this function to continue the current loop
 (define *continue-stack* '())
 
@@ -85,6 +88,7 @@
    (set! *current-static-env* 'unset)
    (set! *current-return-escape* 'unset)
    (set! *break-stack* '())
+   (set! *try-stack* '())
    (set! *continue-stack* '())
    (set! *class-decl-table-for-eval* (make-hashtable))
    (set! *current-instance* 'unset)
@@ -391,6 +395,37 @@ gives the debugger a chance to run."
 			 (loop)))))))))
 
 
+(define-method (evaluate node::throw)
+   (with-access::throw node (rval)
+      (let ((except-obj (maybe-unbox (d/evaluate rval))))
+	 (if (php-object? except-obj)
+	     (if (php-object-is-a except-obj "Exception")
+		 (php-exception *try-stack* except-obj)
+		 (php-error "thrown exceptions must be derived from Exception base class"))
+	     (php-error "can only throw objects")))))
+
+;
+; check out bigloo's exception handling?
+;
+; on the try-stack, save a list of (class_name . bind-exit-func)
+; which push on at the begining of the try, and pop off at the end
+; 
+; in throw, run the list, checking for matching subclass, and calling
+; the exit with the matching class as an argument
+;
+; so if bind-exit returns a class name, we run the associated catch block
+;
+(define-method (evaluate node::try-catch)
+   (with-access::try-catch node (try-body catch-class catch-var catch-body)
+      (set! *PHP-LINE* (car (ast-node-location node)))
+      (let ((try-result (bind-exit (except)
+			   (dynamically-bind (*try-stack* (cons (cons catch-class except)  *try-stack*))
+					     (d/evaluate try-body)))))
+	 (when (pair? try-result)
+	    ; we excepted: run the correct catch block
+	    ; XXX when we have multiple catches, check that here and run correct
+	    (eval-assign catch-var (cdr try-result))
+	    (d/evaluate catch-body)))))
 
 (define-method (evaluate node::break-stmt)
    (with-access::break-stmt node (level)

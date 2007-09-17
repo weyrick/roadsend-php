@@ -1007,6 +1007,7 @@
    (reset-signatures!)
    (set! *interpreted-function-table* (make-hashtable))
    (init-php-object-lib)
+   (init-php-error-lib) ; build Exception object, so must follow init-php-object-lib
    (reset-ini!)   
    ; this doesn't change?
    ;(set! $argv 'unset)
