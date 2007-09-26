@@ -155,13 +155,13 @@
 ; if we don't we handle it via the default exception handler
 (define (php-exception try-stack except-obj)
 ;   (debug-trace 0 "in php-exception stack is " try-stack " and obj is " except-obj)
-   (when (null? try-stack)
-      (php-funcall *default-exception-handler* except-obj))
-   (let loop ((ex (car try-stack)))
-      (when (pair? ex)
-	 (if (php-object-is-a except-obj (mkstr (car ex)))
-	     ((cdr ex) (cons (car ex) except-obj)) ; match: call the escape proc, with the matching class name . except-obj as an argument
-	     (loop (cdr try-stack))))))
+  (let loop ((stack try-stack))
+    (if (null? try-stack)
+        (php-funcall *default-exception-handler* except-obj)
+        (let ((ex (car stack)))
+          (if (php-object-is-a except-obj (mkstr (car ex)))
+              ((cdr ex) (cons (car ex) except-obj)) ; match: call the escape proc, with the matching class name . except-obj as an argument
+              (loop (cdr stack)))))))
 
 ; ALWAYS FATAL
 (define (php-error . msgs)

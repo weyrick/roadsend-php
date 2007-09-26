@@ -415,17 +415,19 @@ gives the debugger a chance to run."
 ;
 ; so if bind-exit returns a class name, we run the associated catch block
 ;
+;FIXED to compile: BROKEN code ahead
 (define-method (evaluate node::try-catch)
-   (with-access::try-catch node (try-body catch-class catch-var catch-body)
+   (with-access::try-catch node (try-body catches); catch-class catch-var catch-body)
       (set! *PHP-LINE* (car (ast-node-location node)))
       (let ((try-result (bind-exit (except)
-			   (dynamically-bind (*try-stack* (cons (cons catch-class except)  *try-stack*))
+			   (dynamically-bind (*try-stack* (cons (cons catches except) *try-stack*))
 					     (d/evaluate try-body)))))
-	 (when (pair? try-result)
+;	 (when (pair? try-result)
 	    ; we excepted: run the correct catch block
 	    ; XXX when we have multiple catches, check that here and run correct
-	    (eval-assign catch-var (cdr try-result))
-	    (d/evaluate catch-body)))))
+;	    (eval-assign catch-var (cdr try-result))
+;	    (d/evaluate catch-body)
+        #t)))
 
 (define-method (evaluate node::break-stmt)
    (with-access::break-stmt node (level)

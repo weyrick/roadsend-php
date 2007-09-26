@@ -98,7 +98,7 @@
 
     (final-class throw::ast-node
        rval)
-    (final-class try::ast-node
+    (final-class try-catch::ast-node
        try-body
        catches)
     (final-class catch::ast-node

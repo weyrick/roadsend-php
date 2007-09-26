@@ -142,7 +142,7 @@
        
        ; try/catch
        ((trykey statement catches)
-	(make-try *parse-loc* statement catches))
+	(make-try-catch *parse-loc* statement catches))
 
        ((forloop) forloop)
        ((break semi)
