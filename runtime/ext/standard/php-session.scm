@@ -258,7 +258,7 @@
 	    ;(if (pair? file) (fprint (current-error-port) (format "checking ~a" (car file))))
 	    (if (and (pair? file)
 		     (substring=? *session-files-prefix* (car file) (string-length *session-files-prefix*)))
-		(let ((exp-time (+ (file-modification-time (car file))
+		(let ((exp-time (+ (file-modification-time (mkstr (session-save-path *current-session*) (pcc-file-separator) (car file)))
 					 (onum->elong (convert-to-number (get-ini-entry "session.gc_maxlifetime"))))))		     
 		   (if (< exp-time (current-seconds))
 		       (begin
