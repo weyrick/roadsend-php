@@ -149,19 +149,34 @@
 (define (Exception:getMessage this optional-args)
    (php-object-property-h-j-f-r/string this "message" 'all))
 
-; try-stack is a list of pairs: (Classname . <exception proc>)
-; we traverse the list, checking Classname's for is-a match
+; try-stack is a list of pairs: (classname_list . <exception proc>)
+; we traverse the list, and the list of classes for each exception, checking Classname's for is-a match
+;
+; note the first dimension list relates to nested try's, the second (classname_list) relates to number of
+; catch blocks for that try. we have to traverse both lists
+;
 ; if we find it, we call the associated exception proc
 ; if we don't we handle it via the default exception handler
 (define (php-exception try-stack except-obj)
-;   (debug-trace 0 "in php-exception stack is " try-stack " and obj is " except-obj)
-  (let loop ((stack try-stack))
     (if (null? try-stack)
         (php-funcall *default-exception-handler* except-obj)
-        (let ((ex (car stack)))
-          (if (php-object-is-a except-obj (mkstr (car ex)))
-              ((cdr ex) (cons (car ex) except-obj)) ; match: call the escape proc, with the matching class name . except-obj as an argument
-              (loop (cdr stack)))))))
+	(bind-exit (excepted)
+	   (let stack-loop ((stack-list try-stack))
+	      (when (pair? stack-list)
+		 (let ((stack-entry (car stack-list)))
+		    (let ((class-list (car stack-entry))
+			  (exception-proc (cdr stack-entry)))
+		       (let class-loop ((class-list-run class-list))
+			  (when (pair? class-list-run)
+			     (let ((class-name (car class-list-run)))
+				(when (php-object-is-a except-obj (mkstr class-name))
+				   (exception-proc (cons class-name except-obj))
+				   (excepted #t)))
+			     (class-loop (cdr class-list-run)))))
+		    (stack-loop (cdr stack-list)))))
+	   ; if we get here, we had a try stack but didn't catch anything, so go to default handler
+	   (php-funcall *default-exception-handler* except-obj))))
+	   
 
 ; ALWAYS FATAL
 (define (php-error . msgs)

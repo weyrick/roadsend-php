@@ -405,29 +405,46 @@ gives the debugger a chance to run."
 	     (php-error "can only throw objects")))))
 
 ;
-; check out bigloo's exception handling?
+; should we check out bigloo's exception handling instead?
 ;
-; on the try-stack, save a list of (class_name . bind-exit-func)
+; this is how we do it now:
+; on the try-stack, save a list of (class_name_list . bind-exit-func)
 ; which push on at the begining of the try, and pop off at the end
 ; 
-; in throw, run the list, checking for matching subclass, and calling
-; the exit with the matching class as an argument
+; in throw, run the try-stack, checking for matching subclass in the list, and calling
+; the bind-exit with the matching class as an argument
 ;
 ; so if bind-exit returns a class name, we run the associated catch block
-;
-;FIXED to compile: BROKEN code ahead
 (define-method (evaluate node::try-catch)
-   (with-access::try-catch node (try-body catches); catch-class catch-var catch-body)
-      (set! *PHP-LINE* (car (ast-node-location node)))
-      (let ((try-result (bind-exit (except)
-			   (dynamically-bind (*try-stack* (cons (cons catches except) *try-stack*))
-					     (d/evaluate try-body)))))
-;	 (when (pair? try-result)
-	    ; we excepted: run the correct catch block
-	    ; XXX when we have multiple catches, check that here and run correct
-;	    (eval-assign catch-var (cdr try-result))
-;	    (d/evaluate catch-body)
-        #t)))
+   (bind-exit (caught)
+      (with-access::try-catch node (try-body catches)
+	 (set! *PHP-LINE* (car (ast-node-location node)))
+	 ; extract class names we are catching for this try block
+	 (let ((catch-classname-list '()))
+	    (let loop ((clist catches))
+	       (when (pair? clist)
+		  (let ((current-catch (car clist)))
+		     (with-access::catch current-catch (catch-class catch-var catch-body)
+			(set! catch-classname-list (cons catch-class catch-classname-list)))
+		     (loop (cdr clist)))))
+	    ; add catch class name list to stack and run this try block
+	    (let ((try-result (bind-exit (except)
+				 (dynamically-bind (*try-stack* (cons (cons catch-classname-list except) *try-stack*))
+						   (d/evaluate try-body)))))
+	       (when (pair? try-result)
+		  ; we excepted: run the correct catch block
+		  (let loop ((clist catches))
+		     (when (pair? clist)
+			(let ((current-catch (car clist)))
+			   (with-access::catch current-catch (catch-class catch-var catch-body)
+			      ; is this our catch class?
+			      (when (string=? (mkstr catch-class) (mkstr (car try-result)))
+				 ; yes, this is our catch block. eval.
+				 (eval-assign catch-var (cdr try-result))
+				 (d/evaluate catch-body)
+				 (caught #t))))
+			(loop (cdr clist))))))))))
+      
 
 (define-method (evaluate node::break-stmt)
    (with-access::break-stmt node (level)
