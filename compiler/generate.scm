@@ -46,6 +46,8 @@
 ;for parent static method invocations -- they don't know who their daddy is.
 (define *current-parent-class-name* #f)
 
+;current stack of catch blocks to try a thrown exception on
+(define *try-stack* '())
 
 ;for method-decl stack trace entries
 (define *current-class-name* #f)
@@ -550,6 +552,53 @@ onum.  Append the bindings for the new symbols and code."
       `(if ,(get-boolean condition)
 	   ,(generate-code then)
 	   ,(generate-code else))))
+
+(define-method (generate-code node::throw)
+   (with-access::throw node (rval)
+      `(let ((except-obj ,(generate-code rval)))
+	  (if (php-object? except-obj)
+	      (if (php-object-is-a except-obj "Exception")
+		  (php-exception *try-stack* except-obj)
+		  (php-error "thrown exceptions must be derived from Exception base class"))
+	      (php-error "can only throw objects")))))
+
+(define-method (generate-code node::try-catch)
+   (with-access::try-catch node (try-body catches)
+      ; extract class names we are catching for this try block
+      (let ((catch-classname-list '())
+	    (catch-block-list '()))
+	 (let loop ((clist catches))
+	    (when (pair? clist)
+	       (let ((current-catch (car clist)))
+		  (with-access::catch current-catch (catch-class catch-var catch-body)
+		     (set! catch-classname-list (cons catch-class catch-classname-list))
+		     ; we have to generate code for each catch block, even if it may never run
+		     ; because we won't know until runtime
+		     ; we do this by defining a function for each catch block that we can run later, in case we
+		     ; match that exception class
+		     (set! catch-block-list (cons `(,(string->symbol (mkstr "%" catch-class "-catch"))
+						    (lambda (,(var/gen-name catch-var))
+						       (env-extend ,*current-var-var-env* ,(undollar (var/gen-name catch-var)) ,(var/gen-name catch-var))
+						       ,(generate-code catch-body)))
+						  catch-block-list)))
+		  (loop (cdr clist)))))
+	 ;
+	 ; generated code
+	 ;
+	 `(bind-exit (caught)
+	     ; add catch class name list to stack and run this try block
+	     (let (,@catch-block-list
+		   (try-result (bind-exit (except)
+				  (dynamically-bind (*try-stack* (cons (cons ,catch-classname-list except) *try-stack*))
+						    ,(generate-code try-body)))))
+		(when (pair? try-result)
+		   ; we excepted: run the correct catch block
+		   (let loop ((clist catches))
+		      (when (pair? clist)
+			 (let ((current-catch (car clist)))
+			    ((string->symbol (mkstr "%" current-catch "-class")) (cdr try-result))
+			    (caught #t))
+			 (loop (cdr clist))))))))))
 
 (define-method (generate-code node::lyteral)
    (lyteral-value node))

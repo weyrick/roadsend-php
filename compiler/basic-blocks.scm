@@ -342,6 +342,16 @@
 	 (link-blocks predecessor successor) 
 	 (set! *current-block* successor))))
 
+(define-method (identify-basic-blocks node::throw)
+   (with-access::throw node (rval)
+      (identify-basic-blocks rval)
+      (add-to-current-block node)))
+
+(define-method (identify-basic-blocks node::try-catch)
+   (with-access::try-catch node (try-body catches)
+      (identify-basic-blocks try-body)
+      ; something special for catch blocks?
+      (add-to-current-block node)))
 
 (define-method (identify-basic-blocks node::if-stmt)
    ; (debug-trace 22 " (identify-basic-blocks node::if-stmt)")
