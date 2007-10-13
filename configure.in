@@ -142,6 +142,9 @@ AC_ARG_WITH([mysql],
 
 AS_IF([test "x$with_mysql" != xno],
 	[AC_PATH_PROG(mysqlconfig,mysql_config)
+         # remove doubled slashes because they made mysql_config on
+         # os/x return different cflags (!)
+         mysqlconfig=`echo $mysqlconfig | sed s'/\/\//\//g'`
 	 if test [ -z "$mysqlconfig" ]
 	 then
            if test "x$with_mysql" != xcheck; then
@@ -153,6 +156,7 @@ AS_IF([test "x$with_mysql" != xno],
            AC_DEFINE([HAVE_MYSQL], [1],[Define if you have MySQL])
 	   MYSQL_LIBS=`${mysqlconfig} --libs`
 	   MYSQL_CFLAGS=`${mysqlconfig} --cflags`
+           echo "set mysqlcflags to $MYSQL_CFLAGS thanks to ${mysqlconfig} --cflags"
 	   EXT_LIST="$EXT_LIST mysql"
 	   PCC_EXT_LIST="$PCC_EXT_LIST php-mysql"
          fi
