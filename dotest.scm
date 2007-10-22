@@ -45,6 +45,11 @@
 (define *php* (string-append *php-bin* " -d display_errors=off")) ;-n?  what if my mysql.sock is someplace else?
 (define *diff* (cond-expand (PCC_MINGW "diff -u -w ") (else "diff -u ")))
 
+
+(flush-fprint (current-error-port) "using roadsend command: " *phpoo*)
+(flush-fprint (current-error-port) "using zend command    : " *php*)
+
+
 ; optimize?
 (when (getenv "OPTIMIZE")
    (flush-fprint (current-error-port) "compiling all tests with optimization")
