@@ -96,7 +96,7 @@
    custom-properties)
 
 (define-struct %php-class
-   ;;print-name is the name as the user wrote it
+   ;;print-name is the class name as the user wrote it (case sensitive)
    print-name
    ;;the canonical name of this class
    name
@@ -113,8 +113,10 @@
    prop-visibility
    ;;extended properties is either #f or a php-hash of non-declared properties
    extended-properties
-   ;;methods is a php-hash of methods
+   ;;methods is a php-hash of methods, keyed by canonical method name
    methods
+   ;; list of method names the way the user defined them (case sensitive)
+   print-methods
    ;;this overrides the normal property lookup
    custom-prop-lookup
    ;;this overrides the normal property set
@@ -123,6 +125,17 @@
    custom-prop-copy
    ;; PHP5 "class constants"
    class-constants)
+
+;
+; PHP5 case sensitivity:
+;  - class names are NOT case sensitive
+;  - method names are NOT case sensitive
+;  - properties ARE case sensitive
+; 
+; regardless of whether it is case sensitive, each item must
+; know the case it was defined as, because it's shown that way
+; by various dumping functions
+;
 
 (define (php-object-custom-properties obj)
    "returns whatever the custom context was set to when defining the extended class"
@@ -606,22 +619,21 @@ values the values."
 	      (%class-name-canonicalize (%php-class-print-name (%php-class-parent-class the-class)))
 	      #f))))
 
+
+; case insensitive
 (define (%class-name-canonicalize name)
    "define class names as case-insensitive strings"
    (string-downcase (mkstr name)))
 
-; XXX update for PHP5
+; case insensitive
 (define (%method-name-canonicalize name)
    "define method names as case-insensitive strings"
-   ;   (string->symbol
    (string-downcase (mkstr name)))
-;)
 
-; XXX update for PHP5
+; always case sensitive
 (define (%property-name-canonicalize name)
    "define property names as case-_sensitive_ strings"
    (if (string? name) name (mkstr name)))
-;   (string->symbol (mkstr name)))
 
 (define %php-class-registry 'unset)
 
@@ -637,11 +649,11 @@ values the values."
    ;define the root of the class hierarchy
    (let ((stdclass (%php-class "stdClass" "stdclass" #f #f
 			       (make-hashtable) (make-vector 0) (make-hashtable)
-			       (make-php-hash) (make-php-hash)
+			       (make-php-hash) (make-php-hash) '()
 			       #f #f #f (make-php-hash)))
 	 (inc-class (%php-class "__PHP_Incomplete_Class" "__php_incomplete_class" #f #f
 				(make-hashtable) (make-vector 0) (make-hashtable)
-				(make-php-hash) (make-php-hash)
+				(make-php-hash) (make-php-hash) '()
 				#f #f #f (make-php-hash)) ))
       ;;default constructor
       (hashtable-put! %php-class-registry "stdclass" stdclass)
@@ -656,9 +668,7 @@ values the values."
 	  (unless parent-class
 	     (php-error "Defining class " name ": unable to find parent class " parent-name))
 	  (let* ((canonical-name (%class-name-canonicalize name))
-		 (new-class (%php-class (if PHP5?
-					    (mkstr name)
-					    (string-downcase (mkstr name)))
+		 (new-class (%php-class (mkstr name)
 					canonical-name
 					parent-class
                                         #f
@@ -669,6 +679,7 @@ values the values."
 					 (%php-class-prop-visibility parent-class))				 
 					(copy-php-data (%php-class-extended-properties parent-class))
 					(copy-php-data (%php-class-methods parent-class))
+					(list-copy (%php-class-print-methods parent-class))
 					(%php-class-custom-prop-lookup parent-class)
 					(%php-class-custom-prop-set parent-class)
 					(%php-class-custom-prop-copy parent-class)
@@ -724,17 +735,17 @@ argument, before the continuation: (obj prop ref? value k)."
    (let ((the-class (%lookup-class class-name)))
       (unless the-class
 	 (php-error "Defining method " method-name ": unknown class " class-name))
-      (let ((method-name (%method-name-canonicalize method-name)))
+      (let ((canon-method-name (%method-name-canonicalize method-name)))
          ;; check if the method is a constructor
-         (if PHP5?
-             (when (or (string=? method-name "__construct")
-                       (and (not (%php-class-constructor the-class))
-                            (string=? method-name (%php-class-name the-class))))
-                (%php-class-constructor-set! the-class method))
-             (when (string=? method-name (%php-class-name the-class))
-                (%php-class-constructor-set! the-class method)))
+	 (when (or (string=? canon-method-name "__construct")
+		   (and (not (%php-class-constructor the-class))
+			(string=? canon-method-name (%php-class-name the-class))))
+	    (%php-class-constructor-set! the-class method))
+	 ; print version (name only)
+	 (%php-class-print-methods-set! the-class (cons method-name (%php-class-print-methods the-class)))
+	 ; canonical version, with method definition
          (php-hash-insert! (%php-class-methods the-class)
-                           method-name
+                           canon-method-name
                            method))))
 
 (define (mangle-property-private prop)
@@ -865,7 +876,7 @@ argument, before the continuation: (obj prop ref? value k)."
 		(%php-class-declared-property-offsets
 		 (%php-object-class obj))
 		prop-canon-name)))
-      (if (or prop (not PHP5?))
+      (if prop
 	  ; found a public
 	  prop
 	  (if (or (eqv? access-type 'protected)
@@ -932,12 +943,14 @@ argument, before the continuation: (obj prop ref? value k)."
 
 
 (define (%php-class-method-reflection klass)
-   (list->php-hash
-    (let ((lst '()))
-       (php-hash-for-each (%php-class-methods klass)
-	  (lambda (name method)
-	     (set! lst (cons (mkstr name) lst))))
-       lst)))
+   (list->php-hash (%php-class-print-methods klass)))
+
+;    (list->php-hash
+;     (let ((lst '()))
+;        (php-hash-for-each (%php-class-methods klass)
+; 	  (lambda (name method)
+; 	     (set! lst (cons (mkstr name) lst))))
+;        lst)))
 
 (define *highest-instantiation* 0)
 (define (%next-instantiation-id)

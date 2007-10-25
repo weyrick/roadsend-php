@@ -1144,7 +1144,9 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 
 ; get_class_methods -- Returns an array of class methods' names
 (defbuiltin (get_class_methods class-name)
-   (let ((mlist (php-class-methods class-name)))
+   (let ((mlist (php-class-methods (if (php-object? class-name)
+				       (php-object-class class-name)
+				       (mkstr class-name)))))
       (if (eqv? mlist #f)
 	  (begin 
 	     (php-warning "No such class: " class-name)

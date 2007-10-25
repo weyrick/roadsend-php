@@ -330,7 +330,7 @@
                           (php-hash-insert! class-constants (property-decl-name p) p))
 			 ((method-decl? p)
 ;			  (fprint (current-error-port) "Method: " (method-decl-name p))
-			  (php-hash-insert! methods (symbol-downcase (method-decl-name p)) p))
+			  (php-hash-insert! methods (method-decl-name p) p))
 			 (else (error 'declare-class "what's this noise doing in my class-decl?" p))))))
 	    (insert-methods-or-properties class-body))
 	 (let ((canonical-name (symbol-downcase name)))

@@ -1131,7 +1131,7 @@ returning the value of the last. "
                                  (php-hash-insert! class-constants (property-decl-name p) p))
                               (php-hash-insert! properties (property-decl-name p) p)))
 			 ((method-decl? p)
-			  (php-hash-insert! methods (symbol-downcase (method-decl-name p)) p))
+			  (php-hash-insert! methods (method-decl-name p) p))
 			 (else (error 'declare-class "what's this noise doing in my class-decl?" p))))))
 	    (insert-methods-or-properties class-body))
 	 (hashtable-put! *class-decl-table-for-eval* (symbol-downcase name)
