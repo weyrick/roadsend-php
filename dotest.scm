@@ -34,7 +34,7 @@
 			       (string (file-separator)) 
 			       "compiler" 
 			       (string (file-separator)) 
-			       "pcc -rm " (or (getenv "PCC_OPTS") "")))
+			       "pcc " (or (getenv "PCC_OPTS") "")))
 
 (define *php-bin* "php")
 (if (getenv "PHP")
