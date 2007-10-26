@@ -92,7 +92,7 @@ var_dump( (string)-1.2324 );
 var_dump( (string)"" );
 var_dump( (string)"0" );
 var_dump( (string)$foo );
-var_dump( (string)(object)$foo );
+//var_dump( (string)(object)$foo );
 var_dump( (string)NULL );
     
 

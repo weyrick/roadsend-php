@@ -40,7 +40,7 @@ class bar extends foo {
 
 new foo();
 $b = new bar();
-foo::foo();
+//foo::foo();
 
 $b->onemethod(1);
 $b->anothermethod(1);

@@ -12,6 +12,10 @@ class zot {
 
   var $otherplacement = 9;
 
+  function __toString() {
+      return "[this is a zot class]";
+  }
+
   function afun($anarg) {
     //    echo $this->bing;
     echo $this;
@@ -25,6 +29,10 @@ class argconstructor {
 
   var $bing = 12;
 
+
+  function __toString() {
+      return "[this is an argconstructor class]";
+  }
 
   function argconstructor($a, $b="foo") {
     echo "constructor $a, $b\n";

@@ -47,6 +47,8 @@ class bclass extends aclass {
 }
 
 $foo = new bclass();
+
+// 10/2007 - this was acceptable in php4 but is a fatal in php5
 aclass::aclass();
 
 $foo->bmethod();

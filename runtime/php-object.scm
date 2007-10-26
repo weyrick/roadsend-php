@@ -440,6 +440,11 @@ values the values."
       (let ((the-method (%lookup-method the-class method-name)))
 	 (unless the-method
 	    (php-error "Calling static method " class-name "::" method-name ": undefined method."))
+	 ;
+	 ;
+	 ; XXX FIXME: PHP5 does not allow calling a method statically if it was not defined that way
+	 ;            check that here and throw a fatal
+	 ;
          (apply the-method obj (adjust-argument-list the-method call-args)))))
 
 
