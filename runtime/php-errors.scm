@@ -46,7 +46,9 @@
      E_COMPILE_WARNING
      E_USER_ERROR 
      E_USER_WARNING
-     E_USER_NOTICE 
+     E_USER_NOTICE
+     E_STRICT
+     E_RECOVERABLE_ERROR
      E_ALL
      ;
     (init-php-error-lib)
@@ -59,6 +61,7 @@
     delayed-error
     (php-exception except-obj)
     (php-error . msgs)
+    (php-recoverable-error . msgs)
     (php-warning . msgs)
     (php-notice . msgs)
     (dump-bigloo-stack port num)
@@ -88,7 +91,9 @@
 (defconstant E_USER_ERROR 256)
 (defconstant E_USER_WARNING 512)
 (defconstant E_USER_NOTICE 1024)
-(defconstant E_ALL 2047)
+(defconstant E_STRICT 2048)
+(defconstant E_RECOVERABLE_ERROR 4096)
+(defconstant E_ALL 8191)
 
 ; implementations found in ext/standard/php-core.scm
 (define *error-handler* "_default_error_handler")
@@ -226,6 +231,9 @@
 			   (print-stack-trace)))))
    ; these always return false, and much code depends on this
    #f)
+
+(define (php-recoverable-error . msgs)
+   (php-warning/notice (apply mkstr msgs) E_RECOVERABLE_ERROR))   
 
 (define (php-warning . msgs)
    (php-warning/notice (apply mkstr msgs) E_WARNING))

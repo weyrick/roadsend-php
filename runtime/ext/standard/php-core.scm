@@ -1010,6 +1010,8 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 		;((or (php-= errno E_USER_ERROR)
 		;     (php-= errno E_ERROR)) "Fatal error")
 		((php-= errno E_USER_ERROR) "Fatal error")
+
+		((php-= errno E_RECOVERABLE_ERROR) "Catchable fatal error")
 		
 		((or (php-= errno E_USER_NOTICE)
 		     (php-= errno E_NOTICE)) "Notice")
@@ -1036,13 +1038,15 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 				 (print-stack-trace)))))
 		(fprint (current-error-port) etype ": " errstr " in " errfile " on line " errline)
 		(flush-output-port (current-error-port))
-		(when (equalp errno E_USER_ERROR) ;XXX any others?
+		(when (or (equalp errno E_USER_ERROR)
+			  (equalp errno E_RECOVERABLE_ERROR)) ;XXX any others?
 		   (php-exit 255)))
 	     (begin
 		(when (equalp errno E_USER_ERROR)
 		   (print-stack-trace-html))
 		(echo (mkstr "<br />\n<b>" etype "</b>: " errstr " in <b>" errfile "</b> on line <b>" errline "</b><br />\n"))
-		(when (equalp errno E_USER_ERROR) ;XXX any others?
+		(when (or (equalp errno E_USER_ERROR)
+			  (equalp errno E_RECOVERABLE_ERROR)) ;XXX any others?
 		   (php-exit 255)))))))
 	  
 ;	  (error 'error-handler (mkstr errstr) 'error-handler))))
