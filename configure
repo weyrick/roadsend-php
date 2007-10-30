@@ -3603,6 +3603,9 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
+         # remove doubled slashes because they made mysql_config on
+         # os/x return different cflags (!)
+         mysqlconfig=`echo $mysqlconfig | sed s'/\/\//\//g'`
 	 if test  -z "$mysqlconfig"
 	 then
            if test "x$with_mysql" != xcheck; then
@@ -3622,6 +3625,7 @@ _ACEOF
 
 	   MYSQL_LIBS=`${mysqlconfig} --libs`
 	   MYSQL_CFLAGS=`${mysqlconfig} --cflags`
+           echo "set mysqlcflags to $MYSQL_CFLAGS thanks to ${mysqlconfig} --cflags"
 	   EXT_LIST="$EXT_LIST mysql"
 	   PCC_EXT_LIST="$PCC_EXT_LIST php-mysql"
          fi
