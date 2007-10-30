@@ -345,7 +345,11 @@
 (define-method (identify-basic-blocks node::throw)
    (with-access::throw node (rval)
       (identify-basic-blocks rval)
-      (add-to-current-block node)))
+      (add-to-current-block node)
+      (let ((predecessor *current-block*)
+	    (successor (start-block "throw-succesor")))
+	 (link-blocks predecessor successor)
+	 (set! *current-block* successor))))
 
 (define-method (identify-basic-blocks node::try-catch)
    (with-access::try-catch node (try-body catches)
@@ -355,9 +359,20 @@
 
 (define-method (identify-basic-blocks node::catch)
    (with-access::catch node (catch-var catch-body)
-      (identify-basic-blocks catch-var)
-      (identify-basic-blocks catch-body)
-      (add-to-current-block node)))
+      (let ((predecessor *current-block*)
+	    (catch-body-block (start-block "catch-body-block"))
+	    (successor (start-block "catch-successor")))
+	 (set! *current-block* catch-body-block)
+;	 (identify-basic-blocks catch-var) ;; XXX parser guarentees this is a literal var, not an expression
+	 (identify-basic-blocks catch-body)
+	 (link-blocks predecessor catch-body-block)
+	 (link-blocks *current-block* successor)
+	 (link-blocks predecessor successor)
+	 (set! *current-block* successor))))
+
+;      (identify-basic-blocks catch-var)
+;      (identify-basic-blocks catch-body)
+;      (add-to-current-block node)))
 
 (define-method (identify-basic-blocks node::if-stmt)
    ; (debug-trace 22 " (identify-basic-blocks node::if-stmt)")

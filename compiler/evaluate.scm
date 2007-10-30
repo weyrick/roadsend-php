@@ -65,9 +65,6 @@
 ;functions 1..n will break out 1..n levels
 (define *break-stack* '())
 
-;current stack of catch blocks to try a thrown exception on
-(define *try-stack* '())
-
 ;call this function to continue the current loop
 (define *continue-stack* '())
 
@@ -88,7 +85,6 @@
    (set! *current-static-env* 'unset)
    (set! *current-return-escape* 'unset)
    (set! *break-stack* '())
-   (set! *try-stack* '())
    (set! *continue-stack* '())
    (set! *class-decl-table-for-eval* (make-hashtable))
    (set! *current-instance* 'unset)
@@ -400,7 +396,7 @@ gives the debugger a chance to run."
       (let ((except-obj (maybe-unbox (d/evaluate rval))))
 	 (if (php-object? except-obj)
 	     (if (php-object-is-a except-obj "Exception")
-		 (php-exception *try-stack* except-obj)
+		 (php-exception except-obj)
 		 (php-error "thrown exceptions must be derived from Exception base class"))
 	     (php-error "can only throw objects")))))
 
@@ -429,8 +425,9 @@ gives the debugger a chance to run."
 		     (loop (cdr clist)))))
 	    ; add catch class name list to stack and run this try block
 	    (let ((try-result (bind-exit (except)
-				 (dynamically-bind (*try-stack* (cons (cons catch-classname-list except) *try-stack*))
-						   (d/evaluate try-body)))))
+				 (push-try-stack catch-classname-list except)
+				 (d/evaluate try-body)
+				 (pop-try-stack))))
 	       (when (pair? try-result)
 		  ; we excepted: run the correct catch block
 		  (let loop ((clist catches))

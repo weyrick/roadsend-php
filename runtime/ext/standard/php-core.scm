@@ -50,6 +50,7 @@
      (roadsend_pcc)
      (cpy thing)
      (_default_error_handler errno errstr errfile errline vars)
+     (_default_exception_handler exception_obj)
      (constant name)
      
      ;

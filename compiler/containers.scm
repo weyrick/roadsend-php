@@ -34,7 +34,8 @@
 ;  - on either side of a reference-assignment
 ;  - passed to a function in a reference parameter position
 ;  - returned from a function returning a reference
-;
+;  - exception variable in a catch block
+
 ;no other variable is in a container.
 
 ;we are in global scope if we're not inside a function or method decl
@@ -257,8 +258,6 @@
       (containerize (return-stmt-value node)))
    (k))
       
-
-
 (define-method (find-containers node::reference-assignment k)
    (with-access::reference-assignment node (lval rval)
       (containerize lval)

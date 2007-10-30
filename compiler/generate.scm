@@ -46,9 +46,6 @@
 ;for parent static method invocations -- they don't know who their daddy is.
 (define *current-parent-class-name* #f)
 
-;current stack of catch blocks to try a thrown exception on
-(define *try-stack* '())
-
 ;for method-decl stack trace entries
 (define *current-class-name* #f)
 
@@ -558,7 +555,7 @@ onum.  Append the bindings for the new symbols and code."
       `(let ((except-obj ,(generate-code rval)))
 	  (if (php-object? except-obj)
 	      (if (php-object-is-a except-obj "Exception")
-		  (php-exception *try-stack* except-obj)
+		  (php-exception (make-container except-obj))
 		  (php-error "thrown exceptions must be derived from Exception base class"))
 	      (php-error "can only throw objects")))))
 
@@ -566,39 +563,43 @@ onum.  Append the bindings for the new symbols and code."
    (with-access::try-catch node (try-body catches)
       ; extract class names we are catching for this try block
       (let ((catch-classname-list '())
-	    (catch-block-list '()))
+	    (catch-block-list '())
+	    (except-hash-entries '()))
 	 (let loop ((clist catches))
 	    (when (pair? clist)
-	       (let ((current-catch (car clist)))
+	       (let ((current-catch (car clist))
+		     (except-proc-name #f))
 		  (with-access::catch current-catch (catch-class catch-var catch-body)
+		     (set! except-proc-name (gensym 'catch))
 		     (set! catch-classname-list (cons catch-class catch-classname-list))
+		     (set! except-hash-entries (cons `(hashtable-put! except-proc-hash ,(mkstr catch-class) ,except-proc-name) except-hash-entries))
 		     ; we have to generate code for each catch block, even if it may never run
 		     ; because we won't know until runtime
 		     ; we do this by defining a function for each catch block that we can run later, in case we
 		     ; match that exception class
-		     (set! catch-block-list (cons `(,(string->symbol (mkstr "%" catch-class "-catch"))
-						    (lambda (,(var/gen-name catch-var))
-						       (env-extend ,*current-var-var-env* ,(undollar (var/gen-name catch-var)) ,(var/gen-name catch-var))
+		     (set! catch-block-list (cons `(,except-proc-name
+						    (lambda (e-var)
+						       ,(update-location catch-var `e-var)
 						       ,(generate-code catch-body)))
 						  catch-block-list)))
 		  (loop (cdr clist)))))
 	 ;
 	 ; generated code
 	 ;
-	 `(bind-exit (caught)
-	     ; add catch class name list to stack and run this try block
-	     (let (,@catch-block-list
-		   (try-result (bind-exit (except)
-				  (dynamically-bind (*try-stack* (cons (cons ,catch-classname-list except) *try-stack*))
-						    ,(generate-code try-body)))))
-		(when (pair? try-result)
-		   ; we excepted: run the correct catch block
-		   (let loop ((clist catches))
-		      (when (pair? clist)
-			 (let ((current-catch (car clist)))
-			    ((string->symbol (mkstr "%" current-catch "-class")) (cdr try-result))
-			    (caught #t))
-			 (loop (cdr clist))))))))))
+	 `(letrec (,@catch-block-list)
+	     (let ((except-proc-hash (make-hashtable)))
+		,@except-hash-entries
+		(let ((try-result (bind-exit (except)
+				     (push-try-stack ',catch-classname-list except)
+				     ,(generate-code try-body)
+				     (pop-try-stack))))
+		   (when (pair? try-result)
+		      ; we excepted: run the correct catch block
+		      (let ((except-proc (mkstr (car try-result)))
+			    (except-obj (cdr try-result)))
+			 ((hashtable-get except-proc-hash except-proc) except-obj)
+			 ))))))))
+
 
 (define-method (generate-code node::lyteral)
    (lyteral-value node))

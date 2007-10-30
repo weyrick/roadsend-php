@@ -54,8 +54,10 @@
     (pop-stack)
     (print-stack-trace)
     (print-stack-trace-html)
+    (push-try-stack class-list exception)
+    (pop-try-stack)
     delayed-error
-    (php-exception try-stack except-obj)
+    (php-exception except-obj)
     (php-error . msgs)
     (php-warning . msgs)
     (php-notice . msgs)
@@ -95,6 +97,9 @@
 (define *error-level* E_ALL)
 
 (define *anti-error-recurse* #f)
+
+;current stack of catch blocks to try a thrown exception on
+(define *try-stack* '())
 
 ; magic constants
 (store-special-constant "__FUNCTION__" (lambda ()
@@ -157,11 +162,18 @@
 ;
 ; if we find it, we call the associated exception proc
 ; if we don't we handle it via the default exception handler
-(define (php-exception try-stack except-obj)
-    (if (null? try-stack)
+(define (push-try-stack class-list exception)
+   (set! *try-stack* (cons (cons class-list exception) *try-stack*)))
+   
+(define (pop-try-stack)
+   (when (pair? *try-stack*)
+      (set! *try-stack* (cdr *try-stack*))))
+
+(define (php-exception except-obj)
+    (if (null? *try-stack*)
         (php-funcall *default-exception-handler* except-obj)
 	(bind-exit (excepted)
-	   (let stack-loop ((stack-list try-stack))
+	   (let stack-loop ((stack-list *try-stack*))
 	      (when (pair? stack-list)
 		 (let ((stack-entry (car stack-list)))
 		    (let ((class-list (car stack-entry))
@@ -169,7 +181,7 @@
 		       (let class-loop ((class-list-run class-list))
 			  (when (pair? class-list-run)
 			     (let ((class-name (car class-list-run)))
-				(when (php-object-is-a except-obj (mkstr class-name))
+				(when (php-object-is-a (maybe-unbox except-obj) (mkstr class-name))
 				   (exception-proc (cons class-name except-obj))
 				   (excepted #t)))
 			     (class-loop (cdr class-list-run)))))
