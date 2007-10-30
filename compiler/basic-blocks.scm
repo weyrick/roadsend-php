@@ -363,7 +363,7 @@
 	    (catch-body-block (start-block "catch-body-block"))
 	    (successor (start-block "catch-successor")))
 	 (set! *current-block* catch-body-block)
-;	 (identify-basic-blocks catch-var) ;; XXX parser guarentees this is a literal var, not an expression
+	 (identify-basic-blocks catch-var)
 	 (identify-basic-blocks catch-body)
 	 (link-blocks predecessor catch-body-block)
 	 (link-blocks *current-block* successor)
