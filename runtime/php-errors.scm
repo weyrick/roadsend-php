@@ -135,7 +135,7 @@
    (define-php-method 'Exception "__construct" Exception:__construct)
    (define-php-method 'Exception "getMessage" Exception:getMessage))
 
-(define (Exception:__construct this optional-args)
+(define (Exception:__construct this-unboxed . optional-args)
    (let ((message '())
 	 (code '()))
       (when (pair? optional-args)
@@ -147,12 +147,12 @@
 	       (maybe-unbox (car optional-args)))
 	 (set! optional-args (cdr optional-args)))
       (when message
-	 (php-object-property-set!/string this "message" message 'all))
+	 (php-object-property-set!/string this-unboxed "message" message 'all))
       (when code
-	 (php-object-property-set!/string this "code" code 'all))))
+	 (php-object-property-set!/string this-unboxed "code" code 'all))))
 
-(define (Exception:getMessage this optional-args)
-   (php-object-property-h-j-f-r/string this "message" 'all))
+(define (Exception:getMessage this-unboxed . optional-args)
+   (make-container (php-object-property-h-j-f-r/string this-unboxed "message" 'all)))
 
 ; try-stack is a list of pairs: (classname_list . <exception proc>)
 ; we traverse the list, and the list of classes for each exception, checking Classname's for is-a match
@@ -242,47 +242,56 @@
 	(dump-trace-stack port num))))
 
 (define (handle-runtime-error escape proc msg obj)
-   (cond ((or (and (eqv? proc 'php-exit) (eqv? obj 'php-exit))
-              (and *errors-disabled*
-		   (< *debug-level* 2)))
-	  ; error was signalled by us intentionally by php exit
-	  ; or error messages are disabled
-	  ; quit now in a way that will still allow web requests to return output to client
-	  (escape #t))
-	 ; compiler error, don't dupe file/line info from php-error/loc in ast
-	 ; and no stack trace
-	 ((eqv? proc 'compile-error)
-	  (if *commandline?*	      
-	      (fprint (current-error-port)
-		      (with-output-to-string
-			 (lambda ()
-			    (print msg))))
+   (if (getenv "PCC_NO_RUNTIME_ERROR_HANDLER")
+       ; this sticks with bigloo error handler, for those strange bigloo errors that crop up
+       (error proc msg obj)
+       ; this is out nice php runtime error handler
+       (cond ((or (and (eqv? proc 'php-exit) (eqv? obj 'php-exit))
+		  (and *errors-disabled*
+		       (< *debug-level* 2)))
+	      ; error was signalled by us intentionally by php exit
+	      ; or error messages are disabled
+	      ; quit now in a way that will still allow web requests to return output to client
+	      (escape #t))
+	     ; compiler error, don't dupe file/line info from php-error/loc in ast
+	     ; and no stack trace
+	     ((eqv? proc 'compile-error)
+	      (if *commandline?*	      
+		  (fprint (current-error-port)
+			  (with-output-to-string
+			     (lambda ()
+				(print msg))))
+		  (begin
+		     (when (> *debug-level* 1)
+			;mingw (log-error 
+			(fprint (current-error-port) msg))
+		     (print msg)))
+	      (escape #t))
+	     ; triggered by php-error or unknown bigloo location
+	     (else
 	      (begin
-		 (when (> *debug-level* 1)
-                    ;mingw (log-error 
-		    (fprint (current-error-port) msg))
-		 (print msg)))
-	  (escape #t))
-	 ; triggered by php-error or unknown bigloo location
-	 (else
-	  (begin
-	     (set! *saved-stack-trace* *stack-trace*)
-	     (if *commandline?*
-		 ; command line, no html
-		 (fprint (current-error-port)
-			 (with-output-to-string
-			    (lambda ()
-			       (print "Runtime error in file " *PHP-FILE* " on line " *PHP-LINE* ": " msg)
-			       (print-stack-trace))))
-		 ; web mode, html
-		 (begin
-		    (print "\n\n<br /><b>Runtime error</b> in file " *PHP-FILE* " on line " *PHP-LINE* ": " msg "<br />")
-		    (print-stack-trace-html)
-		    (when (> *debug-level* 1)
-		       (print "<pre>--- Bigloo Stack:\n")
-		       (dump-bigloo-stack (current-output-port) 10)
-		       (print "</pre>\n"))))
-	     (escape #t)))))
+		 (set! *saved-stack-trace* *stack-trace*)
+		 (if *commandline?*
+		     ; command line, no html
+		     (begin
+			(fprint (current-error-port)
+				(with-output-to-string
+				   (lambda ()
+				      (print "Runtime error in file " *PHP-FILE* " on line " *PHP-LINE* ": " msg)
+				      (print-stack-trace))))
+			(when (or (> *debug-level* 1) (getenv "BIGLOOSTACKDEPTH"))
+			   (print "\n--- Bigloo Stack:\n")
+			   (dump-bigloo-stack (current-output-port) (or (mkfixnum (getenv "BIGLOOSTACKDEPTH")) 10))
+			   (print "\n")))
+		     ; web mode, html
+		     (begin
+			(print "\n\n<br /><b>Runtime error</b> in file " *PHP-FILE* " on line " *PHP-LINE* ": " msg "<br />")
+			(print-stack-trace-html)
+			(when (or (> *debug-level* 1) (getenv "BIGLOOSTACKDEPTH"))
+			   (print "<pre>--- Bigloo Stack:\n")
+			   (dump-bigloo-stack (current-output-port) (or (mkfixnum (getenv "BIGLOOSTACKDEPTH")) 10))
+			   (print "</pre>\n"))))
+		 (escape #t))))))
 
 
 ;;;;;;;stack trace stuff
