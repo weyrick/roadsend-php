@@ -80,7 +80,7 @@
 (define-generic (identify-basic-blocks node)
    (if (list? node)
        (for-each identify-basic-blocks node)
-       (error 'identify-basic-blocks "Don't know what to do with" node)))
+       (internal-error 'basic-blocks "Don't know what to do with node" node)))
 
 (define-method (identify-basic-blocks node::php-ast)
    (reset-globals!)
@@ -350,7 +350,13 @@
 (define-method (identify-basic-blocks node::try-catch)
    (with-access::try-catch node (try-body catches)
       (identify-basic-blocks try-body)
-      ; something special for catch blocks?
+      (for-each identify-basic-blocks catches)
+      (add-to-current-block node)))
+
+(define-method (identify-basic-blocks node::catch)
+   (with-access::catch node (catch-var catch-body)
+      (identify-basic-blocks catch-var)
+      (identify-basic-blocks catch-body)
       (add-to-current-block node)))
 
 (define-method (identify-basic-blocks node::if-stmt)

@@ -40,6 +40,7 @@
     (walk-ast php-ast thunk)
     (walk-ast/parent php-ast thunk)
     (types-eqv? t1 t2)
+    (internal-error pass message node)
 ;    (parse-require-php5)
     (final-class php-ast 
        original-filename ;the filename as given to us by the user
@@ -535,6 +536,13 @@
 ;   (unless PHP5?
 ;      (debug-trace 1 "PHP 5 syntax detected: version 5 language compatibility enabled")
 ;      (go-php5)))
-   
 
 
+(define (internal-error pass message node)
+   (error 'internal-error
+          (with-output-to-string
+             (lambda ()
+                (display "[") (display pass) (display "]: ")
+                (print message)
+                (print-pretty-ast node)))
+          #t))
