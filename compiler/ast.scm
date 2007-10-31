@@ -128,6 +128,7 @@
        body
        ref?
        end-line ;;the last line of the method
+       static?
        visibility)
     (final-class function-decl::declaration
        name
