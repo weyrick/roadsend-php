@@ -127,7 +127,8 @@
        decl-arglist
        body
        ref?
-       end-line) ;;the last line of the method
+       end-line ;;the last line of the method
+       visibility)
     (final-class function-decl::declaration
        name
        decl-arglist

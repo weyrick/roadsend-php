@@ -250,19 +250,22 @@
        ((class-statement) (list class-statement)))
 
       (class-statement
-       ((class-function) class-function)
+       ; methods
+       ((class-functions) class-functions)
+       ((public class-functions) class-functions)
+       ((private class-functions)
+	(map (lambda (c) (method-decl-visibility-set! c 'private) c) class-functions))
+       ((protected class-functions)
+	(map (lambda (c) (method-decl-visibility-set! c 'protected) c) class-functions))
+       ; vars
        ((varkey class-vars semi) class-vars)
        ((public class-vars semi)
-;        (parse-require-php5)
 	class-vars)
        ((private class-vars semi)
-;        (parse-require-php5)
         (map (lambda (c) (property-decl-visibility-set! c 'private) c) class-vars))
        ((protected class-vars semi)
-;        (parse-require-php5)
         (map (lambda (c) (property-decl-visibility-set! c 'protected) c) class-vars))
        ((static class-vars semi)
-;        (parse-require-php5)
         (map (lambda (c) (property-decl-static?-set! c #t) c) class-vars)))
 
       (class-vars
@@ -281,19 +284,22 @@
        ((minus simple-literal)
 	(make-arithmetic-unop *parse-loc* minus simple-literal)))
 
+      (class-functions
+       ((class-function) (list class-function)))
+      
       ;;note that, like for regular functions, the current line is snuck in by
       ;;way of functionkey, because otherwise you get the end of the function
       ;;instead of the beginning.
       ;;also, rcurly's value is the last line number of the method
       (class-function
        ((functionkey function-name lpar decl-arglist rpar lcurly statements rcurly)
-	(make-method-decl functionkey function-name decl-arglist (reverse statements) #f rcurly))
+	(make-method-decl functionkey function-name decl-arglist (reverse statements) #f rcurly 'public))
        ((functionkey ref function-name lpar decl-arglist rpar lcurly statements rcurly)
-	(make-method-decl functionkey function-name decl-arglist (reverse statements) #t rcurly))
+	(make-method-decl functionkey function-name decl-arglist (reverse statements) #t rcurly 'public))
        ((functionkey function-name lpar decl-arglist rpar lcurly rcurly)
-	(make-method-decl functionkey function-name decl-arglist '() #f rcurly))
+	(make-method-decl functionkey function-name decl-arglist '() #f rcurly 'public))
        ((functionkey ref function-name lpar decl-arglist rpar lcurly rcurly)
-	(make-method-decl functionkey function-name decl-arglist '() #t rcurly)))
+	(make-method-decl functionkey function-name decl-arglist '() #t rcurly 'public)))
       
       ;elseif
       (elseif-series
