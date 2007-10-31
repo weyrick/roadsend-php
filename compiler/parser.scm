@@ -274,7 +274,15 @@
        ((protected class-vars semi)
         (map (lambda (c) (property-decl-visibility-set! c 'protected) c) class-vars))
        ((static class-vars semi)
-        (map (lambda (c) (property-decl-static?-set! c #t) c) class-vars)))
+        (map (lambda (c) (property-decl-static?-set! c #t) c) class-vars))
+       ((public static class-vars semi)
+        (map (lambda (c) (property-decl-static?-set! c #t) c) class-vars))	
+       ((private static class-vars semi)
+        (map (lambda (c) (property-decl-static?-set! c #t) c) class-vars)	
+        (map (lambda (c) (property-decl-visibility-set! c 'private) c) class-vars))
+       ((protected static class-vars semi)
+        (map (lambda (c) (property-decl-static?-set! c #t) c) class-vars)	
+        (map (lambda (c) (property-decl-visibility-set! c 'protected) c) class-vars)))
 
       (class-vars
        ((class-var comma class-vars) (cons class-var class-vars))

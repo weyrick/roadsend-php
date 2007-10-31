@@ -3,6 +3,8 @@
 class foo {
     static $p1 = array(1, 2, 3);
     static $p2 = "foo";
+    protected static $p5 = "bar";
+    private static $p6 = "baz";
 }
 
 class bar extends foo {
