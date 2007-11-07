@@ -59,9 +59,11 @@
     (php-object-property obj property access-type)
     (php-object-property-ref obj property access-type)
     (php-object-property-set! obj property value access-type)
-;    (php-class-property klass property)
+    (php-class-static-property class-name property access-type)
+    (php-class-static-property-set! class-name property value access-type)
     (php-object-property-honestly-just-for-reading obj property access-type)
     (php-object-property-visibility obj prop caller)
+    (php-class-static-property-visibility class prop context)
     (php-object-compare obj1 obj2 identical?)
     (internal-object-compare o1 o2 identical? seen)
     (php-object-id obj)
@@ -75,7 +77,7 @@
     (construct-php-object class-name . args)
     (construct-php-object-sans-constructor class-name)
     (get-declared-php-classes)
-    (define-php-property class-name property-name value #!optional visibility)
+    (define-php-property class-name property-name value visibility static?)
     (define-php-method class-name method-name method)
     (define-class-constant class-name constant-name value)
     (lookup-class-constant class-name constant-name)))
@@ -106,10 +108,14 @@
    constructor
    ;;a hashtable mapping names of declared properties to an index in a property vector
    declared-property-offsets
+   ;; static properties: like declared-property-offsets, a hash table with index to properties
+   static-property-offsets   
    ;;properties is a vector of all properties (which points to actual php data)
-   ;;the values here are declared defaults
+   ;;the values here are declared defaults, unless it's static in which case it's the
+   ;;actual current value
    properties
-   ;;hash of property visibility (protected and private only)
+   ;;hash of property visibility (protected and private only).
+   ;;note: also stores static property visibility
    prop-visibility
    ;;extended properties is either #f or a php-hash of non-declared properties
    extended-properties
@@ -123,7 +129,7 @@
    custom-prop-set
    ;;the copier for the custom properties
    custom-prop-copy
-   ;; PHP5 "class constants"
+   ;; PHP5 "class constants" (php-hash)
    class-constants)
 
 ;
@@ -214,14 +220,16 @@ values the values."
 	  ;;of for-each'ing over the hashtable to preserve the ordering.
 	  (let loop ((i 0))
 	     (when (< i (vector-length declared-props))
-		(let ((prop-value (vector-ref declared-props i)))
-		   (php-hash-insert! property-hash
-				     ;note the reverse lookup to get the name
-				     (hashtable-get offsets-table i)
-				     (if (container-reference? prop-value)
-					 prop-value
-					 (container-value prop-value)))
-		   (loop (+fx i 1)))))
+		(let ((prop-value (vector-ref declared-props i))
+		      (prop-key (hashtable-get offsets-table i)))
+		   ; if it's not in offsets table, it's a static and we skip it
+		   (when prop-key
+		      (php-hash-insert! property-hash
+					prop-key
+					(if (container-reference? prop-value)
+					    prop-value
+					    (container-value prop-value)))
+		      (loop (+fx i 1))))))
 	  ;;now copy in the extended properties
 	  (php-hash-for-each (%php-object-extended-properties obj)
 	     (lambda (k v)
@@ -236,17 +244,20 @@ values the values."
 	 (declared-props (%php-object-properties obj)))
       (let loop ((i 0))
 	 (when (< i (vector-length declared-props))
-	    (let ((prop-value (vector-ref declared-props i)))
+	    (let ((prop-value (vector-ref declared-props i))
+		  (prop-key (hashtable-get offsets-table i)))
 ;  	       (fprint (current-error-port) "key is " (mkstr (hashtable-get offsets-table i)))
 ;  	       (fprint (current-error-port) "value is " (mkstr prop-value))
 ;  	       (fprint (current-error-port) "ref-status is " (mkstr (container-reference? prop-value)))
-	       (thunk ;note the reverse lookup to get the name
-		(mkstr (hashtable-get offsets-table i))
-;		(if (container-reference? prop-value)
-		(maybe-unbox prop-value)
-		;		    (container-value prop-value))
-		(container-reference? prop-value))
-	       (loop (+fx i 1)))))
+	       ; if we don't have prop key, it's a static and we skip it
+	       (when prop-key
+		  (thunk ;note the reverse lookup to get the name
+		   (mkstr prop-key)
+		   ;		(if (container-reference? prop-value)
+		   (maybe-unbox prop-value)
+		   ;		    (container-value prop-value))
+		   (container-reference? prop-value))
+		  (loop (+fx i 1))))))
       ;;now copy in the extended properties
       (php-hash-for-each-with-ref-status
        (%php-object-extended-properties obj) thunk)))
@@ -263,13 +274,16 @@ values the values."
 	     ;;of for-each'ing over the hashtable to preserve the ordering.
 	     (let loop ((i 0))
 		(when (< i (vector-length declared-props))
-		   (let ((prop-value (vector-ref declared-props i)))
-		      (php-hash-insert! property-hash
-					;note the reverse lookup to get the name
-					(hashtable-get offsets-table i)
-					(if (container-reference? prop-value)
-					    prop-value
-					    (container-value prop-value)))
+		   (let ((prop-value (vector-ref declared-props i))
+			 (prop-key (hashtable-get offsets-table i)))
+		      ; if it's not in offsets table, it's a static and we skip it
+		      (when prop-key
+			 (php-hash-insert! property-hash
+					   ;note the reverse lookup to get the name
+					   prop-key
+					   (if (container-reference? prop-value)
+					       prop-value
+					       (container-value prop-value))))
 		      (loop (+fx i 1)))))
 	     ;;now copy in the extended properties
 	     (php-hash-for-each (%php-class-extended-properties the-class)
@@ -653,11 +667,11 @@ values the values."
    (set! %php-class-registry (make-hashtable))
    ;define the root of the class hierarchy
    (let ((stdclass (%php-class "stdClass" "stdclass" #f #f
-			       (make-hashtable) (make-vector 0) (make-hashtable)
+			       (make-hashtable) (make-hashtable) (make-vector 0) (make-hashtable)
 			       (make-php-hash) (make-php-hash) '()
 			       #f #f #f (make-php-hash)))
 	 (inc-class (%php-class "__PHP_Incomplete_Class" "__php_incomplete_class" #f #f
-				(make-hashtable) (make-vector 0) (make-hashtable)
+				(make-hashtable) (make-hashtable) (make-vector 0) (make-hashtable)
 				(make-php-hash) (make-php-hash) '()
 				#f #f #f (make-php-hash)) ))
       ;;default constructor
@@ -679,6 +693,8 @@ values the values."
                                         #f
 					(copy-hashtable
 					 (%php-class-declared-property-offsets parent-class))
+					(copy-hashtable
+					 (%php-class-static-property-offsets parent-class))					
 					(copy-properties-vector (%php-class-properties parent-class))
 					(copy-prop-visibility
 					 (%php-class-prop-visibility parent-class))				 
@@ -688,7 +704,8 @@ values the values."
 					(%php-class-custom-prop-lookup parent-class)
 					(%php-class-custom-prop-set parent-class)
 					(%php-class-custom-prop-copy parent-class)
-                                        (copy-php-data (%php-class-class-constants parent-class)))))
+                                        (copy-php-data (%php-class-class-constants parent-class))
+					)))
 	     (hashtable-put! %php-class-registry canonical-name new-class)))))
 
 (define (define-extended-php-class name parent-name getter setter copier)
@@ -770,17 +787,18 @@ argument, before the continuation: (obj prop ref? value k)."
       ((eqv? 'protected visibility)
        (mangle-property-protected name))))
 
-(define (define-php-property class-name property-name value #!optional visibility)
-   (unless visibility
-      (set! visibility 'public))
+(define (define-php-property class-name property-name value visibility static?)
    (let ((the-class (%lookup-class class-name)))
       (unless the-class
 	 (php-error "Defining property " property-name ": unknown class " class-name))
       (let* ((properties (%php-class-properties the-class))
 	     (offset (vector-length properties))
              (canonical-name (%property-name-canonicalize property-name))
-	     (mangled-name (%property-name-mangle canonical-name visibility)))
-         (aif (hashtable-get (%php-class-declared-property-offsets the-class) mangled-name)
+	     (mangled-name (%property-name-mangle canonical-name visibility))
+	     (offset-hash (if static?
+			      (%php-class-static-property-offsets the-class)
+			      (%php-class-declared-property-offsets the-class))))
+         (aif (hashtable-get offset-hash mangled-name)
               ;; already defined, just set it
               (vector-set! properties it (make-container (maybe-unbox value)))
               ;; not defined yet, extend the properties vector and add
@@ -789,11 +807,11 @@ argument, before the continuation: (obj prop ref? value k)."
                  (%php-class-properties-set!
                   the-class
                   (cruddy-push-extend (make-container (maybe-unbox value)) properties))
-                 (hashtable-put! (%php-class-declared-property-offsets the-class)
+                 (hashtable-put! offset-hash
                                  mangled-name
                                  offset)
                  ;store the reverse, too
-                 (hashtable-put! (%php-class-declared-property-offsets the-class)
+                 (hashtable-put! offset-hash
                                  offset
                                  mangled-name)
 		 ;store visibility
@@ -873,36 +891,108 @@ argument, before the continuation: (obj prop ref? value k)."
        ; will result in referencing a property of a non object
        'public))
 
+; decide what kind of visibility given static class has to class::prop
+(define (php-class-static-property-visibility class-name prop context)
+   ; context will be:
+   ;  class name - if class-name == context class, allow all. subclass, allow proteced/public, otherwise public only
+   ; #f - global context, only public access
+   ; class-name may be a given class symbol, or 'self
+   ;  'self is a self:: reference, same as class-name == context class
+   (if (not (eqv? context #f))
+       (let ((the-class (%lookup-class (if (eqv? class-name 'self)
+					       context
+					       class-name)))
+	     (context-class (%lookup-class context))
+	     (access-type 'public))
+	  (unless (and the-class context-class)
+	     (php-error "static property check on unknown class or context: " class-name " | " context))
+	  (let ((ovis (hashtable-get
+		       (%php-class-prop-visibility the-class)
+		       (%property-name-canonicalize prop))))
+	     ; ovis holds the declared visibility of prop. if it's private,
+	     (when ovis
+		; private
+		(when (eqv? ovis 'private)
+		   (if (eqv? context-class
+			     the-class)
+		       (set! access-type 'all)
+		       (set! access-type (cons ovis 'none))))
+		; protected
+		(when (eqv? ovis 'protected)
+		   (if (or (eqv? context-class
+				 the-class)
+			   (%subclass? context
+				       the-class))
+		       (set! access-type 'protected)
+		       (set! access-type (cons ovis 'none))))))
+	  access-type)
+       ; unset, global context
+       'public))
+
+(define (php-class-static-property class-name property access-type)
+   (let ((the-class (%lookup-class class-name)))
+      (unless the-class
+	 (php-error "Getting static property " property ": unknown class " class-name))
+      (let ((val (%lookup-static-prop class-name property access-type)))
+	 (if val
+	     val
+	  (php-error "Access to undeclared static property: " class-name "::" property)))))	     
+   
+(define (php-class-static-property-set! class-name property value access-type)
+   (let ((the-class (%lookup-class class-name)))
+      (unless the-class
+	 (php-error "Setting static property " property ": unknown class " class-name))
+      (let* ((canon-name (%property-name-canonicalize property))
+	     (offset (%prop-offset the-class canon-name access-type)))
+	 (if offset
+	     (begin
+		(if (container? value)
+		    ;reference insert, like for php-hash
+		    (vector-set! (%php-class-properties the-class) offset (container->reference! value))
+		    (let ((current-value (vector-ref (%php-class-properties the-class) offset)))
+		       (if (container? current-value)
+			   (container-value-set! current-value value)
+			   (vector-set! (%php-class-properties the-class) offset (make-container value)))))
+		value)
+	     ;undeclared property
+	     (php-error "Access to undeclared static property: " class-name "::" property)))))
+
 ;; this handles visibility mangling
+;; since we use this for statics, it can be called for objects or classes
 ;; it will check in order: public (no mangle), protected, private
 ;; based on access-type, which should be either: public, protected, or all
-(define (%prop-offset obj prop-canon-name access-type)
-   (let ((prop (hashtable-get
-		(%php-class-declared-property-offsets
-		 (%php-object-class obj))
-		prop-canon-name)))
-      (if prop
-	  ; found a public
-	  prop
-	  (if (or (eqv? access-type 'protected)
-		  (eqv? access-type 'all))
-	      (let ((prop (hashtable-get
+(define (%prop-offset obj-or-class prop-canon-name access-type)
+   (let ((prop-hash (cond ((php-object? obj-or-class)
 			   (%php-class-declared-property-offsets
-			    (%php-object-class obj))
-			   (mangle-property-protected prop-canon-name))))
-		 (if prop
-		     ; found a protected
-		     prop
-		     ; either private or nothin'
-		     (if (eqv? access-type 'all)
-			 (hashtable-get
-			  (%php-class-declared-property-offsets
-			   (%php-object-class obj))
-			  (mangle-property-private prop-canon-name))
-			 ; no visibility
-			 #f)))
-	      ; no visibility
-	      #f))))
+			    (%php-object-class obj-or-class)))
+			  ((%php-class? obj-or-class)
+			   (%php-class-static-property-offsets
+			    obj-or-class))
+			  (else
+			   (error '%prop-offset "not an object or class" obj-or-class)))))
+      (let ((prop (hashtable-get
+		   prop-hash
+		   prop-canon-name)))
+	 (if prop
+	     ; found a public
+	     prop
+	     (if (or (eqv? access-type 'protected)
+		     (eqv? access-type 'all))
+		 (let ((prop (hashtable-get
+			      prop-hash
+			      (mangle-property-protected prop-canon-name))))
+		    (if prop
+			; found a protected
+			prop
+			; either private or nothin'
+			(if (eqv? access-type 'all)
+			    (hashtable-get
+			     prop-hash
+			     (mangle-property-private prop-canon-name))
+			    ; no visibility
+			    #f)))
+		 ; no visibility
+		 #f)))))
 		
 ;;;;the actual property looker-uppers
 (define (%lookup-prop-ref obj property access-type)
@@ -946,6 +1036,18 @@ argument, before the continuation: (obj prop ref? value k)."
 
    value)
 
+(define (%lookup-static-prop-ref class-name property access-type)
+   (let ((the-class (%lookup-class class-name)))
+      (if the-class   
+	  (let* ((canon-name (%property-name-canonicalize property))
+		 (offset (%prop-offset the-class canon-name access-type)))
+	     (if offset
+		 (vector-ref (%php-class-properties the-class) offset)
+		 #f))
+	  #f)))
+
+(define (%lookup-static-prop class-name property access-type)
+   (container-value (%lookup-static-prop-ref class-name property access-type)))
 
 (define (%php-class-method-reflection klass)
    (list->php-hash (%php-class-print-methods klass)))
@@ -967,6 +1069,10 @@ argument, before the continuation: (obj prop ref? value k)."
    (let ((the-class (%lookup-class class-name)))
       (unless the-class
 	 (php-error "Unable to instantiate " class-name ": undefined class."))
+      ;
+      ; XXX we're copying all properties here, but we shouldn't be copying static
+      ; properties since they will never be accessed from the object vector (they use the
+      ; class vector). so, we're wasting some memory      
       (let ((new-object (%php-object (%next-instantiation-id)
 			             the-class
 				     (copy-properties-vector
@@ -992,6 +1098,10 @@ argument, before the continuation: (obj prop ref? value k)."
 	 (php-error "Unable to instantiate " class-name ": undefined class."))
       (let ((new-object (%php-object (%next-instantiation-id)
 			             the-class
+				     ;
+				     ; XXX we're copying all properties here, but we shouldn't be copying static
+				     ; properties since they will never be accessed from the object vector (they use the
+				     ; class vector). so, we're wasting some memory
 				     (copy-properties-vector
 				      (%php-class-properties the-class))
 				     (copy-php-data

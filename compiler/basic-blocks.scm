@@ -600,6 +600,11 @@
       (identify-basic-blocks prop))
    (add-to-current-block node))
 
+(define-method (identify-basic-blocks node::static-property-fetch)
+   (with-access::static-property-fetch node (class prop)
+      (identify-basic-blocks prop))
+   (add-to-current-block node))
+
 (define-method (identify-basic-blocks node::class-constant)
    (add-to-current-block node))
 

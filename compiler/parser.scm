@@ -69,7 +69,7 @@
        rbrak echokey functionkey returnkey string extends
        array-arrow dokey unset foreach endforeach endfor foreach-as parent
        boolean integer float nullkey listkey ;globalhash
-       this continue public private protected throwkey trykey catchkey)
+       this continue public private protected throwkey trykey catchkey selfkey)
 
       (start
        ((statements) (finish-ast (reverse statements))))
@@ -608,11 +608,9 @@
        
        ;expression
        (rval
+
+	; class constant
         ((id@class static-classderef id@name)
-;         (parse-require-php5)
-         (make-class-constant *parse-loc* class (mkstr name)))
-        ((id@class static-classderef var@name)
-;         (parse-require-php5)
          (make-class-constant *parse-loc* class (mkstr name)))
         
         ((rval@a ugly-then rval@b colon rval@c)
@@ -800,11 +798,14 @@
          (make-property-fetch *parse-loc* lval rval))
 	; PHP5
         ((function-call classderef id-or-var)
-;         (parse-require-php5)
          (make-property-fetch *parse-loc* function-call id-or-var))
         ((function-call classderef lcurly rval rcurly)
-;         (parse-require-php5)
-         (make-property-fetch *parse-loc* function-call rval)))
+         (make-property-fetch *parse-loc* function-call rval))
+	((selfkey variable-lval@prop)
+         (make-static-property-fetch *parse-loc* 'self prop))
+	; class static member
+        ((id@class static-classderef variable-lval@prop)
+         (make-static-property-fetch *parse-loc* class prop)))
        
        ;place
        (lval

@@ -126,6 +126,7 @@
        (rendered? (default #f))
        methods
        properties
+       static-properties
        class-constants)
 
     (wide-class property-decl/gen::property-decl
@@ -310,6 +311,7 @@
    ;classes have to be declared so that we can do inheritance
    (with-access::class-decl node (name class-body)
       (let ((properties (make-php-hash))
+	    (static-properties (make-php-hash))
             (class-constants (make-php-hash))
 	    (methods (make-php-hash))
 	    (indexes 0))
@@ -324,10 +326,12 @@
 			     (index indexes))
 			  (set! indexes (+ indexes 1))
 			   (php-hash-insert! properties (undollar (property-decl-name p)) p))
-                         ;; PHP5 "class constant"
-                         ((and (property-decl? p) (property-decl-static? p))
-;                          (require-php5)
-                          (php-hash-insert! class-constants (property-decl-name p) p))
+			 ;; PHP5 static property
+			 ((and (property-decl? p) (property-decl-static? p))
+			   (php-hash-insert! static-properties (undollar (property-decl-name p)) p))
+                         ;; PHP5 class constants 
+;                         ((and (property-decl? p) (property-decl-static? p))
+;                          (php-hash-insert! class-constants (property-decl-name p) p))
 			 ((method-decl? p)
 ;			  (fprint (current-error-port) "Method: " (method-decl-name p))
 			  (php-hash-insert! methods (method-decl-name p) p))
@@ -338,6 +342,7 @@
 			    (widen!::class-decl/gen node
 			       (canonical-name canonical-name)
 			       (properties properties)
+			       (static-properties static-properties)
                                (class-constants class-constants)
 			       (methods methods))))))
    (k))

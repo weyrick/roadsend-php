@@ -37,6 +37,7 @@
        ;       (inheritance-done? (default #f))
        (evaluated? (default #f))
        properties
+       static-properties
        class-constants
        methods)
     (wide-class declared-function::function-decl
@@ -77,6 +78,8 @@
 ;for parent static method invocations -- they don't know who their daddy is.
 (define *current-instance* 'unset)
 
+(define *current-class-name* #f)
+
 ;for parent static method invocations -- they don't know who their daddy is.
 (define *current-parent-class-name* 'unset)
 
@@ -89,6 +92,7 @@
    (set! *class-decl-table-for-eval* (make-hashtable))
    (set! *current-instance* 'unset)
    (set! *current-parent-class-name* 'unset)
+   (set! *current-class-name* #f)
    ;; XXX we should actually remove them !!!  --timjr 2006.3.22
    (set! *remove-from-fun-sig-table* '()))
 
@@ -635,9 +639,7 @@ gives the debugger a chance to run."
    (with-access::property-fetch lval (obj prop)
       (let* ((obj-val (maybe-unbox (d/evaluate obj)))
 	     (prop-val (maybe-unbox (d/evaluate prop)))
-	     (access-type (if PHP5?
-			      (php-object-property-visibility obj-val prop-val *current-instance*)
-			      'public)))
+	     (access-type (php-object-property-visibility obj-val prop-val *current-instance*)))
 	 (when (pair? access-type)
 	    (let ((vis (car access-type)))
 	       (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class obj-val) prop-val))))	 
@@ -645,6 +647,21 @@ gives the debugger a chance to run."
 				   prop-val
 				   (maybe-unbox rval)
 				   access-type))))
+
+(define-method (eval-assign lval::static-property-fetch rval)
+   (with-access::static-property-fetch lval (class prop)
+      (if (and (eqv? class 'self)
+	       (eqv? *current-class-name* #f))
+	  (php-error "Cannot access self:: when no class scope is active")
+	  (let* ((prop-val (if (var-var? prop)
+			       (maybe-unbox (d/evaluate prop))
+			       prop))
+		 (prop-name (undollar (var-name prop-val)))
+		 (access-type (php-class-static-property-visibility class prop-name *current-class-name*)))
+	     (when (pair? access-type)
+		(let ((vis (car access-type)))
+		   (php-error (format "Cannot access ~a static property ~a::$~a" vis class prop-name))))
+	     (php-class-static-property-set! class prop-name (maybe-unbox rval) access-type)))))
 
 
 (define-method (evaluate node::list-assignment)
@@ -707,9 +724,7 @@ gives the debugger a chance to run."
    (with-access::property-fetch lval (obj prop)
       (let* ((obj-val (maybe-unbox (d/evaluate obj)))
 	     (prop-val (maybe-unbox (d/evaluate prop)))
-	     (access-type (if PHP5?
-			      (php-object-property-visibility obj-val prop-val *current-instance*)
-			      'public)))
+	     (access-type (php-object-property-visibility obj-val prop-val *current-instance*)))
 	 (when (pair? access-type)
 	    (let ((vis (car access-type)))
 	       (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class obj-val) prop-val))))	 	 
@@ -795,7 +810,7 @@ gives the debugger a chance to run."
 
 (define-method (evaluate node::declared-class)
    (set! *PHP-LINE* (car (ast-node-location node)))
-   (with-access::declared-class node (name parent class-constants properties methods evaluated?)
+   (with-access::declared-class node (name parent static-properties class-constants properties methods evaluated?)
       (if evaluated?
 	  '()
 	  (begin
@@ -815,16 +830,28 @@ gives the debugger a chance to run."
 		      (if (null? (property-decl-value prop))
 			  (make-container '())
 			  (d/evaluate (property-decl-value prop)))
-		      (property-decl-visibility prop))))
+		      (property-decl-visibility prop)
+		      #f)))
 
+             ;; PHP5 static properties
+	     (php-hash-for-each static-properties
+		(lambda (prop-name prop)
+		   (define-php-property name
+		      (substring prop-name 1 (string-length prop-name))
+		      (if (null? (property-decl-value prop))
+			  (make-container '())
+			  (d/evaluate (property-decl-value prop)))
+		      (property-decl-visibility prop)
+		      #t)))
+	     
              ;; PHP5 class constants
              (php-hash-for-each class-constants
                 (lambda (prop-name prop)
-;                   (require-php5)
                    (define-class-constant name prop-name
                       (if (null? (property-decl-value prop))
                           (make-container '())
                           (d/evaluate (property-decl-value prop))))))
+
              ;; methods
 	     (php-hash-for-each methods
 		(lambda (method-name method)
@@ -841,7 +868,8 @@ gives the debugger a chance to run."
 				      (bind-exit (return)			       
 					 (dynamically-bind (*current-return-escape* return)
 					    (dynamically-bind (*current-static-env* static-env)
-					       (dynamically-bind (*current-parent-class-name* parent)
+					       (dynamically-bind (*current-class-name* name)
+ 					        (dynamically-bind (*current-parent-class-name* parent)
 						  (dynamically-bind (*current-instance* $this)
 						     (dynamically-bind (*current-env* (env-new))
 							(dynamically-bind (*current-variable-environment* *current-env*)
@@ -849,7 +877,7 @@ gives the debugger a chance to run."
 							   (add-arguments-to-env (mkstr name "::" (method-decl-name method))
 										 *current-env* args decl-arglist)
 							   (d/evaluate body)
-							   (make-container NULL))))))))))
+							   (make-container NULL)))))))))))
 				  (pop-func-args)
 				  (pop-stack)
 				  (if ref?
@@ -932,14 +960,28 @@ gives the debugger a chance to run."
 	 (set! *PHP-LINE* (car location)))))
 
 
+(define-method (evaluate node::static-property-fetch)
+   (set! *PHP-LINE* (car (ast-node-location node)))
+   (with-access::static-property-fetch node (class prop)
+      (if (and (eqv? class 'self)
+	       (eqv? *current-class-name* #f))
+	  (php-error "Cannot access self:: when no class scope is active")
+	  (let* ((prop-val (if (var-var? prop)
+			       (maybe-unbox (d/evaluate prop))
+			       prop))
+		 (prop-name (undollar (var-name prop-val)))	  
+		 (access-type (php-class-static-property-visibility class prop-name *current-class-name*)))
+	     (when (pair? access-type)
+		(let ((vis (car access-type)))
+		   (php-error (format "Cannot access ~a static property ~a::$~a" vis class prop-name))))
+	     (php-class-static-property (if (eqv? 'self class) *current-class-name* class) prop-name access-type)))))
+
 (define-method (evaluate node::property-fetch)
    (set! *PHP-LINE* (car (ast-node-location node)))
    (with-access::property-fetch node (obj prop)
       (let* ((obj-val (maybe-unbox (d/evaluate obj)))
 	    (prop-val (maybe-unbox (d/evaluate prop)))
-	    (access-type (if PHP5?
-			     (php-object-property-visibility obj-val prop-val *current-instance*)
-			     'public)))
+	    (access-type (php-object-property-visibility obj-val prop-val *current-instance*)))
 	 (when (pair? access-type)
 	    (let ((vis (car access-type)))
 	       (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class obj-val) prop-val))))
@@ -1115,17 +1157,17 @@ returning the value of the last. "
    (with-access::class-decl node (name class-body)
       (let ((properties (make-php-hash))
             (class-constants (make-php-hash))
+	    (static-properties (make-php-hash))
 	    (methods (make-php-hash)))
 	 (letrec ((insert-methods-or-properties
 		   (lambda (p)
 		      (cond
 			 ((list? p)
 			  (for-each insert-methods-or-properties p))
+			 ; XXX add const decl
 			 ((property-decl? p)
                           (if (property-decl-static? p)
-                              (begin
-;                                 (require-php5)
-                                 (php-hash-insert! class-constants (property-decl-name p) p))
+                              (php-hash-insert! static-properties (property-decl-name p) p)
                               (php-hash-insert! properties (property-decl-name p) p)))
 			 ((method-decl? p)
 			  (php-hash-insert! methods (method-decl-name p) p))
@@ -1134,6 +1176,7 @@ returning the value of the last. "
 	 (hashtable-put! *class-decl-table-for-eval* (symbol-downcase name)
 			 (widen!::declared-class node
 			    (properties properties)
+			    (static-properties static-properties)
                             (class-constants class-constants)
 			    (methods methods))))))
 

@@ -817,7 +817,7 @@ onum.  Append the bindings for the new symbols and code."
    (error 'generate-code-class-decl "somehow this class didn't get declared" node))
 
 (define-method (generate-code node::class-decl/gen)
-   (with-access::class-decl/gen node (name canonical-name parent properties class-constants methods rendered?)
+   (with-access::class-decl/gen node (name canonical-name parent properties static-properties class-constants methods rendered?)
       (if rendered?
 	  `(begin 'class-already-rendered ',name)
 	  (begin
@@ -833,8 +833,20 @@ onum.  Append the bindings for the new symbols and code."
 				      ''()
 				      (get-value (property-decl-value prop)))
 				 ',(property-decl-visibility prop)
+				 #f
 				 )
 			     code)))
+		(php-hash-for-each static-properties
+		    (lambda (prop-name prop)
+		       (pushf `(define-php-property ',name
+				  ,prop-name
+				  ,(if (null? (property-decl-value prop))
+				       ''()
+				       (get-value (property-decl-value prop)))
+				  ',(property-decl-visibility prop)
+				  #t
+				  )
+			      code)))
                 (php-hash-for-each class-constants
                    (lambda (prop-name prop)
                       (pushf `(define-class-constant ',name ,prop-name
@@ -923,20 +935,28 @@ onum.  Append the bindings for the new symbols and code."
 				     node)))))
 
 (define (generate-get-prop-access-type the-object the-property)
-   (if PHP5?
-       `(php-object-property-visibility ,the-object
-					,the-property
-					,(if *current-class-name*
-					     `this-unboxed
-					     `#f))
-       `'public))
+   `(php-object-property-visibility ,the-object
+				    ,the-property
+				    ,(if *current-class-name*
+					 `this-unboxed
+					 `#f)))
+
+(define (generate-get-static-prop-access-type the-class the-property)
+   `(php-class-static-property-visibility ,the-class
+					  ,the-property
+					  ,(if *current-class-name*
+					       `this-unboxed
+					       `#f)))
 
 (define (generate-prop-visibility-check the-object the-property)
-   (if PHP5?
-       `(when (pair? access-type)
-	   (let ((vis (car access-type)))
-	      (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class ,the-object) ,the-property))))
-       '()))
+   `(when (pair? access-type)
+       (let ((vis (car access-type)))
+	  (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class ,the-object) ,the-property)))))
+
+(define (generate-static-prop-visibility-check the-class the-property)
+   `(when (pair? access-type)
+       (let ((vis (car access-type)))
+	  (php-error (format "Cannot access ~a static property ~a::$~a" vis ,(mkstr the-class) ,the-property)))))
 
 (define-method (generate-code node::property-fetch)
    (with-access::property-fetch node (obj prop)
@@ -959,6 +979,21 @@ onum.  Append the bindings for the new symbols and code."
 		      `(php-object-property-h-j-f-r/string
 			obj-evald ,(mkstr the-property) access-type)
 		      `(php-object-property-honestly-just-for-reading obj-evald ,the-property access-type)))))))
+
+(define-method (generate-code node::static-property-fetch)
+   (with-access::static-property-fetch node (class prop)
+      (if (and (eqv? class 'self)
+	       (eqv? *current-class-name* #f))
+	  (delayed-error/loc node "Cannot access self:: when no class scope is active")
+	  (let* ((the-property (if (var-var? prop)
+				   (get-value prop)
+				   prop))
+		 (prop-name (undollar (var-name the-property)))
+		 (the-class (if (eqv? 'self class) *current-class-name* (mkstr class))))
+	     `(let* ((prop-evald ,prop-name)
+		     (access-type ,(generate-get-static-prop-access-type the-class 'prop-evald)))
+		 ,(generate-static-prop-visibility-check the-class 'prop-evald)
+		 (php-class-static-property ,the-class ,prop-name access-type))))))
 
 (define-method (generate-code node::class-constant)
    (with-access::class-constant node (class name)

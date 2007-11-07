@@ -268,6 +268,9 @@
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
     ;; new PHP5 stuff
+    (final-class static-property-fetch::ast-node
+       class
+       prop)
     (final-class class-constant::ast-node
        class
        name)))
