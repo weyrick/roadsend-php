@@ -847,33 +847,45 @@
         ((class-lval any-l-bracket any-r-bracket)
          (make-hash-lookup *parse-loc* class-lval :next)) ) ))
 
-(define (uniq lst)
-   "return lst without any values that are eq? to each other"
-   (let ((u (make-hashtable)))
-      (for-each (lambda (e) (hashtable-put! u e #t)) lst)
-      (hashtable-key-list u)))
-
 (define (do-property-flags flags prop-decl-list)
-   (unless (= (length flags) (length (uniq flags)))
-      (error 'do-property-flags "Multiple access type modifiers are not allowed" ""))
-   (when (member 'static flags)
-      (map (lambda (c) (property-decl-static?-set! c #t) c) prop-decl-list))
-   (when (member 'private flags)
-      (map (lambda (c) (property-decl-visibility-set! c 'private) c) prop-decl-list))
-   (when (member 'protected flags)
-      (map (lambda (c) (property-decl-visibility-set! c 'private) c) prop-decl-list))
-    prop-decl-list)
+   (let ((seen-visibility #f))
+      (when (member 'static flags)
+	 (map (lambda (c) (property-decl-static?-set! c #t) c) prop-decl-list))
+      (when (member 'public flags)
+	 (set! seen-visibility #t))
+      (when (member 'private flags)
+	 (if seen-visibility
+	     (error 'do-property-flags "Multiple access type modifiers are not allowed" "")
+	     (begin
+		(map (lambda (c) (property-decl-visibility-set! c 'private) c) prop-decl-list)
+		(set! seen-visibility #t))))
+      (when (member 'protected flags)
+	 (if seen-visibility
+	     (error 'do-property-flags "Multiple access type modifiers are not allowed" "")
+	     (begin
+		(map (lambda (c) (property-decl-visibility-set! c 'protected) c) prop-decl-list)
+		(set! seen-visibility #t))))
+      prop-decl-list))
 
 (define (do-method-flags flags method-decl-list)
-   (unless (= (length flags) (length (uniq flags)))
-      (error 'do-method-flags "Multiple access type modifiers are not allowed" ""))
-   (when (member 'static flags)
-      (map (lambda (c) (method-decl-static?-set! c #t) c) method-decl-list))
-   (when (member 'private flags)
-      (map (lambda (c) (method-decl-visibility-set! c 'private) c) method-decl-list))
-   (when (member 'protected flags)
-      (map (lambda (c) (method-decl-visibility-set! c 'private) c) method-decl-list))
-    method-decl-list)
+   (let ((seen-visibility #f))
+      (when (member 'static flags)
+	 (map (lambda (c) (method-decl-static?-set! c #t) c) method-decl-list))
+      (when (member 'public flags)
+	 (set! seen-visibility #t))
+      (when (member 'private flags)
+	 (if seen-visibility
+	     (error 'do-method-flags "Multiple access type modifiers are not allowed" "")
+	     (begin
+		(map (lambda (c) (method-decl-visibility-set! c 'private) c) method-decl-list)
+		(set! seen-visibility #t))))
+      (when (member 'protected flags)
+	 (if seen-visibility
+	     (error 'do-method-flags "Multiple access type modifiers are not allowed" "")
+	     (begin
+		(map (lambda (c) (method-decl-visibility-set! c 'protected) c) method-decl-list)
+		(set! seen-visibility #t))))
+      method-decl-list))
 
 (define (check-lval-writeable lval)
    ;; one of the novel properties of the new php5 grammar is that a
