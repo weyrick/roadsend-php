@@ -46,6 +46,7 @@
        (left: dotequals punktequals plusequals minusequals equals refequals)
        (left: bitwise-shift-equals bitwise-not-equals bitwise-xor-equals bitwise-or-equals bitwise-and-equals)
        (right: printkey)
+       (right: static public private protected)
        (left: andkey)
        (left: xorkey)
        (left: orkey)
@@ -65,11 +66,11 @@
        semi
        rpar definekey endif varkey casekey endswitch switch default id 
        array classkey for break includekey requirekey include-once require-once
-       global static endwhile while  var  rcurly ;html
+       global endwhile while  var  rcurly ;html
        rbrak echokey functionkey returnkey string extends
        array-arrow dokey unset foreach endforeach endfor foreach-as parent
        boolean integer float nullkey listkey ;globalhash
-       this continue public private protected throwkey trykey catchkey selfkey)
+       this continue throwkey trykey catchkey selfkey)
 
       (start
        ((statements) (finish-ast (reverse statements))))
@@ -250,40 +251,32 @@
        ((class-statement) (list class-statement)))
 
       (class-statement
-       ; methods
-       ((class-functions) class-functions)
-       ((public class-functions) class-functions)
-       ((private class-functions)
-	(map (lambda (c) (method-decl-visibility-set! c 'private) c) class-functions))
-       ((protected class-functions)
-	(map (lambda (c) (method-decl-visibility-set! c 'protected) c) class-functions))
-       ((public static class-functions)
-	(map (lambda (c) (method-decl-static?-set! c #t) c) class-functions))
-       ((private static class-functions)
-	(map (lambda (c) (method-decl-static?-set! c #t) c) class-functions)
-	(map (lambda (c) (method-decl-visibility-set! c 'private) c) class-functions))
-       ((protected static class-functions)
-	(map (lambda (c) (method-decl-static?-set! c #t) c) class-functions)	
-	(map (lambda (c) (method-decl-visibility-set! c 'protected) c) class-functions))       
-       ; vars
-       ((varkey class-vars semi) class-vars)
-       ((public class-vars semi)
-	class-vars)
-       ((private class-vars semi)
-        (map (lambda (c) (property-decl-visibility-set! c 'private) c) class-vars))
-       ((protected class-vars semi)
-        (map (lambda (c) (property-decl-visibility-set! c 'protected) c) class-vars))
-       ((static class-vars semi)
-        (map (lambda (c) (property-decl-static?-set! c #t) c) class-vars))
-       ((public static class-vars semi)
-        (map (lambda (c) (property-decl-static?-set! c #t) c) class-vars))	
-       ((private static class-vars semi)
-        (map (lambda (c) (property-decl-static?-set! c #t) c) class-vars)	
-        (map (lambda (c) (property-decl-visibility-set! c 'private) c) class-vars))
-       ((protected static class-vars semi)
-        (map (lambda (c) (property-decl-static?-set! c #t) c) class-vars)	
-        (map (lambda (c) (property-decl-visibility-set! c 'protected) c) class-vars)))
+       ((class-var-flags class-vars semi) (do-property-flags class-var-flags class-vars))
+       ((class-function-flags class-functions) (do-method-flags class-function-flags class-functions))
+       ; XXX class constant decl
+       )
 
+      (class-var-flags
+       ((varkey) (list 'public))
+       ((class-flags) class-flags))
+
+      (class-function-flags
+       (() (list 'public))
+       ((class-flags) class-flags))
+      
+      (class-flags
+       ((class-flag class-flags) (cons class-flag class-flags))
+       ((class-flag) (list class-flag)))
+
+      (class-flag
+       ((static) 'static)
+       ((public) 'public)
+       ((private) 'private)
+       ((protected) 'protected)
+       ; XXX abstract
+       ; XXX final
+       )
+           
       (class-vars
        ((class-var comma class-vars) (cons class-var class-vars))
        ((class-var) (list class-var)))
@@ -293,12 +286,6 @@
 	(make-property-decl *parse-loc* var decl-literal #f 'public))
        ((var)
 	(make-property-decl *parse-loc* var '() #f 'public)))
-
-      (decl-literal
-       ((simple-literal) simple-literal)
-       ((literal-array) literal-array)
-       ((minus simple-literal)
-	(make-arithmetic-unop *parse-loc* minus simple-literal)))
 
       (class-functions
        ((class-function) (list class-function)))
@@ -316,6 +303,14 @@
 	(make-method-decl functionkey function-name decl-arglist '() #f rcurly #f 'public))
        ((functionkey ref function-name lpar decl-arglist rpar lcurly rcurly)
 	(make-method-decl functionkey function-name decl-arglist '() #t rcurly #f 'public)))
+
+      ;
+      
+      (decl-literal
+       ((simple-literal) simple-literal)
+       ((literal-array) literal-array)
+       ((minus simple-literal)
+	(make-arithmetic-unop *parse-loc* minus simple-literal)))
       
       ;elseif
       (elseif-series
@@ -803,6 +798,8 @@
          (make-property-fetch *parse-loc* function-call rval))
 	((selfkey variable-lval@prop)
          (make-static-property-fetch *parse-loc* 'self prop))
+	((parent variable-lval@prop)
+         (make-static-property-fetch *parse-loc* 'parent prop))
 	; class static member
         ((id@class static-classderef variable-lval@prop)
          (make-static-property-fetch *parse-loc* class prop)))
@@ -849,6 +846,34 @@
         
         ((class-lval any-l-bracket any-r-bracket)
          (make-hash-lookup *parse-loc* class-lval :next)) ) ))
+
+(define (uniq lst)
+   "return lst without any values that are eq? to each other"
+   (let ((u (make-hashtable)))
+      (for-each (lambda (e) (hashtable-put! u e #t)) lst)
+      (hashtable-key-list u)))
+
+(define (do-property-flags flags prop-decl-list)
+   (unless (= (length flags) (length (uniq flags)))
+      (error 'do-property-flags "Multiple access type modifiers are not allowed" ""))
+   (when (member 'static flags)
+      (map (lambda (c) (property-decl-static?-set! c #t) c) prop-decl-list))
+   (when (member 'private flags)
+      (map (lambda (c) (property-decl-visibility-set! c 'private) c) prop-decl-list))
+   (when (member 'protected flags)
+      (map (lambda (c) (property-decl-visibility-set! c 'private) c) prop-decl-list))
+    prop-decl-list)
+
+(define (do-method-flags flags method-decl-list)
+   (unless (= (length flags) (length (uniq flags)))
+      (error 'do-method-flags "Multiple access type modifiers are not allowed" ""))
+   (when (member 'static flags)
+      (map (lambda (c) (method-decl-static?-set! c #t) c) method-decl-list))
+   (when (member 'private flags)
+      (map (lambda (c) (method-decl-visibility-set! c 'private) c) method-decl-list))
+   (when (member 'protected flags)
+      (map (lambda (c) (method-decl-visibility-set! c 'private) c) method-decl-list))
+    method-decl-list)
 
 (define (check-lval-writeable lval)
    ;; one of the novel properties of the new php5 grammar is that a
