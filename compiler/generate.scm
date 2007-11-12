@@ -942,11 +942,12 @@ onum.  Append the bindings for the new symbols and code."
 					 `#f)))
 
 (define (generate-get-static-prop-access-type the-class the-property)
-   `(php-class-static-property-visibility ,the-class
-					  ,the-property
-					  ,(if *current-class-name*
-					       `this-unboxed
-					       `#f)))
+   (let ((context (if *current-class-name*
+		      `*current-class-name*
+		      #f)))
+      `(php-class-static-property-visibility ',the-class
+					     ,the-property
+					     ,context)))
 
 (define (generate-prop-visibility-check the-object the-property)
    `(when (pair? access-type)
@@ -982,18 +983,23 @@ onum.  Append the bindings for the new symbols and code."
 
 (define-method (generate-code node::static-property-fetch)
    (with-access::static-property-fetch node (class prop)
-      (if (and (eqv? class 'self)
-	       (eqv? *current-class-name* #f))
-	  (delayed-error/loc node "Cannot access self:: when no class scope is active")
-	  (let* ((the-property (if (var-var? prop)
-				   (get-value prop)
-				   prop))
-		 (prop-name (undollar (var-name the-property)))
-		 (the-class (if (eqv? 'self class) *current-class-name* (mkstr class))))
-	     `(let* ((prop-evald ,prop-name)
-		     (access-type ,(generate-get-static-prop-access-type the-class 'prop-evald)))
-		 ,(generate-static-prop-visibility-check the-class 'prop-evald)
-		 (php-class-static-property ,the-class ,prop-name access-type))))))
+      (let ((class-canon (cond ((eqv? class 'self) *current-class-name*)
+			       ((eqv? class 'parent) *current-parent-class-name*)
+			       (else class))))
+	 (if (and (eqv? class 'self)
+		  (eqv? class-canon #f))
+	     (delayed-error/loc node "Cannot access self:: when no class scope is active")
+	     (if (and (eqv? class 'parent)
+		      (or (eqv? class-canon #f)))
+		 (delayed-error/loc node "Cannot access parent:: when current class scope has no parent")
+		 (let* ((the-property (if (var-var? prop)
+					  (get-value prop)
+					  prop))
+			(prop-name (undollar (var-name the-property))))
+		    `(let* ((prop-evald ,prop-name)
+			    (access-type ,(generate-get-static-prop-access-type class-canon 'prop-evald)))
+			,(generate-static-prop-visibility-check class-canon 'prop-evald)
+			(php-class-static-property ',class-canon ,prop-name access-type))))))))
 
 (define-method (generate-code node::class-constant)
    (with-access::class-constant node (class name)
@@ -1079,11 +1085,13 @@ onum.  Append the bindings for the new symbols and code."
 			 (let ,(bindings-generate static-vars container-table)
 			    (lambda (this-unboxed ,@(map required-formal-param-name required-params)
 					     . ;; ,(if (or variable-arity? (pair? optional-params)) 'optional-args '())
- ;; unfortunately, the methods always need optional args, because we
- ;; can't emit a compile-time error at the call site if the argument
- ;; number is wrong, so we get a runtime arity error
+					     ;; unfortunately, the methods always need optional args, because we
+					     ;; can't emit a compile-time error at the call site if the argument
+					     ;; number is wrong, so we get a runtime arity error
                                              optional-args
                                              )
+			      ; this is needed for static calls and property fetches
+			      (let ((*current-class-name* ',*current-class-name*))
 			       ;unbox the non-reference args
 			       ,@(map (lambda (p)
 					 `(set! ,(formal-param-name p)
@@ -1141,7 +1149,7 @@ onum.  Append the bindings for the new symbols and code."
                                                     ,body-code
                                                     ;; methods always box their return values.
                                                     (make-container NULL))))
-					 ,@(if variable-arity? `((pop-func-args)) '()))))))))))
+					 ,@(if variable-arity? `((pop-func-args)) '())))))))))))
 
 	       (pushf body-code *functions*)
 	       method-fun-name)))))
@@ -1337,6 +1345,9 @@ onum.  Append the bindings for the new symbols and code."
 (define-method (get-value rval::property-fetch)
    (generate-code rval))
 
+(define-method (get-value rval::static-property-fetch)
+   (generate-code rval))
+
 (define-method (get-value rval::method-invoke)
    `(container-value ,(generate-code rval)))
 
@@ -1499,22 +1510,42 @@ onum.  Append the bindings for the new symbols and code."
 (define-method (update-value lval::property-fetch rval-code)
    (with-access::property-fetch lval (obj prop)
       (let* ((the-object (get-value obj))
-	     (the-property (if (ast-node? prop)
-			       (get-value prop)
-			       (mkstr prop)))
-	     (property-is-constant? (compile-time-constant? the-property)))
-	 (when (and property-is-constant? (not (string? the-property)))
-	    (warning/loc lval "property name is not a string, but should be."))
-	 `(let* ((obj-evald ,the-object)
-		 (access-type ,(generate-get-prop-access-type 'obj-evald the-property)))
-	     ,(generate-prop-visibility-check 'obj-evald the-property)	 
-	     ,(if property-is-constant?
-		  `(php-object-property-set!/string
-		    obj-evald
-		    ,(mkstr the-property)
-		    ,rval-code
-		    access-type)
-		  `(php-object-property-set! obj-evald ,the-property ,rval-code access-type))))))
+            (the-property (if (ast-node? prop)
+                              (get-value prop)
+                              (mkstr prop)))
+            (property-is-constant? (compile-time-constant? the-property)))
+        (when (and property-is-constant? (not (string? the-property)))
+           (warning/loc lval "property name is not a string, but should be."))
+        `(let* ((obj-evald ,the-object)
+                (access-type ,(generate-get-prop-access-type 'obj-evald the-property)))
+            ,(generate-prop-visibility-check 'obj-evald the-property)
+            ,(if property-is-constant?
+                 `(php-object-property-set!/string
+                   obj-evald
+                   ,(mkstr the-property)
+                   ,rval-code
+                   access-type)
+                 `(php-object-property-set! obj-evald ,the-property ,rval-code access-type))))))
+
+(define-method (update-value lval::static-property-fetch rval-code)
+   (with-access::static-property-fetch lval (class prop)
+      (let ((class-canon (cond ((eqv? class 'self) *current-class-name*)
+			       ((eqv? class 'parent) *current-parent-class-name*)
+			       (else class))))
+	 (if (and (eqv? class 'self)
+		  (eqv? class-canon #f))
+	     (delayed-error/loc lval "Cannot access self:: when no class scope is active")
+	     (if (and (eqv? class 'parent)
+		      (or (eqv? class-canon #f)))
+		 (delayed-error/loc lval "Cannot access parent:: when current class scope has no parent")
+		 (let* ((the-property (if (var-var? prop)
+					  (get-value prop)
+					  prop))
+			(prop-name (undollar (var-name the-property))))		 
+		    `(let* ((prop-evald ,prop-name)
+			    (access-type ,(generate-get-static-prop-access-type class-canon 'prop-evald)))
+			,(generate-static-prop-visibility-check class-canon 'prop-evald)
+			(php-class-static-property-set! ',class-canon ,prop-name ,rval-code access-type))))))))
 
 ;;;;unset
 (define-generic (unset lval)

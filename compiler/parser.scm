@@ -640,7 +640,7 @@
          (check-lval-writeable lval)
          (make-assignment equals lval rval))
         ((lval equals ref rval)
-         (check-lval-writeable lval)
+         (check-lval-ref-writeable lval)
          (make-reference-assignment equals lval rval))
         
         ;this is for list($foo, ...) = ...
@@ -896,6 +896,15 @@
              (parent-method-invoke? lval)
              (static-method-invoke? lval))
       (error 'check-lval-writeable "Can't use function return value in write context" "")))
+
+(define (check-lval-ref-writeable lval)
+   (when (or (function-invoke? lval)
+             (method-invoke? lval)
+             (parent-method-invoke? lval)
+             (static-method-invoke? lval))
+      (error 'check-lval-ref-writeable "Can't use function return value in write context" ""))
+   (when (static-property-fetch? lval)
+      (error 'check-lval-ref-writeable "Can't assign static properties by reference" "")))
 
 (define (function-call->constructor fun)
    (let ((name "")

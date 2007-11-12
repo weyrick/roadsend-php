@@ -634,9 +634,12 @@ values the values."
    (let ((the-class (%lookup-class class-name)))
       (if (not (php-class? the-class))
           #f
-	  (if (%php-class-parent-class the-class)
-	      (%class-name-canonicalize (%php-class-print-name (%php-class-parent-class the-class)))
-	      #f))))
+	  (let ((parent-class (%php-class-parent-class the-class)))
+	     (if parent-class
+		 (if (string-ci=? (%php-class-print-name parent-class) "stdclass")
+		     #f
+		     (%php-class-print-name (%php-class-parent-class the-class)))
+		 #f)))))
 
 
 ; case insensitive
@@ -896,12 +899,9 @@ argument, before the continuation: (obj prop ref? value k)."
    ; context will be:
    ;  class name - if class-name == context class, allow all. subclass, allow proteced/public, otherwise public only
    ; #f - global context, only public access
-   ; class-name may be a given class symbol, or 'self
-   ;  'self is a self:: reference, same as class-name == context class
+   ; class-name should be a currently defined class symbol (with self and parent already processed)
    (if (not (eqv? context #f))
-       (let ((the-class (%lookup-class (if (eqv? class-name 'self)
-					       context
-					       class-name)))
+       (let ((the-class (%lookup-class class-name))
 	     (context-class (%lookup-class context))
 	     (access-type 'public))
 	  (unless (and the-class context-class)
@@ -1084,12 +1084,12 @@ argument, before the continuation: (obj prop ref? value k)."
 	    (if (not constructor)
                 ;; no constructor defined
                 new-object
-                (if (eq? +constructor-failed+
-                         (apply constructor new-object (adjust-argument-list constructor args)))
-                    (begin
-                       (php-warning "Could not create a " class-name " object.")
-                       NULL)
-                    new-object))))))
+		(if (eq? +constructor-failed+
+			 (apply constructor new-object (adjust-argument-list constructor args)))
+		    (begin
+		       (php-warning "Could not create a " class-name " object.")
+		       NULL)
+		    new-object))))))
 
 
 (define (construct-php-object-sans-constructor class-name)
