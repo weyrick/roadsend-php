@@ -46,7 +46,7 @@
        (left: dotequals punktequals plusequals minusequals equals refequals)
        (left: bitwise-shift-equals bitwise-not-equals bitwise-xor-equals bitwise-or-equals bitwise-and-equals)
        (right: printkey)
-       (right: static public private protected)
+       (right: static abstract final public private protected)
        (left: andkey)
        (left: xorkey)
        (left: orkey)
@@ -70,7 +70,7 @@
        rbrak echokey functionkey returnkey string extends
        array-arrow dokey unset foreach endforeach endfor foreach-as parent
        boolean integer float nullkey listkey ;globalhash
-       this continue throwkey trykey catchkey selfkey)
+       this continue throwkey trykey catchkey selfkey classconst)
 
       (start
        ((statements) (finish-ast (reverse statements))))
@@ -253,8 +253,7 @@
       (class-statement
        ((class-var-flags class-vars semi) (do-property-flags class-var-flags class-vars))
        ((class-function-flags class-functions) (do-method-flags class-function-flags class-functions))
-       ; XXX class constant decl
-       )
+       ((classconst id equals decl-literal semi) (make-class-constant-decl *parse-loc* id decl-literal)))
 
       (class-var-flags
        ((varkey) (list 'public))
@@ -273,8 +272,8 @@
        ((public) 'public)
        ((private) 'private)
        ((protected) 'protected)
-       ; XXX abstract
-       ; XXX final
+       ((abstract) 'abstract)
+       ((final) 'final)
        )
            
       (class-vars
@@ -604,10 +603,12 @@
        ;expression
        (rval
 
-	; class constant
+	; class const
+	((selfkey id)
+	 (make-class-constant-fetch *parse-loc* 'self (mkstr id)))
         ((id@class static-classderef id@name)
-         (make-class-constant *parse-loc* class (mkstr name)))
-        
+         (make-class-constant-fetch *parse-loc* class (mkstr name)))
+
         ((rval@a ugly-then rval@b colon rval@c)
          (make-if-stmt *parse-loc* a b c))
         
@@ -796,13 +797,15 @@
          (make-property-fetch *parse-loc* function-call id-or-var))
         ((function-call classderef lcurly rval rcurly)
          (make-property-fetch *parse-loc* function-call rval))
+	; static props
 	((selfkey variable-lval@prop)
          (make-static-property-fetch *parse-loc* 'self prop))
 	((parent variable-lval@prop)
          (make-static-property-fetch *parse-loc* 'parent prop))
-	; class static member
         ((id@class static-classderef variable-lval@prop)
          (make-static-property-fetch *parse-loc* class prop)))
+        
+	
        
        ;place
        (lval

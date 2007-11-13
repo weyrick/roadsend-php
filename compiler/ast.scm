@@ -136,6 +136,9 @@
        body
        ref?
        end-line) ;;the last line of the function
+    (final-class class-constant-decl::ast-node
+       name
+       value)
     (final-class global-decl::declaration
        var)
     (final-class static-decl::declaration
@@ -265,13 +268,10 @@
     (final-class hash-lookup::ast-node
        hash
        key)
-
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
-    ;; new PHP5 stuff
     (final-class static-property-fetch::ast-node
        class
        prop)
-    (final-class class-constant::ast-node
+    (final-class class-constant-fetch::ast-node
        class
        name)))
 

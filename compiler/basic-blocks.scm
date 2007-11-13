@@ -562,6 +562,9 @@
    (with-access::class-decl node (class-body)
       (identify-basic-blocks class-body)))
 
+(define-method (identify-basic-blocks node::class-constant-decl)
+   (add-to-current-block node))
+
 (define-method (identify-basic-blocks node::constructor-invoke)
    ; (debug-trace 22 " (identify-basic-blocks node::constructor-invoke)")
    (with-access::constructor-invoke node (class-name arglist)
@@ -605,7 +608,7 @@
       (identify-basic-blocks prop))
    (add-to-current-block node))
 
-(define-method (identify-basic-blocks node::class-constant)
+(define-method (identify-basic-blocks node::class-constant-fetch)
    (add-to-current-block node))
 
 (define-method (identify-basic-blocks node::formal-param)

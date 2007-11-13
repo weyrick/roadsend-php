@@ -1181,7 +1181,7 @@ argument, before the continuation: (obj prop ref? value k)."
 
 (define (lookup-class-constant class-name constant-name)
    (let ((fail (lambda ()
-                  (php-error "Access to undeclared static property: "
+                  (php-error "Access to undeclared class constant: "
                              class-name "::"  constant-name))))
       (let* ((the-class (%lookup-class class-name)))
          (unless the-class (fail))

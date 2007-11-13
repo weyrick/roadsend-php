@@ -854,11 +854,8 @@ gives the debugger a chance to run."
 	     
              ;; PHP5 class constants
              (php-hash-for-each class-constants
-                (lambda (prop-name prop)
-                   (define-class-constant name prop-name
-                      (if (null? (property-decl-value prop))
-                          (make-container '())
-                          (d/evaluate (property-decl-value prop))))))
+                (lambda (const-name const-val)
+                   (define-class-constant name const-name const-val)))
 
              ;; methods
 	     (php-hash-for-each methods
@@ -1001,12 +998,15 @@ gives the debugger a chance to run."
 	       (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class obj-val) prop-val))))
 	 (php-object-property-ref obj-val prop-val access-type))))
 
-(define-method (evaluate node::class-constant)
-   (with-access::class-constant node (location class name)
+(define-method (evaluate node::class-constant-fetch)
+   (with-access::class-constant-fetch node (location class name)
       (set! *PHP-LINE* (loc-line location))
       ;; we just make-container here because the evaluator expects
       ;; everything to be in one.
-      (make-container (lookup-class-constant class name))))
+      (if (and (eqv? class 'self)
+	       (eqv? *current-class-name* #f))
+	  (php-error "Cannot access self:: when no class scope is active"))
+      (make-container (lookup-class-constant (if (eqv? class 'self) *current-class-name* class) name))))
 			 
 (define-method (evaluate node::declared-function)
    (set! *PHP-LINE* (car (ast-node-location node)))
@@ -1178,7 +1178,8 @@ returning the value of the last. "
 		      (cond
 			 ((list? p)
 			  (for-each insert-methods-or-properties p))
-			 ; XXX add const decl
+			 ((class-constant-decl? p)
+			  (php-hash-insert! class-constants (class-constant-decl-name p) (d/evaluate (class-constant-decl-value p))))
 			 ((property-decl? p)
                           (if (property-decl-static? p)
                               (php-hash-insert! static-properties (property-decl-name p) p)

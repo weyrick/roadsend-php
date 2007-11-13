@@ -848,11 +848,8 @@ onum.  Append the bindings for the new symbols and code."
 				  )
 			      code)))
                 (php-hash-for-each class-constants
-                   (lambda (prop-name prop)
-                      (pushf `(define-class-constant ',name ,prop-name
-                                 ,(if (null? (property-decl-value prop))
-                                      ''()
-                                      (get-value (property-decl-value prop))))
+                   (lambda (const-name const-val)
+                      (pushf `(define-class-constant ',name ,const-name ,(get-value const-val))
                              code)))
 		(dynamically-bind (*current-parent-class-name* parent)
 		   (dynamically-bind (*current-class-name* name)
@@ -1001,9 +998,12 @@ onum.  Append the bindings for the new symbols and code."
 			,(generate-static-prop-visibility-check class-canon 'prop-evald)
 			(php-class-static-property ',class-canon ,prop-name access-type))))))))
 
-(define-method (generate-code node::class-constant)
-   (with-access::class-constant node (class name)
-      `(lookup-class-constant ',class ,name)))
+(define-method (generate-code node::class-constant-fetch)
+   (with-access::class-constant-fetch node (class name)
+      (if (and (eqv? class 'self)
+	       (eqv? *current-class-name* #f))
+	  (delayed-error/loc node "Cannot access self:: when no class scope is active")
+	  `(lookup-class-constant ',(if (eqv? class 'self) *current-class-name* class) ,name))))
 			 
 (define-method (generate-code node::function-decl/gen)
    (with-access::function-decl/gen node

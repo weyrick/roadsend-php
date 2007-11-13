@@ -330,8 +330,8 @@
 			 ((and (property-decl? p) (property-decl-static? p))
 			   (php-hash-insert! static-properties (undollar (property-decl-name p)) p))
                          ;; PHP5 class constants 
-;                         ((and (property-decl? p) (property-decl-static? p))
-;                          (php-hash-insert! class-constants (property-decl-name p) p))
+                         ((class-constant-decl? p)
+                          (php-hash-insert! class-constants (class-constant-decl-name p) (class-constant-decl-value p)))
 			 ((method-decl? p)
 ;			  (fprint (current-error-port) "Method: " (method-decl-name p))
 			  (php-hash-insert! methods (method-decl-name p) p))
