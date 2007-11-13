@@ -985,7 +985,7 @@ gives the debugger a chance to run."
 	    (when (pair? access-type)
 	       (let ((vis (car access-type)))
 		  (php-error (format "Cannot access ~a static property ~a::$~a" vis class prop-name))))
-	    (php-class-static-property class-canon prop-name access-type)))))
+	    (php-class-static-property-ref class-canon prop-name access-type)))))
 
 (define-method (evaluate node::property-fetch)
    (set! *PHP-LINE* (car (ast-node-location node)))
@@ -1007,7 +1007,16 @@ gives the debugger a chance to run."
 	       (eqv? *current-class-name* #f))
 	  (php-error "Cannot access self:: when no class scope is active"))
       (make-container (lookup-class-constant (if (eqv? class 'self) *current-class-name* class) name))))
-			 
+
+(define-method (evaluate node::obj-clone)
+   (with-access::obj-clone node (obj)
+      (let ((obj-val (maybe-unbox (d/evaluate obj))))
+	 (if (php-object? obj-val)
+	     (clone-php-object obj-val)
+	     (begin
+		(php-warning "clone on non object")
+		NULL)))))
+
 (define-method (evaluate node::declared-function)
    (set! *PHP-LINE* (car (ast-node-location node)))
    '())

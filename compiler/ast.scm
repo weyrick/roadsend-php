@@ -251,6 +251,9 @@
        obj
        prop)
 
+    (final-class obj-clone::ast-node
+       obj)
+
       ;; no more string-chars because there is no way to
       ;; syntactically distinguish them from array-refs.
       ;; See bug 1938. --tpd 5.7.2004 

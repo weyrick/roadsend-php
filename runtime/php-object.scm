@@ -35,6 +35,7 @@
     (pretty-print-php-object obj)
     (convert-to-object doohickey)
     (php-object-props obj)
+    (clone-php-object obj::struct)
     (php-class-props class-name)
     (php-object-is-subclass obj class-name)
     (php-class-is-subclass subclass superclass)
@@ -60,6 +61,7 @@
     (php-object-property-ref obj property access-type)
     (php-object-property-set! obj property value access-type)
     (php-class-static-property class-name property access-type)
+    (php-class-static-property-ref class-name property access-type)    
     (php-class-static-property-set! class-name property value access-type)
     (php-object-property-honestly-just-for-reading obj property access-type)
     (php-object-property-visibility obj prop caller)
@@ -163,6 +165,13 @@
 				(copy-php-data old-prop))))
 	    (loop (+ i 1))))
       new-properties))
+
+; shallow copy. call __clone on new object if it exists
+(define (clone-php-object obj::struct)
+   (let ((new-obj (copy-php-object obj #f)))
+      (when (php-class-method-exists? (php-object-class obj) "__clone")
+	 (call-php-method-0 new-obj "__clone"))
+      new-obj))
 
 (define (copy-php-object obj::struct old-new)
    (let* ((new-obj (%php-object (%next-instantiation-id) (%php-object-class obj) #f #f #f)))
@@ -937,7 +946,18 @@ argument, before the continuation: (obj prop ref? value k)."
 	 (if val
 	     val
 	  (php-error "Access to undeclared static property: " class-name "::" property)))))	     
-   
+
+(define (php-class-static-property-ref class-name property access-type)
+   (let ((the-class (%lookup-class class-name)))
+      (unless the-class
+	 (php-error "Getting static property " property ": unknown class " class-name))
+      (let ((val (%lookup-static-prop-ref class-name property access-type)))
+	 (if val
+	     val
+	     (begin
+		(php-error "Access to undeclared static property: " class-name "::" property)
+		(make-container NULL))))))
+
 (define (php-class-static-property-set! class-name property value access-type)
    (let ((the-class (%lookup-class class-name)))
       (unless the-class

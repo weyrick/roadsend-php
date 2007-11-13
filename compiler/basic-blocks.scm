@@ -562,6 +562,9 @@
    (with-access::class-decl node (class-body)
       (identify-basic-blocks class-body)))
 
+(define-method (identify-basic-blocks node::obj-clone)
+   (add-to-current-block node))
+
 (define-method (identify-basic-blocks node::class-constant-decl)
    (add-to-current-block node))
 

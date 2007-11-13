@@ -195,6 +195,7 @@
 
 	 ((uncase "define") (stok 'definekey))
 
+	 ((uncase "clone") (stok 'clone))
 	 ((uncase "const") (stok 'classconst))
 	 ((uncase "parent::") (stok 'parent))
 	 ((uncase "self::") (stok 'selfkey))

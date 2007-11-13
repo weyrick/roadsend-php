@@ -69,7 +69,7 @@
        global endwhile while  var  rcurly ;html
        rbrak echokey functionkey returnkey string extends
        array-arrow dokey unset foreach endforeach endfor foreach-as parent
-       boolean integer float nullkey listkey ;globalhash
+       boolean integer float nullkey listkey clone ;globalhash
        this continue throwkey trykey catchkey selfkey classconst)
 
       (start
@@ -609,6 +609,10 @@
         ((id@class static-classderef id@name)
          (make-class-constant-fetch *parse-loc* class (mkstr name)))
 
+	; object cloning
+	((clone rval)
+	 (make-obj-clone *parse-loc* rval))
+	
         ((rval@a ugly-then rval@b colon rval@c)
          (make-if-stmt *parse-loc* a b c))
         

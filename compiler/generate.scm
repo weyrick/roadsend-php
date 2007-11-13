@@ -1004,7 +1004,16 @@ onum.  Append the bindings for the new symbols and code."
 	       (eqv? *current-class-name* #f))
 	  (delayed-error/loc node "Cannot access self:: when no class scope is active")
 	  `(lookup-class-constant ',(if (eqv? class 'self) *current-class-name* class) ,name))))
-			 
+
+(define-method (generate-code node::obj-clone)
+   (with-access::obj-clone node (obj)
+      `(let ((obj-val ,(get-value obj)))
+	  (if (php-object? obj-val)
+	      (clone-php-object obj-val)
+	      (begin
+		 (php-warning "clone on non object")
+		 NULL)))))
+
 (define-method (generate-code node::function-decl/gen)
    (with-access::function-decl/gen node
 	 (location needs-env? name decl-arglist canonical-name container-table
