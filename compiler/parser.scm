@@ -597,7 +597,10 @@
        ((parent id-or-var@method lpar arglist rpar) 
 	(make-parent-method-invoke *parse-loc* method arglist))
        ((id@klass static-classderef id-or-var@method lpar arglist rpar) 
-	(make-static-method-invoke *parse-loc* klass method arglist)))
+	(make-static-method-invoke *parse-loc* klass method arglist))
+       ((selfkey id@method lpar arglist rpar)
+	; we make a literal string here because static-method-invoke expects an ast-node there (from non self:: call)
+	(make-static-method-invoke *parse-loc* '%self (make-literal-string *parse-loc* (mkstr method)) arglist)))
        
        
        ;expression
@@ -605,7 +608,7 @@
 
 	; class const
 	((selfkey id)
-	 (make-class-constant-fetch *parse-loc* 'self (mkstr id)))
+	 (make-class-constant-fetch *parse-loc* '%self (mkstr id)))
         ((id@class static-classderef id@name)
          (make-class-constant-fetch *parse-loc* class (mkstr name)))
 
@@ -803,9 +806,9 @@
          (make-property-fetch *parse-loc* function-call rval))
 	; static props
 	((selfkey variable-lval@prop)
-         (make-static-property-fetch *parse-loc* 'self prop))
+         (make-static-property-fetch *parse-loc* '%self prop))
 	((parent variable-lval@prop)
-         (make-static-property-fetch *parse-loc* 'parent prop))
+         (make-static-property-fetch *parse-loc* '%parent prop))
         ((id@class static-classderef variable-lval@prop)
          (make-static-property-fetch *parse-loc* class prop)))
         
@@ -884,14 +887,13 @@
 	 (if seen-visibility
 	     (error 'do-method-flags "Multiple access type modifiers are not allowed" "")
 	     (begin
-		(map (lambda (c) (method-decl-visibility-set! c 'private) c) method-decl-list)
 		(set! seen-visibility #t))))
       (when (member 'protected flags)
 	 (if seen-visibility
 	     (error 'do-method-flags "Multiple access type modifiers are not allowed" "")
 	     (begin
-		(map (lambda (c) (method-decl-visibility-set! c 'protected) c) method-decl-list)
 		(set! seen-visibility #t))))
+      (map (lambda (c) (method-decl-flags-set! c flags) c) method-decl-list)
       method-decl-list))
 
 (define (check-lval-writeable lval)

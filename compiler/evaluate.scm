@@ -650,15 +650,15 @@ gives the debugger a chance to run."
 
 (define-method (eval-assign lval::static-property-fetch rval)
    (with-access::static-property-fetch lval (class prop)
-      (let ((class-canon (cond ((eqv? class 'self) *current-class-name*)
-			       ((eqv? class 'parent) (if *current-class-name*
+      (let ((class-canon (cond ((eqv? class '%self) *current-class-name*)
+			       ((eqv? class '%parent) (if *current-class-name*
 							 (php-class-parent-class *current-class-name*)
 							 #f))
 			       (else class))))
-	 (when (and (eqv? class 'self)
+	 (when (and (eqv? class '%self)
 		    (eqv? class-canon #f))
 	    (php-error "Cannot access self:: when no class scope is active"))
-	 (when (and (eqv? class 'parent)
+	 (when (and (eqv? class '%parent)
 		    (or (eqv? class-canon #f)))
 	    (php-error "Cannot access parent:: when current class scope has no parent"))
 	 (let* ((prop-val (if (var-var? prop)
@@ -860,9 +860,10 @@ gives the debugger a chance to run."
              ;; methods
 	     (php-hash-for-each methods
 		(lambda (method-name method)
-		   (define-php-method name
-		      method-name
-		      (with-access::method-decl method (location decl-arglist body ref?)
+		   (with-access::method-decl method (location decl-arglist body ref? flags)		   
+		      (define-php-method name
+			 method-name
+			 flags
 			 (let ((static-env (env-new)))
 			    (lambda ($this . args)
 			       (apply push-stack name (method-decl-name method) args)
@@ -930,18 +931,23 @@ gives the debugger a chance to run."
    (with-access::static-method-invoke node (location class-name method arglist)
       (set! *PHP-FILE* (cdr location))
       (set! *PHP-LINE* (car location))
-      (begin0
-       (let ((method-name (d/evaluate method)))
-	  (if (and (php-object? *current-instance*)
-		   (php-object-is-subclass *current-instance* class-name))
-	      ;; we only provide the static method call with a $this
-	      ;; if the current instance is a subclass of the class
-	      ;; the method is in.
-;	      (apply call-php-method *current-instance* method-name (map get-location arglist))
-              (apply call-static-php-method class-name *current-instance* method-name (map get-location arglist))
-	      (apply call-static-php-method class-name NULL method-name (map get-location arglist))))
-       (set! *PHP-FILE* (cdr location))
-       (set! *PHP-LINE* (car location)))))
+      (let ((class-canon (cond ((eqv? class-name '%self) *current-class-name*)
+			       (else class-name))))
+	 (when (and (eqv? class-name '%self)
+		    (eqv? class-canon #f))
+	    (php-error "Cannot access self:: when no class scope is active"))
+	 (begin0
+	  (let ((method-name (d/evaluate method)))
+	     (if (and (php-object? *current-instance*)
+		      (php-object-is-subclass *current-instance* class-name))
+		 ;; we only provide the static method call with a $this
+		 ;; if the current instance is a subclass of the class
+		 ;; the method is in.
+		 ;	      (apply call-php-method *current-instance* method-name (map get-location arglist))
+		 (apply call-static-php-method class-canon *current-instance* method-name (map get-location arglist))
+		 (apply call-static-php-method class-canon NULL method-name (map get-location arglist))))
+	  (set! *PHP-FILE* (cdr location))
+	  (set! *PHP-LINE* (car location))))))
 
 
     
@@ -968,13 +974,13 @@ gives the debugger a chance to run."
 (define-method (evaluate node::static-property-fetch)
    (set! *PHP-LINE* (car (ast-node-location node)))
    (with-access::static-property-fetch node (class prop)
-      (let ((class-canon (cond ((eqv? class 'self) *current-class-name*)
-			       ((eqv? class 'parent) (php-class-parent-class *current-class-name*))
+      (let ((class-canon (cond ((eqv? class '%self) *current-class-name*)
+			       ((eqv? class '%parent) (php-class-parent-class *current-class-name*))
 			       (else class))))
-	 (when (and (eqv? class 'self)
+	 (when (and (eqv? class '%self)
 		    (eqv? class-canon #f))
 	    (php-error "Cannot access self:: when no class scope is active"))
-	 (when (and (eqv? class 'parent)
+	 (when (and (eqv? class '%parent)
 		    (or (eqv? class-canon #f) (eqv? class-canon 'stdclass)))
 	    (php-error "Cannot access parent:: when current class scope has no parent"))
 	 (let* ((prop-val (if (var-var? prop)
@@ -1003,10 +1009,10 @@ gives the debugger a chance to run."
       (set! *PHP-LINE* (loc-line location))
       ;; we just make-container here because the evaluator expects
       ;; everything to be in one.
-      (if (and (eqv? class 'self)
+      (if (and (eqv? class '%self)
 	       (eqv? *current-class-name* #f))
 	  (php-error "Cannot access self:: when no class scope is active"))
-      (make-container (lookup-class-constant (if (eqv? class 'self) *current-class-name* class) name))))
+      (make-container (lookup-class-constant (if (eqv? class '%self) *current-class-name* class) name))))
 
 (define-method (evaluate node::obj-clone)
    (with-access::obj-clone node (obj)

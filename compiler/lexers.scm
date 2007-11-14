@@ -256,6 +256,8 @@
          ((uncase "public") (stok 'public))
          ((uncase "private") (stok 'private))
          ((uncase "protected") (stok 'protected))
+	 ((uncase "abstract") (stok 'abstract))
+	 ((uncase "final") (stok 'final))
 
 	 ((uncase "extends") (stok 'extends))
 

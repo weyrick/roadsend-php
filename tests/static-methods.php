@@ -48,9 +48,28 @@ class bclass extends aclass {
 
 $foo = new bclass();
 
-// 10/2007 - this was acceptable in php4 but is a fatal in php5
-aclass::aclass();
+//aclass::aclass();
 
 $foo->bmethod();
 
+
+class A {
+    static function foo () {
+        echo "A::foo()";
+    }
+   
+    static function callFoo () {
+        self::foo();
+    }
+}
+
+class B extends A {
+    static function foo () {
+        echo "B::foo()";
+    }
+}
+
+B::callFoo();
+
 ?>
+

@@ -129,7 +129,7 @@
        ref?
        end-line ;;the last line of the method
        static?
-       visibility)
+       flags)
     (final-class function-decl::declaration
        name
        decl-arglist

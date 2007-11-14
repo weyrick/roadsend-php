@@ -29,29 +29,35 @@
    (eval (export-module))
    (export
     +constructor-failed+
+    ; definitions
     (make-php-object properties)
-    (php-object-custom-properties obj)
-    (php-object-custom-properties-set! obj props)
-    (pretty-print-php-object obj)
+    (define-php-class name parent-name)
+    (define-extended-php-class name parent-name getter setter copier)
+    (define-php-property class-name property-name value visibility static?)
+    (define-php-method class-name method-name flags method)
+    ; types
     (convert-to-object doohickey)
-    (php-object-props obj)
     (clone-php-object obj::struct)
-    (php-class-props class-name)
+    (copy-php-object obj::struct old-new)
+    ; reflection
+    (php-object-props obj)
+    (php-class-methods class-name)
+    (php-object-class obj)
+    (php-object-parent-class obj)
+    (php-class-parent-class class-name)
+    (php-object-id obj)
+    (get-declared-php-classes)
+    ; tests
+    (php-object? obj)
+    (php-class-exists? class-name)
+    (php-class-method-exists? class-name method-name)
     (php-object-is-subclass obj class-name)
     (php-class-is-subclass subclass superclass)
     (php-object-is-a obj class-name)
-    (php-class-exists? class-name)
-    (php-class-methods class-name)
-    (php-class-method-exists? class-name method-name)
-    (call-php-method obj method-name . call-args)
-    (call-php-method-0 obj method-name)
-    (call-php-method-1 obj method-name arg)
-    (call-php-method-2 obj method-name arg1 arg2)
-    (call-php-method-3 obj method-name arg1 arg2 arg3)
-    (call-php-parent-method parent-class-name obj method-name . call-args)
-    (call-static-php-method class-name obj method-name . call-args)
-    (php-object? obj)
-    (php-object-for-each-with-ref-status obj::struct thunk::procedure)
+    (php-object-compare obj1 obj2 identical?)
+    (internal-object-compare o1 o2 identical? seen)    
+    ; properties
+    (php-class-props class-name)
     (php-object-property/index obj::struct property::int property-name)
     (php-object-property/string obj property::bstring access-type)
     (php-object-property-ref/string obj property::bstring access-type)
@@ -64,26 +70,31 @@
     (php-class-static-property-ref class-name property access-type)    
     (php-class-static-property-set! class-name property value access-type)
     (php-object-property-honestly-just-for-reading obj property access-type)
+    ; visibility
     (php-object-property-visibility obj prop caller)
     (php-class-static-property-visibility class prop context)
-    (php-object-compare obj1 obj2 identical?)
-    (internal-object-compare o1 o2 identical? seen)
-    (php-object-id obj)
-    (php-object-class obj)
-    (php-object-parent-class obj)
-    (php-class-parent-class class-name)
-    (copy-php-object obj::struct old-new)
-    (init-php-object-lib)
-    (define-php-class name parent-name)
-    (define-extended-php-class name parent-name getter setter copier)
+    ; methods
     (construct-php-object class-name . args)
     (construct-php-object-sans-constructor class-name)
-    (get-declared-php-classes)
-    (define-php-property class-name property-name value visibility static?)
-    (define-php-method class-name method-name method)
+    (call-php-method obj method-name . call-args)
+    (call-php-method-0 obj method-name)
+    (call-php-method-1 obj method-name arg)
+    (call-php-method-2 obj method-name arg1 arg2)
+    (call-php-method-3 obj method-name arg1 arg2 arg3)
+    (call-php-parent-method parent-class-name obj method-name . call-args)
+    (call-static-php-method class-name obj method-name . call-args)
+    ; constants
     (define-class-constant class-name constant-name value)
-    (lookup-class-constant class-name constant-name)))
-
+    (lookup-class-constant class-name constant-name)    
+    ; custom properties
+    (php-object-custom-properties obj)
+    (php-object-custom-properties-set! obj props)
+    ; misc
+    (init-php-object-lib)
+    (pretty-print-php-object obj)
+    (php-object-for-each-with-ref-status obj::struct thunk::procedure)
+    ;
+    ))
 
 ;;;;objects, woohoo!
 (define-struct %php-object
@@ -106,8 +117,8 @@
    name
    ;;a pointer to the parent class of this class
    parent-class
-   ;; the constructor method
-   constructor
+   ;; the constructor method if available
+   constructor-proc
    ;;a hashtable mapping names of declared properties to an index in a property vector
    declared-property-offsets
    ;; static properties: like declared-property-offsets, a hash table with index to properties
@@ -121,10 +132,8 @@
    prop-visibility
    ;;extended properties is either #f or a php-hash of non-declared properties
    extended-properties
-   ;;methods is a php-hash of methods, keyed by canonical method name
+   ;;methods is a php-hash of methods, keyed by canonical method name, value is %php-method
    methods
-   ;; list of method names the way the user defined them (case sensitive)
-   print-methods
    ;;this overrides the normal property lookup
    custom-prop-lookup
    ;;this overrides the normal property set
@@ -134,6 +143,14 @@
    ;; PHP5 "class constants" (php-hash)
    class-constants)
 
+(define-struct %php-method
+   ;; print name (case sensitive)
+   print-name
+   ;; flags: visibility, static, final, abstract
+   flags
+   ;; procedure
+   proc)
+
 ;
 ; PHP5 case sensitivity:
 ;  - class names are NOT case sensitive
@@ -142,7 +159,7 @@
 ; 
 ; regardless of whether it is case sensitive, each item must
 ; know the case it was defined as, because it's shown that way
-; by various dumping functions
+; by various reporting functions
 ;
 
 (define (php-object-custom-properties obj)
@@ -371,7 +388,7 @@ values the values."
 (define (call-php-method obj method-name . call-args)
    (if (not (php-object? obj))
        (php-error "Unable to call method on non-object " obj)
-       (let ((the-method (%lookup-method (%php-object-class obj) method-name)))
+       (let ((the-method (%lookup-method-proc (%php-object-class obj) method-name)))
 	  (unless the-method
 	     (php-error "Calling method "
 			(%php-class-print-name (%php-object-class obj))
@@ -402,7 +419,7 @@ values the values."
    (if (not (php-object? obj))
        (php-error
 	(format "Unable to call method on non-object ~A" (mkstr obj)))
-       (let ((the-method (%lookup-method (%php-object-class obj) method-name)))
+       (let ((the-method (%lookup-method-proc (%php-object-class obj) method-name)))
 	  (unless the-method
 	     (php-error "Calling method "
 			(%php-class-print-name (%php-object-class obj))
@@ -413,7 +430,7 @@ values the values."
    (if (not (php-object? obj))
        (php-error
 	(format "Unable to call method on non-object ~A" (mkstr obj)))
-       (let ((the-method (%lookup-method (%php-object-class obj) method-name)))
+       (let ((the-method (%lookup-method-proc (%php-object-class obj) method-name)))
 	  (unless the-method
 	     (php-error "Calling method "
 			(%php-class-print-name (%php-object-class obj))
@@ -424,7 +441,7 @@ values the values."
    (if (not (php-object? obj))
        (php-error
 	(format "Unable to call method on non-object ~A" (mkstr obj)))
-       (let ((the-method (%lookup-method (%php-object-class obj) method-name)))
+       (let ((the-method (%lookup-method-proc (%php-object-class obj) method-name)))
 	  (unless the-method
 	     (php-error "Calling method "
 			(%php-class-print-name (%php-object-class obj))
@@ -435,7 +452,7 @@ values the values."
    (if (not (php-object? obj))
        (php-error
 	(format "Unable to call method on non-object ~A" (mkstr obj)))
-       (let ((the-method (%lookup-method (%php-object-class obj) method-name)))
+       (let ((the-method (%lookup-method-proc (%php-object-class obj) method-name)))
 	  (unless the-method
 	     (php-error "Calling method "
 			(%php-class-print-name (%php-object-class obj))
@@ -448,7 +465,7 @@ values the values."
 	 (php-error
 	  (format "Parent method call: Unable to call method parent::~A: can't find parent class ~A"
 		  method-name parent-class-name)))
-      (let ((the-method (%lookup-method the-class method-name)))
+      (let ((the-method (%lookup-method-proc the-class method-name)))
 	 (unless the-method
 	    (php-error "Parent method call: Unable to find method "
 		     method-name " of class " parent-class-name))
@@ -460,7 +477,7 @@ values the values."
       (unless the-class
 	 (php-error "Calling static method " method-name
 		    ": unable to find class definition " class-name))
-      (let ((the-method (%lookup-method the-class method-name)))
+      (let ((the-method (%lookup-method-proc the-class method-name)))
 	 (unless the-method
 	    (php-error "Calling static method " class-name "::" method-name ": undefined method."))
 	 ;
@@ -680,11 +697,11 @@ values the values."
    ;define the root of the class hierarchy
    (let ((stdclass (%php-class "stdClass" "stdclass" #f #f
 			       (make-hashtable) (make-hashtable) (make-vector 0) (make-hashtable)
-			       (make-php-hash) (make-php-hash) '()
+			       (make-php-hash) (make-php-hash)
 			       #f #f #f (make-php-hash)))
 	 (inc-class (%php-class "__PHP_Incomplete_Class" "__php_incomplete_class" #f #f
 				(make-hashtable) (make-hashtable) (make-vector 0) (make-hashtable)
-				(make-php-hash) (make-php-hash) '()
+				(make-php-hash) (make-php-hash)
 				#f #f #f (make-php-hash)) ))
       ;;default constructor
       (hashtable-put! %php-class-registry "stdclass" stdclass)
@@ -712,7 +729,6 @@ values the values."
 					 (%php-class-prop-visibility parent-class))				 
 					(copy-php-data (%php-class-extended-properties parent-class))
 					(copy-php-data (%php-class-methods parent-class))
-					(list-copy (%php-class-print-methods parent-class))
 					(%php-class-custom-prop-lookup parent-class)
 					(%php-class-custom-prop-set parent-class)
 					(%php-class-custom-prop-copy parent-class)
@@ -765,22 +781,20 @@ argument, before the continuation: (obj prop ref? value k)."
 	     (vector-set! new i el)))
       new))
 
-(define (define-php-method class-name method-name method)
+(define (define-php-method class-name method-name flags method)
    (let ((the-class (%lookup-class class-name)))
       (unless the-class
 	 (php-error "Defining method " method-name ": unknown class " class-name))
-      (let ((canon-method-name (%method-name-canonicalize method-name)))
+      (let* ((canon-method-name (%method-name-canonicalize method-name))
+	     (new-method (%php-method method-name flags method)))
          ;; check if the method is a constructor
 	 (when (or (string=? canon-method-name "__construct")
-		   (and (not (%php-class-constructor the-class))
+		   (and (not (%php-class-constructor-proc the-class))
 			(string=? canon-method-name (%php-class-name the-class))))
-	    (%php-class-constructor-set! the-class method))
-	 ; print version (name only)
-	 (%php-class-print-methods-set! the-class (cons method-name (%php-class-print-methods the-class)))
-	 ; canonical version, with method definition
+	    (%php-class-constructor-proc-set! the-class method))
          (php-hash-insert! (%php-class-methods the-class)
                            canon-method-name
-                           method))))
+                           new-method))))
 
 (define (mangle-property-private prop)
    "mangle given property string to private visibility"
@@ -860,14 +874,20 @@ argument, before the continuation: (obj prop ref? value k)."
 		       #f))))
 	  m)))
 
+(define (%lookup-method-proc klass name)
+   (let ((m (%lookup-method klass name)))
+      (if m
+	  (%php-method-proc m)
+	  #f)))
+
 (define (%lookup-constructor klass)
    (or
-    (%php-class-constructor klass)
+    (%php-class-constructor-proc klass)
     (let ((c (and (%php-class-parent-class klass)
                   (%lookup-constructor (%php-class-parent-class klass)))))
        (if c
            (begin
-              (%php-class-constructor-set! klass c)
+              (%php-class-constructor-proc-set! klass c)
               c)
            #f))))
 
@@ -1070,14 +1090,12 @@ argument, before the continuation: (obj prop ref? value k)."
    (container-value (%lookup-static-prop-ref class-name property access-type)))
 
 (define (%php-class-method-reflection klass)
-   (list->php-hash (%php-class-print-methods klass)))
-
-;    (list->php-hash
-;     (let ((lst '()))
-;        (php-hash-for-each (%php-class-methods klass)
-; 	  (lambda (name method)
-; 	     (set! lst (cons (mkstr name) lst))))
-;        lst)))
+    (list->php-hash
+     (let ((lst '()))
+        (php-hash-for-each (%php-class-methods klass)
+ 	  (lambda (name method)
+ 	     (set! lst (cons (%php-method-print-name method) lst))))
+        lst)))
 
 (define *highest-instantiation* 0)
 (define (%next-instantiation-id)

@@ -855,10 +855,12 @@ onum.  Append the bindings for the new symbols and code."
 		   (dynamically-bind (*current-class-name* name)
 		      (php-hash-for-each methods
 			 (lambda (method-name method)
-			    (pushf `(define-php-method ',name
-				       ',method-name
-				       ,(generate-code method))
-				   code)))))
+			    (with-access::method-decl method (location decl-arglist body ref? flags)
+			       (pushf `(define-php-method ',name
+					  ',method-name
+					  ',flags
+					  ,(generate-code method))
+				      code))))))
 		(cons 'begin (reverse code)))))))
 
 
@@ -901,19 +903,24 @@ onum.  Append the bindings for the new symbols and code."
 
 (define-method (generate-code node::static-method-invoke)
     (with-access::static-method-invoke node (location class-name method arglist)
-       `(begin
-	   (set! *PHP-FILE* ,*file-were-compiling*)
-	   (set! *PHP-LINE* ,(car location))
-	   (begin0
-	    ,(if (and *current-class-name*
-		      (compile-time-subclass? *current-class-name* class-name))
-		 `(call-static-php-method ',class-name this-unboxed ,(get-value method)
-                                          ,@(map get-location arglist))
-		 `(call-static-php-method ',class-name NULL ,(get-value method)
-					  ,@(map get-location arglist)))
-	      (set! *PHP-FILE* ,*file-were-compiling*)
-	      (set! *PHP-LINE* ,(car location)) ))))
-   
+       (let ((class-canon (cond ((eqv? class-name '%self) *current-class-name*)
+				(else class-name))))
+	  (if (and (eqv? class-name '%self)
+		   (eqv? class-canon #f))
+	      (delayed-error/loc node "Cannot access self:: when no class scope is active")       
+	      `(begin
+		  (set! *PHP-FILE* ,*file-were-compiling*)
+		  (set! *PHP-LINE* ,(car location))
+		  (begin0
+		   ,(if (and *current-class-name*
+			     (compile-time-subclass? *current-class-name* class-name))
+			`(call-static-php-method ',class-canon this-unboxed ,(get-value method)
+						 ,@(map get-location arglist))
+			`(call-static-php-method ',class-canon NULL ,(get-value method)
+						 ,@(map get-location arglist)))
+		   (set! *PHP-FILE* ,*file-were-compiling*)
+		   (set! *PHP-LINE* ,(car location)) ))))))
+       
 (define-method (generate-code node::parent-method-invoke)
    (with-access::parent-method-invoke node (location name arglist)
       (if *current-parent-class-name*
@@ -980,13 +987,13 @@ onum.  Append the bindings for the new symbols and code."
 
 (define-method (generate-code node::static-property-fetch)
    (with-access::static-property-fetch node (class prop)
-      (let ((class-canon (cond ((eqv? class 'self) *current-class-name*)
-			       ((eqv? class 'parent) *current-parent-class-name*)
+      (let ((class-canon (cond ((eqv? class '%self) *current-class-name*)
+			       ((eqv? class '%parent) *current-parent-class-name*)
 			       (else class))))
-	 (if (and (eqv? class 'self)
+	 (if (and (eqv? class '%self)
 		  (eqv? class-canon #f))
 	     (delayed-error/loc node "Cannot access self:: when no class scope is active")
-	     (if (and (eqv? class 'parent)
+	     (if (and (eqv? class '%parent)
 		      (or (eqv? class-canon #f)))
 		 (delayed-error/loc node "Cannot access parent:: when current class scope has no parent")
 		 (let* ((the-property (if (var-var? prop)
@@ -1000,10 +1007,10 @@ onum.  Append the bindings for the new symbols and code."
 
 (define-method (generate-code node::class-constant-fetch)
    (with-access::class-constant-fetch node (class name)
-      (if (and (eqv? class 'self)
+      (if (and (eqv? class '%self)
 	       (eqv? *current-class-name* #f))
 	  (delayed-error/loc node "Cannot access self:: when no class scope is active")
-	  `(lookup-class-constant ',(if (eqv? class 'self) *current-class-name* class) ,name))))
+	  `(lookup-class-constant ',(if (eqv? class '%self) *current-class-name* class) ,name))))
 
 (define-method (generate-code node::obj-clone)
    (with-access::obj-clone node (obj)
@@ -1538,13 +1545,13 @@ onum.  Append the bindings for the new symbols and code."
 
 (define-method (update-value lval::static-property-fetch rval-code)
    (with-access::static-property-fetch lval (class prop)
-      (let ((class-canon (cond ((eqv? class 'self) *current-class-name*)
-			       ((eqv? class 'parent) *current-parent-class-name*)
+      (let ((class-canon (cond ((eqv? class '%self) *current-class-name*)
+			       ((eqv? class '%parent) *current-parent-class-name*)
 			       (else class))))
-	 (if (and (eqv? class 'self)
+	 (if (and (eqv? class '%self)
 		  (eqv? class-canon #f))
 	     (delayed-error/loc lval "Cannot access self:: when no class scope is active")
-	     (if (and (eqv? class 'parent)
+	     (if (and (eqv? class '%parent)
 		      (or (eqv? class-canon #f)))
 		 (delayed-error/loc lval "Cannot access parent:: when current class scope has no parent")
 		 (let* ((the-property (if (var-var? prop)
