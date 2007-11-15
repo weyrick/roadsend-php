@@ -445,6 +445,16 @@
 	(print *RAVEN-VERSION-STRING*)
 	(exit 1))
 
+       ((("-r") ?CODE (help "Run PHP <CODE> without using the script tags <? .. ?>"))
+	(load-runtime-libs '(php-std))	
+	(php-eval CODE)
+	(exit 1))
+       
+       ((("-i") (help "Show output from phpinfo()"))
+	(load-runtime-libs '(php-std))
+	(php-funcall 'phpinfo)
+	(exit 1))
+
        ((("-c") ?config-file (help "Use the specified config file"))
 	(maybe-add-script-argv "-c")
 	; this option is actually checked for above because the *config-file* variable needs

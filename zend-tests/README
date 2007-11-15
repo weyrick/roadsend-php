@@ -1,0 +1,8 @@
+
+All of this code, including the test program and the test templates, originally came from the 
+Zend PHP implementation, freely available at www.php.net under the PHP License.
+
+It has been modified in some cases to take advantage of features in Roadsend PHP that aren't
+available in Zend PHP, and to remove tests for some features that aren't implemented in 
+Roadsend PHP.
+
