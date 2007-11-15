@@ -137,8 +137,8 @@
    (define-php-class 'Exception '())
    (define-php-property 'Exception "message" "Unknown exception" 'protected #f)
    (define-php-property 'Exception "code" *zero* 'protected #f)
-   (define-php-method 'Exception "__construct" Exception:__construct)
-   (define-php-method 'Exception "getMessage" Exception:getMessage))
+   (define-php-method 'Exception "__construct" '(public) Exception:__construct)
+   (define-php-method 'Exception "getMessage" '(public) Exception:getMessage))
 
 (define (Exception:__construct this-unboxed . optional-args)
    (let ((message '())

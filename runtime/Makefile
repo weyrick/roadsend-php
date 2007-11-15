@@ -73,6 +73,6 @@ slib/slib_$(SU).o: slib/format_$(SU).o  slib/sort_$(SU).o  slib/soundex_$(SU).o 
 php-object_$(SU).o: utils_$(SU).o php-hash_$(SU).o grasstable_$(SU).o    \
       php-runtime.sch 
 
-
+php-errors_$(SU).o: php-object_$(SU).o
 
 signatures.o: opaque-math-binding.o

@@ -796,8 +796,7 @@ argument, before the continuation: (obj prop ref? value k)."
 			(string=? canon-method-name (%php-class-name the-class))))
 	    (%php-class-constructor-proc-set! the-class method))
 	 ;; check if the method is a destructor
-	 (when (or (string=? canon-method-name "__destruct")
-		   (not (%php-class-destructor-proc the-class)))
+	 (when (string=? canon-method-name "__destruct")
 	    (%php-class-destructor-proc-set! the-class method))
          (php-hash-insert! (%php-class-methods the-class)
                            canon-method-name
@@ -1140,7 +1139,7 @@ argument, before the continuation: (obj prop ref? value k)."
 	 (let ((destructor (%lookup-destructor the-class)))
 	    (when destructor
 	       (register-finalizer! new-object (lambda (obj)
-						  (destructor obj)))))
+						  (apply destructor obj (adjust-argument-list destructor args))))))
 	 ; now run constructor, or return new obj if we have none
 	 (let ((constructor (%lookup-constructor the-class)))
 	    (if (not constructor)
