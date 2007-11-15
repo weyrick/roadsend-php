@@ -30,7 +30,6 @@
    (export
     +constructor-failed+
     ; definitions
-    (make-php-object properties)
     (define-php-class name parent-name)
     (define-extended-php-class name parent-name getter setter copier)
     (define-php-property class-name property-name value visibility static?)
@@ -74,6 +73,7 @@
     (php-object-property-visibility obj prop caller)
     (php-class-static-property-visibility class prop context)
     ; methods
+    (make-php-object properties)
     (construct-php-object class-name . args)
     (construct-php-object-sans-constructor class-name)
     (call-php-method obj method-name . call-args)
@@ -119,6 +119,8 @@
    parent-class
    ;; the constructor method if available
    constructor-proc
+   ;; the destructor method if available   
+   destructor-proc
    ;;a hashtable mapping names of declared properties to an index in a property vector
    declared-property-offsets
    ;; static properties: like declared-property-offsets, a hash table with index to properties
@@ -695,11 +697,11 @@ values the values."
 (define (init-php-object-lib)
    (set! %php-class-registry (make-hashtable))
    ;define the root of the class hierarchy
-   (let ((stdclass (%php-class "stdClass" "stdclass" #f #f
+   (let ((stdclass (%php-class "stdClass" "stdclass" #f #f #f
 			       (make-hashtable) (make-hashtable) (make-vector 0) (make-hashtable)
 			       (make-php-hash) (make-php-hash)
 			       #f #f #f (make-php-hash)))
-	 (inc-class (%php-class "__PHP_Incomplete_Class" "__php_incomplete_class" #f #f
+	 (inc-class (%php-class "__PHP_Incomplete_Class" "__php_incomplete_class" #f #f #f
 				(make-hashtable) (make-hashtable) (make-vector 0) (make-hashtable)
 				(make-php-hash) (make-php-hash)
 				#f #f #f (make-php-hash)) ))
@@ -720,6 +722,7 @@ values the values."
 					canonical-name
 					parent-class
                                         #f
+					#f
 					(copy-hashtable
 					 (%php-class-declared-property-offsets parent-class))
 					(copy-hashtable
@@ -792,6 +795,10 @@ argument, before the continuation: (obj prop ref? value k)."
 		   (and (not (%php-class-constructor-proc the-class))
 			(string=? canon-method-name (%php-class-name the-class))))
 	    (%php-class-constructor-proc-set! the-class method))
+	 ;; check if the method is a destructor
+	 (when (or (string=? canon-method-name "__destruct")
+		   (not (%php-class-destructor-proc the-class)))
+	    (%php-class-destructor-proc-set! the-class method))
          (php-hash-insert! (%php-class-methods the-class)
                            canon-method-name
                            new-method))))
@@ -888,6 +895,17 @@ argument, before the continuation: (obj prop ref? value k)."
        (if c
            (begin
               (%php-class-constructor-proc-set! klass c)
+              c)
+           #f))))
+
+(define (%lookup-destructor klass)
+   (or
+    (%php-class-destructor-proc klass)
+    (let ((c (and (%php-class-parent-class klass)
+                  (%lookup-destructor (%php-class-parent-class klass)))))
+       (if c
+           (begin
+              (%php-class-destructor-proc-set! klass c)
               c)
            #f))))
 
@@ -1118,6 +1136,12 @@ argument, before the continuation: (obj prop ref? value k)."
 				     (copy-php-data
 				      (%php-class-extended-properties the-class))
 				     #f)))
+	 ;; if we have a destructor, make sure the class is finalized
+	 (let ((destructor (%lookup-destructor the-class)))
+	    (when destructor
+	       (register-finalizer! new-object (lambda (obj)
+						  (destructor obj)))))
+	 ; now run constructor, or return new obj if we have none
 	 (let ((constructor (%lookup-constructor the-class)))
 	    (if (not constructor)
                 ;; no constructor defined

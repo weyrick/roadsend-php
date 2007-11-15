@@ -35,13 +35,14 @@
     (gc-force-finalization enough?)))
 
 
-(define *finalization-enabled?* #t)
+(define *finalization-enabled?* #f)
 
 (define (register-finalizer! obj::obj callback::procedure)
    "Register a finalizer for object obj. Callback should be a
    procedure of one argument, which will be obj when it is invoked."
    (unless *finalization-enabled?*
       (gc-enable-finalization)
+      (set! *finalization-enabled?* #t)
       (register-exit-function!
        (lambda (status)
 	  (gc-force-finalization (lambda () #f))
@@ -100,7 +101,6 @@
    gc_finalize_on_demand)
 
 (when (getenv "INCREMENTAL")
-   (fprint (current-error-port) "enabling incremental collector")
    (pragma "GC_enable_incremental()")
    #t)
 
