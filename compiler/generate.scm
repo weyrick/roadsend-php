@@ -817,12 +817,12 @@ onum.  Append the bindings for the new symbols and code."
    (error 'generate-code-class-decl "somehow this class didn't get declared" node))
 
 (define-method (generate-code node::class-decl/gen)
-   (with-access::class-decl/gen node (name canonical-name parent properties static-properties class-constants methods rendered?)
+   (with-access::class-decl/gen node (name canonical-name parent flags properties static-properties class-constants methods rendered?)
       (if rendered?
 	  `(begin 'class-already-rendered ',name)
 	  (begin
 	     (let ((code '()))
-		(pushf `(define-php-class ',name ',parent) code)
+		(pushf `(define-php-class ',name ',parent ',flags) code)
 		(php-hash-for-each properties
 		   (lambda (prop-name prop)
 		      (pushf `(define-php-property ',name

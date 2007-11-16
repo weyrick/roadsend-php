@@ -30,8 +30,8 @@
    (export
     +constructor-failed+
     ; definitions
-    (define-php-class name parent-name)
-    (define-extended-php-class name parent-name getter setter copier)
+    (define-php-class name parent-name flags)
+    (define-extended-php-class name parent-name flags getter setter copier)
     (define-php-property class-name property-name value visibility static?)
     (define-php-method class-name method-name flags method)
     ; types
@@ -117,6 +117,8 @@
    name
    ;;a pointer to the parent class of this class
    parent-class
+   ;; class flags: abstract, final
+   flags
    ;; the constructor method if available
    constructor-proc
    ;; the destructor method if available   
@@ -697,19 +699,45 @@ values the values."
 (define (init-php-object-lib)
    (set! %php-class-registry (make-hashtable))
    ;define the root of the class hierarchy
-   (let ((stdclass (%php-class "stdClass" "stdclass" #f #f #f
-			       (make-hashtable) (make-hashtable) (make-vector 0) (make-hashtable)
-			       (make-php-hash) (make-php-hash)
-			       #f #f #f (make-php-hash)))
-	 (inc-class (%php-class "__PHP_Incomplete_Class" "__php_incomplete_class" #f #f #f
-				(make-hashtable) (make-hashtable) (make-vector 0) (make-hashtable)
-				(make-php-hash) (make-php-hash)
-				#f #f #f (make-php-hash)) ))
+   (let ((stdclass (%php-class "stdClass"       ; print name
+			       "stdclass"       ; canonical name
+			       #f               ; parent class
+			       '()              ; flags
+			       #f               ; constructor proc
+			       #f               ; destructor proc
+			       (make-hashtable) ; declared prop offsets
+			       (make-hashtable) ; static prop offets
+			       (make-vector 0)  ; props
+			       (make-hashtable) ; prop visibility
+			       (make-php-hash)  ; extended properties
+			       (make-php-hash)  ; methods
+			       #f               ; custom prop lookup
+			       #f               ; custom prop set
+			       #f               ; custom prop copy
+			       (make-php-hash)  ; class constants
+			       ))
+	 (inc-class (%php-class "__PHP_Incomplete_Class"       ; print name
+			       "__php_incomplete_class"       ; canonical name
+			       #f               ; parent class
+			       '()              ; flags
+			       #f               ; constructor proc
+			       #f               ; destructor proc
+			       (make-hashtable) ; declared prop offsets
+			       (make-hashtable) ; static prop offets
+			       (make-vector 0)  ; props
+			       (make-hashtable) ; prop visibility
+			       (make-php-hash)  ; extended properties
+			       (make-php-hash)  ; methods
+			       #f               ; custom prop lookup
+			       #f               ; custom prop set
+			       #f               ; custom prop copy
+			       (make-php-hash)  ; class constants
+			       )))
       ;;default constructor
       (hashtable-put! %php-class-registry "stdclass" stdclass)
       (hashtable-put! %php-class-registry "__php_incomplete_class" inc-class)))
 
-(define (define-php-class name parent-name)
+(define (define-php-class name parent-name flags)
    (if (%lookup-class name)
        #t ;leave the errors to the evaluator/compiler for now
        (let ((parent-class (if (null? parent-name)
@@ -721,6 +749,7 @@ values the values."
 		 (new-class (%php-class (mkstr name)
 					canonical-name
 					parent-class
+					flags
                                         #f
 					#f
 					(copy-hashtable
@@ -739,14 +768,14 @@ values the values."
 					)))
 	     (hashtable-put! %php-class-registry canonical-name new-class)))))
 
-(define (define-extended-php-class name parent-name getter setter copier)
+(define (define-extended-php-class name parent-name flags getter setter copier)
    "Create a PHP class with an overridden getter and setter.  The getter takes
 four arguments: the object, the property, ref?, and the continuation.  The
 continuation is a procedure of no arguments that can be invoked to get the
 default property lookup behavior.  The setter takes an additional value
 argument, before the continuation: (obj prop ref? value k)."
    ;xxx and a copier, and they can be false to inherit...
-   (define-php-class name parent-name)
+   (define-php-class name parent-name flags)
    (let ((klass (%lookup-class name)))
       (if (%php-class? klass)
 	  (begin

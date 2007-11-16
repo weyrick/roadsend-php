@@ -818,7 +818,7 @@ gives the debugger a chance to run."
 
 (define-method (evaluate node::declared-class)
    (set! *PHP-LINE* (car (ast-node-location node)))
-   (with-access::declared-class node (name parent static-properties class-constants properties methods evaluated?)
+   (with-access::declared-class node (name parent flags static-properties class-constants properties methods evaluated?)
       (if evaluated?
 	  '()
 	  (begin
@@ -829,7 +829,7 @@ gives the debugger a chance to run."
 		      (unless (or parent-klass )
 			 (php-error/loc node (format "propagate: cannot extend unknown class ~A" parent)))
 		      (d/evaluate parent-klass))))
-	     (define-php-class name parent)
+	     (define-php-class name parent flags)
              ;; properties
 	     (php-hash-for-each properties
 		(lambda (prop-name prop)

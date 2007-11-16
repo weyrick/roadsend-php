@@ -115,6 +115,7 @@
     (final-class class-decl::declaration
        name
        parent
+       flags
        class-body
        end-line) ;;the last line of the class
     (final-class property-decl::declaration

@@ -134,7 +134,7 @@
 ; Exception base class
 ; XXX this is incomplete
 (define (build-Exception-class)
-   (define-php-class 'Exception '())
+   (define-php-class 'Exception '() '())
    (define-php-property 'Exception "message" "Unknown exception" 'protected #f)
    (define-php-property 'Exception "code" *zero* 'protected #f)
    (define-php-method 'Exception "__construct" '(public) Exception:__construct)

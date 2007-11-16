@@ -236,15 +236,20 @@
       (class-decl
        ;;using the same trick with classkey as with functionkey
        ;;to get the first line, and with rcurly for the last line
-       ((classkey id lcurly rcurly)
-	(make-class-decl classkey id '() '() rcurly))
-       ((classkey id extends id@parent lcurly rcurly)
-	(make-class-decl classkey id parent '() rcurly))
-       ((classkey id lcurly class-statements rcurly)
-	(make-class-decl classkey id '() class-statements rcurly))
-       ((classkey id extends id@parent lcurly class-statements rcurly)
-	(make-class-decl classkey id parent class-statements rcurly)))
+       ((class-decl-flags classkey id lcurly rcurly)
+	(make-class-decl classkey id '() class-decl-flags '() rcurly))
+       ((class-decl-flags classkey id extends id@parent lcurly rcurly)
+	(make-class-decl classkey id parent class-decl-flags '() rcurly))
+       ((class-decl-flags classkey id lcurly class-statements rcurly)
+	(make-class-decl classkey id '() class-decl-flags class-statements rcurly))
+       ((class-decl-flags classkey id extends id@parent lcurly class-statements rcurly)
+	(make-class-decl classkey id parent class-decl-flags class-statements rcurly)))
 
+      (class-decl-flags
+       (() '())
+       ((final) (list 'final))
+       ((abstract) (list 'abstract)))
+      
       (class-statements
        ((class-statement class-statements)
 	(cons class-statement class-statements))
@@ -252,7 +257,7 @@
 
       (class-statement
        ((class-var-flags class-vars semi) (do-property-flags class-var-flags class-vars))
-       ((class-function-flags class-functions) (do-method-flags class-function-flags class-functions))
+       ((class-function-flags class-function) (do-method-flags class-function-flags class-function))
        ((classconst id equals decl-literal semi) (make-class-constant-decl *parse-loc* id decl-literal)))
 
       (class-var-flags
@@ -286,23 +291,24 @@
        ((var)
 	(make-property-decl *parse-loc* var '() #f 'public)))
 
-      (class-functions
-       ((class-function) (list class-function)))
-      
       ;;note that, like for regular functions, the current line is snuck in by
       ;;way of functionkey, because otherwise you get the end of the function
       ;;instead of the beginning.
       ;;also, rcurly's value is the last line number of the method
       (class-function
-       ((functionkey function-name lpar decl-arglist rpar lcurly statements rcurly)
-	(make-method-decl functionkey function-name decl-arglist (reverse statements) #f rcurly #f 'public))
-       ((functionkey ref function-name lpar decl-arglist rpar lcurly statements rcurly)
-	(make-method-decl functionkey function-name decl-arglist (reverse statements) #t rcurly #f 'public))
-       ((functionkey function-name lpar decl-arglist rpar lcurly rcurly)
-	(make-method-decl functionkey function-name decl-arglist '() #f rcurly #f 'public))
-       ((functionkey ref function-name lpar decl-arglist rpar lcurly rcurly)
-	(make-method-decl functionkey function-name decl-arglist '() #t rcurly #f 'public)))
+       ; non-abstract
+       ((functionkey maybe-ref function-name lpar decl-arglist rpar lcurly statements rcurly)
+	(make-method-decl functionkey function-name decl-arglist (reverse statements) maybe-ref rcurly #f 'public))
+       ; abstract
+       ((functionkey maybe-ref function-name lpar decl-arglist rpar)
+	(make-method-decl functionkey function-name decl-arglist '() maybe-ref rpar #f '(public abstract)))       
+       ((functionkey maybe-ref function-name lpar decl-arglist rpar lcurly rcurly)
+	(make-method-decl functionkey function-name decl-arglist '() maybe-ref rcurly #f '(public abstract))))
 
+      (maybe-ref
+       (() #f)
+       ((ref) #t))
+      
       ;
       
       (decl-literal
@@ -877,10 +883,10 @@
 		(set! seen-visibility #t))))
       prop-decl-list))
 
-(define (do-method-flags flags method-decl-list)
+(define (do-method-flags flags method-decl)
    (let ((seen-visibility #f))
       (when (member 'static flags)
-	 (map (lambda (c) (method-decl-static?-set! c #t) c) method-decl-list))
+	 (method-decl-static?-set! method-decl #t))
       (when (member 'public flags)
 	 (set! seen-visibility #t))
       (when (member 'private flags)
@@ -893,8 +899,15 @@
 	     (error 'do-method-flags "Multiple access type modifiers are not allowed" "")
 	     (begin
 		(set! seen-visibility #t))))
-      (map (lambda (c) (method-decl-flags-set! c flags) c) method-decl-list)
-      method-decl-list))
+      (when (and (member 'abstract flags)
+		 (not (null? (method-decl-body method-decl))))
+	 (error 'do-method-flags "Abstract function cannot contain a body" ""))
+      (when (and (null? (method-decl-body method-decl))
+		 (not (member 'abstract flags)))
+	 (error 'do-method-flags "Non-abstract method must contain a body" ""))
+      (method-decl-flags-set! method-decl flags)
+      method-decl))
+
 
 (define (check-lval-writeable lval)
    ;; one of the novel properties of the new php5 grammar is that a
