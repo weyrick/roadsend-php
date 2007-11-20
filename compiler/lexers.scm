@@ -252,6 +252,7 @@
 
 	 ;;same trick as functionkey
 	 ((uncase "class") (stok 'classkey (cons *current-lineno* *current-file*)))
+	 ((uncase "interface") (stok 'interfacekey (cons *current-lineno* *current-file*)))
 
          ((uncase "public") (stok 'public))
          ((uncase "private") (stok 'private))
@@ -260,6 +261,7 @@
 	 ((uncase "final") (stok 'final))
 
 	 ((uncase "extends") (stok 'extends))
+	 ((uncase "implements") (stok 'implements))
 
 	 ((uncase "array") (stok 'array (cons *current-lineno* *current-file*)))
 

@@ -65,7 +65,7 @@
        ifkey ;elsekey elseifkey ;somehow, the dangling-else problem is magically fixed.
        semi
        rpar definekey endif varkey casekey endswitch switch default id 
-       array classkey for break includekey requirekey include-once require-once
+       array classkey implements interfacekey for break includekey requirekey include-once require-once
        global endwhile while  var  rcurly ;html
        rbrak echokey functionkey returnkey string extends
        array-arrow dokey unset foreach endforeach endfor foreach-as parent
@@ -236,25 +236,37 @@
       (class-decl
        ;;using the same trick with classkey as with functionkey
        ;;to get the first line, and with rcurly for the last line
-       ((class-decl-flags classkey id lcurly rcurly)
-	(make-class-decl classkey id '() class-decl-flags '() rcurly))
-       ((class-decl-flags classkey id extends id@parent lcurly rcurly)
-	(make-class-decl classkey id parent class-decl-flags '() rcurly))
-       ((class-decl-flags classkey id lcurly class-statements rcurly)
-	(make-class-decl classkey id '() class-decl-flags class-statements rcurly))
-       ((class-decl-flags classkey id extends id@parent lcurly class-statements rcurly)
-	(make-class-decl classkey id parent class-decl-flags class-statements rcurly)))
 
+       ; class
+       ((class-decl-flags classkey id maybe-extends maybe-implements lcurly class-statements rcurly)
+	(make-class-decl classkey id maybe-extends maybe-implements class-decl-flags class-statements rcurly))
+       ; interface (abstract class)
+       ((interfacekey id maybe-extends lcurly class-statements rcurly)
+	(make-class-decl interfacekey id maybe-extends '() (list 'interface 'abstract) class-statements rcurly)))
+
+      (maybe-implements
+       (() '())
+       ((implements interface-list) interface-list))
+
+      (interface-list
+       ((id@class-name comma interface-list) (cons class-name interface-list ))
+       ((id@class-name) (list class-name)))
+      
+      (maybe-extends
+       (() '())
+       ((extends id) id))
+      
       (class-decl-flags
        (() '())
        ((final) (list 'final))
        ((abstract) (list 'abstract)))
-      
+
       (class-statements
+       (() '())
        ((class-statement class-statements)
 	(cons class-statement class-statements))
        ((class-statement) (list class-statement)))
-
+            
       (class-statement
        ((class-var-flags class-vars semi) (do-property-flags class-var-flags class-vars))
        ((class-function-flags class-function) (do-method-flags class-function-flags class-function))
@@ -300,8 +312,8 @@
        ((functionkey maybe-ref function-name lpar decl-arglist rpar lcurly statements rcurly)
 	(make-method-decl functionkey function-name decl-arglist (reverse statements) maybe-ref rcurly #f 'public))
        ; abstract
-       ((functionkey maybe-ref function-name lpar decl-arglist rpar)
-	(make-method-decl functionkey function-name decl-arglist '() maybe-ref rpar #f '(public abstract)))       
+       ((functionkey maybe-ref function-name lpar decl-arglist rpar semi)
+	(make-method-decl functionkey function-name decl-arglist '() maybe-ref rpar #f '(public abstract)))
        ((functionkey maybe-ref function-name lpar decl-arglist rpar lcurly rcurly)
 	(make-method-decl functionkey function-name decl-arglist '() maybe-ref rcurly #f '(public abstract))))
 
@@ -899,12 +911,15 @@
 	     (error 'do-method-flags "Multiple access type modifiers are not allowed" "")
 	     (begin
 		(set! seen-visibility #t))))
-      (when (and (member 'abstract flags)
-		 (not (null? (method-decl-body method-decl))))
-	 (error 'do-method-flags "Abstract function cannot contain a body" ""))
-      (when (and (null? (method-decl-body method-decl))
-		 (not (member 'abstract flags)))
-	 (error 'do-method-flags "Non-abstract method must contain a body" ""))
+      
+; XXX we have to do these checks in declare, we don't have enough information here
+;      (when (and (member 'abstract flags)
+;		 (not (null? (method-decl-body method-decl))))
+;	 (error 'do-method-flags "Abstract function cannot contain a body" ""))
+;      (when (and (null? (method-decl-body method-decl))
+;		 (not (member 'abstract flags)))
+;	 (error 'do-method-flags "Non-abstract method must contain a body" ""))
+      
       (method-decl-flags-set! method-decl flags)
       method-decl))
 

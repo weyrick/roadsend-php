@@ -24,6 +24,7 @@
 	   (grass "grasstable.scm")
 	   (php-hash "php-hash.scm")
 	   (utils "utils.scm")
+	   (signatures "signatures.scm")	   
 	   (php-errors "php-errors.scm"))
    ; for pcc scheme repl
    (eval (export-module))
@@ -360,7 +361,7 @@ values the values."
 		     #f))))))
 
 (define (php-class-exists? class-name)
-   (let ((c (%lookup-class class-name)))
+   (let ((c (%lookup-class-with-autoload class-name)))
       (if (%php-class? c)
 	  #t
 	  #f)))
@@ -477,7 +478,7 @@ values the values."
 
 
 (define (call-static-php-method class-name obj method-name . call-args)
-   (let ((the-class (%lookup-class class-name)))
+   (let ((the-class (%lookup-class-with-autoload class-name)))
       (unless the-class
 	 (php-error "Calling static method " method-name
 		    ": unable to find class definition " class-name))
@@ -688,6 +689,7 @@ values the values."
    (if (string? name) name (mkstr name)))
 
 (define %php-class-registry 'unset)
+(define %php-autoload-registry 'unset)
 
 (define (get-declared-php-classes)
    (let ((clist (make-php-hash)))
@@ -698,6 +700,7 @@ values the values."
 
 (define (init-php-object-lib)
    (set! %php-class-registry (make-hashtable))
+   (set! %php-autoload-registry (make-hashtable))
    ;define the root of the class hierarchy
    (let ((stdclass (%php-class "stdClass"       ; print name
 			       "stdclass"       ; canonical name
@@ -742,7 +745,7 @@ values the values."
        #t ;leave the errors to the evaluator/compiler for now
        (let ((parent-class (if (null? parent-name)
 			       (%lookup-class "stdclass")
-			       (%lookup-class parent-name))))
+			       (%lookup-class-with-autoload parent-name))))
 	  (unless parent-class
 	     (php-error "Defining class " name ": unable to find parent class " parent-name))
 	  (let* ((canonical-name (%class-name-canonicalize name))
@@ -881,8 +884,25 @@ argument, before the continuation: (obj prop ref? value k)."
 				  canonical-name
 				  visibility)))))))
 
+
 (define (%lookup-class name)
    (hashtable-get %php-class-registry (%class-name-canonicalize name)))
+
+; here we try magic __autoload global function if the class name is
+; not found (PHP5 feature)
+(define (%lookup-class-with-autoload name)
+   (let ((the-class (%lookup-class name)))
+      (if the-class
+	  the-class
+	  ; try autoload
+	  (let ((canonical-name (%class-name-canonicalize name))
+		(autoload-proc (get-php-function-sig "__autoload")))
+	     (if autoload-proc
+		 (unless (hashtable-get %php-autoload-registry canonical-name)
+		    (hashtable-put! %php-autoload-registry canonical-name #t)
+		    (php-funcall "__autoload" (mkstr name))
+		    (%lookup-class name))
+		 #f)))))
 
 ;;I think that all methods must be manifest when a class is defined
 ;;(i.e. before calling any of them), so we don't look at the parent
@@ -976,8 +996,8 @@ argument, before the continuation: (obj prop ref? value k)."
    ; #f - global context, only public access
    ; class-name should be a currently defined class symbol (with self and parent already processed)
    (if (not (eqv? context #f))
-       (let ((the-class (%lookup-class class-name))
-	     (context-class (%lookup-class context))
+       (let ((the-class (%lookup-class-with-autoload class-name))
+	     (context-class (%lookup-class-with-autoload context))
 	     (access-type 'public))
 	  (unless (and the-class context-class)
 	     (php-error "static property check on unknown class or context: " class-name " | " context))
@@ -1005,7 +1025,7 @@ argument, before the continuation: (obj prop ref? value k)."
        'public))
 
 (define (php-class-static-property class-name property access-type)
-   (let ((the-class (%lookup-class class-name)))
+   (let ((the-class (%lookup-class-with-autoload class-name)))
       (unless the-class
 	 (php-error "Getting static property " property ": unknown class " class-name))
       (let ((val (%lookup-static-prop class-name property access-type)))
@@ -1014,7 +1034,7 @@ argument, before the continuation: (obj prop ref? value k)."
 	  (php-error "Access to undeclared static property: " class-name "::" property)))))	     
 
 (define (php-class-static-property-ref class-name property access-type)
-   (let ((the-class (%lookup-class class-name)))
+   (let ((the-class (%lookup-class-with-autoload class-name)))
       (unless the-class
 	 (php-error "Getting static property " property ": unknown class " class-name))
       (let ((val (%lookup-static-prop-ref class-name property access-type)))
@@ -1150,7 +1170,7 @@ argument, before the continuation: (obj prop ref? value k)."
 
 (define +constructor-failed+ (cons '() '()))
 (define (construct-php-object class-name . args)
-   (let ((the-class (%lookup-class class-name)))
+   (let ((the-class (%lookup-class-with-autoload class-name)))
       (unless the-class
 	 (php-error "Unable to instantiate " class-name ": undefined class."))
       ;
@@ -1183,7 +1203,7 @@ argument, before the continuation: (obj prop ref? value k)."
 
 
 (define (construct-php-object-sans-constructor class-name)
-   (let ((the-class (%lookup-class class-name)))
+   (let ((the-class (%lookup-class-with-autoload class-name)))
       (unless the-class
 	 (php-error "Unable to instantiate " class-name ": undefined class."))
       (let ((new-object (%php-object (%next-instantiation-id)
