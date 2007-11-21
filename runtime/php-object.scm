@@ -55,7 +55,8 @@
     (php-class-is-subclass subclass superclass)
     (php-object-is-a obj class-name)
     (php-object-compare obj1 obj2 identical?)
-    (internal-object-compare o1 o2 identical? seen)    
+    (internal-object-compare o1 o2 identical? seen)
+    (php-object-instanceof a b)
     ; properties
     (php-class-props class-name)
     (php-object-property/index obj::struct property::int property-name)
@@ -581,6 +582,22 @@ values the values."
 	     (set obj property (container? value) value  (lambda ()
 							   (loop (%php-class-parent-class cls))))
 	     (%assign-prop obj property value 'public)))))
+
+;
+; a must be an object
+; b can be a class (or interface) name OR
+;   a string containing a class name OR
+;   an instantiated object we get class (or interface) name from
+(define (php-object-instanceof a b)
+   (let ((l (maybe-unbox a))
+	 (r (maybe-unbox b)))
+      (unless (php-object? l)
+	 (php-error "instanceof expects an object instance"))
+      (if (php-object? r)
+	  ; use object to get class to compare against
+	  (php-object-is-a l (php-object-class r))
+	  ; consider b as a literal class name
+	  (php-object-is-a l (mkstr r)))))
 
 (define (php-object-compare o1 o2 identical?)
    (internal-object-compare o1 o2 identical? (make-grasstable)))

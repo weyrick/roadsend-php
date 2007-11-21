@@ -297,6 +297,9 @@
 	 ((uncase "throw") (stok 'throwkey))
 	 ((uncase "catch") (stok 'catchkey))
 	 
+	 ; we're piggy backing comparator. zend actually doesn't allow a constant as
+	 ; an operand and throws a parse error
+	 ("instanceof" (stok 'comparator 'instanceof))
 
 	 ;typecasts
 	 ((: "(" (* space) "bool" (* space) ")" )    (stok 'boolcast "bool"))

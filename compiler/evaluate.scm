@@ -1080,7 +1080,8 @@ gives the debugger a chance to run."
 	    ((less-than-p) (less-than-p p q))
 	    ((less-than-or-equal-p) (less-than-or-equal-p p q))
 	    ((greater-than-p) (greater-than-p p q))
-	    ((greater-than-or-equal-p) (greater-than-or-equal-p p q))))))
+	    ((greater-than-or-equal-p) (greater-than-or-equal-p p q))
+	    ((instanceof) (php-object-instanceof p q))))))
 
 (define-method (evaluate node::boolean-not)
    (set! *PHP-LINE* (car (ast-node-location node)))

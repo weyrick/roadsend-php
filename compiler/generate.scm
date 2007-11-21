@@ -1241,8 +1241,8 @@ onum.  Append the bindings for the new symbols and code."
 		((less-than-p) `(less-than-p/num ,p ,q))
 		((less-than-or-equal-p) `(less-than-or-equal-p/num ,p ,q))
 		((greater-than-p) `(greater-than-p/num ,p ,q))
-		((greater-than-or-equal-p) `(greater-than-or-equal-p/num ,p ,q))))
-	  
+		((greater-than-or-equal-p) `(greater-than-or-equal-p/num ,p ,q))
+		((instanceof) (delayed-error/loc node "instanceof expects an object instance"))))
 	  (let ((p (get-value p))
 		(q (get-value q)))
 	     (ecase op
@@ -1253,7 +1253,8 @@ onum.  Append the bindings for the new symbols and code."
 		((less-than-p) `(less-than-p ,p ,q))
 		((less-than-or-equal-p) `(less-than-or-equal-p ,p ,q))
 		((greater-than-p) `(greater-than-p ,p ,q))
-		((greater-than-or-equal-p) `(greater-than-or-equal-p ,p ,q)))))))
+		((greater-than-or-equal-p) `(greater-than-or-equal-p ,p ,q))
+		((instanceof) `(php-object-instanceof ,p ,q)))))))
 
 (define-method (generate-code node::boolean-not)
    (with-access::boolean-not node (p)

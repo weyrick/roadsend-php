@@ -246,7 +246,10 @@
 	(make-class-decl classkey id maybe-class-extends maybe-implements class-decl-flags '() rcurly))       
        ; interface (abstract class)
        ((interfacekey id maybe-interface-extends lcurly class-statements rcurly)
-	(make-class-decl interfacekey id maybe-interface-extends '() (list 'interface 'abstract) class-statements rcurly)))
+	(make-class-decl interfacekey id maybe-interface-extends '() (list 'interface 'abstract) class-statements rcurly))
+       ; empty interface
+       ((interfacekey id maybe-interface-extends lcurly rcurly)
+	(make-class-decl interfacekey id maybe-interface-extends '() (list 'interface 'abstract) '() rcurly)))
 
       (maybe-implements
        (() '())
