@@ -394,14 +394,16 @@ values the values."
 (define (call-php-method obj method-name . call-args)
    (if (not (php-object? obj))
        (php-error "Unable to call method on non-object " obj)
-       (let ((the-method (%lookup-method-proc (%php-object-class obj) method-name)))
+       (let ((the-method (%lookup-method (%php-object-class obj) method-name)))
 	  (unless the-method
 	     (php-error "Calling method "
 			(%php-class-print-name (%php-object-class obj))
 			"->" method-name ": undefined method."))
+	  (when (member 'abstract (%php-method-flags the-method))
+	     (php-error (format "Cannot call abstract method ~a::~a()" (%php-object-class obj) method-name)))
 	  ;; We could just apply the method to (map maybe-box call-args), but
 	  ;; that won't signal a nice error for methods compiled in extensions.
-          (apply the-method obj (adjust-argument-list the-method call-args)))))
+          (apply (%php-method-proc the-method) obj (adjust-argument-list (%php-method-proc the-method) call-args)))))
 
 (define (adjust-argument-list method args)
    ;; make sure the arguments are boxed and that the arity is okay.
@@ -425,45 +427,53 @@ values the values."
    (if (not (php-object? obj))
        (php-error
 	(format "Unable to call method on non-object ~A" (mkstr obj)))
-       (let ((the-method (%lookup-method-proc (%php-object-class obj) method-name)))
+       (let ((the-method (%lookup-method (%php-object-class obj) method-name)))
 	  (unless the-method
 	     (php-error "Calling method "
 			(%php-class-print-name (%php-object-class obj))
 			"->" method-name ": undefined method."))
-	  (the-method obj))))
+	  (when (member 'abstract (%php-method-flags the-method))
+	     (php-error (format "Cannot call abstract method ~a::~a()" (%php-object-class obj) method-name)))
+	  ((%php-method-proc the-method) obj))))
 
 (define (call-php-method-1 obj method-name arg)
    (if (not (php-object? obj))
        (php-error
 	(format "Unable to call method on non-object ~A" (mkstr obj)))
-       (let ((the-method (%lookup-method-proc (%php-object-class obj) method-name)))
+       (let ((the-method (%lookup-method (%php-object-class obj) method-name)))
 	  (unless the-method
 	     (php-error "Calling method "
 			(%php-class-print-name (%php-object-class obj))
 			"->" method-name ": undefined method."))
-	  (the-method obj (maybe-box arg))) ))
+	  (when (member 'abstract (%php-method-flags the-method))
+	     (php-error (format "Cannot call abstract method ~a::~a()" (%php-object-class obj) method-name)))
+	  ((%php-method-proc the-method) obj (maybe-box arg))) ))
 
 (define (call-php-method-2 obj method-name arg1 arg2)
    (if (not (php-object? obj))
        (php-error
 	(format "Unable to call method on non-object ~A" (mkstr obj)))
-       (let ((the-method (%lookup-method-proc (%php-object-class obj) method-name)))
+       (let ((the-method (%lookup-method (%php-object-class obj) method-name)))
 	  (unless the-method
 	     (php-error "Calling method "
 			(%php-class-print-name (%php-object-class obj))
 			"->" method-name ": undefined method."))
-	  (the-method obj (maybe-box arg1) (maybe-box arg2))) ))
+	  (when (member 'abstract (%php-method-flags the-method))
+	     (php-error (format "Cannot call abstract method ~a::~a()" (%php-object-class obj) method-name)))
+	  ((%php-method-proc the-method) obj (maybe-box arg1) (maybe-box arg2))) ))
 
 (define (call-php-method-3 obj method-name arg1 arg2 arg3)
    (if (not (php-object? obj))
        (php-error
 	(format "Unable to call method on non-object ~A" (mkstr obj)))
-       (let ((the-method (%lookup-method-proc (%php-object-class obj) method-name)))
+       (let ((the-method (%lookup-method (%php-object-class obj) method-name)))
 	  (unless the-method
 	     (php-error "Calling method "
 			(%php-class-print-name (%php-object-class obj))
 			"->" method-name ": undefined method."))
-	  (the-method obj (maybe-box arg1) (maybe-box arg2) (maybe-box arg3))) ))
+	  (when (member 'abstract (%php-method-flags the-method))
+	     (php-error (format "Cannot call abstract method ~a::~a()" (%php-object-class obj) method-name)))
+	  ((%php-method-proc the-method) obj (maybe-box arg1) (maybe-box arg2) (maybe-box arg3))) ))
 
 (define (call-php-parent-method parent-class-name obj method-name . call-args)
    (let ((the-class (%lookup-class parent-class-name)))
@@ -471,11 +481,13 @@ values the values."
 	 (php-error
 	  (format "Parent method call: Unable to call method parent::~A: can't find parent class ~A"
 		  method-name parent-class-name)))
-      (let ((the-method (%lookup-method-proc the-class method-name)))
+      (let ((the-method (%lookup-method the-class method-name)))
 	 (unless the-method
 	    (php-error "Parent method call: Unable to find method "
-		     method-name " of class " parent-class-name))
-	 (apply the-method obj (adjust-argument-list the-method call-args)))))
+		       method-name " of class " parent-class-name))
+	 (when (member 'abstract (%php-method-flags the-method))
+	    (php-error (format "Cannot call abstract method ~a::~a()" parent-class-name method-name)))
+	 (apply (%php-method-proc the-method) obj (adjust-argument-list (%php-method-proc the-method) call-args)))))
 
 
 (define (call-static-php-method class-name obj method-name . call-args)

@@ -285,7 +285,7 @@
 			(fprint (current-error-port)
 				(with-output-to-string
 				   (lambda ()
-				      (print "Runtime error in file " *PHP-FILE* " on line " *PHP-LINE* ": " msg)
+				      (print "Fatal error: " msg " in " *PHP-FILE* " on line " *PHP-LINE*)
 				      (print-stack-trace))))
 			(when (or (> *debug-level* 1) (getenv "BIGLOOSTACKDEPTH"))
 			   (print "\n--- Bigloo Stack:\n")
@@ -293,7 +293,7 @@
 			   (print "\n")))
 		     ; web mode, html
 		     (begin
-			(print "\n\n<br /><b>Runtime error</b> in file " *PHP-FILE* " on line " *PHP-LINE* ": " msg "<br />")
+			(print "\n\n<br /><b>Fatal error:</b> " msg " in " *PHP-FILE* " on line " *PHP-LINE* "<br />")
 			(print-stack-trace-html)
 			(when (or (> *debug-level* 1) (getenv "BIGLOOSTACKDEPTH"))
 			   (print "<pre>--- Bigloo Stack:\n")
