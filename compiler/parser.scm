@@ -47,6 +47,7 @@
        (left: bitwise-shift-equals bitwise-not-equals bitwise-xor-equals bitwise-or-equals bitwise-and-equals)
        (right: printkey)
        (right: static abstract final public private protected)
+       (right: catchkey)
        (left: andkey)
        (left: xorkey)
        (left: orkey)
@@ -70,7 +71,7 @@
        rbrak echokey functionkey returnkey string extends
        array-arrow dokey unset foreach endforeach endfor foreach-as parent
        boolean integer float nullkey listkey clone ;globalhash
-       this continue throwkey trykey catchkey selfkey classconst)
+       this continue throwkey trykey selfkey classconst)
 
       (start
        ((statements) (finish-ast (reverse statements))))
@@ -166,7 +167,7 @@
 	(make-nop *parse-loc*)))
 
       ;; end statement
-      
+
       (exit-stmt
        ((exitkey rval)
 	(make-exit-stmt *parse-loc* rval))
@@ -238,21 +239,29 @@
        ;;to get the first line, and with rcurly for the last line
 
        ; class
-       ((class-decl-flags classkey id maybe-extends maybe-implements lcurly class-statements rcurly)
-	(make-class-decl classkey id maybe-extends maybe-implements class-decl-flags class-statements rcurly))
+       ((class-decl-flags classkey id maybe-class-extends maybe-implements lcurly class-statements rcurly)
+	(make-class-decl classkey id maybe-class-extends maybe-implements class-decl-flags class-statements rcurly))
+       ; empty class
+       ((class-decl-flags classkey id maybe-class-extends maybe-implements lcurly rcurly)
+	(make-class-decl classkey id maybe-class-extends maybe-implements class-decl-flags '() rcurly))       
        ; interface (abstract class)
-       ((interfacekey id maybe-extends lcurly class-statements rcurly)
-	(make-class-decl interfacekey id maybe-extends '() (list 'interface 'abstract) class-statements rcurly)))
+       ((interfacekey id maybe-interface-extends lcurly class-statements rcurly)
+	(make-class-decl interfacekey id maybe-interface-extends '() (list 'interface 'abstract) class-statements rcurly)))
 
       (maybe-implements
        (() '())
        ((implements interface-list) interface-list))
 
+
+      (maybe-interface-extends
+       (() '())
+       ((extends interface-list) interface-list))
+      
       (interface-list
        ((id@class-name comma interface-list) (cons class-name interface-list ))
        ((id@class-name) (list class-name)))
       
-      (maybe-extends
+      (maybe-class-extends
        (() '())
        ((extends id) id))
       
@@ -262,7 +271,6 @@
        ((abstract) (list 'abstract)))
 
       (class-statements
-       (() '())
        ((class-statement class-statements)
 	(cons class-statement class-statements))
        ((class-statement) (list class-statement)))
@@ -290,8 +298,7 @@
        ((private) 'private)
        ((protected) 'protected)
        ((abstract) 'abstract)
-       ((final) 'final)
-       )
+       ((final) 'final))
            
       (class-vars
        ((class-var comma class-vars) (cons class-var class-vars))
@@ -317,10 +324,6 @@
        ((functionkey maybe-ref function-name lpar decl-arglist rpar lcurly rcurly)
 	(make-method-decl functionkey function-name decl-arglist '() maybe-ref rcurly #f '(public abstract))))
 
-      (maybe-ref
-       (() #f)
-       ((ref) #t))
-      
       ;
       
       (decl-literal
@@ -391,26 +394,26 @@
 
 
       (optional-decl-arg-with-value
-       ((ref var equals decl-literal)
-	(make-optional-formal-param *parse-loc* var #t decl-literal))
-       ((var equals decl-literal)
-	(make-optional-formal-param *parse-loc* var #f decl-literal)))
+       ((maybe-typehint maybe-ref var equals decl-literal)
+	(make-optional-formal-param *parse-loc* var maybe-ref maybe-typehint decl-literal)))
 
       (optional-decl-arg-without-value
-       ((ref var)
-	(make-optional-formal-param *parse-loc* var #t
-				    (make-literal-null *parse-loc* '()))) 
-       ((var)
-	(make-optional-formal-param *parse-loc* var #f
-				    (make-literal-null *parse-loc* '()))))
+       ((maybe-typehint maybe-ref var)
+	(make-optional-formal-param *parse-loc* var maybe-ref maybe-typehint (make-literal-null *parse-loc* '()))))
 
       (required-decl-arg
-       ((ref var)
-	(make-required-formal-param *parse-loc* var #t))
-       ((var)
-	(make-required-formal-param *parse-loc* var #f)))
-      
+       ((maybe-typehint maybe-ref var)
+	(make-required-formal-param *parse-loc* var maybe-ref maybe-typehint)))
 
+      (maybe-typehint
+       (() '())
+       ((id) id)
+       ((array) 'array))
+
+      (maybe-ref
+       (() #f)
+       ((ref) #t))
+            
       ;;global variables
       (global-decl
        ((global global-decl-varlist semi) global-decl-varlist))
@@ -911,6 +914,11 @@
 	     (error 'do-method-flags "Multiple access type modifiers are not allowed" "")
 	     (begin
 		(set! seen-visibility #t))))
+      ; this currently happens for methods in an interface, since it's implicit. we clean
+      ; it up here for easier processing later
+      (when (and (null? (method-decl-body method-decl))
+		 (not (member 'abstract flags)))
+	 (set! flags (cons 'abstract flags)))
       
 ; XXX we have to do these checks in declare, we don't have enough information here
 ;      (when (and (member 'abstract flags)

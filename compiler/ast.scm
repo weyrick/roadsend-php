@@ -154,7 +154,8 @@
 
     (abstract-class formal-param::ast-node
        name
-       ref?)
+       ref?
+       typehint)
     (final-class required-formal-param::formal-param)
     (final-class optional-formal-param::formal-param default-value)
     
