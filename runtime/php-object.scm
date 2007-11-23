@@ -1181,6 +1181,8 @@ argument, before the continuation: (obj prop ref? value k)."
    (let ((the-class (%lookup-class-with-autoload class-name)))
       (unless the-class
 	 (php-error "Unable to instantiate " class-name ": undefined class."))
+      (when (member 'abstract (%php-class-flags the-class))
+	 (php-error "Cannot instantiate abstract class " class-name))
       ;
       ; XXX we're copying all properties here, but we shouldn't be copying static
       ; properties since they will never be accessed from the object vector (they use the
@@ -1214,6 +1216,8 @@ argument, before the continuation: (obj prop ref? value k)."
    (let ((the-class (%lookup-class-with-autoload class-name)))
       (unless the-class
 	 (php-error "Unable to instantiate " class-name ": undefined class."))
+      (when (member 'abstract (%php-class-flags the-class))
+	 (php-error "Cannot instantiate abstract class " class-name))
       (let ((new-object (%php-object (%next-instantiation-id)
 			             the-class
 				     ;
