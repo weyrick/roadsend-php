@@ -282,11 +282,12 @@
 		 (if *commandline?*
 		     ; command line, no html
 		     (begin
-			(fprint (current-error-port)
+			(fprint (current-output-port)
 				(with-output-to-string
 				   (lambda ()
-				      (print "Fatal error: " msg " in " *PHP-FILE* " on line " *PHP-LINE*)
-				      (print-stack-trace))))
+				      (print "\nFatal error: " msg " in " *PHP-FILE* " on line " *PHP-LINE*)
+				      (when (> *debug-level* 0)
+					 (print-stack-trace)))))
 			(when (or (> *debug-level* 1) (getenv "BIGLOOSTACKDEPTH"))
 			   (print "\n--- Bigloo Stack:\n")
 			   (dump-bigloo-stack (current-output-port) (or (mkfixnum (getenv "BIGLOOSTACKDEPTH")) 10))
