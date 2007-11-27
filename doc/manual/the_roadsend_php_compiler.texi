@@ -48,6 +48,7 @@ Introduction
 Installation and Configuration
 
 * Requirements::                
+* Installing From Source::      
 * Installing Roadsend PHP on Unix::  
 * Installing Roadsend PHP on Windows::  
 * Configuration::               
@@ -69,11 +70,11 @@ Features
 
 Language Reference
 
-* Differences Between Roadsend And Open Source PHP::  
+* Differences Between Roadsend And Zend PHP::  
 * Writing Portable PHP Code::   
 * Extensions Provided::         
 
-Differences Between Roadsend And Open Source PHP
+Differences Between Roadsend And Zend PHP
 
 * INI File Entries::            
 * Handling Include Files::      
@@ -247,17 +248,17 @@ programming paradigms
 @node What Is Roadsend PHP?, The Future of Roadsend PHP, What Is PHP?, Introduction
 @section What Is Roadsend PHP?
 
-Roadsend PHP is a complete implementation of the PHP
-language and runtime environment, and is independent of
-the original open source version. 
+Roadsend PHP is a stand alone implementation of the PHP
+language and runtime environment. It is designed to be 
+compatible with (but independent of) the original
+reference version of PHP which uses the Zend engine.
 
-The Roadsend PHP implementation extends the original design of PHP to
-allow for features that are not possible with the open source version.
-Roadsend PHP is syntactically and semantically compatible
-with the PHP 4.x series.
+The Roadsend PHP implementation extends the design of PHP to
+allow for features that are not possible with the original version, including
+native compilation of PHP to machine code.
 
 
-@subheading How Is Roadsend PHP different from the Open Source version?
+@subheading How Is Roadsend PHP different from the reference implementation (Zend)?
 
 The original PHP implementation was designed as a server side web
 scripting language. All code is interpreted at runtime and source code
@@ -268,11 +269,11 @@ While the original design of PHP ideally suited it for server side web
 applications, its use for commercial projects in other areas is limited.
 
 Roadsend PHP enables programmers to take advantage of the power and
-flexibility of the PHP language to create a wide variety commercial
+flexibility of the PHP language to create a wide variety
 applications (for the web and otherwise), while drawing on a large
 repository of code, documentation, and community support.
 
-Because Roadsend PHP is compatible with Open Source PHP, developers can
+Because Roadsend PHP is compatible with Zend PHP, developers can
 apply their existing knowledge of the language and use much of their current
 code base unchanged.
 
@@ -480,14 +481,13 @@ PHP, }@pxref{Features}.
 @section The Future of Roadsend PHP
 
 Roadsend PHP is continually growing based on the needs of our
-customers. Some features we have planned for the future include:  
+users. Some features we have planned for the future include:  
 
 
 @itemize 
 
 @item
-Continued compatibility with Open Source PHP including version 5
-features which will offer significant improvements to PHP's Object framework.
+Continued compatibility with Zend PHP
 
 @item 
 Cross compile applications into Unix executables from within the
@@ -499,9 +499,6 @@ Increased accessibility to the Windows API
 @item
 Java and .NET interoperability with the ability to compile
 your PHP to Java or .NET byte code
-
-@item
-More platform support including MacOS X and more flavors of Unix
 
 @item
 Ability to easily create your own extensions that interface with
@@ -588,18 +585,18 @@ Continued optimization of compiler and runtime libraries for more speed
 
 @menu
 * Requirements::                
+* Installing From Source::      
 * Installing Roadsend PHP on Unix::  
 * Installing Roadsend PHP on Windows::  
 * Configuration::               
 * Uninstalling::                
 @end menu
 
-@node Requirements, Installing Roadsend PHP on Unix, Installation and Configuration, Installation and Configuration
+@node Requirements, Installing From Source, Installation and Configuration, Installation and Configuration
 @section Requirements
 
 
-Roadsend PHP supports 32 bit x86 architecture. Native 64 bit (ie AMD64
-and IA64) and non-Intel architectures are not yet supported.
+Roadsend PHP supports native compilation on 32 bit x86 and 64 bit amd64 architectures.
 
 @strong{Supported Platforms}
 
@@ -615,7 +612,11 @@ FreeBSD
 @item
 Windows
 @tab 
-XP/NT/2000
+XP/NT/2000/Vista
+@item
+Mac
+@tab
+OS X
 @end multitable
 
 @subheading Required Development Environment
@@ -626,10 +627,10 @@ software to be preinstalled on the host system:
 @itemize 
 
 @item
-GNU LIBC (GLIBC) >= 2.3.4
+GNU LIBC (GLIBC) >= 2.6.x
 
 @item
-GNU C Compiler (gcc) >= 2.95
+GNU C Compiler (gcc) >= 3.4.x
 
 @item
 GNU LD linker (ld)
@@ -645,33 +646,26 @@ No additional software it needed.
 @subheading Optional Libraries
 
 The following libraries are optional, but if available may be used with the appropriate extensions.
-Those marked with an * are included in the Roadsend PHP Windows package. 
 
 @itemize 
 
 @item
-( ) MySQL 4.0.x (@uref{http://www.mysql.com,www.mysql.com})
+MySQL 5.0.x (@uref{http://www.mysql.com,www.mysql.com})
 
 @item
-( ) MySQL 4.1.x (@uref{http://www.mysql.com,www.mysql.com})
+PCRE >= 4.1
 
 @item
-(*) MySQL 5.0.x (@uref{http://www.mysql.com,www.mysql.com})
+libxml2 >= 2.6.3
 
 @item
-(*) PCRE >= 4.1
+curl >= 7.15.x
 
 @item
-(*) libxml2 >= 2.6.3
+SQLite >= 3.4.x
 
 @item
-(*) curl >= 7.15.x
-
-@item
-(*) gtk+ = 1.2.x
-
-@item
-(*) libglade 0.17 (@uref{http://ftp.gnome.org/pub/GNOME/sources/libglade/0.17/libglade-0.17.tar.gz,www.gnome.org})
+unixODBC >= 2.2.x
 
 @end itemize
 
@@ -681,10 +675,28 @@ If you wish to use the Roadsend PHP Web Interpreter or run compiled
 web applications then your web server will need FastCGI support. See
 @ref{Installing FastCGI}. 
 
-@node Installing Roadsend PHP on Unix, Installing Roadsend PHP on Windows, Requirements, Installation and Configuration
-@section Installing Roadsend PHP on Unix
+@node Installing From Source, Installing Roadsend PHP on Unix, Requirements, Installation and Configuration
+@section Installing From Source
 
-First, make sure your system meets the Minimum @ref{Requirements}.
+For source installation instructions, please see the online wiki at:
+@url{http://code.roadsend.com/pcc/wiki/BuildInstructions}.
+
+@node Installing Roadsend PHP on Unix, Installing Roadsend PHP on Windows, Installing From Source, Installation and Configuration
+@section Installing Binary Packages of Roadsend PHP on Unix
+
+Make sure your system meets the Minimum @ref{Requirements}.
+
+@subsection Distribution Specific Packages
+
+First, see if your distribution has Roadsend PHP packages available. For example, on Gentoo Linux you can:
+
+@example
+$ emerge -av roadsend-php
+@end example
+
+@subsection Generic Binary Packages for Unix
+
+If your distribution doesn't have Roadsend PHP packages available, you can the generic packages available on @url{http://www.roadsend.com}. 
 
 Roadsend PHP comes in two packages on Unix platforms. @strong{Both packages are required for compiling.} 
 
@@ -699,7 +711,7 @@ It depends on the runtime package.
 @item
 runtime
 @tab 
-This is the freely distributable runtime package. It contains the
+This is the runtime package. It contains the
 runtime libraries needed to compile and run dynamically linked
 applications.  It also contains the FastCGI interpreter web
 interface. This package may be installed on client machines to run
@@ -716,13 +728,13 @@ Simply run each self installer package to install:
 
 @example
 
-$ ./roadsend-pcc-2.1.0.bin
+$ ./roadsend-pcc-2.x.x.bin
 Verifying archive integrity... All good.
 Uncompressing The Roadsend PCC Compiler for PHP......
 
 ......
 
-$ ./roadsend-pcc-runtime-2.1.0.bin
+$ ./roadsend-pcc-runtime-2.x.x.bin
 Verifying archive integrity... All good.
 Uncompressing The Roadsend PCC Compiler for PHP  - Runtime Environment......
   
@@ -751,60 +763,6 @@ If you do not wish to make symbolic links, you will have to adjust your system p
 @file{/opt/roadsend/pcc/bin} needs to be added to the system executable PATH 
 
 @end itemize
-
-@c @node Using the Debian packages, Using the RPM packages, Using the Self Installer, Installing Roadsend PHP [Unix]
-@c @subsubsection Using the Debian packages
-
-@c The debian packages may be used on any system that supports the .deb packaging architecture.
-
-@c @strong{Debian Packages}
-
-@c @multitable @columnfractions 1
-@c @item
-@c Package Name
-@c @item
-@c roadsend-pcc-1.6.0.deb
-@c @item
-@c roadsend-pcc-runtime-1.6.0.deb
-@c @item
-@c roadsend-pcc-prereqs-1.6.0.deb
-@c @end multitable
-
-@c Typical usage:
-
-@c @example
-
-@c     sh> dpkg -i roadsend-pcc-1.6.0.deb
-  
-@c @end example
-
-@c @node Using the RPM packages,  , Using the Debian packages, Installing Roadsend PHP [Unix]
-@c @subsubsection Using the RPM packages
-
-@c The RPM packages may be used on any system that supports the
-@c .rpm packaging architecture.
-
-@c @strong{RPM Packages}
-
-@c @multitable @columnfractions 1
-@c @item
-@c Package Name
-@c @item
-@c roadsend-pcc-1.6.0-1.i386.rpm
-@c @item
-@c roadsend-pcc-runtime-1.6.0-1.i386.rpm
-@c @item
-@c roadsend-pcc-prereqs-1.6.0-1.i386.rpm
-@c @end multitable
-
-@c Typical usage:
-
-@c @example
-
-@c     sh> rpm -ivH roadsend-pcc-prereqs-1.6.0-1.i386.rpm
-@c     sh> rpm -ivH roadsend-pcc-1.6.0-1.i386.rpm
-  
-@c @end example
 
 @node Installing Roadsend PHP on Windows, Configuration, Installing Roadsend PHP on Unix, Installation and Configuration
 @section Installing Roadsend PHP on Windows
@@ -1113,9 +1071,9 @@ others you would always like included. You should never remove php-std.
 This creates an "ini entry".  An ini entry is a key/value pair that
 adjusts the behavior of your programs.  Each supported entry has a
 similar effect to the entry of the same name in the @file{php.ini}
-configuration file for Open Source PHP. (See
+configuration file for Zend PHP. (See
 @url{http://www.php.net/configuration} for more about @file{php.ini}
-for Open Source PHP).
+for Zend PHP).
 @end multitable
 
 @quotation
@@ -1136,7 +1094,7 @@ To uninstall Roadsend PHP under Windows, use the Add/Remove Software feature loc
 
 @subheading Unix
 
-Roadsend PHP provides an uninstallation script for each package that you installed. 
+Roadsend PHP generic packages for Unix provide an uninstallation script for each package that you installed. 
 Running the uninstall script will remove all files installed by the respective installation script. 
 
 @strong{Uninstallation Scripts}
@@ -1264,7 +1222,7 @@ code between different projects.
 @node Interpreting and Compiling, Online Web Applications, Project Type Overview, Features
 @section Interpreting and Compiling
 
-Roadsend PHP stands out from open source PHP and all other PHP ``compilers'', encoders, and caches because of its ability
+Roadsend PHP stands out from Zend PHP and all other PHP ``compilers'', encoders, and caches because of its ability
 to produce native machine code from PHP source code.
 
 However, for development purposes it is often convenient to run PHP code immediately, without compiling. 
@@ -1722,24 +1680,18 @@ on any external libraries and is therefore easier to distribute.
 @chapter Language Reference
 
 @menu
-* Differences Between Roadsend And Open Source PHP::  
+* Differences Between Roadsend And Zend PHP::  
 * Writing Portable PHP Code::   
 * Extensions Provided::         
 @end menu
 
-@node Differences Between Roadsend And Open Source PHP, Writing Portable PHP Code, Language Reference, Language Reference
-@section Differences Between Roadsend And Open Source PHP
+@node Differences Between Roadsend And Zend PHP, Writing Portable PHP Code, Language Reference, Language Reference
+@section Differences Between Roadsend And Zend PHP
 
-Programs compiled with the Roadsend Compiler should behave the same as
-programs run in Open Source PHP version 4.4.x.  The only expected
-compatibility problem is if your program uses extensions that the
-Roadsend Compiler does not yet support.  We are constantly expanding
-the repertoire of supported extensions, so please visit our
-@url{http://www.roadsend.com,website} to check if the one you need is
-available.  Should you encounter any compatibility issues, please let
-us know by emailing support@@roadsend.com with an example of the
-problem.  An updated release containing a fix will usually be
-available in the first week of each month.
+Programs compiled with the Roadsend Compiler are designed to behave the same as
+programs run in Zend PHP version 5.2.x. For the latest list of known compatbility
+issues, please see the @url{http://code.roadsend.com/pcc/wiki/ZendCompatibility,wiki page}.
+
 
 The original implementation of PHP was designed to be interpreted and
 run from inside of a web server. The Roadsend Compiler provides many
@@ -1756,7 +1708,7 @@ general-purpose compiled language.
 * Semantic Differences::        
 @end menu
 
-@node INI File Entries, Handling Include Files, Differences Between Roadsend And Open Source PHP, Differences Between Roadsend And Open Source PHP
+@node INI File Entries, Handling Include Files, Differences Between Roadsend And Zend PHP, Differences Between Roadsend And Zend PHP
 @subsection INI File Entries
 
 Various settings that affect the way that your programs behave can be
@@ -1769,7 +1721,7 @@ program.  This allows you to distribute the program without
 @file{pcc.conf}.  
 
 
-@node Handling Include Files, Semantic Differences, INI File Entries, Differences Between Roadsend And Open Source PHP
+@node Handling Include Files, Semantic Differences, INI File Entries, Differences Between Roadsend And Zend PHP
 @subsection Handling Include Files
 
 PHP provides a method for including code from other source files into
@@ -1808,7 +1760,7 @@ Simply call it with the name of the file, as you would call
 include file was found, and false if not.
 
 
-@node Semantic Differences,  , Handling Include Files, Differences Between Roadsend And Open Source PHP
+@node Semantic Differences,  , Handling Include Files, Differences Between Roadsend And Zend PHP
 @subsection Semantic Differences
 
 @menu
@@ -1836,13 +1788,13 @@ parameter's name, as in the example below.
 
 Passing a parameter by reference when it has not been declared
 as a reference parameter, called @code{call-time
-pass-by-reference} has been deprecated in Open Source PHP for
+pass-by-reference} has been deprecated in Zend PHP for
 several years now.  As such, it is not supported by Roadsend PHP.
 
-@node Writing Portable PHP Code, Extensions Provided, Differences Between Roadsend And Open Source PHP, Language Reference
+@node Writing Portable PHP Code, Extensions Provided, Differences Between Roadsend And Zend PHP, Language Reference
 @section Writing Portable PHP Code
 
-One goal of Roadsend PHP is to maintain compatibility with code written for Open Source PHP. However
+One goal of Roadsend PHP is to maintain compatibility with code written for Zend PHP. However
 there may be times when you will need to have your code run differently in the two different environments.
 
 Roadsend PHP defines a constant (@var{ROADSEND_PHP}) that you can use
@@ -1856,7 +1808,7 @@ if (defined('ROADSEND_PHP')) @{
    echo "I am running under Roadsend PHP!\n";
 @}
 else @{ 
-   echo "I am running under Open Source PHP!\n";
+   echo "I am running under Zend PHP!\n";
 @}
 
 ?>
@@ -1912,7 +1864,7 @@ Windows API (windows only) (pcc-win)
 @subheading Roadsend Windows Extension
 
 Roadsend PHP offers a new Windows only extension that is not available
-in Open Source PHP.
+in Zend PHP.
 
 The Windows extension can be used to:
 @itemize
@@ -1949,7 +1901,7 @@ There are two methods of powering a Web Application with Roadsend
 PHP:
 
 @strong{Interpreted Web Applications} are executed directly from the
-application source code - this is the way Open Source PHP
+application source code - this is the way Zend PHP
 works. Roadsend can power interpreted web sites by installing the Roadsend
 PHP FastCGI interpreter.
 
@@ -3961,7 +3913,7 @@ The @strong{Home Directory} is the installation directory of the compiler.
 The @strong{Include} list is a list of directories that will be
 searched when a file needs to be found for the @code{require} or
 @code{include} PHP functions. It is analogous to the
-@code{include_path} in Open Source PHP.  You may click Browse to add a
+@code{include_path} in Zend PHP.  You may click Browse to add a
 directory on disk, or double click a current entry to edit.
 
 The @strong{Library} list is a list of directories that will be searched for
@@ -4017,7 +3969,7 @@ to the right side of the form.
 
 This form allows you to define and maintain PHP INI options. These are a list
 of key/value pairs used by the Roadsend Compiler for compatibility
-with the corresponding options used by Open Source PHP.
+with the corresponding options used by Zend PHP.
 
 The values are used by interpreted console applications, interpreted web
 applications, and compiled web applications.
@@ -4797,25 +4749,36 @@ Help:
    -v                             Verbose output
    --version                      Current version information
 
-Compiler Options:
-   -O,--optimize                  Generate optimized dynamically linked binary
-   --static                       Generate optimized statically linked binary
-   -m,--make-file FILE            Build using specified project make file
-   --resource FILE                Compile and use the specified windows resource file
-   --port PORT                    Set the default port that the MicroServer should use
-   -u,--use LIB-NAME              Use specified PCC library when compiling and linking
-   -o,--output-file FILE          The output file
-   -c CONFIG-FILE                 Use the specified config file
-   -I,--include-path DIR          Add a directory to the include file search path
-   -L,--library-path LIB-PATH     Add lib-path to library search path
-
-Compile Mode (default: generate console application):
+Run Mode (default: compile console application):
+   -a                             Interactive PHP mode (PHP REPL)
    -i,-f,--interpret SCRIPT       Execute code immediately, instead of compiling
-   --fastcgi FASTCGI-NAME         Generate stand alone FastCGI application
+   --fastcgi,--cgi FASTCGI-NAME   Generate stand alone FastCGI application (also runs as normal CGI)
    -s,--microserver SERVER-NAME   Generate stand alone MicroServer application
    --gui                          Generate desktop GUI application (PHP-GTK)
-   --cgi                          Generate stand alone (normal) CGI application
-   -l,--library-mode LIBRARY-NAME Generate a library instead of an executable.
+   -l,--library-mode LIBRARY-NAME Generate a library
+
+Compiler Options:
+   -c CONFIG-FILE                 Use the specified config file
+   --static                       Generate optimized statically linked binary
+   -O,--optimize                  Generate optimized dynamically linked binary
+   -m,--make-file FILE            Build using specified project make file
+   -u,--use LIB-NAME              Use specified PCC library (created with -l) when compiling and linking
+   -o,--output-file FILE          The output file
+   -I,--include-path DIR          Add a directory to the include file search path
+   -L,--library-path LIB-PATH     Add lib-path to library search path
+   --bopt STRING                  Invoke bigloo (scheme compiler) with STRING
+   --copt STRING                  Invoke cc (c compiler) with STRING
+   --ldopt STRING                 Invoke ld (linker) with STRING
+
+MicroServer Compile Options:
+   --port PORT                    Set the default port that the MicroServer should use
+
+Web Application (MicroServer/FastCGI) Compile Options:
+   --default-index INAME          Set the default index page [default: index.php]
+   --not-found INAME              Set the default not found page [default: 404.php]
+
+PHP-GTK Compile Options:
+   --resource FILE                Compile and use the specified windows resource file
 
 Library Related Options (requires -l, --fastcgi, or --microserver):
    --strip-path STRIP-PATH        Strip leading path from source files when compiling a library
@@ -4824,13 +4787,18 @@ Library Related Options (requires -l, --fastcgi, or --microserver):
 
 Debugging:
    -d,--debug-level LEVEL         Set the debug level (0=None/1=Med/2=High)
-   -g,--debugger                  Run file in the PCC step debugger
+   --repl                         A scheme REPL with access to the roadsend-php runtime
    -P,--profile                   Generate code for PHP source level profiling
    -R                             Generate code suitable for profiling with gprof/bprof
    --GET GVAR                     Add this key/value pair to _GET superglobal (form: key=val)
    --POST GVAR                    Add this key/value pair to _POST superglobal (form: key=val)
    --COOKIE GVAR                  Add this key/value pair to _COOKIE superglobal (form: key=val)
    --SERVER GVAR                  Add this key/value pair to _SERVER superglobal (form: key=val)
+   -rm,--no-clean                 Don't cleanup temporary files
+   --dump-pre                     Dump the string produced by the preprocessor
+   --dump-toks                    Dump the tokens produced by the main lexer
+   --dump-ast                     Dump the syntax tree produced by the parser
+   --dump-types                   Dump the syntax tree produced by the parser, after type inference
 @end example
 
 @node Environment Variables,  , Command Line Options, Reference
@@ -4868,8 +4836,8 @@ PCC_CONF
 @node Acknowledgments,  , Reference, Top
 @chapter Acknowledgments
 
-Roadsend thanks the many authors of the original open source PHP programming
-language. The open source version is available from the PHP Group at
+Roadsend thanks the many authors of the original PHP programming
+language. This version is available from the PHP Group at
 @uref{http://www.php.net}.
 
 Roadsend PHP is written in Bigloo Scheme and C. Bigloo is
