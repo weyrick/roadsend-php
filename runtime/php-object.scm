@@ -461,6 +461,9 @@ values the values."
 	  (format "Parent method call: Unable to call method parent::~A: can't find parent class ~A"
 		  method-name parent-class-name)))
       (let ((the-method (%lookup-method the-class method-name)))
+	 ; if the method we tried was __construct, and we didn't find it, try instead a php4 compatible constructor
+	 (when (and (eqv? the-method #f) (string=? (%method-name-canonicalize method-name) "__construct"))
+	    (set! the-method (%lookup-method the-class parent-class-name)))
 	 (unless the-method
 	    (php-error "Parent method call: Unable to find method "
 		       method-name " of class " parent-class-name))
@@ -828,6 +831,10 @@ argument, before the continuation: (obj prop ref? value k)."
    (let ((the-class (%lookup-class class-name)))
       (unless the-class
 	 (php-error "Defining method " method-name ": unknown class " class-name))
+      ;; if this is an interface, this method must be abstract
+      (when (and (member 'interface (%php-class-flags the-class))
+		 (not (member 'abstract flags)))
+	    (set! flags (cons 'abstract flags)))
       (let* ((canon-method-name (%method-name-canonicalize method-name))
 	     (new-method (%php-method method-name flags method)))
          ;; check if the method is a constructor

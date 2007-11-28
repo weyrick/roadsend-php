@@ -264,7 +264,7 @@
 
 (define-method (debug-hook node::function-invoke k)
    (debug-trace 3 "in function-invoke, debug-stepping "
-		*debugger-stepping?* ", file " *debugger-file*)
+		*debugger-stepping?* ", file " *debugger-file* " on line " *debugger-line*)
    (with-access::function-invoke node (name location)
       (debugger-trace name location)
       (cond
@@ -294,6 +294,8 @@
 	 (else (call-next-method)))))
 
 (define-method (debug-hook node::method-invoke k)
+   (debug-trace 3 "in method-invoke, debug-stepping "
+		*debugger-stepping?* ", file " *debugger-file* " on line " *debugger-line*)
    (with-access::method-invoke node (method location)
       (debugger-trace (if (property-fetch? method)
 			  (property-fetch-prop method)

@@ -917,12 +917,7 @@
 	     (error 'do-method-flags "Multiple access type modifiers are not allowed" "")
 	     (begin
 		(set! seen-visibility #t))))
-      ; this currently happens for methods in an interface, since it's implicit. we clean
-      ; it up here for easier processing later
-      (when (and (null? (method-decl-body method-decl))
-		 (not (member 'abstract flags)))
-	 (set! flags (cons 'abstract flags)))
-      
+
 ; XXX we have to do these checks in declare, we don't have enough information here
 ;      (when (and (member 'abstract flags)
 ;		 (not (null? (method-decl-body method-decl))))
