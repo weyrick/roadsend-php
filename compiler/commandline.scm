@@ -60,10 +60,6 @@
 
       (read-config-file)
 
-      ;; We check the license after reading the config file, so we
-      ;; know where to look for the license, but before anything else.
-;      (check-license PCC-HOME)
-
       ; start with no command line arguments for interpreter
       (set-target-option! script-argv: '())
 
@@ -133,7 +129,7 @@
        (section "Run Mode (default: compile console application)")
 
 
-       ((("-a") (help "Interactive PHP mode (PHP REPL)"))
+       ((("-a") (help "Interactive PHP mode"))
 	(if (maybe-add-script-argv "-a")
 	    (begin
 	       (widen!::php-repl-target *current-target*))))
@@ -174,6 +170,9 @@
        ((("-l" "--library-mode") ?library-name (help "Generate a library"))
         (do-library-mode library-name))
 
+       ((("--lint") ?script (help "Syntax check only"))
+	(widen!::lint-target *current-target*)
+	(target-source-files-set! *current-target* (list script)))
        
        (section "Compiler Options")
 
@@ -479,6 +478,10 @@
 		  (set-ini-entry (car kv) TRUE)
 		  (set-ini-entry (car kv) (cadr kv))))))
 
+       ((("-l") ?script (help "Syntax check only"))
+	(widen!::lint-target *current-target*)
+	(target-source-files-set! *current-target* (list script)))
+       
        (else
 	(print "Illegal argument `" else "'.\n" (usage-header))
 	(args-parse-usage #f)

@@ -390,23 +390,23 @@
 (define (delayed-error/loc node::ast-node msg)
    (let ((line (car (ast-node-location node)))
 	 (file (ast-node-file-sans-pwd node)))
-      (if *RAVEN-DEVEL-BUILD*
-	  (delayed-error (format "in ~A line ~A: ~A~%ast-node: ~A~%"
-				 file line msg (ast-node->brief-string node)))
-	  (delayed-error (format "in ~A line ~A: ~A~%"
-				 file line msg)))))
+      (if (and *RAVEN-DEVEL-BUILD* (> *debug-level* 1))
+	  (delayed-error (format "~A in ~A on line ~A~%ast-node: ~A~%"
+				 msg file line (ast-node->brief-string node)))
+	  (delayed-error (format "~A in ~A on line ~A~%"
+				 msg file line)))))
 
 (define (php-error/loc node::ast-node msg)
    (let ((line (car (ast-node-location node)))
 	 (file (ast-node-file-sans-pwd node)))
-      (if *RAVEN-DEVEL-BUILD*
+      (if (and *RAVEN-DEVEL-BUILD* (> *debug-level* 1))
 	  (error 'compile-error 
-		 (format "Error: in ~A line ~A: ~A~%ast-node: ~A~%"
-			 file line msg (ast-node->brief-string node))
+		 (format "Error: ~A in ~A on line ~A~%ast-node: ~A~%"
+			 msg file line (ast-node->brief-string node))
 		 'compile-error)
 	  (error 'compile-error 
-		 (format "Error: in ~A line ~A: ~A~%"
-			 file line msg)
+		 (format "Error: ~A in ~A on line ~A~%"
+			 msg file line)
 		 'compile-error))))
 
 (define (warning/loc node::ast-node msg)

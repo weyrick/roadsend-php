@@ -101,23 +101,23 @@
    (if (memv token '(error-handler php-exit php-warning/notice))
       (handle-runtime-error escape proc msg token)
       (let ((outmsg
-             (format "~a:~a: ~a"
+             (format "~%~a in ~a on line ~a"
+		     msg
                      (if *current-file*
                          (if (substring=? *current-file* (pwd) (string-length (pwd)))
                              (substring *current-file* (+ 1 (string-length (pwd))) ;+1 for the trailing /
                                         (string-length *current-file*))
                              *current-file*)
                          "unknown file")
-                     *current-lineno*
-                     msg)))
-         
-         (if *RAVEN-DEVEL-BUILD*
+                     *current-lineno*)))
+         (if (and *RAVEN-DEVEL-BUILD* (> *debug-level* 1))
              (begin
                 (error proc outmsg token)
                 (escape #t))
              (begin
-                (fprint (current-error-port) outmsg " -- " (if (pair? token) (cdr token) token))
-                (escape #t))))))
+                (fprint (current-error-port) outmsg) ;" -- \"" (if (pair? token) (cdr token) token) "\"")
+		(exit 1))))))
+;                (escape #t))))))
 
 (define *syntax-highlight?* #f)
 (define-macro (stok type . value)

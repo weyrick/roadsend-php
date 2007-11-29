@@ -60,6 +60,7 @@
     (wide-class interpret-target::target)
     (wide-class autocompile-target::target)
     (wide-class standalone-target::target)
+    (wide-class lint-target::target)
     (wide-class library-target::target
        name)
     (wide-class webapp-target::target
@@ -145,6 +146,13 @@
 		 (print *RAVEN-VERSION-TAG*)	 
 		 (print "You are now in a scheme REPL. Ctrl-D or (quit) to exit.")
 		 (repl))))
+
+(define-method (build-target target::lint-target)
+   (with-access::lint-target target (source-files)
+      (set! source-files (reverse (validate-files source-files)))
+      (when (null? source-files)
+	 (bomb "No files to check"))
+      (syntax-check (car source-files))))
 
 (define-method (build-target target::interpret-target)
    (with-access::interpret-target target (source-files)

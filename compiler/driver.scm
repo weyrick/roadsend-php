@@ -54,6 +54,7 @@
     (dump-preprocessed input-file)
     (interpret input-file)
     (debug input-file)
+    (syntax-check input-file)
     (library-httpd-stub libname)
     (fastcgi-stub filename)
     (setup-web-target)
@@ -220,6 +221,13 @@
 	(debugger-start input-file)
 	handle-runtime-error)))
 
+;; lint
+(define (syntax-check input-file)
+   (let ((ast-nodes (input-file->ast input-file #t))) ; this will bail out to proper parse error handler
+      (if (php-ast? ast-nodes)
+	  (print "No syntax errors detected in " input-file)
+	  (print "Errors parsing " input-file))))
+
 ;;;main entry point in compiled code
 (define (program-prologue filename main?)
     (debug-trace 3 "compiler: generating program prologue, file: " filename ", main: " main?)
@@ -237,9 +245,6 @@
 			 (register-exit-function! (lambda (s) (finish-profiling) s))))
 		      '())
 		(check-runtime-library-version ,%runtime-library-version)
-;                ,@(if PHP5?
-;		      '((go-php5))
-;		      '())
 					; check for auto session start
                 (init-php-runtime)
                 ,(generate-config-ini-entries)
@@ -331,9 +336,6 @@
 		(exit 1)))))
 
 	(check-runtime-library-version ,%runtime-library-version)
-;	,@(if PHP5?
-;	      '((go-php5))
-;	      '())	
 	(setup-library-paths)
         (init-php-runtime)
 	,(generate-config-ini-entries)
@@ -373,9 +375,6 @@
 	      '())
         
         (check-runtime-library-version ,%runtime-library-version)
-;	,@(if PHP5?
-;	      '((go-php5))
-;	      '())	
 	(setup-library-paths)
         (init-php-runtime)
 	(run-startup-functions)
@@ -564,9 +563,6 @@
 	       
 	       (maybe-pp `(define ,mangled-name
 			     (check-runtime-library-version ,%runtime-library-version)
-;			     ,@(if PHP5?
-;				   '((go-php5))
-;				   '())	
 			     ;;this is the actual main function, including stuff like storing
 			     ;;the function signatures for the file, and the global code in the
 			     ;;file.
