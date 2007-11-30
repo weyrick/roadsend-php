@@ -827,14 +827,38 @@ argument, before the continuation: (obj prop ref? value k)."
 	     (vector-set! new i el)))
       new))
 
+(define (vis->= vis1 vis2)
+   (or (member 'public vis1)
+       (and (member 'protected vis1) (member 'protected vis2))
+       (and (member 'protected vis1) (member 'private vis2))
+       (and (member 'private vis1) (member 'private vis2))))
+
+(define (flags-visibility flags)
+   (cond ((member 'public flags) 'public)
+	 ((member 'private flags) 'public)
+	 ((member 'protected flags) 'protected)))
+
 (define (define-php-method class-name method-name flags method)
    (let ((the-class (%lookup-class class-name)))
       (unless the-class
 	 (php-error "Defining method " method-name ": unknown class " class-name))
+      ;;
       ;; if this is an interface, this method must be abstract
       (when (and (member 'interface (%php-class-flags the-class))
 		 (not (member 'abstract flags)))
 	    (set! flags (cons 'abstract flags)))
+      ;; visibility checks related to overridden methods
+      (let ((overridden-method (%lookup-method (%php-class-parent-class the-class) method-name)))
+	 (when overridden-method
+	    ;; visibility must be same or better as parent method
+	    (unless (vis->= flags (%php-method-flags overridden-method))
+	       (php-error (format "Access level to ~A::~A() must be ~A (as in class ~A)"
+				  class-name
+				  method-name
+				  (flags-visibility (%php-method-flags overridden-method))
+				  (%php-class-print-name
+				   (%php-class-parent-class the-class)))))))
+      ;;
       (let* ((canon-method-name (%method-name-canonicalize method-name))
 	     (new-method (%php-method method-name flags method)))
          ;; check if the method is a constructor
