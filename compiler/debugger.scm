@@ -298,7 +298,9 @@
 		*debugger-stepping?* ", file " *debugger-file* " on line " *debugger-line*)
    (with-access::method-invoke node (method location)
       (debugger-trace (if (property-fetch? method)
-			  (property-fetch-prop method)
+			  (if (literal-string? (property-fetch-prop method))
+			      (literal-string-value (property-fetch-prop method))
+			      (property-fetch-prop method))
 			  "unknown")
 		      location)
       (cond

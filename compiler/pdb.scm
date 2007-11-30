@@ -585,7 +585,7 @@
 	     (debug-print "hitting enter is the same as the command 's', or 'step'.")
 	     (debug-print "Commands available: ")
 	     (debug-print "help, quit, step, next, continue, reset, backtrace, list,")
-	     (debug-print "$<var>, break <function|file:line>, clear <function>, ")
+	     (debug-print "$<var>, break <function|file:line>, clear <function>, trace,")
 	     (debug-print "clearall, locals, show breaks")
 	     (loop))
 	    
