@@ -888,7 +888,11 @@ gives the debugger a chance to run."
 				  (pop-stack)
 				  (if ref?
 				      retval
-				      (copy-php-data retval)))))))))))))
+				      (copy-php-data retval)))))))))
+
+	     ;; finalize: do abstract method checks, etc.
+	     (php-class-def-finalize name)
+	     ))))
 
 
 (define-method (evaluate node::constructor-invoke)

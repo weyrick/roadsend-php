@@ -35,6 +35,7 @@
     (define-extended-php-class name parent-name flags getter setter copier)
     (define-php-property class-name property-name value visibility static?)
     (define-php-method class-name method-name flags method)
+    (php-class-def-finalize name)
     ; types
     (convert-to-object doohickey)
     (clone-php-object obj::struct)
@@ -923,6 +924,29 @@ argument, before the continuation: (obj prop ref? value k)."
 				  canonical-name
 				  visibility)))))))
 
+(define (php-class-def-finalize class-name)
+   (let ((the-class (%lookup-class class-name)))
+      (unless the-class
+	 (php-error "Unable to finalize unknown class: " class-name))
+      ; if this isn't an abstract class, fatal if there are any abstract methods unimplemented
+      ; this works for classes that implement interfaces but haven't implemented a required method as well
+      (unless (member 'abstract (%php-class-flags the-class))
+	 (let ((acnt 0)
+	       (amissing ""))
+	    (php-hash-for-each (%php-class-methods the-class)
+			       (lambda (k v)
+				  (when (member 'abstract (%php-method-flags v))
+				     (set! acnt (+ acnt 1))
+				     (set! amissing (mkstr amissing (if (string=? amissing "")
+									""
+									", ")
+							   class-name "::" (%php-method-print-name v))))))
+	    (when (> acnt 0)
+	       (php-error (format "Class ~A contains ~A abstract method~A and must therefore be declared abstract or implement the remaining methods (~A)"
+				  class-name
+				  acnt
+				  (if (= acnt 1) "" "s")
+				  amissing)))))))
 
 (define (%lookup-class name)
    (hashtable-get %php-class-registry (%class-name-canonicalize name)))

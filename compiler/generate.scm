@@ -861,6 +861,7 @@ onum.  Append the bindings for the new symbols and code."
 					  ',flags
 					  ,(generate-code method))
 				      code))))))
+		(pushf `(php-class-def-finalize ',name) code)
 		(cons 'begin (reverse code)))))))
 
 
