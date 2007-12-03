@@ -1427,6 +1427,7 @@
       (php-hash-insert! phash "dirname" (dirname spath))
       (php-hash-insert! phash "basename" (basename spath))
       (php-hash-insert! phash "extension" (suffix spath))
+      (php-hash-insert! phash "filename" (prefix (basename spath)))
       phash))
 
 ;; pclose -- Closes process file pointer
