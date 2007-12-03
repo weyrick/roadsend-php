@@ -25,7 +25,7 @@ AC_CANONICAL_SYSTEM
 
 # can't figure out how to get this into AC_CHECK_PROG_VER below?
 # have to change it there too
-want_bigloo="2.9a or 3.0b"
+want_bigloo="2.9a, 3.0b, 3.0c"
 want_curl=7.15.1
 
 # defaults
@@ -42,7 +42,7 @@ AC_CHECK_PROG_VER([HAVE_BIGLOO],
 		  bigloo, 
 		  -revision,
 		  [\([2-9].[0-9][a-z]\)],
-		  [2.9a | 3.0b],
+		  [2.9a | 3.0b | 3.0c],
 		  AC_MSG_FAILURE([Bigloo version $want_bigloo required]))
 
 BIGLOO_VERSION=$ac_prog_version
