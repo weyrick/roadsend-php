@@ -266,6 +266,8 @@ and compare the results"
       (let ((single-test (getenv "TEST")))
 	 (if single-test
 	     (begin
+		(unless (string=? (suffix single-test) "php")
+		   (set! single-test (string-append single-test ".php")))
 		(test single-test home target cycles)
 		(dump-results single-test target))
 	     (begin
