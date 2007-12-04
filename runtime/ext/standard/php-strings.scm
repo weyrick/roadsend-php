@@ -249,7 +249,11 @@
 
 ; base64_encode
 (defbuiltin (base64_encode str)
-   (base64-encode (mkstr str)))
+  ;; bigloo correctly inserts newlines but php zend doesn't do that, so we hack around it.
+  ;; Maybe later bigloo can be enhanced to be able to do this properly.
+  ;; FIXME: is "\n" good on Windows?
+  (apply string-append (string-split (base64-encode (mkstr str)) "\n")))
+;   (base64-encode (mkstr str)))
 
 ; base64_decode
 (defbuiltin (base64_decode str)
