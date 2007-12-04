@@ -103,8 +103,10 @@
 				    (cdr lname)
 				    l))))
 	    (lib-error (lambda (e p m o)
-			   (php-error (format "Extension ~a didn't load because:~%~a ~a ~a~%You may wish to remove this extension from ~a if it exists."
-				   (get-lib-name o) p m o *config-file*)))))
+			  (debug-trace 1 "LD_LIBRARY_PATH is: " (getenv "LD_LIBRARY_PATH"))
+			  (debug-trace 1 "dynamic-load-path is: " *dynamic-load-path*)
+			  (php-error (format "Extension ~a didn't load because:~%~a ~a ~a~%You may wish to remove this extension from ~a if it exists."
+					     (get-lib-name o) p m o *config-file*)))))
       (for-each (lambda (v)
 		   (let* ((libname v)
 			  (libfile (mkstr "lib" libname (safety-ext) "-"
