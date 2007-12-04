@@ -112,7 +112,9 @@ clean-all: Makefile.config clean
 	-rm config.log config.status Makefile.config
 
 dotest: dotest.scm 
-	$(BIGLOO) -srfi $(PCC_OS) -copt -D$(PCC_OS) dotest.scm -o dotest $(DOTEST_LIBS)
+	sed "s:@PCC_HOME@:${PWD}:" dotest.scm > temp.dotest.scm
+	$(BIGLOO) -srfi $(PCC_OS) -copt -D$(PCC_OS) temp.dotest.scm -o dotest $(DOTEST_LIBS)
+#	rm temp.dotest.scm
 
 test:
 	-(cd sa-tests && $(MAKE) clean)

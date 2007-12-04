@@ -30,7 +30,7 @@
     (type timezone* opaque "struct timezone*")
     (macro gettimeofday::int (::timeval* ::timezone*) "gettimeofday") ) )
 
-(define *phpoo* (string-append (or (getenv "PCC_HOME") "")
+(define *phpoo* (string-append (or (getenv "PCC_HOME") "@PCC_HOME@")
 			       (string (file-separator)) 
 			       "compiler" 
 			       (string (file-separator)) 
@@ -242,9 +242,6 @@ and compare the results"
 	 1000000.0)))
 
 (define (dotest argv)
-   (unless (and (getenv "PCC_HOME") (directory? (getenv "PCC_HOME")))
-      (flush-fprint (current-error-port) "Before running dotest, you must first define the PCC_HOME environment to the location of your Roadsend PHP source tree")
-      (exit 1))
    (unless (>= (length argv) 3)
       (flush-print "Wrong number of arguments: " argv)
       (usage)
