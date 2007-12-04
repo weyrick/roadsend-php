@@ -30,7 +30,7 @@
     (type timezone* opaque "struct timezone*")
     (macro gettimeofday::int (::timeval* ::timezone*) "gettimeofday") ) )
 
-(define *phpoo* (string-append (getenv "PCC_HOME") 
+(define *phpoo* (string-append (or (getenv "PCC_HOME") "")
 			       (string (file-separator)) 
 			       "compiler" 
 			       (string (file-separator)) 
