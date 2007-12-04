@@ -37,10 +37,10 @@
 			       "pcc " (or (getenv "PCC_OPTS") "")))
 
 (define *php-bin* "php")
-(if (getenv "PHP")
-    (set! *php-bin* (getenv "PHP")))
-(if (getenv "PHP5")
-    (set! *php-bin* (getenv "PHP5")))
+(when (getenv "PHP")
+   (set! *php-bin* (getenv "PHP")))
+(when (getenv "PHP5")
+   (set! *php-bin* (getenv "PHP5")))
 
 (define *php* (string-append *php-bin* " -d display_errors=off")) ;-n?  what if my mysql.sock is someplace else?
 (define *diff* (cond-expand (PCC_MINGW "diff -u -w ") (else "diff -u ")))
