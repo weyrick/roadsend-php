@@ -586,10 +586,13 @@
 ; again, this should only be used for functions that require a fixnum
 ; or flonum (e.g. bigloo procedures). not for php values
 (define (mkfix-or-flonum rval)
-   (let ((val (convert-to-number rval)))
-      (if (fast-onum-is-long val)
-	  (onum->int val)
-	  (onum->float val))))
+   (if (or (fixnum? rval)
+	   (flonum? rval))
+       rval
+       (let ((val (convert-to-number rval)))
+	  (if (fast-onum-is-long val)
+	      (elong->fixnum (onum->elong val))
+	      (onum->float val)))))
 
 (define (convert-to-float rval)
    ;see comment for convert-to-integer.
