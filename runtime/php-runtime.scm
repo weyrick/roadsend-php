@@ -100,13 +100,17 @@
     (extensions-for-each thunk)
     
     (mkstr::bstring a . args)
+    ; these are for converting to php types
     (convert-to-boolean::bool rval)
     (convert-to-string::bstring rval)
     (convert-to-integer::onum rval)
     (convert-to-float rval)
-    (php-number? rval)
     (convert-to-number::onum rval)
+    (php-number? rval)
+    ; these are for converting to functions for bigloo procedures
     (mkfixnum::int rval)
+    (mkfix-or-flonum rval)
+    ;
     (echo arg)
     (env-php-hash-view env)
     (php-%::onum a b)
@@ -571,12 +575,21 @@
       (else (int->onum 0))))
 
 ; should only be used for functions that require a fixnum
-; and can't handle an elong
+; and can't handle an elong (e.g. bigloo procedures)
 ; this returns a fixnum
 (define (mkfixnum rval)
    (if (fixnum? rval)
        rval
        (onum->int (convert-to-number rval))))
+
+
+; again, this should only be used for functions that require a fixnum
+; or flonum (e.g. bigloo procedures). not for php values
+(define (mkfix-or-flonum rval)
+   (let ((val (convert-to-number rval)))
+      (if (fast-onum-is-long val)
+	  (onum->int val)
+	  (onum->float val))))
 
 (define (convert-to-float rval)
    ;see comment for convert-to-integer.
