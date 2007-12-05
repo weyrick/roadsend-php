@@ -479,12 +479,12 @@
    M_PI)
 
 (define (php-expt base power)
-  (define (maybe-integer-expt bs pwr) ;expects integer pwr>=1
-;    (if (fixnum? bs) ;if you uncomment this line and comment the next, things go really wrong
-    (if (and (fixnum? bs) (fixnum? pwr))
-        (cond ((= pwr 1) bs)
-              ((= (modulo pwr 2) 0) (maybe-integer-expt (onum*-bgl bs pwr) (- pwr 1)))
-              (#t (maybe-integer-expt (onum*-bgl bs bs) (/ pwr 2))))
+  (define (maybe-integer-expt acc pwr) ;expects integer pwr>=1
+    (debug-trace 0 "acc is " acc ", pwr is " pwr ", is it fixnum? " (fixnum? acc) " or flonum? " (flonum? acc))
+    (if (fixnum? acc)
+        (cond ((= pwr 1) acc)
+              ((even? pwr) (maybe-integer-expt (onum*-bgl acc acc) (/ pwr 2)))
+              (#t (maybe-integer-expt (onum*-bgl acc base) (- pwr 1))))
         (expt base power)))
   (if (and (fixnum? base) (fixnum? power))
       (if (= power 0) 1
