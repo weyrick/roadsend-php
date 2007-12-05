@@ -478,12 +478,29 @@
 (defbuiltin (php-pi)
    M_PI)
 
-; pow -- Exponential expression
-(defbuiltin (pow base power)
-   (_c-pow  (mkflo base) (mkflo power)))
-   
+(define (php-expt base power)
+  (define (maybe-integer-expt bs pwr) ;expects integer pwr>=1
+;    (if (fixnum? bs) ;if you uncomment this line and comment the next, things go really wrong
+    (if (and (fixnum? bs) (fixnum? pwr))
+        (cond ((= pwr 1) bs)
+              ((= (modulo pwr 2) 0) (maybe-integer-expt (onum*-bgl bs pwr) (- pwr 1)))
+              (#t (maybe-integer-expt (onum*-bgl bs bs) (/ pwr 2))))
+        (expt base power)))
+  (if (and (fixnum? base) (fixnum? power))
+      (if (= power 0) 1
+          (maybe-integer-expt base power))
+      (expt base power)))
 
-; rad2deg --  Converts the radian number to the equivalent number in degrees
+(define (onum*-bgl a b)
+  (mkfix-or-flonum (onum* (convert-to-number a) (convert-to-number b))))
+
+
+;; pow -- Exponential expression
+(defbuiltin (pow base power)
+;  (_c-pow  (mkflo base) (mkflo power)))
+  (php-expt (mkfix-or-flonum base) (mkfix-or-flonum power)))
+
+;; rad2deg --  Converts the radian number to the equivalent number in degrees
 (defbuiltin (rad2deg num)
    (php-* 180 (php-/ num M_PI)))
 

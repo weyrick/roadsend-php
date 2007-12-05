@@ -132,6 +132,13 @@ echo pi() . "\n";
 
 echo "pow\n";
 echo pow(-2354, 4) . " " . pow("foo", 2) . " " . pow(0, 0) . " " . pow(5, 12) . pow(1.2345, 2.3234) . "\n";
+var_dump(pow(2,2)); echo "\n";
+var_dump(pow(2,2.0));
+var_dump(pow(2.0,2.0));
+var_dump(pow(2.0,2));
+
+echo pow(2, 64) . "\n";
+echo pow(2, 64.0) . "\n";
 
 echo "rad2deg\n";
 echo rad2deg(-2354) . " " . rad2deg("foo") . " " . rad2deg(0) . " " . rad2deg(5) . rad2deg(1.2345) . "\n";
