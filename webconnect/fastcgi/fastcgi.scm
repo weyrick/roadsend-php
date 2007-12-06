@@ -65,6 +65,8 @@
          ((("-h" "--help") (help "This help message"))
           (args-parse-usage #f)
           (exit 0))
+	 ((("-d") ?level (help "Debug level"))
+	  (set! *debug-level* (string->integer level)))
          ((("-e" "--external") ?port (help "Start an external server on port"))
           (pragma "close(0)")
           (unless (zero? (FCGX_OpenSocket (string-append ":" (integer->string (string->integer port))) 100))
