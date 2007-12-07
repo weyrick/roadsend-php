@@ -818,18 +818,21 @@ gives the debugger a chance to run."
 
 (define-method (evaluate node::declared-class)
    (set! *PHP-LINE* (car (ast-node-location node)))
-   (with-access::declared-class node (name parent flags static-properties class-constants properties methods evaluated?)
+   (with-access::declared-class node (name parent-list implements flags static-properties class-constants properties methods evaluated?)
       (if evaluated?
 	  '()
 	  (begin
 	     (set! evaluated? #t)
-	     (when (not (null? parent))
-		(let ((parent-klass (hashtable-get *class-decl-table-for-eval* (symbol-downcase parent))))
-		   (unless (php-class-exists? parent)
+	     (when (not (null? parent-list))
+		(let ((parent-klass (hashtable-get *class-decl-table-for-eval* (symbol-downcase (car parent-list)))))
+		   (unless (php-class-exists? (car parent-list))
 		      (unless (or parent-klass )
-			 (php-error/loc node (format "propagate: cannot extend unknown class ~A" parent)))
+			 (php-error/loc node (format "propagate: cannot extend unknown class ~A" (car parent-list))))
 		      (d/evaluate parent-klass))))
-	     (define-php-class name parent flags)
+
+	     ;; define 
+	     (define-php-class name parent-list implements flags)
+	     
              ;; properties
 	     (php-hash-for-each properties
 		(lambda (prop-name prop)
@@ -875,7 +878,7 @@ gives the debugger a chance to run."
 					 (dynamically-bind (*current-return-escape* return)
 					    (dynamically-bind (*current-static-env* static-env)
 					       (dynamically-bind (*current-class-name* name)
- 					        (dynamically-bind (*current-parent-class-name* parent)
+ 					        (dynamically-bind (*current-parent-class-name* (if (null? parent-list) '() (car parent-list)))
 						  (dynamically-bind (*current-instance* $this)
 						     (dynamically-bind (*current-env* (env-new))
 							(dynamically-bind (*current-variable-environment* *current-env*)

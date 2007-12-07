@@ -817,12 +817,12 @@ onum.  Append the bindings for the new symbols and code."
    (error 'generate-code-class-decl "somehow this class didn't get declared" node))
 
 (define-method (generate-code node::class-decl/gen)
-   (with-access::class-decl/gen node (name canonical-name parent flags properties static-properties class-constants methods rendered?)
+   (with-access::class-decl/gen node (name canonical-name parent-list implements flags properties static-properties class-constants methods rendered?)
       (if rendered?
 	  `(begin 'class-already-rendered ',name)
 	  (begin
 	     (let ((code '()))
-		(pushf `(define-php-class ',name ',parent ',flags) code)
+		(pushf `(define-php-class ',name ',parent-list ',implements ',flags) code)
 		(php-hash-for-each properties
 		   (lambda (prop-name prop)
 		      (pushf `(define-php-property ',name
@@ -851,7 +851,7 @@ onum.  Append the bindings for the new symbols and code."
                    (lambda (const-name const-val)
                       (pushf `(define-class-constant ',name ,const-name ,(get-value const-val))
                              code)))
-		(dynamically-bind (*current-parent-class-name* parent)
+		(dynamically-bind (*current-parent-class-name* (if (null? parent-list) '() (car parent-list)))
 		   (dynamically-bind (*current-class-name* name)
 		      (php-hash-for-each methods
 			 (lambda (method-name method)
@@ -1896,9 +1896,9 @@ onum.  Append the bindings for the new symbols and code."
 	      (klass klass))
       (if (convert-to-boolean klass)
 	  (loop (cons (mkstr (symbol-downcase (class-decl-name klass))) heritage)
-		(if (null? (class-decl-parent klass))
+		(if (null? (class-decl-parent-list klass))
 		    #f
-		    (php-hash-lookup *class-decl-table* (symbol-downcase (class-decl-parent klass)))))
+		    (php-hash-lookup *class-decl-table* (symbol-downcase (car (class-decl-parent-list klass))))))
 	  (reverse (cons "stdClass" heritage)))))
 
 (define (undollar str)

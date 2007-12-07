@@ -266,7 +266,8 @@
       
       (maybe-class-extends
        (() '())
-       ((extends id) id))
+       ; note: this is a list because we use this field for interfaces too, which can have multiple parents
+       ((extends id) (list id)))
       
       (class-decl-flags
        (() '())

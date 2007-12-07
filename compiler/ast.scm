@@ -114,7 +114,7 @@
        insensitive?)
     (final-class class-decl::declaration
        name
-       parent
+       parent-list
        implements
        flags
        class-body

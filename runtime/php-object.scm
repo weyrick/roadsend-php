@@ -31,9 +31,9 @@
    (export
     +constructor-failed+
     ; definitions
-    (define-php-class name parent-name flags)
-    (define-extended-php-class name parent-name flags getter setter copier)
-    (define-php-property class-name property-name value visibility static?)
+    (define-php-class name extends implements flags)
+    (define-extended-php-class name extends implements flags getter setter copier)
+    (define-php-property class-name property-name default-value visibility static?)
     (define-php-method class-name method-name flags method)
     (php-class-def-finalize name)
     ; types
@@ -101,12 +101,12 @@
 
 ;;;;objects, woohoo!
 (define-struct %php-object
-   ;;instantiation id
+   ;;instantiation id ::bint
    id
-   ;;class is a pointer to the class of this object
+   ;;class is a pointer to the class of this object ::struct
    class
    ;;properties is a vector of properties. it starts as a copy of
-   ;;the defaults from php-class properties vector
+   ;;the defaults from php-class properties vector ::vector
    properties
    ;;extended properties is either #f or a php-hash of additional properties
    extended-properties
@@ -114,13 +114,16 @@
    custom-properties)
 
 (define-struct %php-class
-   ;;print-name is the class name as the user wrote it (case sensitive)
+   ;;print-name is the class name as the user wrote it (case sensitive) ::bstring
    print-name
-   ;;the canonical name of this class
+   ;;the canonical version of the class name (case insensitive) ::bstring
    name
-   ;;a pointer to the parent class of this class
-   parent-class
-   ;; class flags: abstract, final
+   ;;list of parent %php-class pointers. this will have one item unless
+   ;;this is an interface ::pair
+   extends
+   ;;list of interfaces %php-class pointers this class implements ::pair
+   implements
+   ;; class flags: interface, abstract, final ::pair
    flags
    ;; the constructor method if available
    constructor-proc
@@ -132,7 +135,7 @@
    static-property-offsets   
    ;;properties is a vector of all properties (which points to actual php data)
    ;;the values here are declared defaults, unless it's static in which case it's the
-   ;;actual current value
+   ;;actual current value ::vector
    properties
    ;;hash of property visibility (protected and private only).
    ;;note: also stores static property visibility
@@ -147,16 +150,30 @@
    custom-prop-set
    ;;the copier for the custom properties
    custom-prop-copy
-   ;; PHP5 "class constants" (php-hash)
+   ;;php-hash of class constants, keyed by name (case sensitive), value is a literal
    class-constants)
 
+; custom accessor. this is the normal case for classes,
+; where we have only one parent
+(define (%php-class-parent-class the-class::struct)
+   (if (null? (%php-class-extends the-class))
+       #f
+       (car (%php-class-extends the-class))))
+
 (define-struct %php-method
-   ;; print name (case sensitive)
+   ;; print name (case sensitive) ::bstring
    print-name
-   ;; flags: visibility, static, final, abstract
-   flags
-   ;; procedure
+   ;; pointer to the original defining %php-class ::struct
+   origin-class
+   ;; public, protected, private ::symbol
+   visibility
+   ;; flags ::bbool
+   final?
+   abstract?
+   ;; method ::procedure
    proc)
+
+(define *highest-instantiation* 0)
 
 ;
 ; PHP5 case sensitivity:
@@ -346,20 +363,20 @@ values the values."
 (define (php-object-is-a obj class-name)
    (if (not (php-object? obj))
        (begin
-	  (debug-trace 4 "php-object-is-a: not an object")
+;	  (debug-trace 4 "php-object-is-a: not an object")
 	  #f)
        (let ((the-class (%lookup-class class-name)))
 	  (if (not (%php-class? the-class))
 	      (begin
-		 (debug-trace 4 "php-object-is-a: not a class")
+;		 (debug-trace 4 "php-object-is-a: not a class")
 		 #f)
 	      (or (eqv? (%php-object-class obj) the-class)
 		  (begin
-		     (debug-trace 4 "php-object-is-a: not eqv?")
+;		     (debug-trace 4 "php-object-is-a: not eqv?")
 		     #f)
 		  (%subclass? (%php-object-class obj) the-class)
 		  (begin
-		     (debug-trace 4 "php-object-is-a: not subclass")
+;		     (debug-trace 4 "php-object-is-a: not subclass")
 		     #f))))))
 
 (define (php-class-exists? class-name)
@@ -400,7 +417,7 @@ values the values."
 	     (php-error "Calling method "
 			(%php-class-print-name (%php-object-class obj))
 			"->" method-name ": undefined method."))
-	  (when (member 'abstract (%php-method-flags the-method))
+	  (when (%php-method-abstract? the-method)
 	     (php-error (format "Cannot call abstract method ~a::~a()" (%php-class-print-name
 									(%php-object-class obj)) method-name)))
 	  (%php-method-proc the-method))))
@@ -468,7 +485,7 @@ values the values."
 	 (unless the-method
 	    (php-error "Parent method call: Unable to find method "
 		       method-name " of class " parent-class-name))
-	 (when (member 'abstract (%php-method-flags the-method))
+	 (when (%php-method-abstract? the-method)
 	    (php-error (format "Cannot call abstract method ~a::~a()" parent-class-name method-name)))
 	 (apply (%php-method-proc the-method) obj (adjust-argument-list (%php-method-proc the-method) call-args)))))
 
@@ -713,10 +730,12 @@ values the values."
 (define (init-php-object-lib)
    (set! %php-class-registry (make-hashtable))
    (set! %php-autoload-registry (make-hashtable))
+   (set! *highest-instantiation* 0)
    ;define the root of the class hierarchy
    (let ((stdclass (%php-class "stdClass"       ; print name
 			       "stdclass"       ; canonical name
-			       #f               ; parent class
+			       '()              ; extends
+			       '()              ; implements
 			       '()              ; flags
 			       #f               ; constructor proc
 			       #f               ; destructor proc
@@ -733,7 +752,8 @@ values the values."
 			       ))
 	 (inc-class (%php-class "__PHP_Incomplete_Class"       ; print name
 			       "__php_incomplete_class"       ; canonical name
-			       #f               ; parent class
+			       '()              ; extends
+			       '()              ; implements
 			       '()              ; flags
 			       #f               ; constructor proc
 			       #f               ; destructor proc
@@ -752,21 +772,98 @@ values the values."
       (hashtable-put! %php-class-registry "stdclass" stdclass)
       (hashtable-put! %php-class-registry "__php_incomplete_class" inc-class)))
 
-(define (define-php-class name parent-name flags)
+(define (%resolve-classes class-list)
+   "return a list of resolved %php-class structures based on the list given
+    in extends, or fatal in the process if we can't find them"
+   (let ((ret-list '()))
+      (for-each (lambda (class-name)
+		   (let ((resolved-class (%lookup-class-with-autoload class-name)))
+		      (if resolved-class
+			  (set! ret-list (cons resolved-class ret-list))
+			  (raise class-name))))
+		class-list)
+      ret-list))
+
+; inherit methods from extends and implements to new-class
+; assumes extends and implements list is already resolved
+(define (%inherit-methods new-class::struct)
+   (let* ((extends-list (%php-class-extends new-class))
+	  (implements-list (%php-class-implements new-class))
+	  (parent-class (car extends-list)))
+      ; first inherit non-abstract methods from direct parent if it's not abstract
+      (unless (member 'abstract (%php-class-flags parent-class))
+	 (php-hash-for-each (%php-class-methods parent-class)
+			    (lambda (canonical-method-name the-method)
+			       (unless (%php-method-abstract? the-method)
+				  (let ((new-method (%php-method (%php-method-print-name the-method)
+								 (%php-method-origin-class the-method)
+								 (%php-method-visibility the-method)
+								 (%php-method-final? the-method)
+								 #f ; abstract?
+								 (%php-method-proc the-method))))
+				     (php-hash-insert! (%php-class-methods new-class)
+						       canonical-method-name
+						       new-method))))))
+      ; now do abstract methods
+      (unless (and (null? extends-list)
+		   (null? implements-list))
+		(for-each
+		 (lambda (the-class)
+		    ;
+		    ; for each method, create an abstract method in our new class
+		    ; if they implement it in their class, it will be overwritten in define-php-method
+		    ; if they don't it will be caught as an unimplemented abstract method
+		    ;
+		    (php-hash-for-each (%php-class-methods the-class)
+				       (lambda (canonical-method-name the-method)
+					  (when (%php-method-abstract? the-method)
+					     ; does it already exist?
+					     (let ((existing-method (php-hash-lookup-honestly-just-for-reading (%php-class-methods new-class) canonical-method-name)))
+						(unless (php-null? existing-method)
+						   (php-error (format "Can't inherit abstract function ~A::~A() (previously declared abstract in ~A)"
+								      (%php-class-print-name the-class)
+								      (%php-method-print-name the-method)
+								      (%php-class-print-name
+								       (%php-method-origin-class existing-method))))))
+					     ;
+					     (let ((new-method (%php-method (%php-method-print-name the-method)
+									    (%php-method-origin-class the-method)
+									    (%php-method-visibility the-method)
+									    #f ; final
+									    #t ; abstract
+									    'abstract-no-proc)))
+						(php-hash-insert! (%php-class-methods new-class)
+								  canonical-method-name
+								  new-method)
+						)))))
+		 (append (reverse extends-list) (reverse implements-list))))))
+      
+(define (define-php-class name extends implements flags)
    (if (%lookup-class name)
        #t ;leave the errors to the evaluator/compiler for now
-       (let ((parent-class (if (null? parent-name)
-			       (%lookup-class "stdclass")
-			       (%lookup-class-with-autoload parent-name))))
-	  (unless parent-class
-	     (php-error "Defining class " name ": unable to find parent class " parent-name))
-	  (let* ((canonical-name (%class-name-canonicalize name))
+       (let ((resolved-extends (if (null? extends)
+				   (list (%lookup-class "stdclass"))
+				   (with-exception-handler
+				      (lambda (unknown-classname)
+					 (php-error "Defining class " name ": unable to find parent class " unknown-classname))
+				      (lambda ()
+					 (%resolve-classes extends)))))
+	     (resolved-implements (if (null? implements)
+				      '()
+				      (with-exception-handler
+					 (lambda (unknown-classname)
+					    (php-error "Interface  '" unknown-classname "' not found"))
+					 (lambda ()
+					    (%resolve-classes implements))))))
+	  (let* ((parent-class (car resolved-extends))
+		 (canonical-name (%class-name-canonicalize name))
 		 (new-class (%php-class (mkstr name)
 					canonical-name
-					parent-class
+					resolved-extends
+					resolved-implements
 					flags
-                                        #f
-					#f
+                                        #f ; constructor
+					#f ; destructor
 					(copy-hashtable
 					 (%php-class-declared-property-offsets parent-class))
 					(copy-hashtable
@@ -775,22 +872,23 @@ values the values."
 					(copy-prop-visibility
 					 (%php-class-prop-visibility parent-class))				 
 					(copy-php-data (%php-class-extended-properties parent-class))
-					(copy-php-data (%php-class-methods parent-class))
+					(make-php-hash) ; methods we do below
 					(%php-class-custom-prop-lookup parent-class)
 					(%php-class-custom-prop-set parent-class)
 					(%php-class-custom-prop-copy parent-class)
                                         (copy-php-data (%php-class-class-constants parent-class))
 					)))
+	     (%inherit-methods new-class)
 	     (hashtable-put! %php-class-registry canonical-name new-class)))))
 
-(define (define-extended-php-class name parent-name flags getter setter copier)
+(define (define-extended-php-class name extends implements flags getter setter copier)
    "Create a PHP class with an overridden getter and setter.  The getter takes
 four arguments: the object, the property, ref?, and the continuation.  The
 continuation is a procedure of no arguments that can be invoked to get the
 default property lookup behavior.  The setter takes an additional value
 argument, before the continuation: (obj prop ref? value k)."
    ;xxx and a copier, and they can be false to inherit...
-   (define-php-class name parent-name flags)
+   (define-php-class name extends implements flags)
    (let ((klass (%lookup-class name)))
       (if (%php-class? klass)
 	  (begin
@@ -829,39 +927,51 @@ argument, before the continuation: (obj prop ref? value k)."
       new))
 
 (define (vis->= vis1 vis2)
-   (or (member 'public vis1)
-       (and (member 'protected vis1) (member 'protected vis2))
-       (and (member 'protected vis1) (member 'private vis2))
-       (and (member 'private vis1) (member 'private vis2))))
+   (or (eqv? 'public vis1)
+       (and (eqv? 'protected vis1) (eqv? 'protected vis2))
+       (and (eqv? 'protected vis1) (eqv? 'private vis2))
+       (and (eqv? 'private vis1) (eqv? 'private vis2))))
 
-(define (flags-visibility flags)
-   (cond ((member 'public flags) 'public)
-	 ((member 'private flags) 'public)
-	 ((member 'protected flags) 'protected)))
+; XXX maybe make this required as separate param
+(define (%extract-visibility method-flags)
+   (let ((vis (or (member 'public method-flags)
+		  (member 'protected method-flags)
+		  (member 'private method-flags))))
+      (if vis
+	  (car vis)
+	  ; ??
+	  'public)))
 
 (define (define-php-method class-name method-name flags method)
-   (let ((the-class (%lookup-class class-name)))
+   (let ((the-class (%lookup-class class-name))
+	 (visibility (%extract-visibility flags))
+	 (final? (if (member 'final flags) #t #f))
+	 (abstract? (if (member 'abstract flags) #t #f)))
       (unless the-class
 	 (php-error "Defining method " method-name ": unknown class " class-name))
       ;;
       ;; if this is an interface, this method must be abstract
       (when (and (member 'interface (%php-class-flags the-class))
-		 (not (member 'abstract flags)))
-	    (set! flags (cons 'abstract flags)))
+		 (not abstract?))
+	    (set! abstract? #t))
+      ;; if method is abstract and class isn't, class becomes abstract-implied
+      (when (and abstract? (not (member 'abstract (%php-class-flags the-class))))
+	 (%php-class-flags-set! the-class (append '(abstract abstract-implied) (%php-class-flags the-class))))
+      ;
       ;; visibility checks related to overridden methods
       (let ((overridden-method (%lookup-method (%php-class-parent-class the-class) method-name)))
 	 (when overridden-method
 	    ;; visibility must be same or better as parent method
-	    (unless (vis->= flags (%php-method-flags overridden-method))
+	    (unless (vis->= visibility (%php-method-visibility overridden-method))
 	       (php-error (format "Access level to ~A::~A() must be ~A (as in class ~A)"
 				  class-name
 				  method-name
-				  (flags-visibility (%php-method-flags overridden-method))
+				  (%php-method-visibility overridden-method)
 				  (%php-class-print-name
 				   (%php-class-parent-class the-class)))))))
       ;;
       (let* ((canon-method-name (%method-name-canonicalize method-name))
-	     (new-method (%php-method method-name flags method)))
+	     (new-method (%php-method method-name the-class visibility final? abstract? method)))
          ;; check if the method is a constructor
 	 (when (or (string=? canon-method-name "__construct")
 		   (and (not (%php-class-constructor-proc the-class))
@@ -870,6 +980,7 @@ argument, before the continuation: (obj prop ref? value k)."
 	 ;; check if the method is a destructor
 	 (when (string=? canon-method-name "__destruct")
 	    (%php-class-destructor-proc-set! the-class method))
+	 ;
          (php-hash-insert! (%php-class-methods the-class)
                            canon-method-name
                            new-method))))
@@ -891,7 +1002,7 @@ argument, before the continuation: (obj prop ref? value k)."
       ((eqv? 'protected visibility)
        (mangle-property-protected name))))
 
-(define (define-php-property class-name property-name value visibility static?)
+(define (define-php-property class-name property-name default-value visibility static?)
    (let ((the-class (%lookup-class class-name)))
       (unless the-class
 	 (php-error "Defining property " property-name ": unknown class " class-name))
@@ -904,13 +1015,13 @@ argument, before the continuation: (obj prop ref? value k)."
 			      (%php-class-declared-property-offsets the-class))))
          (aif (hashtable-get offset-hash mangled-name)
               ;; already defined, just set it
-              (vector-set! properties it (make-container (maybe-unbox value)))
+              (vector-set! properties it (make-container (maybe-unbox default-value)))
               ;; not defined yet, extend the properties vector and add
               ;; a new entry in the offset map
               (begin
                  (%php-class-properties-set!
                   the-class
-                  (cruddy-push-extend (make-container (maybe-unbox value)) properties))
+                  (cruddy-push-extend (make-container (maybe-unbox default-value)) properties))
                  (hashtable-put! offset-hash
                                  mangled-name
                                  offset)
@@ -929,18 +1040,17 @@ argument, before the continuation: (obj prop ref? value k)."
       (unless the-class
 	 (php-error "Unable to finalize unknown class: " class-name))
       ; if this isn't an abstract class, fatal if there are any abstract methods unimplemented
-      ; this works for classes that implement interfaces but haven't implemented a required method as well
       (unless (member 'abstract (%php-class-flags the-class))
 	 (let ((acnt 0)
 	       (amissing ""))
 	    (php-hash-for-each (%php-class-methods the-class)
 			       (lambda (k v)
-				  (when (member 'abstract (%php-method-flags v))
+				  (when (%php-method-abstract? v)
 				     (set! acnt (+ acnt 1))
 				     (set! amissing (mkstr amissing (if (string=? amissing "")
 									""
 									", ")
-							   class-name "::" (%php-method-print-name v))))))
+							   (%php-class-print-name (%php-method-origin-class v)) "::" (%php-method-print-name v))))))
 	    (when (> acnt 0)
 	       (php-error (format "Class ~A contains ~A abstract method~A and must therefore be declared abstract or implement the remaining methods (~A)"
 				  class-name
@@ -1226,7 +1336,6 @@ argument, before the continuation: (obj prop ref? value k)."
  	     (set! lst (cons (%php-method-print-name method) lst))))
         lst)))
 
-(define *highest-instantiation* 0)
 (define (%next-instantiation-id)
    (set! *highest-instantiation* (+ 1 *highest-instantiation*))
    *highest-instantiation*)
@@ -1236,6 +1345,8 @@ argument, before the continuation: (obj prop ref? value k)."
    (let ((the-class (%lookup-class-with-autoload class-name)))
       (unless the-class
 	 (php-error "Unable to instantiate " class-name ": undefined class."))
+      (when (member 'interface (%php-class-flags the-class))
+	 (php-error "Cannot instantiate interface " class-name))      
       (when (member 'abstract (%php-class-flags the-class))
 	 (php-error "Cannot instantiate abstract class " class-name))
       ;
@@ -1271,6 +1382,8 @@ argument, before the continuation: (obj prop ref? value k)."
    (let ((the-class (%lookup-class-with-autoload class-name)))
       (unless the-class
 	 (php-error "Unable to instantiate " class-name ": undefined class."))
+      (when (member 'interface (%php-class-flags the-class))
+	 (php-error "Cannot instantiate interface " class-name))
       (when (member 'abstract (%php-class-flags the-class))
 	 (php-error "Cannot instantiate abstract class " class-name))
       (let ((new-object (%php-object (%next-instantiation-id)
