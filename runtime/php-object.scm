@@ -160,6 +160,16 @@
        #f
        (car (%php-class-extends the-class))))
 
+(define (%php-class-interface? the-class::struct)
+   (if (member 'interface (%php-class-flags the-class))
+       #t
+       #f))
+
+(define (%php-class-abstract? the-class::struct)
+   (if (member 'abstract (%php-class-flags the-class))
+       #t
+       #f))
+
 (define-struct %php-method
    ;; print name (case sensitive) ::bstring
    print-name
@@ -362,22 +372,13 @@ values the values."
 
 (define (php-object-is-a obj class-name)
    (if (not (php-object? obj))
-       (begin
-;	  (debug-trace 4 "php-object-is-a: not an object")
-	  #f)
+       #f
        (let ((the-class (%lookup-class class-name)))
 	  (if (not (%php-class? the-class))
-	      (begin
-;		 (debug-trace 4 "php-object-is-a: not a class")
-		 #f)
+	      #f
 	      (or (eqv? (%php-object-class obj) the-class)
-		  (begin
-;		     (debug-trace 4 "php-object-is-a: not eqv?")
-		     #f)
 		  (%subclass? (%php-object-class obj) the-class)
-		  (begin
-;		     (debug-trace 4 "php-object-is-a: not subclass")
-		     #f))))))
+		  (%implements? (%php-object-class obj) the-class))))))
 
 (define (php-class-exists? class-name)
    (let ((c (%lookup-class-with-autoload class-name)))
@@ -782,7 +783,7 @@ values the values."
 			  (set! ret-list (cons resolved-class ret-list))
 			  (raise class-name))))
 		class-list)
-      ret-list))
+      (reverse ret-list)))
 
 ; inherit methods from extends and implements to new-class
 ; assumes extends and implements list is already resolved
@@ -794,13 +795,15 @@ values the values."
       (unless (member 'abstract (%php-class-flags parent-class))
 	 (php-hash-for-each (%php-class-methods parent-class)
 			    (lambda (canonical-method-name the-method)
-			       (unless (%php-method-abstract? the-method)
+			       (unless (or (%php-method-abstract? the-method)
+					   (eqv? (%php-method-visibility the-method) 'private))
 				  (let ((new-method (%php-method (%php-method-print-name the-method)
 								 (%php-method-origin-class the-method)
 								 (%php-method-visibility the-method)
 								 (%php-method-final? the-method)
 								 #f ; abstract?
 								 (%php-method-proc the-method))))
+;    (debug-trace 0 "inherit non abstract: " (%php-class-print-name parent-class) "::" canonical-method-name " to " (%php-class-print-name new-class))
 				     (php-hash-insert! (%php-class-methods new-class)
 						       canonical-method-name
 						       new-method))))))
@@ -817,26 +820,30 @@ values the values."
 		    (php-hash-for-each (%php-class-methods the-class)
 				       (lambda (canonical-method-name the-method)
 					  (when (%php-method-abstract? the-method)
-					     ; does it already exist?
 					     (let ((existing-method (php-hash-lookup-honestly-just-for-reading (%php-class-methods new-class) canonical-method-name)))
-						(unless (php-null? existing-method)
-						   (php-error (format "Can't inherit abstract function ~A::~A() (previously declared abstract in ~A)"
-								      (%php-class-print-name the-class)
-								      (%php-method-print-name the-method)
-								      (%php-class-print-name
-								       (%php-method-origin-class existing-method))))))
-					     ;
-					     (let ((new-method (%php-method (%php-method-print-name the-method)
-									    (%php-method-origin-class the-method)
-									    (%php-method-visibility the-method)
-									    #f ; final
-									    #t ; abstract
-									    'abstract-no-proc)))
-						(php-hash-insert! (%php-class-methods new-class)
-								  canonical-method-name
-								  new-method)
-						)))))
-		 (append (reverse extends-list) (reverse implements-list))))))
+						(when (or (php-null? existing-method)
+							  (%php-method-abstract? existing-method))
+						   ; if it already exists, and it's abstract, and the origin classes differ, we have a conflict
+						   (unless (or (php-null? existing-method)
+							       (string=? (%php-class-print-name (%php-method-origin-class existing-method))
+									 (%php-class-print-name (%php-method-origin-class the-method))))
+						      (php-error (format "Can't inherit abstract function ~A::~A() (previously declared abstract in ~A)"
+									 (%php-class-print-name the-class)
+									 (%php-method-print-name the-method)
+									 (%php-class-print-name
+									  (%php-method-origin-class existing-method)))))
+						   ; we have either a new abstract method to inherit, or one to override
+						   (let ((new-method (%php-method (%php-method-print-name the-method)
+										  (%php-method-origin-class the-method)
+										  (%php-method-visibility the-method)
+										  #f ; final
+										  #t ; abstract
+										  'abstract-no-proc)))
+;    (debug-trace 0 "inherit abstract: " (%php-class-print-name the-class) "::" canonical-method-name " to " (%php-class-print-name new-class))				
+						      (php-hash-insert! (%php-class-methods new-class)
+									canonical-method-name
+									new-method))))))))
+		 (append extends-list implements-list)))))
       
 (define (define-php-class name extends implements flags)
    (if (%lookup-class name)
@@ -878,6 +885,13 @@ values the values."
 					(%php-class-custom-prop-copy parent-class)
                                         (copy-php-data (%php-class-class-constants parent-class))
 					)))
+	     ; make sure implements only contains interfaces
+	     (unless (null? resolved-implements)
+		(for-each (lambda (the-class)
+			     (unless (member 'interface (%php-class-flags the-class))
+				(php-error (format "~a cannot implement ~a - it is not an interface" name (%php-class-print-name the-class)))))
+			  resolved-implements))
+	     ;
 	     (%inherit-methods new-class)
 	     (hashtable-put! %php-class-registry canonical-name new-class)))))
 
@@ -949,7 +963,6 @@ argument, before the continuation: (obj prop ref? value k)."
 	 (abstract? (if (member 'abstract flags) #t #f)))
       (unless the-class
 	 (php-error "Defining method " method-name ": unknown class " class-name))
-      ;;
       ;; if this is an interface, this method must be abstract
       (when (and (member 'interface (%php-class-flags the-class))
 		 (not abstract?))
@@ -958,32 +971,41 @@ argument, before the continuation: (obj prop ref? value k)."
       (when (and abstract? (not (member 'abstract (%php-class-flags the-class))))
 	 (%php-class-flags-set! the-class (append '(abstract abstract-implied) (%php-class-flags the-class))))
       ;
+      ;; can't be both final and abstract
+      (when (and abstract? final?)
+	 (php-error "Cannot use the final modifier on an abstract class member"))
       ;; visibility checks related to overridden methods
-      (let ((overridden-method (%lookup-method (%php-class-parent-class the-class) method-name)))
-	 (when overridden-method
-	    ;; visibility must be same or better as parent method
+      (let* ((canon-method-name (%method-name-canonicalize method-name))
+	     (overridden-method (php-hash-lookup (%php-class-methods the-class) canon-method-name)))
+	 (unless (php-null? overridden-method)
+	    ;; visibility must be same or better as overridden method
 	    (unless (vis->= visibility (%php-method-visibility overridden-method))
 	       (php-error (format "Access level to ~A::~A() must be ~A (as in class ~A)"
 				  class-name
 				  method-name
 				  (%php-method-visibility overridden-method)
 				  (%php-class-print-name
-				   (%php-class-parent-class the-class)))))))
-      ;;
-      (let* ((canon-method-name (%method-name-canonicalize method-name))
-	     (new-method (%php-method method-name the-class visibility final? abstract? method)))
-         ;; check if the method is a constructor
-	 (when (or (string=? canon-method-name "__construct")
-		   (and (not (%php-class-constructor-proc the-class))
-			(string=? canon-method-name (%php-class-name the-class))))
-	    (%php-class-constructor-proc-set! the-class method))
-	 ;; check if the method is a destructor
-	 (when (string=? canon-method-name "__destruct")
-	    (%php-class-destructor-proc-set! the-class method))
-	 ;
-         (php-hash-insert! (%php-class-methods the-class)
-                           canon-method-name
-                           new-method))))
+				   (%php-class-parent-class the-class))))))
+	 ;; we are the origin
+	 (let ((new-method (%php-method method-name
+					the-class
+					visibility
+					final?
+					abstract?
+					method)))
+	    ;; check if the method is a constructor
+	    (when (or (string=? canon-method-name "__construct")
+		      (and (not (%php-class-constructor-proc the-class))
+			   (string=? canon-method-name (%php-class-name the-class))))
+	       (%php-class-constructor-proc-set! the-class method))
+	    ;; check if the method is a destructor
+	    (when (string=? canon-method-name "__destruct")
+	       (%php-class-destructor-proc-set! the-class method))
+	    ;
+;   (debug-trace 0 "defining " class-name "::" method-name " overridding: " (not (php-null? overridden-method)))
+	    (php-hash-insert! (%php-class-methods the-class)
+			      canon-method-name
+			      new-method)))))
 
 (define (mangle-property-private prop)
    "mangle given property string to private visibility"
@@ -1040,7 +1062,8 @@ argument, before the continuation: (obj prop ref? value k)."
       (unless the-class
 	 (php-error "Unable to finalize unknown class: " class-name))
       ; if this isn't an abstract class, fatal if there are any abstract methods unimplemented
-      (unless (member 'abstract (%php-class-flags the-class))
+      (unless (and (member 'abstract (%php-class-flags the-class))
+		   (not (member 'abstract-implied (%php-class-flags the-class))))
 	 (let ((acnt 0)
 	       (amissing ""))
 	    (php-hash-for-each (%php-class-methods the-class)
@@ -1401,13 +1424,56 @@ argument, before the continuation: (obj prop ref? value k)."
 
 
 
-(define (%subclass? class-a class-b)
+(define (%subclass? class-a::struct class-b::struct)
    "is class-a a subclass of class-b?"
-   (let ((parent (%php-class-parent-class class-a) ))
-      (and parent
-	   (or (eqv? parent class-b)
-	       (%subclass? parent class-b)))))
+;(debug-trace 0 "%subclass on " (%php-class-print-name class-a) " | " (%php-class-print-name class-b))
+   (if (null? (%php-class-extends class-a))
+       #f
+       (bind-exit (return)
+	  (for-each (lambda (parent-class)
+;   (debug-trace 0 "sub check extend item for: " (%php-class-print-name parent-class))
+		       (let ((result (or (eqv? parent-class class-b)
+					 (%subclass? parent-class class-b))))
+			  (when result
+			     ; positive, break loop early
+;			     (debug-trace 0 "positive subclass: " parent-class " || " class-b)
+			     (return #t))))
+		    (%php-class-extends class-a))
+	  (return #f))))
 
+(define (%implements-check? class::struct the-interface::struct)
+;(debug-trace 0 "%implements-check on " (%php-class-print-name class) " | " (%php-class-print-name the-interface))
+   (if (null? (%php-class-implements class))
+       #f   
+       (bind-exit (return)
+	  (for-each (lambda (an-interface)
+;   (debug-trace 0 "sub check implement item for: " (%php-class-print-name an-interface))
+		       (let ((result (or (eqv? an-interface the-interface)
+					 ; note we recurse on subclass? and not implements?, because interfaces
+					 ; do not implement but rather subclass other interfaces
+					 (%subclass? an-interface the-interface))))
+			  (when result
+			     ; positive, break loop early
+;    (debug-trace 0 "positive interface")
+			     (return #t))))
+		    (%php-class-implements class))
+	  (return #f))))
+
+(define (%implements? class::struct the-interface::struct)
+;(debug-trace 0 "%implements on " (%php-class-print-name class) " | " (%php-class-print-name the-interface))   
+   "does class implement the-interface?"
+   ; we check if we implement it directly, or if any of our parents implement it
+   (bind-exit (return)
+      (let ((result (or (%implements-check? class the-interface)
+			(begin (for-each (lambda (parent-class)
+;  (debug-trace 0 "%implements parent check on " (%php-class-print-name parent-class) " | " (%php-class-print-name the-interface))   		       
+					    (let ((result (%implements? parent-class the-interface)))
+					       (when result
+						  (return #t))))
+					 (%php-class-extends class))
+			       #f))))
+	 (if result (return #t) (return #f)))))
+   
 
 ;;;string versions, for compiled code
 (define (php-object-property/string obj property::bstring access-type)
