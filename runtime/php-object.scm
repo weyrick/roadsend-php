@@ -970,6 +970,10 @@ argument, before the continuation: (obj prop ref? value k)."
       ;; if method is abstract and class isn't, class becomes abstract-implied
       (when (and abstract? (not (member 'abstract (%php-class-flags the-class))))
 	 (%php-class-flags-set! the-class (append '(abstract abstract-implied) (%php-class-flags the-class))))
+      ; if class is an interface, visibility must be public
+      (when (and (%php-class-interface? the-class)
+		 (not (eqv? visibility 'public)))
+	 (php-error (format "Access type for interface method ~a::~a() must be omitted" class-name method-name)))
       ;
       ;; can't be both final and abstract
       (when (and abstract? final?)
@@ -978,14 +982,26 @@ argument, before the continuation: (obj prop ref? value k)."
       (let* ((canon-method-name (%method-name-canonicalize method-name))
 	     (overridden-method (php-hash-lookup (%php-class-methods the-class) canon-method-name)))
 	 (unless (php-null? overridden-method)
+	    ;; can't override a final method
+	    (when (%php-method-final? overridden-method)
+	       (php-error (format "Cannot override final method ~A::~A()"
+				  (%php-class-print-name
+				   (%php-class-parent-class the-class))
+				  method-name
+				  )))
 	    ;; visibility must be same or better as overridden method
 	    (unless (vis->= visibility (%php-method-visibility overridden-method))
-	       (php-error (format "Access level to ~A::~A() must be ~A (as in class ~A)"
+	       (php-error (format "Access level to ~A::~A() must be ~A (as in class ~A)~A"
 				  class-name
 				  method-name
 				  (%php-method-visibility overridden-method)
 				  (%php-class-print-name
-				   (%php-class-parent-class the-class))))))
+				   (%php-class-parent-class the-class))
+				  (if (eqv? 'protected (%php-method-visibility overridden-method))
+				      " or weaker"
+				      "")				  
+				  )))
+	    )
 	 ;; we are the origin
 	 (let ((new-method (%php-method method-name
 					the-class
@@ -1028,6 +1044,8 @@ argument, before the continuation: (obj prop ref? value k)."
    (let ((the-class (%lookup-class class-name)))
       (unless the-class
 	 (php-error "Defining property " property-name ": unknown class " class-name))
+      (when (%php-class-interface? the-class)
+	 (php-error "Interfaces may not include member variables"))
       (let* ((properties (%php-class-properties the-class))
 	     (offset (vector-length properties))
              (canonical-name (%property-name-canonicalize property-name))
