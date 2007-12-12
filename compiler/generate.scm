@@ -891,15 +891,30 @@ onum.  Append the bindings for the new symbols and code."
 	    `(begin
 		(set! *PHP-FILE* ,*file-were-compiling*)
 		(set! *PHP-LINE* ,(car location))
-		(begin0
-		 (,tramp ,(dynamically-bind (*hash-lookup-writable* #t)
-			     (get-value obj))
-			 ,(if (ast-node? prop)
-			      (get-value prop)
-			      (undollar prop))
-			 ,@(map get-location arglist))
-		 (set! *PHP-FILE* ,*file-were-compiling*)
-		 (set! *PHP-LINE* ,(car location)) ))))))
+		(let* ((obj-val ,(dynamically-bind (*hash-lookup-writable* #t)
+						   (get-value obj)))
+		       (prop-val ,(if (ast-node? prop)
+				      (get-value prop)
+				      (undollar prop)))
+		       (accessible (php-method-accessible obj-val prop-val ,(if *current-class-name*
+										`(if (eqv? this-unboxed obj-val)
+										     ',*current-class-name*
+										     #f)
+										#f))))
+		   (when (pair? accessible)
+		      (let ((vis (car accessible))
+			    (origin-class (cdr accessible)))
+			 (php-error (format "Call to ~a method ~a::~a() from context '~a'"
+					    vis
+					    origin-class
+					    prop-val
+					    ',(if *current-class-name* *current-class-name* "")))))
+		   (begin0
+		    (,tramp obj-val
+			    prop-val
+			    ,@(map get-location arglist))
+		    (set! *PHP-FILE* ,*file-were-compiling*)
+		    (set! *PHP-LINE* ,(car location)) )))))))
 
 
 (define-method (generate-code node::static-method-invoke)
@@ -912,15 +927,30 @@ onum.  Append the bindings for the new symbols and code."
 	      `(begin
 		  (set! *PHP-FILE* ,*file-were-compiling*)
 		  (set! *PHP-LINE* ,(car location))
-		  (begin0
-		   ,(if (and *current-class-name*
-			     (compile-time-subclass? *current-class-name* class-name))
-			`(call-static-php-method ',class-canon this-unboxed ,(get-value method)
-						 ,@(map get-location arglist))
-			`(call-static-php-method ',class-canon NULL ,(get-value method)
-						 ,@(map get-location arglist)))
-		   (set! *PHP-FILE* ,*file-were-compiling*)
-		   (set! *PHP-LINE* ,(car location)) ))))))
+
+		  (let* ((method-val ,(get-value method))
+			 (accessible (php-method-accessible ',class-canon method-val
+							     ,(if *current-class-name*
+								  `*current-class-name*
+								  `#f))))
+		     (when (pair? accessible)
+			(let ((vis (car accessible))
+			      (origin-class (cdr accessible)))
+			   (php-error (format "Call to ~a method ~a::~a() from context '~a'"
+					      vis
+					      origin-class
+					      method-val
+					      ',(if *current-class-name* *current-class-name* "")))))
+		     
+		     (begin0
+		      ,(if (and *current-class-name*
+				(compile-time-subclass? *current-class-name* class-name))
+			   `(call-static-php-method ',class-canon this-unboxed method-val
+						    ,@(map get-location arglist))
+			   `(call-static-php-method ',class-canon NULL method-val
+						    ,@(map get-location arglist)))
+		      (set! *PHP-FILE* ,*file-were-compiling*)
+		      (set! *PHP-LINE* ,(car location)) )))))))
        
 (define-method (generate-code node::parent-method-invoke)
    (with-access::parent-method-invoke node (location name arglist)
@@ -928,6 +958,9 @@ onum.  Append the bindings for the new symbols and code."
 	  `(begin
 	      (set! *PHP-FILE* ,*file-were-compiling*)
 	      (set! *PHP-LINE* ,(car location))
+	      ;
+	      ; XXX visibility check
+	      ;
 	      (begin0
 	       (call-php-parent-method ',*current-parent-class-name*
 				       this-unboxed

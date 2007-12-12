@@ -919,16 +919,32 @@ gives the debugger a chance to run."
 	 (set! *PHP-FILE* (cdr location))
 	 (set! *PHP-LINE* (car location))
 	 (begin0
-	  (let ((object (maybe-unbox (d/evaluate obj)))
-		(method-name (d/evaluate prop)))
+	  (let* ((object (maybe-unbox (d/evaluate obj)))
+		 (method-name (d/evaluate prop))
+		 (accessible (php-method-accessible object
+						    method-name
+						    (if (eqv? *current-instance* object)
+							; current-class context
+							*current-class-name*
+							; no context
+							#f))))
 	     
 	     ;;XXX okay, this is a problem, because we don't know if
 	     ;;we're getting the location or getting the value, so we
 	     ;;don't know what to do with hash lookups and the like.
 	     ;;err on the side of locations.
 	     
-	     (if (php-object? object)	       
-		 (apply call-php-method object method-name (map get-location arglist))
+	     (if (php-object? object)
+		 (begin
+		    (when (pair? accessible)
+		       (let ((vis (car accessible))
+			     (origin-class (cdr accessible)))
+			  (php-error (format "Call to ~a method ~a::~a() from context '~a'"
+					     vis
+					     origin-class
+					     method-name
+					     (if *current-class-name* *current-class-name* "")))))
+		    (apply call-php-method object method-name (map get-location arglist)))
 		 (php-error/loc obj (format "method call on non-object, object is |~A|" (mkstr object)))))
 	  (set! *PHP-FILE* (cdr location))
 	  (set! *PHP-LINE* (car location))))))
@@ -944,7 +960,16 @@ gives the debugger a chance to run."
 		    (eqv? class-canon #f))
 	    (php-error "Cannot access self:: when no class scope is active"))
 	 (begin0
-	  (let ((method-name (d/evaluate method)))
+	  (let* ((method-name (d/evaluate method))
+		 (accessible (php-method-accessible class-name method-name *current-class-name*)))
+	     (when (pair? accessible)
+		(let ((vis (car accessible))
+		      (origin-class (cdr accessible)))
+		   (php-error (format "Call to ~a method ~a::~a() from context '~a'"
+				      vis
+				      origin-class
+				      method-name
+				      (if *current-class-name* *current-class-name* "")))))
 	     (if (and (php-object? *current-instance*)
 		      (php-object-is-subclass *current-instance* class-name))
 		 ;; we only provide the static method call with a $this

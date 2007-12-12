@@ -73,8 +73,9 @@
     (php-class-static-property-set! class-name property value access-type)
     (php-object-property-honestly-just-for-reading obj property access-type)
     ; visibility
-    (php-object-property-visibility obj prop caller)
+    (php-object-property-visibility obj prop context)
     (php-class-static-property-visibility class prop context)
+    (php-method-accessible obj-or-class method-name context)
     ; methods
     (make-php-object properties)
     (construct-php-object class-name . args)
@@ -415,9 +416,9 @@ values the values."
        (php-error "Unable to call method on non-object " obj)
        (let ((the-method (%lookup-method (%php-object-class obj) method-name)))
 	  (unless the-method
-	     (php-error "Calling method "
+	     (php-error "Call to undefined method "
 			(%php-class-print-name (%php-object-class obj))
-			"->" method-name ": undefined method."))
+			"::" method-name "()"))
 	  (when (%php-method-abstract? the-method)
 	     (php-error (format "Cannot call abstract method ~a::~a()" (%php-class-print-name
 									(%php-object-class obj)) method-name)))
@@ -1121,7 +1122,7 @@ argument, before the continuation: (obj prop ref? value k)."
 ;;I think that all methods must be manifest when a class is defined
 ;;(i.e. before calling any of them), so we don't look at the parent
 ;;class.
-(define (%lookup-method klass name)
+(define (%lookup-method klass::struct name)
    (let ((m (php-hash-lookup (%php-class-methods klass) name)))
       (if (null? m)
 	  (begin
@@ -1137,6 +1138,13 @@ argument, before the continuation: (obj prop ref? value k)."
 			      (loop (%php-class-parent-class super))
 			      ;;found it.  store it for the next time.
 			      (begin
+				 ;
+				 ; NOTE we store this even if it's private and from a
+				 ; super class. we need to so that the visibility check
+				 ; can know the difference between not having the method
+				 ; vs. it not be accessible, so we can show the right
+				 ; error message. visibility checks the origin-class
+				 ;
 				 (php-hash-insert! (%php-class-methods klass) cname m)
 				 m)))
 		       ;; there is no parent class, method not found.
@@ -1171,8 +1179,62 @@ argument, before the continuation: (obj prop ref? value k)."
               c)
            #f))))
 
-; decide what kind of visibility caller has to obj->prop
-(define (php-object-property-visibility obj prop caller)
+
+; determine if the given method is accessible in the given context
+(define (php-method-accessible obj-or-class method-name context)
+   (let ((has-access #t)
+	 (static? (not (php-object? obj-or-class)))
+	 (the-class (if (php-object? obj-or-class)
+			(%php-object-class obj-or-class)
+			(%lookup-class-with-autoload obj-or-class))))
+      (unless the-class
+	 (php-error "Unable to identify class or object: " obj-or-class))
+      (let ((the-method (%lookup-method the-class method-name))
+	    (context-class (if context (%lookup-class-with-autoload context) #f)))
+	 (when the-method
+;  	    (debug-trace 0
+;  			 " obj-or-class: " (%php-class-print-name the-class)
+;  			 " | method-name: " method-name
+;  			 " | context: " (if context-class (%php-class-print-name context-class) #f)
+;  			 " | method-origin: " (%php-class-print-name (%php-method-origin-class the-method)))
+	    (let ((accessible #t)
+		  (no-access (cons (%php-method-visibility the-method)
+				   (%php-class-print-name (%php-method-origin-class the-method)))))
+	       (bind-exit (return)
+		  (cond ((eqv? 'public (%php-method-visibility the-method))
+			 ; public is always accessible
+			 (return accessible))
+			; if method is not public and there's no context, there will never be access
+			((and (not (eqv? 'public (%php-method-visibility the-method)))
+			      (eqv? context #f))
+			 ; no access
+			 (return no-access))
+			; private
+			((eqv? 'private (%php-method-visibility the-method))
+			 (if (or (and (not static?)
+				      (eqv? the-class (%php-method-origin-class the-method)))
+				 (and context-class
+				      ; make sure we are the origin-class
+				      (eqv? context-class
+					    (%php-method-origin-class the-method))))
+			     (return accessible)
+			     ; no access
+			     (return no-access)))
+			; protected
+			((eqv? 'protected (%php-method-visibility the-method))
+			 (if (or (and (not static?)
+				      (eqv? the-class (%php-method-origin-class the-method)))
+				 (and context-class
+				      (or (eqv? context-class
+						the-class)
+					  (%subclass? context-class
+						      the-class))))
+			     (return accessible)
+			     ; no access
+			     (return no-access))))))))))
+
+; decide what kind of visibility obj->prop has in the given context
+(define (php-object-property-visibility obj prop context)
    (if (php-object? obj)
        (let ((access-type 'public))
 	  (let ((ovis (hashtable-get
@@ -1185,17 +1247,17 @@ argument, before the continuation: (obj prop ref? value k)."
 	     (when ovis
 		; private
 		(when (eqv? ovis 'private)
-		   (if (and (php-object? caller)
-			    (eqv? (%php-object-class caller)
+		   (if (and (php-object? context)
+			    (eqv? (%php-object-class context)
 				  (%php-object-class obj)))
 		       (set! access-type 'all)
 		       (set! access-type (cons ovis 'none))))
 		; protected
 		(when (eqv? ovis 'protected)
-		   (if (and (php-object? caller)
-			    (or (eqv? (%php-object-class caller)
+		   (if (and (php-object? context)
+			    (or (eqv? (%php-object-class context)
 				      (%php-object-class obj))
-				(%subclass? (%php-object-class caller)
+				(%subclass? (%php-object-class context)
 					    (%php-object-class obj))))
 		       (set! access-type 'protected)
 		       (set! access-type (cons ovis 'none))))))
@@ -1203,40 +1265,38 @@ argument, before the continuation: (obj prop ref? value k)."
        ; will result in referencing a property of a non object
        'public))
 
-; decide what kind of visibility given static class has to class::prop
+; decide what kind of visibility class::prop has in the given context
 (define (php-class-static-property-visibility class-name prop context)
    ; context will be:
    ;  class name - if class-name == context class, allow all. subclass, allow proteced/public, otherwise public only
    ; #f - global context, only public access
    ; class-name should be a currently defined class symbol (with self and parent already processed)
-   (if (not (eqv? context #f))
-       (let ((the-class (%lookup-class-with-autoload class-name))
-	     (context-class (%lookup-class-with-autoload context))
-	     (access-type 'public))
-	  (unless (and the-class context-class)
-	     (php-error "static property check on unknown class or context: " class-name " | " context))
-	  (let ((ovis (hashtable-get
-		       (%php-class-prop-visibility the-class)
-		       (%property-name-canonicalize prop))))
-	     ; ovis holds the declared visibility of prop. if it's private,
-	     (when ovis
-		; private
-		(when (eqv? ovis 'private)
-		   (if (eqv? context-class
+   (let ((the-class (%lookup-class-with-autoload class-name))
+	 (context-class (if context (%lookup-class-with-autoload context) #f))
+	 (access-type 'public))
+      (unless the-class
+	 (php-error "static property check on unknown class: " class-name))
+      (let ((ovis (hashtable-get
+		   (%php-class-prop-visibility the-class)
+		   (%property-name-canonicalize prop))))
+	 ; ovis holds the declared visibility of prop
+	 (when ovis
+	    ; private
+	    (when (eqv? ovis 'private)
+	       (if (eqv? context-class
+			 the-class)
+		   (set! access-type 'all)
+		   (set! access-type (cons ovis 'none))))
+	    ; protected
+	    (when (eqv? ovis 'protected)
+	       (if (or (eqv? context-class
 			     the-class)
-		       (set! access-type 'all)
-		       (set! access-type (cons ovis 'none))))
-		; protected
-		(when (eqv? ovis 'protected)
-		   (if (or (eqv? context-class
-				 the-class)
-			   (%subclass? context
-				       the-class))
-		       (set! access-type 'protected)
-		       (set! access-type (cons ovis 'none))))))
-	  access-type)
-       ; unset, global context
-       'public))
+		       (and context-class
+			    (%subclass? context-class
+					the-class)))
+		   (set! access-type 'protected)
+		   (set! access-type (cons ovis 'none))))))
+      access-type))
 
 (define (php-class-static-property class-name property access-type)
    (let ((the-class (%lookup-class-with-autoload class-name)))

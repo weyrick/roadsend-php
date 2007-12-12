@@ -360,7 +360,8 @@
 	  (debug-trace 2 "warning (compile-time-subclass?): class " sub " not defined in time.")
 	  #f)
 	 ;; recursively check parent of the subclass
-	 ((symbol? (car (class-decl-parent-list sub-class)))
+	 ((and (not (null? (class-decl-parent-list sub-class)))
+	       (symbol? (car (class-decl-parent-list sub-class))))
 	  (or (eqv? canon-super (symbol-downcase (car (class-decl-parent-list sub-class))))
 	      (compile-time-subclass? (car (class-decl-parent-list sub-class)) super)))
 	 ;; nope
