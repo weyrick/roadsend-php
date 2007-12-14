@@ -320,7 +320,7 @@
                             (make-shared-library-name (string-append "lib" name (safety-ext) "-" (bigloo-version)))))
              (static-lib
               (append-paths output-dir
-                            (make-static-library-name (string-append "lib" name (safety-ext)))))
+                            (make-static-library-name (string-append "lib" name (safety-ext) "-" (bigloo-version)))))
              (heap-file (append-paths output-dir (mkext name ".heap")))
              (lib-make-file (append-paths output-dir (string-append name "-make-lib.scm")))
 	     (dirty-source-files (filter needs-rebuild? source-files)))
@@ -339,7 +339,7 @@
          (with-temp-file (outport lib-make-file)
             (with-output-to-port outport
                (lambda ()
-		  (compile name source-files #t))))
+		  (compile name source-files #t (or (target-option lib-init-file:) #f)))))
 	 (append! *files-to-clean* (map (lambda (f) (mkext f ".scm")) source-files))
 	 (pushf lib-make-file dirty-source-files)
 	 ;
@@ -737,7 +737,7 @@
       (pushf (string-append "-l" "bigloogc" "-" (bigloo-version)) libs)
 
       ; verbose if we're really debugging
-      (when (> *debug-level* 2)
+      (when (> *debug-level* 4)
 	    (pushf "-Wl,--verbose" libs))
 
       (cond-expand

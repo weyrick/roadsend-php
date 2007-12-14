@@ -32,6 +32,8 @@ runtime-libs: ../libs/libphp-runtime_$(SUV).a ../libs/php-runtime.sch ../libs/li
 extensions:
 	@(cd ext && $(MAKE) all)
 
+php-extensions:
+	@(cd php-ext && $(MAKE) all)
 
 #
 ../libs/libphp-runtime_$(SUV).$(SOEXT): ../libs/php-runtime.heap $(POPULATION) $(C_POPULATION) 

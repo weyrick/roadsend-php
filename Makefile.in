@@ -38,7 +38,7 @@ libdir		= @libdir@
 sysconfdir	= @sysconfdir@
 
 all: Makefile.config libs libs/libwebserver.$(SOEXT) profiler runtime webconnect \
-     compiler extensions web-backends debugger shortpath dotest 
+     compiler extensions php-extensions web-backends debugger shortpath dotest 
 
 Makefile.config:
 	touch $(PCC_ROOT)/Makefile.config
@@ -66,6 +66,10 @@ runtime:
 #extensions
 extensions: 
 	(cd runtime && $(MAKE) extensions)
+
+#php-extensions
+php-extensions: 
+	(cd runtime && $(MAKE) php-extensions)
 
 #compiler
 compiler: webconnect

@@ -32,9 +32,7 @@ PHPOO_LIBS	= -L $(LIB) -library php-runtime  $(EXT_LIBS) #mingw -library profile
 # from top level
 DOTEST		= ./dotest
 MY_TESTDIR	= $(MY_DIR)tests/
-MY_TEST5DIR	= $(MY_DIR)tests5/
 MY_TESTOUTDIR	= $(MY_TESTDIR)testoutput/
-MY_TEST5OUTDIR	= $(MY_TEST5DIR)testoutput/
 
 CCOMMONFLAGS	= -I. -I$(BGL_DEFAULT_LIB_DIR) $(C_SOURCE_FLAGS)
 BCOMMONFLAGS	=  $(BCFLAGS) $(PHPOO_INC) $(PHPOO_LIBS)
@@ -96,8 +94,4 @@ clean:
 check: all
 	mkdir -p $(TOPLEVEL)$(MY_TESTOUTDIR)
 	@(cd $(TOPLEVEL) && $(DOTEST) $(MY_TESTDIR) $(MY_TESTOUTDIR))
-
-check5: all
-	mkdir -p $(TOPLEVEL)$(MY_TEST5OUTDIR)
-	@(cd $(TOPLEVEL) && PHP=$(PHP5) PCC_OPTS=-5 $(DOTEST) $(MY_TEST5DIR) $(MY_TEST5OUTDIR))
 

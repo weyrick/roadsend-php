@@ -58,7 +58,7 @@
     (library-httpd-stub libname)
     (fastcgi-stub filename)
     (setup-web-target)
-    (compile program-name input-file #!optional library?)
+    (compile program-name input-files #!optional library? auto-run-list)    
     (run-url::string filename::string webapp-lib index-file)
     (input-file->ast input-file strip-shebang?)
     (evaluate-from-file file name-to-use)))
@@ -436,14 +436,18 @@
 ; 		asts)))
 
 
-(define (compile program-name input-files #!optional library?)
+(define (compile program-name input-files #!optional library? auto-run-list)
    (fluid-let ((*library-mode?* library?))
       ;    (let ((not-founds (filter (lambda (f) (not (file-exists? f))) input-files)))
       ;       (unless (null? not-founds)
       ; 	 (fprint (current-error-port) (format "file(s) not found: ~a" not-founds))
       ; 	 (exit 1)))
       (let ((strip-first #t)
+	    (auto-run-list (if (pair? auto-run-list)
+			       auto-run-list
+			       '()))
             (asts '()))
+	 (debug-trace 2 "auto-run-list: " auto-run-list)
          (letrec ((input-file->asts
                    (lambda (input-file included-from)
                       (let ((ast (input-file->ast input-file strip-first)))
@@ -505,12 +509,13 @@
                 (let ((i 1))
                    ; lib
                    (for-each (lambda (a)
-                                (debug-trace 3  (format "compiler: outputting ~a (~a of ~a)"
+                                (debug-trace 3  (format "compiler: working on ~a [~a] (~a of ~a)"
                                                         (php-ast-real-filename a)
+							(php-ast-original-filename a)
                                                         i
                                                         (length asts)))
 				(set! i (+ i 1))
-				(write-one-generated-module a))
+				(write-one-generated-module a (if (member (php-ast-original-filename a) auto-run-list) #t #f)))
                              asts)
                    (write-library-include-file program-name asts)
                    (library-prologue program-name asts))
@@ -542,10 +547,11 @@
    (string->symbol (mkstr (php-ast-project-relative-filename ast)
 			  "-init")))
 
-(define (write-one-generated-module ast::php-ast)
+(define (write-one-generated-module ast::php-ast auto-run?)
    (let ((init-fun-name (file->init-fun-name ast))
 	 (outfile (mkstr (prefix (php-ast-real-filename ast)) ".scm"))
          (mangled-name (include-name (php-ast-project-relative-filename ast))))
+      (debug-trace 3 "write-one-generated-module: " outfile " | auto-run? " auto-run?)
       (with-output-to-file outfile
 	 (lambda ()
 	    (multiple-value-bind (code include-asts exports)
@@ -575,6 +581,7 @@
 			   ,ft-main #f
 			   ',mangled-name
 			   1 1 0 '$obj 0))
+	       
                ;; in case a library strip path would change the name
                ;; of the file, add another library include under that
                ;; name.
@@ -588,7 +595,14 @@
                                  ,ft-main #f
                                  ',stripped-mangled-name
                                  1 1 0 '$obj 0))))
-	       (for-each maybe-pp (cdr code)))))))
+	       (for-each maybe-pp (cdr code))
+
+	       ;; if we're auto-run, we will run the top level function automatically
+	       ;; this means this module doesn't have to be explicitly required/included()
+	       (when auto-run?
+		  (print `(,mangled-name (command-line))))
+	       
+	       )))))
 
 (define (write-library-include-file libname asts)
    (with-output-to-file (mkext libname ".sch")
@@ -603,7 +617,7 @@
 	,@(map (lambda (ast)
 		  `(import (,(string->symbol (php-ast-project-relative-filename ast))
 			    ,(mkstr (prefix (php-ast-real-filename ast)) ".scm"))))
-	       asts)
+	       (reverse asts))
 	)))
 
 

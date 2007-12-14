@@ -52,7 +52,7 @@
      (_default_error_handler errno errstr errfile errline vars)
      (_default_exception_handler exception_obj)
      (constant name)
-     
+     (pcc_register_extension php-ext-name ext-lib-name version depends-on)     
      ;
      ;
      (getlastmod)
@@ -1257,7 +1257,19 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 (defbuiltin (cpy thing)
    (copy-php-data thing))
 
+;a way for pcc PHP extensions to register
+(defbuiltin (pcc_register_extension php-ext-name ext-lib-name version (depends-on #f))
+   "PCC only function to register a PHP extension.
+    Used for Roadsend PHP extensions written in PHP and compiled to libraries, e.g. PDO"
+   (register-extension (mkstr php-ext-name)
+		       (mkstr version)
+		       (mkstr ext-lib-name)
+		       '() ; required link libs (-l)
+		       required-extensions: (if (php-hash? depends-on)
+						(php-hash->list depends-on)
+						'())))
 
+   
 
 ;;;the *func-args-stack* is maintained in php-runtime.scm, so that
 ;;;evaluate can get to it.

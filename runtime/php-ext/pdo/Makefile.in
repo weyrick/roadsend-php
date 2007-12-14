@@ -1,0 +1,34 @@
+#
+# Makefile for php based extension
+#
+#
+# directory structure:
+#  test/        - make check will run all .php scripts in this directory
+#                 with the dotest program. output will go into a directory
+#                 'testoutput' which is created inside of test
+#
+
+# library name
+LIBNAME		= php-pdo
+
+# library location
+# (relative to phpoo root directory)
+MY_DIR		= ./runtime/php-ext/pdo/
+
+# this should list all php files to be included in the library
+# leave off .php, however, since the list is used to generate other
+# file names as well.
+SOURCE_LIST     = pdo_class @PDO_DRIVER_LIST@
+
+# this is the init file, a single php file that registers the extension
+# and runs necessary top level code for the library
+LIB_INIT_FILE	= pdo_init.php
+
+#
+# php extensions this one depends on
+#
+OTHERLIBS       =
+
+# include common extension makefile
+include ../php-extensions.mk
+
