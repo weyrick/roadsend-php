@@ -111,6 +111,8 @@
     (mkfixnum::int rval)
     (mkfix-or-flonum rval)
     ;
+    (get-php-datatype::bstring rval)
+    ;
     (echo arg)
     (env-php-hash-view env)
     (php-%::onum a b)
@@ -1418,6 +1420,21 @@
 	(not (php-object? a))))
 
 
+(define (get-php-datatype::bstring rval)
+   (let ((rval (maybe-unbox rval)))
+      (cond
+	 ((boolean? rval) "boolean")
+	 ((and (php-number? rval) (onum-long? rval)) "integer")
+	 ((and (php-number? rval) (onum-float? rval)) "double")
+	 ((string? rval) "string")
+	 ((php-hash? rval) "array")
+	 ((php-object? rval) "object")
+	 ((php-resource? rval) "resource")
+	 ((php-null? rval) "NULL")
+	 (else
+	  (begin
+	     (debug-trace 1 "not a valid php datatype: " rval)
+	     "unknown type")))))
 
 ;(define *copy-circle-table* (make-grasstable))
 

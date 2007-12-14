@@ -800,21 +800,78 @@ gives the debugger a chance to run."
    ;we assume that we'll never have more args than params, because PHP can't define
    ;var-arity functions, just optional params
    (let loop ((args args)
-  	      (params params))
+  	      (params params)
+	      (argnum 1))
       (unless (null? params)
-	 (env-extend env (undollar (formal-param-name (car params)))
-		     (maybe-box
-		      (let ((param-val
-			     (if (null? args)
-				 (if (required-formal-param? (car params))
-				     NULL
-;				     (error function-name "Not enough arguments to function" (cons args params))
-				     (d/evaluate (optional-formal-param-default-value (car params))))
-				 (car args))))
+	 (let ((param-val
+		(if (null? args)
+		    (if (required-formal-param? (car params))
+			NULL
+			(d/evaluate (optional-formal-param-default-value (car params))))
+		    (car args))))
+	    
+	    ; type hint check
+	    ; from the parser, this will either come in as an id (class name), '%array
+	    ; or null (no type hint)
+	    (unless (null? (formal-param-typehint (car params)))
+	       (let ((allow-null? (and (optional-formal-param? (car params))
+				       (literal-null? (optional-formal-param-default-value (car params)))))
+		     (param-val (maybe-unbox param-val)))
+		  (if (eqv? '%array (formal-param-typehint (car params)))
+		      ; needs to be php-hash, or NULL if we allowed that as a default
+		      (unless (or (php-hash? param-val)
+				  (and allow-null?
+				       (php-null? param-val)))
+			 (php-recoverable-error (format "Argument ~a passed to ~a() must be an array, ~a given, called in ~a on line ~a and defined"
+							argnum
+							function-name
+							(get-php-datatype param-val)
+							(get-stack-caller-file)
+							(get-stack-caller-line)
+							)))
+		      ; needs to be an object
+		      (unless (or (and (php-object? param-val)
+				       (php-object-is-a param-val (formal-param-typehint (car params))))
+				  (and allow-null?
+				       (php-null? param-val)))
+			 ; to give the proper error, we need to know if the typehint is an interface or an object
+			 (let ((emsg (if (php-class-is-interface? (formal-param-typehint (car params)))
+					 (mkstr "implement interface " (formal-param-typehint (car params)))
+					 (mkstr "be an instance of " (formal-param-typehint (car params))))))
+			    (php-recoverable-error (format "Argument ~a passed to ~a() must ~a, ~a given, called in ~a on line ~a and defined"
+							   argnum
+							   function-name
+							   emsg
+							   (if (php-object? param-val)
+							       (mkstr "instance of " (php-object-class param-val))
+							       (get-php-datatype param-val))
+							   (get-stack-caller-file)
+							   (get-stack-caller-line)
+							   )))))))
+	    ;
+	    (env-extend env (undollar (formal-param-name (car params)))
+			(maybe-box
 			 (if (formal-param-ref? (car params))
 			     param-val
 			     (copy-php-data param-val) ))))
-	 (loop (gcdr args) (cdr params)))))
+	 (loop (gcdr args) (cdr params) (+ 1 argnum)))))
+
+(define (%check-typehints decl-arglist)
+   ; if an argument has a type hint, the default value is only allowed to be NULL
+   (for-each (lambda (a)
+		; array
+		(when (and (optional-formal-param? a)
+			   (and (eqv? '%array (optional-formal-param-typehint a))
+				(or (not (literal-null? (optional-formal-param-default-value a)))
+				    (not (literal-array? (optional-formal-param-default-value a))))))
+		   (php-error "Default value for parameters with array type hint can only be an array or NULL"))
+		; class id
+		(when (and (optional-formal-param? a)
+			   (and (and (not (eqv? '%array (optional-formal-param-typehint a)))
+				     (not (null? (optional-formal-param-typehint a))))
+				(not (literal-null? (optional-formal-param-default-value a)))))
+		   (php-error "Default value for parameters with a class type hint can only be NULL")))
+	     decl-arglist))		   
 
 (define-method (evaluate node::declared-class)
    (set! *PHP-LINE* (car (ast-node-location node)))
@@ -863,7 +920,10 @@ gives the debugger a chance to run."
              ;; methods
 	     (php-hash-for-each methods
 		(lambda (method-name method)
-		   (with-access::method-decl method (location decl-arglist body ref? flags)		   
+		   (with-access::method-decl method (location decl-arglist body ref? flags)
+		      (dynamically-bind (*PHP-FILE* (cdr location))
+                        (dynamically-bind (*PHP-LINE* (car location))					
+		            (%check-typehints decl-arglist)))
 		      (define-php-method name
 			 method-name
 			 flags
@@ -1185,6 +1245,7 @@ returning the value of the last. "
 (define-method (declare-for-eval node::function-decl)
    (set! *PHP-LINE* (car (ast-node-location node)))
    (with-access::function-decl node (location name decl-arglist body ref?)
+      (%check-typehints decl-arglist)
       (let ((canonical-name (function-name-canonicalize name)))
 	 (widen!::declared-function node (canonical-name canonical-name))
 	 (when (get-php-function-sig canonical-name)
@@ -1193,7 +1254,7 @@ returning the value of the last. "
 	 (store-ast-signature canonical-name #t location decl-arglist)
 	 (pushf canonical-name *remove-from-fun-sig-table*)
 	 (hashtable-put! *interpreted-function-table* canonical-name
-			 (let ((static-env (env-new))) 
+			 (let ((static-env (env-new)))
 			    (lambda args
 			       (apply push-stack 'unset name args)
 			       (push-func-args args)

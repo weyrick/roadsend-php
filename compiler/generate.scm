@@ -1084,6 +1084,7 @@ onum.  Append the bindings for the new symbols and code."
                                  `(let ,(bindings symbol-table (append (hashtable-key-list static-vars) param-names))
                                      ,@(copy-and-type-non-reference-args decl-arglist)
                                      ,@(box-non-reference-container-args decl-arglist)
+				     ,@(typehint-checks 'unset name decl-arglist)
                                      ,@(if variable-arity?
                                            `((push-func-args (cons* ,@param-names rest-args)))
                                            '())
@@ -1183,6 +1184,7 @@ onum.  Append the bindings for the new symbols and code."
                                                                    'this-unboxed)))
                                                     ,@(copy-and-type-non-reference-args decl-arglist)
                                                     ,@(box-non-reference-container-args decl-arglist)
+						    ,@(typehint-checks *current-class-name* name decl-arglist)
                                                     ,@(if variable-arity?
                                                           `((push-func-args
                                                              (cons* ,@(map required-formal-param-name required-params)
@@ -1864,6 +1866,54 @@ onum.  Append the bindings for the new symbols and code."
 	   (generate-code
 	    (sig-param-default-value to))
 	   (sig-param-default-value to))))
+
+(define (typehint-checks class-name function-name decl-arglist)
+   (let ((code '())
+	 (argnum 0))
+      (for-each (lambda (arg)
+		   (set! argnum (+ 1 argnum))
+		   (unless (null? (formal-param-typehint arg))
+		      (let ((allow-null? (and (optional-formal-param? arg)
+					      (literal-null? (optional-formal-param-default-value arg)))))
+			 (if (eqv? '%array (formal-param-typehint arg))
+			     (set! code (cons
+					 `(unless (or (php-hash? ,(formal-param-name arg))
+						      ,(if allow-null?
+							   `(php-null? ,(formal-param-name arg))
+							   `#f))
+					     (php-recoverable-error
+					      (format "Argument ~a passed to ~a() must be an array, ~a given, called in ~a on line ~a and defined"
+						      ,argnum
+						      ,(mkstr function-name)
+						      (get-php-datatype ,(formal-param-name arg))
+						      (get-stack-caller-file)
+						      (get-stack-caller-line)
+						      )))
+					 code))
+			     ; needs to be an object
+			     (set! code (cons
+					 `(unless (or (and (php-object? ,(formal-param-name arg))
+							   (php-object-is-a ,(formal-param-name arg) ',(formal-param-typehint arg)))
+						      ,(if allow-null?
+							   `(php-null? ,(formal-param-name arg))
+							   `#f))
+					     ; to give the proper error, we need to know if the typehint is an interface or an object
+					     (let ((emsg (if (php-class-is-interface? ',(formal-param-typehint arg))
+							     (mkstr "implement interface " ',(formal-param-typehint arg))
+							     (mkstr "be an instance of " ',(formal-param-typehint arg)))))
+						(php-recoverable-error (format "Argument ~a passed to ~a() must ~a, ~a given, called in ~a on line ~a and defined"
+									       ,argnum
+									       ,(mkstr class-name "::" function-name)
+									       emsg
+									       (if (php-object? ,(formal-param-name arg))
+										   (mkstr "instance of " (php-object-class ,(formal-param-name arg)))
+										   (get-php-datatype ,(formal-param-name arg)))
+									       (get-stack-caller-file)
+									       (get-stack-caller-line)
+									       ))))
+					 code))))))
+		decl-arglist)
+      code))
 
 (define (box-non-reference-container-args arglist)
    (map (lambda (a)

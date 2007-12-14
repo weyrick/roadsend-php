@@ -76,16 +76,7 @@
 
 ; gettype -- Get the type of a variable
 (defbuiltin (gettype var)
-   (cond
-      ((is_bool var) "boolean")
-      ((is_int var) "integer")
-      ((is_float var) "double")
-      ((is_string var) "string")
-      ((is_array var) "array")
-      ((is_object var) "object")
-      ((is_resource var) "resource")
-      ((is_null var) "NULL")
-      (else "unknown type")))
+   (get-php-datatype var))
 
 ; get_defined_vars --  Returns an array of all defined variables
 ;(defbuiltin (get_defined_vars)

@@ -51,6 +51,7 @@
     ; tests
     (php-object? obj)
     (php-class-exists? class-name)
+    (php-class-is-interface? class-name)
     (php-class-method-exists? class-name method-name)
     (php-object-is-subclass obj class-name)
     (php-class-is-subclass subclass superclass)
@@ -384,6 +385,13 @@ values the values."
 (define (php-class-exists? class-name)
    (let ((c (%lookup-class-with-autoload class-name)))
       (if (%php-class? c)
+	  #t
+	  #f)))
+
+(define (php-class-is-interface? class-name)
+   (let ((c (%lookup-class-with-autoload class-name)))
+      (if (and (%php-class? c)
+	       (member 'interface (%php-class-flags c)))
 	  #t
 	  #f)))
 

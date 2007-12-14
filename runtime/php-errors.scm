@@ -54,6 +54,8 @@
     (init-php-error-lib)
     (push-stack class-name name . args)
     (pop-stack)
+    (get-stack-caller-file)
+    (get-stack-caller-line)
     (print-stack-trace)
     (print-stack-trace-html)
     (push-try-stack class-list exception)
@@ -317,6 +319,20 @@
 (define (pop-stack)
    (when (pair? *stack-trace*)
       (set! *stack-trace* (cdr *stack-trace*))))
+
+;
+; a way for functions and methods to peek at who called them without
+; popping the stack
+;
+(define (get-stack-caller-file)
+   (if (pair? *stack-trace*)
+       (stack-entry-file (car *stack-trace*))
+       "unknown"))
+
+(define (get-stack-caller-line)
+   (if (pair? *stack-trace*)
+       (stack-entry-line (car *stack-trace*))
+       0))
 
 (define (trunc-string s)
    (let ((ss (mkstr s)))

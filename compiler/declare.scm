@@ -307,6 +307,23 @@
 ;       (hashtable-put! (current-static-vars) var `(make-container ,(get-value initial-value))))
 ;    (k))
 
+(define (%check-typehints node decl-arglist)
+   ; if an argument has a type hint, the default value is only allowed to be NULL
+   (for-each (lambda (a)
+		; array
+		(when (and (optional-formal-param? a)
+			   (and (eqv? '%array (optional-formal-param-typehint a))
+				(or (not (literal-null? (optional-formal-param-default-value a)))
+				    (not (literal-array? (optional-formal-param-default-value a))))))
+		   (php-error/loc node "Default value for parameters with array type hint can only be an array or NULL"))
+		; class id
+		(when (and (optional-formal-param? a)
+			   (and (and (not (eqv? '%array (optional-formal-param-typehint a)))
+				     (not (null? (optional-formal-param-typehint a))))
+				(not (literal-null? (optional-formal-param-default-value a)))))
+		   (php-error/loc node "Default value for parameters with a class type hint can only be NULL")))
+	     decl-arglist))
+
 (define-method (declare node::class-decl parent k)
    ;classes have to be declared so that we can do inheritance
    (with-access::class-decl node (name class-body)
@@ -334,6 +351,7 @@
                           (php-hash-insert! class-constants (class-constant-decl-name p) (class-constant-decl-value p)))
 			 ((method-decl? p)
 ;			  (fprint (current-error-port) "Method: " (method-decl-name p))
+			  (%check-typehints p (method-decl-decl-arglist p))
 			  (php-hash-insert! methods (method-decl-name p) p))
 			 (else (error 'declare-class "what's this noise doing in my class-decl?" p))))))
 	    (insert-methods-or-properties class-body))
@@ -389,6 +407,7 @@
 	 (static-vars (make-hashtable))))
    (with-access::function-decl/gen node
 	 (location toplevel? variable-arity? canonical-name name decl-arglist body ref?)
+      (%check-typehints node decl-arglist)
       (dynamically-bind (*current-block* node)
 	 (k))
       ;non-toplevel functions and library functions are not declared

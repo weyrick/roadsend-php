@@ -412,7 +412,7 @@
       (maybe-typehint
        (() '())
        ((id) id)
-       ((array) 'array))
+       ((array) '%array))
 
       (maybe-ref
        (() #f)
