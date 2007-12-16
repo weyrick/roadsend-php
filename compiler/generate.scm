@@ -1127,9 +1127,11 @@ onum.  Append the bindings for the new symbols and code."
    (with-access::method-decl/gen node
 	 (location name needs-env? decl-arglist canonical-name container-table
 		   variable-arity? symbol-table static-vars body needs-return?)
-      ;generate the code for the body, so we know if we need an env
-      (dynamically-bind (*current-block* node)
-	 (dynamically-bind (*current-var-var-env* (if needs-env? 'env #f))
+      (if (eqv? body 'abstract-no-proc)
+	  `'abstract-no-proc
+	  ;generate the code for the body, so we know if we need an env
+	  (dynamically-bind (*current-block* node)
+	   (dynamically-bind (*current-var-var-env* (if needs-env? 'env #f))
 	    (let* ((body-code (generate-code body))
 		   (method-fun-name (string->symbol (mkstr *current-class-name* "=>" name)))
 		   (required-params (filter required-formal-param? decl-arglist))
@@ -1210,7 +1212,7 @@ onum.  Append the bindings for the new symbols and code."
 					 ,@(if variable-arity? `((pop-func-args)) '())))))))))))
 
 	       (pushf body-code *functions*)
-	       method-fun-name)))))
+	       method-fun-name))))))
 
 
 

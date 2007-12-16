@@ -927,13 +927,16 @@ gives the debugger a chance to run."
 		      (define-php-method name
 			 method-name
 			 flags
-			 (let ((static-env (env-new)))
-			    (lambda ($this . args)
-			       (apply push-stack name (method-decl-name method) args)
-			       (push-func-args args)
-			       (set! *PHP-FILE* (cdr location))
-			       (set! *PHP-LINE* (car location))
-			       (let ((retval
+			 (if (eqv? 'abstract-no-proc body)
+			     body
+			     ; generate body
+			     (let ((static-env (env-new)))
+				(lambda ($this . args)
+				   (apply push-stack name (method-decl-name method) args)
+				   (push-func-args args)
+				   (set! *PHP-FILE* (cdr location))
+				   (set! *PHP-LINE* (car location))
+				   (let ((retval
 				      (bind-exit (return)			       
 					 (dynamically-bind (*current-return-escape* return)
 					    (dynamically-bind (*current-static-env* static-env)
@@ -947,11 +950,11 @@ gives the debugger a chance to run."
 										 *current-env* args decl-arglist)
 							   (d/evaluate body)
 							   (make-container NULL)))))))))))
-				  (pop-func-args)
-				  (pop-stack)
-				  (if ref?
-				      retval
-				      (copy-php-data retval)))))))))
+				      (pop-func-args)
+				      (pop-stack)
+				      (if ref?
+					  retval
+					  (copy-php-data retval))))))))))
 
 	     ;; finalize: do abstract method checks, etc.
 	     (php-class-def-finalize name)
@@ -1302,6 +1305,7 @@ returning the value of the last. "
                               (php-hash-insert! properties (property-decl-name p) p)))
 			 ((method-decl? p)
 			  (php-hash-insert! methods (method-decl-name p) p))
+			 ((nop? p) #t)
 			 (else (error 'declare-class "what's this noise doing in my class-decl?" p))))))
 	    (insert-methods-or-properties class-body))
 	 (hashtable-put! *class-decl-table-for-eval* (symbol-downcase name)

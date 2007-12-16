@@ -243,7 +243,7 @@
 	(make-class-decl classkey id maybe-class-extends maybe-implements class-decl-flags class-statements rcurly))
        ; empty class
        ((class-decl-flags classkey id maybe-class-extends maybe-implements lcurly rcurly)
-	(make-class-decl classkey id maybe-class-extends maybe-implements class-decl-flags '() rcurly))       
+	(make-class-decl classkey id maybe-class-extends maybe-implements class-decl-flags '() rcurly))
        ; interface (abstract class)
        ((interfacekey id maybe-interface-extends lcurly class-statements rcurly)
 	(make-class-decl interfacekey id maybe-interface-extends '() (list 'interface 'abstract) class-statements rcurly))
@@ -282,7 +282,9 @@
       (class-statement
        ((class-var-flags class-vars semi) (do-property-flags class-var-flags class-vars))
        ((class-function-flags class-function) (do-method-flags class-function-flags class-function))
-       ((classconst id equals decl-literal semi) (make-class-constant-decl *parse-loc* id decl-literal)))
+       ((classconst id equals decl-literal semi) (make-class-constant-decl *parse-loc* id decl-literal))
+       ((semi)
+	(make-nop *parse-loc*)))       
 
       (class-var-flags
        ((varkey) (list 'public))
@@ -321,12 +323,13 @@
       (class-function
        ; non-abstract
        ((functionkey maybe-ref function-name lpar decl-arglist rpar lcurly statements rcurly)
-	(make-method-decl functionkey function-name decl-arglist (reverse statements) maybe-ref rcurly #f 'public))
+	(make-method-decl functionkey function-name decl-arglist (reverse statements) maybe-ref rcurly #f '(public)))
+       ; empty body. not considered abstract.
+       ((functionkey maybe-ref function-name lpar decl-arglist rpar lcurly rcurly)
+	(make-method-decl functionkey function-name decl-arglist '() maybe-ref rcurly #f '(public)))
        ; abstract
        ((functionkey maybe-ref function-name lpar decl-arglist rpar semi)
-	(make-method-decl functionkey function-name decl-arglist '() maybe-ref rpar #f '(public abstract)))
-       ((functionkey maybe-ref function-name lpar decl-arglist rpar lcurly rcurly)
-	(make-method-decl functionkey function-name decl-arglist '() maybe-ref rcurly #f '(public abstract))))
+	(make-method-decl functionkey function-name decl-arglist 'abstract-no-proc maybe-ref rpar #f '(public abstract))))
 
       ;
       

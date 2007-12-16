@@ -972,6 +972,17 @@ argument, before the continuation: (obj prop ref? value k)."
 	 (abstract? (if (member 'abstract flags) #t #f)))
       (unless the-class
 	 (php-error "Defining method " method-name ": unknown class " class-name))
+;      (debug-trace 0 "defining: " class-name " method " method-name " flags " flags " method " method)
+      ;; fail if this method is abstact but has a body
+      (when (and (or abstract?
+		     (%php-class-interface? the-class))
+		 (procedure? method))
+	 (php-error (format "~a function ~a::~a() cannot contain body"
+			    (if (%php-class-interface? the-class)
+				"Interface"
+				"Abstract")
+			    (%php-class-print-name the-class)
+			    method-name)))
       ;; if this is an interface, this method must be abstract
       (when (and (member 'interface (%php-class-flags the-class))
 		 (not abstract?))
