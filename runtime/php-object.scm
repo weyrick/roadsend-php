@@ -1397,11 +1397,16 @@ argument, before the continuation: (obj prop ref? value k)."
 (define (%lookup-prop-ref obj property access-type)
    (let* ((canon-name (%property-name-canonicalize property))
 	  (offset (%prop-offset obj canon-name access-type)))
-      (if offset	  
+      (if offset
+	  ; declared
 	  (vector-ref (%php-object-properties obj) offset)
-	  (php-hash-lookup-ref (%php-object-extended-properties obj)
-			       #t
-			       canon-name))))
+	  ; not declared. maybe use __get
+	  (let ((get-method (%lookup-method (%php-object-class obj) "__get")))
+	     (if get-method
+		 (call-php-method-1 obj "__get" property)
+		 (php-hash-lookup-ref (%php-object-extended-properties obj)
+				      #t
+				      canon-name))))))
 
 (define (%lookup-prop obj property access-type)
    (container-value (%lookup-prop-ref obj property access-type)))
@@ -1410,11 +1415,15 @@ argument, before the continuation: (obj prop ref? value k)."
    (let* ((canon-name (%property-name-canonicalize property))
 	  (offset (%prop-offset obj canon-name access-type)))
       (if offset
+	  ; declared
 	  (container-value (vector-ref (%php-object-properties obj) offset))
-	  ;XXX this wasn't here.. copying bug?
-	  (php-hash-lookup-honestly-just-for-reading
-	   (%php-object-extended-properties obj)
-	   canon-name) )))
+	  ; not declared. maybe use __get
+	  (let ((get-method (%lookup-method (%php-object-class obj) "__get")))
+	     (if get-method
+		 (call-php-method-1 obj "__get" property)	  
+		 (php-hash-lookup-honestly-just-for-reading
+		  (%php-object-extended-properties obj)
+		  canon-name) )))))
 
 
 (define (%assign-prop obj property value access-type)
@@ -1429,10 +1438,12 @@ argument, before the continuation: (obj prop ref? value k)."
                  (if (container? current-value)
                      (container-value-set! current-value value)
                      (vector-set! (%php-object-properties obj) offset (make-container value)))))
-   	  ;undeclared property
-          (php-hash-insert! (%php-object-extended-properties obj)
-                            canon-name value)))
-
+   	  ;undeclared property. maybe call __set
+	  (let ((set-method (%lookup-method (%php-object-class obj) "__set")))
+	     (if set-method
+		 (call-php-method-2 obj "__set" property value)
+		 (php-hash-insert! (%php-object-extended-properties obj)
+				   canon-name value)))))
    value)
 
 (define (%lookup-static-prop-ref class-name property access-type)
