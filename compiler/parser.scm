@@ -634,6 +634,8 @@
 	; class const
 	((selfkey id)
 	 (make-class-constant-fetch *parse-loc* '%self (mkstr id)))
+	((parent id)
+	 (make-class-constant-fetch *parse-loc* '%parent (mkstr id)))
         ((id@class static-classderef id@name)
          (make-class-constant-fetch *parse-loc* class (mkstr name)))
 

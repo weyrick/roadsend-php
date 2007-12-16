@@ -1101,10 +1101,17 @@ gives the debugger a chance to run."
       (set! *PHP-LINE* (loc-line location))
       ;; we just make-container here because the evaluator expects
       ;; everything to be in one.
-      (if (and (eqv? class '%self)
-	       (eqv? *current-class-name* #f))
-	  (php-error "Cannot access self:: when no class scope is active"))
-      (make-container (lookup-class-constant (if (eqv? class '%self) *current-class-name* class) name))))
+      (let ((class-canon (cond ((eqv? class '%self) *current-class-name*)
+			       ((eqv? class '%parent) (php-class-parent-class *current-class-name*))
+			       (else class))))
+	 (when (and (eqv? class '%self)
+		    (eqv? class-canon #f))
+	    (php-error "Cannot access self:: when no class scope is active"))
+	 (when (and (eqv? class '%parent)
+		    (or (eqv? class-canon #f) (eqv? class-canon 'stdclass)))
+	    (php-error "Cannot access parent:: when current class scope has no parent"))
+	 ;
+	 (make-container (lookup-class-constant class-canon name)))))
 
 (define-method (evaluate node::obj-clone)
    (with-access::obj-clone node (obj)
