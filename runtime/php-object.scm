@@ -428,14 +428,27 @@ values the values."
    (if (not (php-object? obj))
        (php-error "Unable to call method on non-object " obj)
        (let ((the-method (%lookup-method (%php-object-class obj) method-name)))
-	  (unless the-method
-	     (php-error "Call to undefined method "
-			(%php-class-print-name (%php-object-class obj))
-			"::" method-name "()"))
-	  (when (%php-method-abstract? the-method)
-	     (php-error (format "Cannot call abstract method ~a::~a()" (%php-class-print-name
-									(%php-object-class obj)) method-name)))
-	  (%php-method-proc the-method))))
+	  (if the-method
+	      (begin
+		 (when (%php-method-abstract? the-method)
+		    (php-error (format "Cannot call abstract method ~a::~a()" (%php-class-print-name
+									       (%php-object-class obj)) method-name)))
+		 (%php-method-proc the-method))
+	      #f))))
+
+(define (run-call-or-fail obj method-name args)
+   (if (not (php-object? obj))
+       (php-error "Unable to call method on non-object " obj)
+       (let ((the-method (%lookup-method (%php-object-class obj) "__call")))
+	  (if the-method
+	      (apply (%php-method-proc the-method)
+		     obj
+		     (adjust-argument-list
+		      (%php-method-proc the-method)
+		      (list (mkstr method-name) (list->php-hash args))))
+	      (php-error "Call to undefined method "
+			 (%php-class-print-name (%php-object-class obj))
+			 "::" method-name "()")))))
 
 (define (call-php-method obj method-name . call-args)
    (let ((the-method (get-callable-method obj method-name)))
@@ -443,7 +456,8 @@ values the values."
 	  ;; We could just apply the method to (map maybe-box call-args), but
 	  ;; that won't signal a nice error for methods compiled in extensions.
           (apply the-method obj (adjust-argument-list the-method call-args))
-	  #f)))
+	  ; not found, try __call() override or fail
+	  (run-call-or-fail obj method-name call-args))))
 
 (define (adjust-argument-list method args)
    ;; make sure the arguments are boxed and that the arity is okay.
@@ -467,25 +481,29 @@ values the values."
    (let ((the-method (get-callable-method obj method-name)))
       (if the-method
           (the-method obj)
-	  #f)))
+	  ; not found, try __call() override or fail
+	  (run-call-or-fail obj method-name '()))))
 
 (define (call-php-method-1 obj method-name arg)
    (let ((the-method (get-callable-method obj method-name)))
       (if the-method
           (the-method obj (maybe-box arg))
-	  #f)))
+	  ; not found, try __call() override or fail
+	  (run-call-or-fail obj method-name (list arg)))))
 
 (define (call-php-method-2 obj method-name arg1 arg2)
    (let ((the-method (get-callable-method obj method-name)))
       (if the-method
           (the-method obj (maybe-box arg1) (maybe-box arg2))
-	  #f)))
+	  ; not found, try __call() override or fail
+	  (run-call-or-fail obj method-name (list arg1 arg2)))))
 
 (define (call-php-method-3 obj method-name arg1 arg2 arg3)
    (let ((the-method (get-callable-method obj method-name)))
       (if the-method
           (the-method obj (maybe-box arg1) (maybe-box arg2) (maybe-box arg3))
-	  #f)))
+	  ; not found, try __call() override or fail
+	  (run-call-or-fail obj method-name (list arg1 arg2 arg3)))))
 
 (define (call-php-parent-method parent-class-name obj method-name . call-args)
    (let ((the-class (%lookup-class parent-class-name)))
@@ -497,6 +515,12 @@ values the values."
 	 ; if the method we tried was __construct, and we didn't find it, try instead a php4 compatible constructor
 	 (when (and (eqv? the-method #f) (string=? (%method-name-canonicalize method-name) "__construct"))
 	    (set! the-method (%lookup-method the-class parent-class-name)))
+	 ; ok that didn't work, try __call instead
+	 (unless the-method
+	     (set! the-method (%lookup-method the-class "__call"))
+	     (when the-method
+		(set! call-args (cons (mkstr method-name) (list->php-hash call-args)))))
+	 ; out of luck
 	 (unless the-method
 	    (php-error "Parent method call: Unable to find method "
 		       method-name " of class " parent-class-name))
@@ -701,9 +725,7 @@ values the values."
 (define (php-object-parent-class obj)
    (if (not (php-object? obj))
        #f
-       (%php-class-print-name
-	(%php-class-parent-class
-	 (%php-object-class obj)))))
+       (php-class-parent-class (php-object-class obj))))
 
 (define (php-class-parent-class class-name)
    (let ((the-class (%lookup-class class-name)))
