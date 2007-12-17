@@ -258,6 +258,7 @@
 
        ((("--lib-init-file") ?init-file (help "Specify a PHP file to be run upon library initialization"))
 	(when (maybe-add-script-argv "--lib-init-file")
+	   (target-source-files-set! *current-target* (list init-file))
 	   (add-target-option! lib-init-file: init-file)))
        
        ((("--strip-path") ?strip-path (help "Strip leading path from source files when compiling a library"))
@@ -400,8 +401,6 @@
 		   )
 		; source file
 		(let ((source-files (cons else (target-source-files *current-target*))))
-		   (when (target-option lib-init-file:)
-		      (set! source-files (append source-files (target-option lib-init-file:))))
 		   (unless (target-option project-dir:)
 		      (cond ((pathname-relative? (car source-files))
 			     (set-target-option! project-dir: (pwd)))

@@ -327,7 +327,7 @@
 
 	 (when (target-option install?:)
 	     (do-install name dynamic-lib static-lib)) ; won't return
-	 
+	 (debug-trace 2 "source file list: " source-files)
          (verbose-trace 1 "building lib: " dynamic-lib ", "
 		                         static-lib ", "
 ;					 lib-make-file ", "
