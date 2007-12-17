@@ -172,6 +172,11 @@
        #t
        #f))
 
+(define (%php-class-final? the-class::struct)
+   (if (member 'final (%php-class-flags the-class))
+       #t
+       #f))
+
 (define-struct %php-method
    ;; print name (case sensitive) ::bstring
    print-name
@@ -871,6 +876,8 @@ values the values."
 					    (php-error "Interface  '" unknown-classname "' not found"))
 					 (lambda ()
 					    (%resolve-classes implements))))))
+	  (when (%php-class-final? (car resolved-extends))
+	     (php-error (format "Class ~a may not inherit from final class (~a)" name (%php-class-print-name (car resolved-extends)))))
 	  (let* ((parent-class (car resolved-extends))
 		 (canonical-name (%class-name-canonicalize name))
 		 (new-class (%php-class (mkstr name)
