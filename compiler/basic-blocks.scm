@@ -733,7 +733,8 @@
 		  (add-to-current-block node)
 		  (for-each identify-basic-blocks decl-arglist)
 		  (dynamically-bind (*current-return-escape* last-block)
-		     (identify-basic-blocks body))
+		     (unless (eqv? 'abstract-no-proc body)
+			(identify-basic-blocks body)))
 		  (link-blocks *current-block* last-block)))))))
 
 
