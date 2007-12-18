@@ -38,6 +38,10 @@ class bar extends foo {
 }
 
 
+interface baz {
+    function bip();
+}
+
 new foo();
 $b = new bar();
 //foo::foo();
@@ -55,5 +59,10 @@ echo "subclass? ".is_subclass_of($a, 'foo')."\n";
 echo "subclass? ".is_subclass_of($a, 'stdclass')."\n";
 // this is > php 5.0.5
 echo "subclass? ".is_subclass_of('bar', 'foo')."\n";
+
+echo "class_exists?".class_exists('bar',false)."\n";
+echo "class_exists?".class_exists('baz',false)."\n";
+echo "interface_exists?".interface_exists('bar',false)."\n";
+echo "interface_exists?".interface_exists('baz',false)."\n";
 
 ?>

@@ -108,7 +108,8 @@
      (escapeshellarg string)
      (escapeshellcmd string) 
      ;classes / functions
-     (class_exists class-name)
+     (class_exists class-name autoload)
+     (interface_exists class-name autoload)     
      (method_exists class-name method-name)
      (get_class obj)
      (get_parent_class obj)
@@ -1138,8 +1139,12 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 ;	  #f)))
 
 ; class_exists -- Checks if the class has been defined
-(defbuiltin (class_exists class-name)
-   (php-class-exists? class-name))
+(defbuiltin (class_exists class-name autoload)
+   (php-class-exists? class-name (convert-to-boolean autoload)))
+
+; interface_exists -- Checks if the interface has been defined
+(defbuiltin (interface_exists class-name autoload)
+   (php-interface-exists? class-name (convert-to-boolean autoload)))
 
 ; get_class -- Returns the name of the class of an object
 (defbuiltin (get_class obj)

@@ -50,7 +50,8 @@
     (get-declared-php-classes)
     ; tests
     (php-object? obj)
-    (php-class-exists? class-name)
+    (php-class-exists? class-name #!optional autoload?)
+    (php-interface-exists? interface-name #!optional autoload?)
     (php-class-is-interface? class-name)
     (php-class-method-exists? class-name method-name)
     (php-object-is-subclass obj class-name)
@@ -387,9 +388,21 @@ values the values."
 		  (%subclass? (%php-object-class obj) the-class)
 		  (%implements? (%php-object-class obj) the-class))))))
 
-(define (php-class-exists? class-name)
-   (let ((c (%lookup-class-with-autoload class-name)))
-      (if (%php-class? c)
+(define (php-class-exists? class-name #!optional autoload?)
+   (let ((c (if autoload?
+		(%lookup-class-with-autoload class-name)
+		(%lookup-class class-name))))
+      (if (and (%php-class? c)
+	       (eqv? (member 'interface (%php-class-flags c)) #f))
+	  #t
+	  #f)))
+
+(define (php-interface-exists? class-name #!optional autoload?)
+   (let ((c (if autoload?
+		(%lookup-class-with-autoload class-name)
+		(%lookup-class class-name))))
+      (if (and (%php-class? c)
+	       (member 'interface (%php-class-flags c)))
 	  #t
 	  #f)))
 
