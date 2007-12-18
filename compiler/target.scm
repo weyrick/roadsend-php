@@ -765,12 +765,12 @@
    `(,(string-append "-lmhttpd" (safety-ext) "-" (bigloo-version))
      "-lwebserver"
      ,@(if (target-option static?:)
-           `(,(string-append "-l" (library-target-name *current-target*) (safety-ext)))
+           `(,(string-append "-l" (library-target-name *current-target*) (safety-ext) "-" (bigloo-version)))
            '())))
 
 (define (fastcgi-link-libs)
    `(,@(if (target-option static?:)
-           `(,(string-append "-l" (library-target-name *current-target*) (safety-ext)))
+           `(,(string-append "-l" (library-target-name *current-target*) (safety-ext) "-" (bigloo-version)))
            '())))
 ;       ,"-lfcgi"))
 
