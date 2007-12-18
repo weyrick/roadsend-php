@@ -1024,7 +1024,7 @@ gives the debugger a chance to run."
 	    (php-error "Cannot access self:: when no class scope is active"))
 	 (begin0
 	  (let* ((method-name (d/evaluate method))
-		 (accessible (php-method-accessible class-name method-name *current-class-name*)))
+		 (accessible (php-method-accessible class-canon method-name *current-class-name*)))
 	     (when (pair? accessible)
 		(let ((vis (car accessible))
 		      (origin-class (cdr accessible)))
