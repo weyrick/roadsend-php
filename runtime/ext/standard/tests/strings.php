@@ -143,5 +143,44 @@ var_dump($result);
 $result = count_chars($data, 4);
 var_dump($result);
 
+$data = array('foo'=>'bar',
+              'baz'=>'boom',
+              'cow'=>'milk',
+              'php'=>'hypertext processor');
+
+echo http_build_query($data)."\n"; // foo=bar&baz=boom&cow=milk&php=hypertext+processor
+echo http_build_query($data, '', '&amp;')."\n"; // foo=bar&amp;baz=boom&amp;cow=milk&amp;php=hypertext+processor
+$data = array('foo', 'bar', 'baz', 'boom', 'cow' => 'milk', 'php' =>'hypertext processor');
+echo http_build_query($data)."\n";
+echo http_build_query($data, 'myvar_')."\n";
+
+
+$data = array('user'=>array('name'=>'Bob Smith',
+                            'age'=>47,
+                            'sex'=>'M',
+                            'dob'=>'5/12/1956'),
+              'pastimes'=>array('golf', 'opera', 'poker', 'rap'),
+              'children'=>array('bobby'=>array('age'=>12,
+                                               'sex'=>'M'),
+                                'sally'=>array('age'=>8,
+                                               'sex'=>'F')),
+              'CEO');
+
+echo http_build_query($data, 'flags_');
+
+
+class myClass {
+    var $foo;
+    var $baz;
+
+    function myClass() {
+        $this->foo = 'bar';
+        $this->baz = 'boom';
+    }
+}
+
+$data = new myClass();
+
+echo http_build_query($data); // foo=bar&baz=boom
 
 ?>

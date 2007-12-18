@@ -68,6 +68,7 @@
     (html_entity_decode string quote-style charset)
     (htmlentities string quote-style charset)
     (htmlspecialchars string quote-style charset)
+    (http_build_query formdata prefix separator)
     (implode glue pieces)
     ; levenshtein
     ; localeconv
@@ -786,6 +787,51 @@
       (translate-chars (mkstr string)
 		       (make-char-set tchars)
 		       iso8859-1-translation-table)))
+
+; http_build_query - Generate URL-encoded query string
+(defbuiltin (http_build_query formdata (idx_prefix "") (separator "&"))
+   (if (or (php-hash? formdata)
+	   (php-object? formdata))
+	  (let ((start-hash (if (php-hash? formdata)
+				formdata
+				(php-object-props formdata)))
+		(idx_pre (mkstr idx_prefix))
+		(sep (mkstr separator)))
+	     (letrec ((encode (lambda (in-hash prefix)
+			 (let ((result ""))
+			    (php-hash-for-each in-hash
+				(lambda (k v)
+				   (let* ((k1 (if (and (php-number? k)
+						       (string=? prefix "")
+						       (not (string=? idx_pre "")))
+						  (mkstr idx_pre k)
+						  (mkstr k)))
+					  (k2 (if (string=? prefix "")
+						  k1
+						  (mkstr "[" k1 "]"))))
+				      (if (or (php-hash? v)
+					      (php-object? v))
+					  (set! result (string-append
+							result
+							(if (string=? result "")
+							    ""
+							    sep)
+							(encode v (if (string=? prefix "")
+								      k1
+								      (mkstr prefix (urlencode k2))))))
+					  (set! result
+						(string-append
+						 result
+						 (if (string=? result "")
+						     ""
+						     sep)
+						 prefix
+						 (urlencode k2)
+						 "="
+						 (urlencode (mkstr v))))))))
+			    result))))
+		(encode start-hash "")))
+	  ""))
 
 ; implode -- Join array elements with a string
 (defbuiltin (implode glue (pieces 'unpassed))
