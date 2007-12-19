@@ -1795,7 +1795,7 @@ onum.  Append the bindings for the new symbols and code."
 	       (pushf
 		(if (superglobal? key)
 		    ;this might not make the most sense, but works for superglobals which are hashtables.
-		    `(,key (maybe-unbox (env-lookup *global-env* ,(undollar key))))
+		    `(,key (env-lookup *global-env* ,(undollar key)))
 		    (cond
 		       ((types-eqv? type 'container) `(,(symbol-append key '::pair) (make-container '())))
 		       ((types-eqv? type 'number) `(,(symbol-append key '::onum) *zero*)) ;;onum?
@@ -1812,7 +1812,7 @@ onum.  Append the bindings for the new symbols and code."
 	 (lambda (key val)
 	    (pushf (list key (if (superglobal? key)
 				 ;this might not make the most sense, but works for superglobals which are hashtables.
-				 `(maybe-unbox (env-lookup *global-env* ,(undollar key)))
+				 `(env-lookup *global-env* ,(undollar key))
 				 (let ((val-code			     
 					(cond ((null? val) ''())
 					      ((ast-node? val) (generate-code val))
@@ -1824,11 +1824,6 @@ onum.  Append the bindings for the new symbols and code."
 		   bindings)))
       bindings))
 
-
-(define (superglobal? key::symbol)
-   (let ((name (undollar key)));(symbol->string key)))
-      ;      (set! name (substring name 1 (string-length name)))
-      (hashtable-get *superglobals* name)))
 
 (define (add-bindings-to-env symbol-table)
    (let ((code '()))
@@ -1991,12 +1986,6 @@ onum.  Append the bindings for the new symbols and code."
 		    #f
 		    (php-hash-lookup *class-decl-table* (symbol-downcase (car (class-decl-parent-list klass))))))
 	  (reverse (cons "stdClass" heritage)))))
-
-(define (undollar str)
-   (let ((str (mkstr str)))
-      (if (char=? (string-ref str 0) #\$)
-	  (substring str 1 (string-length str))
-	  str)))
 
 
 (define (compile-time-constant? x)

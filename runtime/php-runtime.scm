@@ -175,6 +175,8 @@
     (php-<= a b)
     (php->= a b)
     (php-= a b)
+    (undollar str)
+    (superglobal? key)
     (var-lookup env name)
     *function-table*
     *interpreted-function-table*
@@ -478,6 +480,15 @@
 ;this table contains the closures for interpreted functions 
 (define *interpreted-function-table* (make-hashtable))
 
+(define (undollar str)
+   (let ((str (mkstr str)))
+      (if (char=? (string-ref str 0) #\$)
+	  (substring str 1 (string-length str))
+	  str)))
+
+(define (superglobal? key)
+   (let ((name (undollar key)))
+      (hashtable-get *superglobals* name)))
 
 (define (mkstr::bstring a . args)
    (case (length args)

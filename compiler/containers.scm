@@ -30,6 +30,7 @@
     
 ;a variable is in a container if it is:
 ;  - in global scope
+;  - a superglobal
 ;  - in a scope containing variable-variables
 ;  - on either side of a reference-assignment
 ;  - passed to a function in a reference parameter position
@@ -180,8 +181,10 @@
 ; (define-method (find-containers node::static-decl/cont k)
 ;    (k))
 
+
 (define-method (find-containers node::var k)
    (when (or (hashtable-get (current-symtab) (var-name node))
+	     (superglobal? (var-name node))
 	     (within-var-var-block?))
 ;	     (eqv? '$this (var-name node)))
 
@@ -263,7 +266,8 @@
       (containerize lval)
       (containerize rval))
    (k))
-		
+
+
 (define (current-block-returns-reference?)
    (or (and (function-decl? *current-block*)
 	    (function-decl-ref? *current-block*))
