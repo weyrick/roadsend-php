@@ -176,9 +176,13 @@
    (when (pair? *try-stack*)
       (set! *try-stack* (cdr *try-stack*))))
 
+(define *in-default-exception-handler* #f)
 (define (php-exception except-obj)
     (if (null? *try-stack*)
-        (php-funcall *default-exception-handler* except-obj)
+	(if *in-default-exception-handler*
+	    (php-error "Exception thrown without a stack frame")
+	    (dynamically-bind (*in-default-exception-handler* #t)
+		(php-funcall *default-exception-handler* except-obj)))
 	(bind-exit (excepted)
 	   (let stack-loop ((stack-list *try-stack*))
 	      (when (pair? stack-list)
