@@ -27,4 +27,6 @@ echo str_replace($healthy, $yummy, $phrase);
 //$str = str_replace("ll", "", "good golly miss molly!", $count);
 //echo $count; // 2
 
+var_dump(str_replace(array(1), array("a"), "1"));
+
 ?>

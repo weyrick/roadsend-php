@@ -1874,11 +1874,11 @@
 	      (r-hash r))
       (if (php-hash-has-current? s-hash)
 	  (begin
-	     (set! a-list (append a-list (list (container-value (cdr (php-hash-current s-hash))))))
+	     (set! a-list (append a-list (list (mkstr (container-value (cdr (php-hash-current s-hash)))))))
 	     (if (php-hash? r-hash)
 		 (if (php-hash-has-current? r-hash)
 		     (begin 
-			(set! a-list (append a-list (list (container-value (cdr (php-hash-current r-hash))))))
+			(set! a-list (append a-list (list (mkstr (container-value (cdr (php-hash-current r-hash)))))))
 			(php-hash-advance r-hash))
 		     (set! a-list (append a-list (list ""))))		 
 		 (set! a-list (append a-list (list r-hash)))) ; assumed string
