@@ -98,6 +98,7 @@
     (wide-class php-ast/gen::php-ast
        global-symbol-table
        container-table
+       class-decl-list
        (needs-return? (default #f)))
     
     (wide-class return-stmt/gen::return-stmt
@@ -162,7 +163,8 @@
 (define-method (declare node::php-ast parent k)
    (widen!::php-ast/gen node
       (global-symbol-table (make-hashtable))
-      (container-table (make-hashtable)))
+      (container-table (make-hashtable))
+      (class-decl-list '()))
    (dynamically-bind (*current-block* node)
       ;   (set! *current-file* (string->symbol (php-ast)))
       ;   (set! *current-module* (string->symbol (php-ast-module node)))
@@ -356,14 +358,17 @@
 			 ((nop? p) #t)
 			 (else (error 'declare-class "what's this noise doing in my class-decl?" p))))))
 	    (insert-methods-or-properties class-body))
-	 (let ((canonical-name (symbol-downcase name)))
-	    (php-hash-insert! *class-decl-table* canonical-name
-			    (widen!::class-decl/gen node
+	 (let* ((canonical-name (symbol-downcase name))
+		(cdecl-node (widen!::class-decl/gen node
 			       (canonical-name canonical-name)
 			       (properties properties)
 			       (static-properties static-properties)
                                (class-constants class-constants)
-			       (methods methods))))))
+			       (methods methods))))
+	    (php-hash-insert! *class-decl-table* canonical-name cdecl-node)
+	    ; we save this list so that class declarations can be rendered early in the ast generation
+	    (when (php-ast/gen? parent)
+	       (php-ast/gen-class-decl-list-set! parent (cons cdecl-node (php-ast/gen-class-decl-list parent)))))))
    (k))
 
 (define (compile-time-subclass? sub super)
@@ -506,6 +511,9 @@
 	 ((php-+) `(convert-to-number ,(parameter-default-value-value a)))
 	 ((php--) `(php-- *zero* ,(parameter-default-value-value a))))))
 
+(define-method (parameter-default-value-value node::class-constant-fetch)
+   (with-access::class-constant-fetch node (class name)
+      `(lookup-class-constant ,(mkstr class) ,(mkstr name))))
 
 (define-method (parameter-default-value-value node::literal-array)
    (with-access::literal-array node (array-contents)

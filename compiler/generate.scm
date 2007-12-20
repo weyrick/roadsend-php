@@ -89,7 +89,8 @@
 	 (dynamically-bind (*file-were-compiling*
                             ;(php-ast-real-filename node)
                             (php-ast-project-relative-filename node))
-	    (let ((global-code (cdr ;strip off the 'begin
+	    (let ((class-decls (map generate-class-decl (reverse (php-ast/gen-class-decl-list node))))
+		  (global-code (cdr ;strip off the 'begin
 				;remove the nops from function decls et al.
 				(filter (lambda (a) (not (nop? a)))
 					(generate-code (php-ast-nodes node))))))
@@ -109,13 +110,13 @@
 				      `(,(bind-exit-if (php-ast/gen-needs-return? node) 'return
                                             `(let ,(global-bindings)
                                                 #t ;so it's never empty
+						,@class-decls
                                                 ,@*runtime-function-sigs*
                                                 ,@global-code)))) )
 		  ;the other functions (class definition is in here too, and is dependent on order)
 		  (reverse *functions*)))
 		*required-asts*
 		*exports*))))))
-
 
 (define (fixup-onums code)
    "For each onum found, replace it with a symbol bound to an appropriate
@@ -817,43 +818,49 @@ onum.  Append the bindings for the new symbols and code."
    (error 'generate-code-class-decl "somehow this class didn't get declared" node))
 
 (define-method (generate-code node::class-decl/gen)
+   ; this should already be rendered, unless it wasn't a top level class declaration
+   ; does that ever happen?
+   (if (class-decl/gen-rendered? node)
+       `'()
+       (generate-class-decl node)))
+
+(define (generate-class-decl node)
    (with-access::class-decl/gen node (name canonical-name parent-list implements flags properties static-properties class-constants methods rendered?)
       (if rendered?
 	  `(begin 'class-already-rendered ',name)
 	  (begin
+	     (set! rendered? #t)
 	     (let ((code '()))
 		(pushf `(define-php-class ',name ',parent-list ',implements ',flags) code)
-		(php-hash-for-each properties
-		   (lambda (prop-name prop)
-		      (pushf `(define-php-property ',name
+		(dynamically-bind (*current-parent-class-name* (if (null? parent-list) '() (car parent-list)))
+		   (dynamically-bind (*current-class-name* name)
+                     (php-hash-for-each class-constants
+                         (lambda (const-name const-val)
+			    (pushf `(define-class-constant ',name ,const-name ,(get-value const-val))
+				   code)))				     
+		     (php-hash-for-each static-properties
+		          (lambda (prop-name prop)
+			     (pushf `(define-php-property ',name
+					,prop-name
+					,(if (null? (property-decl-value prop))
+					     ''()
+					     (get-value (property-decl-value prop)))
+					',(property-decl-visibility prop)
+					#t
+					)
+				    code)))
+		     (php-hash-for-each properties
+		         (lambda (prop-name prop)
+			    (pushf `(define-php-property ',name
 				 ,prop-name
 				 ,(if (null? (property-decl-value prop))
-;				     '(make-container '())
-;				     (get-location (property-decl-value prop))
 				      ''()
 				      (get-value (property-decl-value prop)))
 				 ',(property-decl-visibility prop)
 				 #f
 				 )
 			     code)))
-		(php-hash-for-each static-properties
-		    (lambda (prop-name prop)
-		       (pushf `(define-php-property ',name
-				  ,prop-name
-				  ,(if (null? (property-decl-value prop))
-				       ''()
-				       (get-value (property-decl-value prop)))
-				  ',(property-decl-visibility prop)
-				  #t
-				  )
-			      code)))
-                (php-hash-for-each class-constants
-                   (lambda (const-name const-val)
-                      (pushf `(define-class-constant ',name ,const-name ,(get-value const-val))
-                             code)))
-		(dynamically-bind (*current-parent-class-name* (if (null? parent-list) '() (car parent-list)))
-		   (dynamically-bind (*current-class-name* name)
-		      (php-hash-for-each methods
+		     (php-hash-for-each methods
 			 (lambda (method-name method)
 			    (with-access::method-decl method (location decl-arglist body ref? flags)
 			       (pushf `(define-php-method ',name

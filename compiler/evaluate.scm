@@ -33,13 +33,6 @@
     *current-env*)
     
    (static
-    (wide-class declared-class::class-decl
-       ;       (inheritance-done? (default #f))
-       (evaluated? (default #f))
-       properties
-       static-properties
-       class-constants
-       methods)
     (wide-class declared-function::function-decl
        canonical-name)
     
@@ -147,6 +140,7 @@ gives the debugger a chance to run."
       (*one* *one*)
       ((quote ?FOO) FOO)
       ((lookup-constant ?CONST) (lookup-constant (mkstr CONST)))
+      ((lookup-class-constant ?CLASS ?CONST) (lookup-class-constant (mkstr CLASS) (mkstr CONST)))
       ((convert-to-number ?FOO) (convert-to-number FOO))
       ;negative numeric literal
       ((php-- *zero* (convert-to-number ?NUM))
@@ -873,93 +867,9 @@ gives the debugger a chance to run."
 		   (php-error "Default value for parameters with a class type hint can only be NULL")))
 	     decl-arglist))		   
 
-(define-method (evaluate node::declared-class)
+(define-method (evaluate node::class-decl)
    (set! *PHP-LINE* (car (ast-node-location node)))
-   (with-access::declared-class node (name parent-list implements flags static-properties class-constants properties methods evaluated?)
-      (if evaluated?
-	  '()
-	  (begin
-	     (set! evaluated? #t)
-	     (when (not (null? parent-list))
-		(let ((parent-klass (hashtable-get *class-decl-table-for-eval* (symbol-downcase (car parent-list)))))
-		   (unless (php-class-exists? (car parent-list))
-		      (unless (or parent-klass )
-			 (php-error/loc node (format "propagate: cannot extend unknown class ~A" (car parent-list))))
-		      (d/evaluate parent-klass))))
-
-	     ;; define 
-	     (define-php-class name parent-list implements flags)
-	     
-             ;; properties
-	     (php-hash-for-each properties
-		(lambda (prop-name prop)
-		   (define-php-property name
-		      (substring prop-name 1 (string-length prop-name))
-		      (if (null? (property-decl-value prop))
-			  (make-container '())
-			  (d/evaluate (property-decl-value prop)))
-		      (property-decl-visibility prop)
-		      #f)))
-
-             ;; PHP5 static properties
-	     (php-hash-for-each static-properties
-		(lambda (prop-name prop)
-		   (define-php-property name
-		      (substring prop-name 1 (string-length prop-name))
-		      (if (null? (property-decl-value prop))
-			  (make-container '())
-			  (d/evaluate (property-decl-value prop)))
-		      (property-decl-visibility prop)
-		      #t)))
-	     
-             ;; PHP5 class constants
-             (php-hash-for-each class-constants
-                (lambda (const-name const-val)
-                   (define-class-constant name const-name const-val)))
-
-             ;; methods
-	     (php-hash-for-each methods
-		(lambda (method-name method)
-		   (with-access::method-decl method (location decl-arglist body ref? flags)
-		      (dynamically-bind (*PHP-FILE* (cdr location))
-                        (dynamically-bind (*PHP-LINE* (car location))					
-		            (%check-typehints decl-arglist)))
-		      (define-php-method name
-			 method-name
-			 flags
-			 (if (eqv? 'abstract-no-proc body)
-			     body
-			     ; generate body
-			     (let ((static-env (env-new)))
-				(lambda ($this . args)
-				   (apply push-stack name (method-decl-name method) args)
-				   (push-func-args args)
-				   (set! *PHP-FILE* (cdr location))
-				   (set! *PHP-LINE* (car location))
-				   (let ((retval
-				      (bind-exit (return)			       
-					 (dynamically-bind (*current-return-escape* return)
-					    (dynamically-bind (*current-static-env* static-env)
-					       (dynamically-bind (*current-class-name* name)
- 					        (dynamically-bind (*current-parent-class-name* (if (null? parent-list) '() (car parent-list)))
-						  (dynamically-bind (*current-instance* $this)
-						     (dynamically-bind (*current-env* (env-new))
-							(dynamically-bind (*current-variable-environment* *current-env*)
-							   (env-extend *current-env* (undollar '$this) (make-container $this))
-							   (add-arguments-to-env (mkstr name "::" (method-decl-name method))
-										 *current-env* args decl-arglist)
-							   (d/evaluate body)
-							   (make-container NULL)))))))))))
-				      (pop-func-args)
-				      (pop-stack)
-				      (if ref?
-					  retval
-					  (copy-php-data retval))))))))))
-
-	     ;; finalize: do abstract method checks, etc.
-	     (php-class-def-finalize name)
-	     ))))
-
+   '())
 
 (define-method (evaluate node::constructor-invoke)
    (with-access::constructor-invoke node (location class-name arglist)
@@ -1239,19 +1149,6 @@ returning the value of the last. "
 	    (env-extend *current-static-env* var-name
 			(maybe-box (d/evaluate initial-value)))))))
 
-(define-method (declare-for-eval node::static-decl)
-   (set! *PHP-LINE* (car (ast-node-location node)))
-   (unless (declared-static-var? node)
-      (with-access::static-decl node (var initial-value)
-	 (let ((var-name (if (ast-node? var)
-			     (mkstr (d/evaluate var))
-			     (undollar var))))
-	    (widen!::declared-static-var node (name var-name))
-	    (env-extend *current-static-env* var-name
-			(maybe-box (d/evaluate initial-value)))))))
-
-
-
 (define-method (declare-for-eval node::function-decl)
    (set! *PHP-LINE* (car (ast-node-location node)))
    (with-access::function-decl node (location name decl-arglist body ref?)
@@ -1287,39 +1184,77 @@ returning the value of the last. "
 
 
 (define-method (declare-for-eval node::class-decl)
-   (with-access::class-decl node (name class-body)
-      (let ((properties (make-php-hash))
-            (class-constants (make-php-hash))
-	    (static-properties (make-php-hash))
-	    (methods (make-php-hash)))
-	 (letrec ((insert-methods-or-properties
+   (with-access::class-decl node (name parent-list implements flags class-body)
+      ; require parent to be declared before us, if present
+      (when (not (null? parent-list))
+	 (unless (php-class-exists? (car parent-list))
+	    (php-error/loc node (format "Class '~A' not found" (car parent-list)))))
+      (letrec ((declare-class-body
 		   (lambda (p)
 		      (cond
+			 ;; statements
 			 ((list? p)
-			  (for-each insert-methods-or-properties p))
+			  (for-each declare-class-body p))
+			 ;; class constants			 
 			 ((class-constant-decl? p)
-			  (php-hash-insert! class-constants (class-constant-decl-name p) (d/evaluate (class-constant-decl-value p))))
+			  (define-class-constant name (mkstr (class-constant-decl-name p)) (d/evaluate (class-constant-decl-value p))))
+			 ;; properties
 			 ((property-decl? p)
-                          (if (property-decl-static? p)
-                              (php-hash-insert! static-properties (property-decl-name p) p)
-                              (php-hash-insert! properties (property-decl-name p) p)))
+			  (define-php-property
+			     name
+			     (mkstr (undollar (property-decl-name p)))
+			     (if (null? (property-decl-value p))
+				 (make-container '())
+				 (d/evaluate (property-decl-value p)))
+			     (property-decl-visibility p)
+			     (property-decl-static? p)))
+			 ;; methods
 			 ((method-decl? p)
-			  (php-hash-insert! methods (method-decl-name p) p))
-			 ((nop? p) #t)
-			 (else (error 'declare-class "what's this noise doing in my class-decl?" p))))))
-	    (insert-methods-or-properties class-body))
-	 (hashtable-put! *class-decl-table-for-eval* (symbol-downcase name)
-			 (widen!::declared-class node
-			    (properties properties)
-			    (static-properties static-properties)
-                            (class-constants class-constants)
-			    (methods methods))))))
-
-; (define-method (declare-for-eval node::constant-decl)
-;    (d/evaluate node))
-(define (undollar str)
-   (let ((str (mkstr str)))
-      (if (char=? (string-ref str 0) #\$)
-	  (substring str 1 (string-length str))
-	  str)))
+			  (with-access::method-decl p (location decl-arglist body ref? flags)
+			     (dynamically-bind (*PHP-FILE* (cdr location))
+			       (dynamically-bind (*PHP-LINE* (car location))					
+				 (%check-typehints decl-arglist)))
+			             (define-php-method name
+					(mkstr (method-decl-name p))
+					flags
+					(if (eqv? 'abstract-no-proc body)
+					    body
+					    ; generate body
+					    (let ((static-env (env-new)))
+					       (lambda ($this . args)
+						  (apply push-stack name (method-decl-name p) args)
+						  (push-func-args args)
+						  (set! *PHP-FILE* (cdr location))
+						  (set! *PHP-LINE* (car location))
+						  (let ((retval
+							 (bind-exit (return)			       
+					     (dynamically-bind (*current-return-escape* return)
+					      (dynamically-bind (*current-static-env* static-env)
+					       (dynamically-bind (*current-class-name* name)
+ 					        (dynamically-bind (*current-parent-class-name* (if (null? parent-list)
+												   '()
+												   (car parent-list)))
+						 (dynamically-bind (*current-instance* $this)
+						  (dynamically-bind (*current-env* (env-new))
+						   (dynamically-bind (*current-variable-environment* *current-env*)
+						     (env-extend *current-env* (undollar '$this) (make-container $this))
+						     (add-arguments-to-env (mkstr name "::" (method-decl-name p))
+									   *current-env* args decl-arglist)
+						     (d/evaluate body)
+						     (make-container NULL)))))))))))
+						     (pop-func-args)
+						     (pop-stack)
+						     (if ref?
+							 retval
+							 (copy-php-data retval)))))))))
+			  ((nop? p) #t)
+			  (else (error 'declare-class "what's this noise doing in my class-decl?" p))))))
+	 ;; define class
+	 (define-php-class name parent-list implements flags)
+	 ;; define body statements
+	 (dynamically-bind (*current-class-name* name)
+	   (dynamically-bind (*current-parent-class-name* (if (null? parent-list) '() (car parent-list)))
+	      (declare-class-body class-body)))
+	 ;; finalize
+	 (php-class-def-finalize name))))
 

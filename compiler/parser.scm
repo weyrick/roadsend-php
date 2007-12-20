@@ -335,9 +335,12 @@
       
       (decl-literal
        ((simple-literal) simple-literal)
+       ((plus simple-literal) simple-literal)
        ((literal-array) literal-array)
+       ((static-class-const) static-class-const)
        ((minus simple-literal)
 	(make-arithmetic-unop *parse-loc* minus simple-literal)))
+
       
       ;elseif
       (elseif-series
@@ -630,18 +633,13 @@
 	; we make a literal string here because static-method-invoke expects an ast-node there (from non self:: call)
 	(make-static-method-invoke *parse-loc* '%self (make-literal-string *parse-loc* (mkstr method)) arglist)))
        
-       
+      
        ;expression
        (rval
 
-	; class const
-	((selfkey id)
-	 (make-class-constant-fetch *parse-loc* '%self (mkstr id)))
-	((parent id)
-	 (make-class-constant-fetch *parse-loc* '%parent (mkstr id)))
-        ((id@class static-classderef id@name)
-         (make-class-constant-fetch *parse-loc* class (mkstr name)))
-
+	; class constant
+	((static-class-const) static-class-const)
+	
 	; object cloning
 	((clone rval)
 	 (make-obj-clone *parse-loc* rval))
@@ -801,7 +799,15 @@
          (make-postcrement *parse-loc* crement lval))
         
         ((lval) lval))
-       
+
+       (static-class-const
+	((selfkey id)
+	 (make-class-constant-fetch *parse-loc* '%self (mkstr id)))
+	((parent id)
+	 (make-class-constant-fetch *parse-loc* '%parent (mkstr id)))
+        ((id@class static-classderef id@name)
+         (make-class-constant-fetch *parse-loc* class (mkstr name))))
+
        (simple-literal
         ((constant) constant)
         ((nullkey)

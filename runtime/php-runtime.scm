@@ -1401,6 +1401,7 @@
       (*one* *one*)
       ((quote ?FOO) FOO)
       ((lookup-constant ?CONST) (lookup-constant (mkstr CONST)))
+      ((lookup-class-constant ?CLASS ?CONST) (lookup-class-constant (mkstr CLASS) (mkstr CONST)))
       ((convert-to-number ?FOO) (convert-to-number FOO))
       ;negative numeric literal
       ((php-- *zero* (convert-to-number ?NUM))
