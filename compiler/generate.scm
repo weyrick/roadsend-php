@@ -1118,10 +1118,20 @@ onum.  Append the bindings for the new symbols and code."
 					'rest-args
 					`(,@args . rest-args))
 				    args))
+			    ,(when (> (hashtable-size static-vars) 0)
+				`(maybe-reset-my-statics))			    
 			    ,@body-code))
-		  (let ((static-bindings (bindings-generate static-vars container-table)))
+		  (let ((static-bindings (bindings-generate static-vars container-table))
+			(static-binding-resets (reset-bindings-generate static-vars container-table)))
 		     (unless (null? static-bindings)
-			(set! body-code `(let ,static-bindings ,body-code))))
+			(set! body-code `(let ,static-bindings
+					    (letrec ((last-reset-serial 0)
+						     (maybe-reset-my-statics
+						      (lambda ()
+							 (unless (=fx *runtime-reset-serial* last-reset-serial)
+							    (set! last-reset-serial *runtime-reset-serial*)
+							    ,@static-binding-resets))))
+					    ,body-code)))))
 		  (if toplevel? 
 		      (begin
 			 (pushf signature-code *runtime-function-sigs*)
@@ -1149,6 +1159,12 @@ onum.  Append the bindings for the new symbols and code."
 	       (set! body-code
 		     `(define ,method-fun-name
 			 (let ,(bindings-generate static-vars container-table)
+			    (letrec ((last-reset-serial 0)
+				     (maybe-reset-my-statics
+				      (lambda ()
+					 (unless (=fx *runtime-reset-serial* last-reset-serial)
+					    (set! last-reset-serial *runtime-reset-serial*)
+					    ,@(reset-bindings-generate static-vars container-table)))))
 			    (lambda (this-unboxed ,@(map required-formal-param-name required-params)
 					     . ;; ,(if (or variable-arity? (pair? optional-params)) 'optional-args '())
 					     ;; unfortunately, the methods always need optional args, because we
@@ -1156,6 +1172,8 @@ onum.  Append the bindings for the new symbols and code."
 					     ;; number is wrong, so we get a runtime arity error
                                              optional-args
                                              )
+			       ,(when (> (hashtable-size static-vars) 0)
+				   `(maybe-reset-my-statics))		       
 			      ; this is needed for static calls and property fetches
 			      (let ((*current-class-name* ',*current-class-name*))
 			       ;unbox the non-reference args
@@ -1216,7 +1234,7 @@ onum.  Append the bindings for the new symbols and code."
                                                     ,body-code
                                                     ;; methods always box their return values.
                                                     (make-container NULL))))
-					 ,@(if variable-arity? `((pop-func-args)) '())))))))))))
+					 ,@(if variable-arity? `((pop-func-args)) '()))))))))))))
 
 	       (pushf body-code *functions*)
 	       method-fun-name))))))
@@ -1831,6 +1849,20 @@ onum.  Append the bindings for the new symbols and code."
 		   bindings)))
       bindings))
 
+; like bindings-generate but in the form of set! instead of a list for a let clause
+(define (reset-bindings-generate symbol-table container-table)
+   (let ((bindings '()))
+      (hashtable-for-each symbol-table
+	 (lambda (key val)
+	    (pushf (let ((val-code			     
+			  (cond ((null? val) ''())
+				((ast-node? val) (generate-code val))
+				(else val))))
+		      (if (hashtable-get container-table key)
+			  `(set! ,key (maybe-box ,val-code))
+			  `(set! ,key (maybe-unbox ,val-code))))
+		   bindings)))
+      bindings))
 
 (define (add-bindings-to-env symbol-table)
    (let ((code '()))

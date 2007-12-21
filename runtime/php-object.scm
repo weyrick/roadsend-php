@@ -777,6 +777,7 @@ values the values."
 			     (php-hash-insert! clist :next (%php-class-print-name v))))
       clist))
 
+; NOTE: this is run by reset-runtime-state as well, so after every page view
 (define (init-php-object-lib)
    (set! %php-class-registry (make-hashtable))
    (set! %php-autoload-registry (make-hashtable))

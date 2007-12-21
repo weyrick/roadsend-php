@@ -93,6 +93,7 @@
     *global-env*
     *current-variable-environment*
     *superglobals*
+    *runtime-reset-serial*
     ;; the extension info
     (extension-registered? extension)
     (register-extension extension version scheme-lib-name lib-list #!key (required-extensions '()))
@@ -402,6 +403,9 @@
    exit-stat)
 		
 (register-exit-function! run-php-shutdown-funcs)
+
+; every time we reset the runtime state for a page view, we increase the serial
+(define *runtime-reset-serial* 0)
 
 ;; information about the extensions loaded
 (define *extension-info* '())
@@ -997,6 +1001,9 @@
 ; it should reset any toplevel variable to it's top level state
 (define (reset-runtime-state)
 
+   ; increase serial
+   (set! *runtime-reset-serial* (+fx 1 *runtime-reset-serial*))
+   
    ; run reset functions from other parts of the code
    ; NOTE we run this *first* so it has access to variables like SESSION
    ; and REQUEST
