@@ -741,8 +741,67 @@ gives the debugger a chance to run."
       (for-each unset lvals)))
 
 
+(define-method (evaluate node::isset-stmt)
+   (set! *PHP-LINE* (car (ast-node-location node)))
+   (with-access::isset-stmt node (rvals)
+      (if (pair? rvals)
+	  (let loop ((a (car rvals))
+		     (vars (cdr rvals)))
+	     (if (isset a)
+		 (if (pair? vars)
+		     (loop (car vars) (cdr vars))
+		     #t)
+		 #f))
+	  #f)))
+
+(define-generic (isset rval)
+   (not (null? (maybe-unbox (d/evaluate rval)))))
+
+(define-method (isset rval::property-fetch)
+   (with-access::property-fetch rval (obj prop)
+      (let* ((obj-e (maybe-unbox (d/evaluate obj)))
+	     (prop-e (mkstr (maybe-unbox (d/evaluate prop))))
+	     (access-type (php-object-property-visibility obj-e prop-e *current-instance*)))
+	 (if (and (php-object? obj-e)
+		  (php-class-method-exists?
+		   (php-object-class obj-e)
+		   "__isset")
+		  ; we call __isset when the caller doesn't have visibility access
+		  ; (whether it's actually declared for real or not) or when it
+		  ; would have visibility but it's not declared
+		  (or  (pair? access-type) ; if access-type is a pair, it's not visible in this context
+		       (not (php-object-has-declared-property?
+			     obj-e
+			     prop-e))))
+	     (convert-to-boolean (call-php-method-1 obj-e "__isset" prop-e))
+	     ; normal isset
+	     (not (null? (maybe-unbox (d/evaluate rval))))))))	     
+
 (define-generic (unset lval)
    (eval-assign lval NULL))
+
+(define-method (unset lval::property-fetch)
+   (with-access::property-fetch lval (obj prop)
+      (let* ((obj-e (maybe-unbox (d/evaluate obj)))
+	     (prop-e (mkstr (maybe-unbox (d/evaluate prop))))
+	     (access-type (php-object-property-visibility obj-e prop-e *current-instance*)))
+	 (if (and (php-object? obj-e)
+		  (php-class-method-exists?
+		   (php-object-class obj-e)
+		   "__unset")
+		  ; we call __unset when the caller doesn't have visibility access
+		  ; (whether it's actually declared for real or not) or when it
+		  ; would have visibility but it's not declared
+		  (or  (pair? access-type) ; if access-type is a pair, it's not visible in this context
+		       (not (php-object-has-declared-property?
+			     obj-e
+			     prop-e))))
+	     (begin
+		(call-php-method-1 obj-e "__unset" prop-e)
+		; always return null
+		NULL)
+	     ; normal unset
+	     (eval-assign lval NULL)))))
 
 (define-method (unset lval::hash-lookup)
    (with-access::hash-lookup lval (hash key)

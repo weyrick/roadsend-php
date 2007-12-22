@@ -240,6 +240,7 @@
 	 ((uncase "as") (stok 'foreach-as))
 
 	 ((uncase "unset") (stok 'unset))
+	 ((uncase "isset") (stok 'isset))
 
 	 ;; here we're returning a *current-lineno* as the value, any other
 	 ;; value would be pointless, and this location is more

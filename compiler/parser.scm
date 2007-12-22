@@ -69,7 +69,7 @@
        array classkey implements interfacekey for break includekey requirekey include-once require-once
        global endwhile while  var  rcurly ;html
        rbrak echokey functionkey returnkey string extends
-       array-arrow dokey unset foreach endforeach endfor foreach-as parent
+       array-arrow dokey unset isset foreach endforeach endfor foreach-as parent
        boolean integer float nullkey listkey clone ;globalhash
        this continue throwkey trykey selfkey classconst)
 
@@ -637,6 +637,9 @@
        ;expression
        (rval
 
+	((isset lpar rvals rpar)
+	 (make-isset-stmt *parse-loc* rvals))
+
 	; class constant
 	((static-class-const) static-class-const)
 	
@@ -799,7 +802,15 @@
          (make-postcrement *parse-loc* crement lval))
         
         ((lval) lval))
+       ; XXX end rval
 
+       ;used for isset
+       (rvals
+	((rval comma rvals)
+	 (cons rval rvals))
+	((rval) (list rval))
+	(() '()))
+	       
        (static-class-const
 	((selfkey id)
 	 (make-class-constant-fetch *parse-loc* '%self (mkstr id)))
@@ -849,7 +860,6 @@
          (make-static-property-fetch *parse-loc* class prop)))
         
 	
-       
        ;place
        (lval
         ((variable-lval) variable-lval)

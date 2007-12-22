@@ -496,6 +496,11 @@
       (for-each identify-basic-blocks lvals)
       (add-to-current-block node)))
 
+(define-method (identify-basic-blocks node::isset-stmt)
+   ; (debug-trace 22 " (identify-basic-blocks node::unset-stmt)")
+   (with-access::isset-stmt node (rvals)
+      (for-each identify-basic-blocks rvals)
+      (add-to-current-block node)))
 
 (define-method (identify-basic-blocks node::switch-stmt)
    ; (debug-trace 22 " (identify-basic-blocks node::switch-stmt)")

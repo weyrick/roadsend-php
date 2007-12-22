@@ -42,7 +42,7 @@
     (is_resource var)
     (is_scalar var)
     (is_string var)
-    (isset . vars)
+;    (isset . vars)
     (print_r var)
     (serialize var)
     (settype var type)
@@ -571,18 +571,21 @@
 ;   (error 'is_callable "This function is not yet implemented." var))
 
 
+
 ; isset -- Determine whether a variable is set
+; XXX this is now a language construct
+
 ;only true if they're all set
-(defbuiltin-v (isset vars)
-   (if (pair? vars)
-       (let loop ((a (car vars))
-		  (vars (cdr vars)))
-	  (if (null? a)
-	      #f
-	      (if (pair? vars)
-		  (loop (car vars) (cdr vars))
-		  #t)))
-       #f))
+; (defbuiltin-v (isset vars)
+;    (if (pair? vars)
+;        (let loop ((a (car vars))
+; 		  (vars (cdr vars)))
+; 	  (if (null? a)
+; 	      #f
+; 	      (if (pair? vars)
+; 		  (loop (car vars) (cdr vars))
+; 		  #t)))
+;        #f))
 
 
 ; print_r --  Prints human-readable information about an array

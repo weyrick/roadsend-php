@@ -763,6 +763,9 @@ onum.  Append the bindings for the new symbols and code."
    (with-access::unset-stmt node (lvals)
       `(begin ,@(map unset lvals))))
 
+(define-method (generate-code node::isset-stmt)
+   (with-access::isset-stmt node (rvals)
+      `(and ,@(map isset rvals))))
 
 (define-method (generate-code node::switch-stmt)
    (with-access::switch-stmt/gen node (rval cases needs-continue? needs-break?)
@@ -1653,6 +1656,56 @@ onum.  Append the bindings for the new symbols and code."
 				      ,(if (eqv? key :next)
 					   ':next
 					   (get-value key))) ) )))))
+
+(define-method (unset lval::property-fetch)
+   (with-access::property-fetch lval (obj prop)
+      (let* ((the-object (get-value obj))
+	     (the-property (if (ast-node? prop)
+			       (get-value prop)
+			       (mkstr prop))))
+	 `(let* ((obj-evald ,the-object)
+		 (access-type ,(generate-get-prop-access-type 'obj-evald the-property)))
+	     (if (and (php-object? obj-evald)
+		      (php-class-method-exists?
+		       (php-object-class obj-evald)
+		       "__unset")
+		      ; we call __isset when the caller doesn't have visibility access
+		      ; (whether it's actually declared for real or not) or when it
+		      ; would have visibility but it's not declared
+		      (or  (pair? access-type) ; if access-type is a pair, it's not visible in this context
+			   (not (php-object-has-declared-property?
+				 obj-evald
+				 ,the-property))))
+		 (convert-to-boolean (call-php-method-1 obj-evald "__unset" ,the-property))
+		 ; normal isset
+		 ,(update-value lval ''()))))))
+
+;;;;isset
+(define-generic (isset rval)
+   `(not (null? ,(get-value rval))))
+
+(define-method (isset rval::property-fetch)
+   (with-access::property-fetch rval (obj prop)
+      (let* ((the-object (get-value obj))
+	     (the-property (if (ast-node? prop)
+			       (get-value prop)
+			       (mkstr prop))))
+	 `(let* ((obj-evald ,the-object)
+		 (access-type ,(generate-get-prop-access-type 'obj-evald the-property)))
+	     (if (and (php-object? obj-evald)
+		      (php-class-method-exists?
+		       (php-object-class obj-evald)
+		       "__isset")
+		      ; we call __isset when the caller doesn't have visibility access
+		      ; (whether it's actually declared for real or not) or when it
+		      ; would have visibility but it's not declared
+		      (or  (pair? access-type) ; if access-type is a pair, it's not visible in this context
+			   (not (php-object-has-declared-property?
+				 obj-evald
+				 ,the-property))))
+		 (convert-to-boolean (call-php-method-1 obj-evald "__isset" ,the-property))
+		 ; normal isset
+		 (not (null? ,(get-value rval))))))))
 
 ;;;;update-location
 (define-generic (update-location lval rval-code)

@@ -62,6 +62,7 @@
     (php-object-instanceof a b)
     ; properties
     (php-class-props class-name)
+    (php-object-has-declared-property? obj::struct property::bstring)
     (php-object-property/index obj::struct property::int property-name)
     (php-object-property/string obj property::bstring access-type)
     (php-object-property-ref/string obj property::bstring access-type)
@@ -1437,6 +1438,15 @@ argument, before the continuation: (obj prop ref? value k)."
 		 #f)))))
 		
 ;;;;the actual property looker-uppers
+
+(define (php-object-has-declared-property? obj::struct property::bstring)
+   "see if the object has the specified declared property, regardless of visibility"
+   (if (php-object? obj)
+       (let* ((canon-name (%property-name-canonicalize property))
+	      (offset (%prop-offset obj canon-name 'all)))
+	  (if offset #t #f))
+       #f))
+   
 (define (%lookup-prop-ref obj property access-type)
    (let* ((canon-name (%property-name-canonicalize property))
 	  (offset (%prop-offset obj canon-name access-type)))

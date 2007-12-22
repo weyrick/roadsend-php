@@ -10,4 +10,10 @@ unset( $a[2] );
 
 print_r($a);
 
+$a=5;$b=array(1);$c="string";
+echo "i1: ".isset($a,$b,$c)."\n";
+echo "i2: ".isset($a,$b,$c,$d)."\n";
+unset($a,$b,$c);
+echo "i3: ".isset($a,$b,$c)."\n";
+
 ?>

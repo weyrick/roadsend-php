@@ -56,6 +56,8 @@
     
     (final-class unset-stmt::ast-node
        lvals)
+    (final-class isset-stmt::ast-node
+       rvals)
     (final-class if-stmt::ast-node
        condition
        then
