@@ -374,7 +374,7 @@ echo "
         prefix:                   ${prefix}
         libdir:                   ${PCC_LIBS}
         bindir:                   ${PCC_BIN}
-        sysconfir:                ${CONF_HOME}
+        sysconfdir:               ${CONF_HOME}
 
         c compiler:               ${CC}
         cflags:                   ${CFLAGS}
