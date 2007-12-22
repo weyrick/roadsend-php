@@ -94,8 +94,6 @@ web-backends: webconnect compiler runtime
 profiler: libs
 	(cd tools/profiler && $(MAKE) all)
 
-
-.PHONY: libs
 libs: 
 	-mkdir libs
 #	-mkdir libs/dlls
