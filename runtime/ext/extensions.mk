@@ -54,7 +54,7 @@ all: libs
 
 
 libs: $(LIB)/lib$(LIBNAME)_$(SUV).a $(LIB)/$(LIBNAME).sch  $(LIB)/lib$(LIBNAME)_$(SUV).$(SOEXT)
-	-cp *.init $(LIB)
+	@find . -maxdepth 1 -name \*.init -exec cp '{}' $(LIB) \;
 
 tags: $(TAGFILE)
 
