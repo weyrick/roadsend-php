@@ -30,6 +30,7 @@
 	   (signatures "signatures.scm")
 	   (fast-string-append "fast-string-append.scm")
            (php-errors "php-errors.scm")
+	   (builtin-interfaces "builtin-interfaces.scm")
            (php-ini "php-ini.scm"))
    (from (blib "blib.scm"))
    (from (opaque-math "opaque-math-binding.scm"))
@@ -1053,6 +1054,7 @@
    (set! *interpreted-function-table* (make-hashtable))
    (init-php-object-lib)
    (init-php-error-lib) ; build Exception object, so must follow init-php-object-lib
+   (init-builtin-interfaces) ; build builtin interfaces
    (reset-ini!)   
    ; this doesn't change?
    ;(set! $argv 'unset)

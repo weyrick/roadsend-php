@@ -9,7 +9,7 @@ CCOMMONFLAGS	=  -I. -I$(BGL_DEFAULT_LIB_DIR)
 SLIB_FILES	= slib/format  slib/slib  slib/sort  slib/soundex  slib/strcase  slib/strsrch
 SOURCE_LIST	= php-runtime php-hash php-object php-ini utils elongs opaque-math-binding \
                   grasstable url-rewriter signatures extended-streams constants finalizers \
-                  fast-string-append php-errors resources blib $(SLIB_FILES)
+                  fast-string-append php-errors builtin-interfaces resources blib $(SLIB_FILES)
 C_SOURCE_LIST   = c-runtime opaque-math php-hash-helper pcc_snprintf
 
 C_POPULATION     := $(patsubst %,%_$(SU).o,$(C_SOURCE_LIST))
@@ -76,5 +76,7 @@ php-object_$(SU).o: utils_$(SU).o php-hash_$(SU).o grasstable_$(SU).o    \
       php-runtime.sch 
 
 php-errors_$(SU).o: php-object_$(SU).o
+
+builtin-interfaces_$(SU).o: php-object_$(SU).o
 
 signatures.o: opaque-math-binding.o
