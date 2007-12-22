@@ -121,11 +121,7 @@
    1)
 
 ; register the extension
-(register-extension "odbc" "1.0.0"
-                    "php-odbc" 
-		    (cond-expand
-		     (PCC_MINGW '("-lodbc32"))
-		     (else '("-lodbc"))))
+(register-extension "odbc" "1.0.0" "php-odbc")
 
 (defresource odbc-link "odbc link"
    env        ; handle to odbc environment

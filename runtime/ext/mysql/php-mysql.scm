@@ -86,8 +86,7 @@
    1)
 
 ; register the extension
-(register-extension "mysql" "1.0.0"
-                    "php-mysql" '("-lmysqlclient"))
+(register-extension "mysql" "1.0.0" "php-mysql")
 
 (define *null-string* 
    (pragma::string "((const char *)NULL)"))

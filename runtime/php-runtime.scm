@@ -97,7 +97,7 @@
     *runtime-reset-serial*
     ;; the extension info
     (extension-registered? extension)
-    (register-extension extension version scheme-lib-name lib-list #!key (required-extensions '()))
+    (register-extension extension version scheme-lib-name #!key (required-extensions '()))
     (get-extension-info extension key)
     (extensions-for-each thunk)
     
@@ -419,7 +419,7 @@
       v))
 
 ; make this include version?
-(define (register-extension extension version scheme-lib-name lib-list #!key (required-extensions '()))
+(define (register-extension extension version scheme-lib-name #!key (required-extensions '()))
    ;; Store some information about an extension so that it can be
    ;; looked up later using get-extension-info and for-each-extension.
    ;; The required-extensions are other extensions that must be loaded
@@ -427,12 +427,11 @@
    ;;
    ;; XXX it's kind of unfortunate that we have N extensions per
    ;; scheme library.  Confusing.
-   (debug-trace 4 "Registering extension " extension " c libs " lib-list)
+   (debug-trace 4 "Registering extension " extension)
    (when (assoc extension *extension-info*)
       (error 'register-extension "extension already registered" extension))
    (pushf `(,extension (version: ,version)
                        (scheme-lib-name: ,scheme-lib-name)
-                       (lib-list: ,lib-list)
                        (required-extensions: ,required-extensions))
           *extension-info*))
 

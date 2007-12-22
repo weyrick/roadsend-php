@@ -70,7 +70,7 @@
    1)
 
 (register-extension "compiler" "1.0.0"
-                    "phpeval" '()
+                    "phpeval"
                     required-extensions: '("webconnect"))
 
 (define-macro (bigloo-version)

@@ -135,8 +135,7 @@
 (default-ini-entry "sqlite.assoc_case" 0)
 
 ; register the extension
-(register-extension "sqlite" "1.0.0"
-                    "php-sqlite" '("-lsqlite3"))
+(register-extension "sqlite" "1.0.0" "php-sqlite")
 
 
 (defresource sqlite-link "sqlite database"

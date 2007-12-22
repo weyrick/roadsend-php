@@ -54,8 +54,7 @@
    1)
 
 ; register the extension
-(register-extension "session" "1.0.0"
-                    "php-std" '())
+(register-extension "session" "1.0.0" "php-std")
 
 ; defaults are per php.ini defaults
 (default-ini-entry "session.cookie_lifetime"   *zero*)

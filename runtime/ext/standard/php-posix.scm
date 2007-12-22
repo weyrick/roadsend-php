@@ -63,8 +63,7 @@
    1)
 
 ; register the extension
-(register-extension "posix" "1.0.0"
-                    "php-std" '())
+(register-extension "posix" "1.0.0" "php-std")
 
 ;;; Undocumented Posix Functions
 

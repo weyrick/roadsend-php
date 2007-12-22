@@ -64,13 +64,16 @@
 ;;; Register the GTK extension.  Without this, static linking doesn't
 ;;; work.
 (register-extension "gtk" "1.0.0"
-                    "php-gtk" (cond-expand 
-                               (PCC_MINGW '("-lgtk" "-lgdk" "-lgmodule-2.0" "-lglib-2.0" 
-                                            "-lgtkscintilla" "-lglade" "-lxml2" 
-                                            "-lgw32c" "-lole32" "-luuid" "-lstdc++"))
-                               (else '("-lgtk" "-lgdk" "-lgmodule" "-lglib" "-lgtkscintilla" "-lglade"
-                                       "-L/usr/X11R6/lib" "-lX11" "-lstdc++" "-lpthread" "-lXext" "-lxml2"
-                                       "-lz" "-lXi"))))
+                    "php-gtk"
+                    ;; not sure if autoconf will get this right... --timjr Sat Dec 22 14:22:38 PST 2007
+                    ; (cond-expand 
+;                                (PCC_MINGW '("-lgtk" "-lgdk" "-lgmodule-2.0" "-lglib-2.0" 
+;                                             "-lgtkscintilla" "-lglade" "-lxml2" 
+;                                             "-lgw32c" "-lole32" "-luuid" "-lstdc++"))
+;                                (else '("-lgtk" "-lgdk" "-lgmodule" "-lglib" "-lgtkscintilla" "-lglade"
+;                                        "-L/usr/X11R6/lib" "-lX11" "-lstdc++" "-lpthread" "-lXext" "-lxml2"
+;                                        "-lz" "-lXi")))
+                    )
 
 ;;;
 ;;; GTK Functions and Classes

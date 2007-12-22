@@ -32,8 +32,7 @@
 (define (init-php-sockets-lib) 1)
 
 ; register the extension
-(register-extension "sockets" "1.0.0"
-                    "php-socket" '())
+(register-extension "sockets" "1.0.0" "php-socket")
 
 ; socket_accept - Accepts a connection on a socket
 ; socket_bind - Binds a name to a socket

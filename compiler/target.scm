@@ -402,8 +402,8 @@
                (dolist (file source-files)
                   (compile-lib-file file))
                (verbose-trace 1 "linking shared library: " dynamic-lib)
-               ;; now make the shared lib            
-               (apply run-command #t LD "-shared" "-L" (bigloo-lib-dir)
+               (apply link-shared-lib
+                      "-L" (bigloo-lib-dir)
                       "-o" dynamic-lib
                       `(,@object-files
                         ,@include-path
@@ -470,6 +470,7 @@
                                                                          fastcgi-binary)))))))))
 
 
+
 (define-method (build-target target::dump-target)
    (with-access::dump-target target
          (source-files dump-type)
@@ -480,6 +481,14 @@
          ((preprocessor-tokens) (dump-preprocessed (car source-files)))
          (else (bomb "unsupported dump type")))))
 
+(define (link-shared-lib . args)
+   (cond-expand
+      (PCC_MACOSX
+          (apply run-command #t LD
+                 "-r" "-dynamiclib" "-undefined" "dynamic_lookup"
+                 args))
+      (else
+       (apply run-command #t LD "-shared" args))))
 
 (define (validate-files flist)
    (let ((invalid (filter (lambda (f)
@@ -725,8 +734,7 @@
                               (list name)))
                          (ext-libs (apply append
                                           (map (lambda (extension)
-                                                  (if (extension-registered? extension)
-                                                      (get-extension-info extension lib-list:)
+                                                  (or (target-option (string->keyword (mkstr extension '-ldflags)))
                                                       '()))
                                                extensions))))
                      

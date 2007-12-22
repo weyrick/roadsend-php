@@ -91,9 +91,7 @@
    1)
 
 ; register the extension
-(register-extension "xml" "1.0.0"
-                    "php-xml" '("-lxml2")) ;"-copt -Lc:/msys/1.0/local/lib -lxml2"))
-;weird mingw path stuff
+(register-extension "xml" "1.0.0" "php-xml")
 
 ;
 ; CONSTANTS

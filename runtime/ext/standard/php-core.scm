@@ -153,11 +153,14 @@
 
 ; register the extension
 (register-extension "standard" "1.0.0"
-                    "php-std" (cond-expand
-                                 (PCC_MINGW '("-lws2_32"))
-                                 (PCC_FREEBSD '("-lcrypt"))
-				 (PCC_MACOSX '("-lresolv" "-lm"))
-                                 (else '("-lresolv" "-lm" "-lcrypt")))
+                    "php-std"
+                    ; XXX the new autoconf stuff might not get this right
+                    ; --timjr Sat Dec 22 14:26:24 PST 2007
+                    ;  (cond-expand
+;                                  (PCC_MINGW '("-lws2_32"))
+;                                  (PCC_FREEBSD '("-lcrypt"))
+; 				 (PCC_MACOSX '("-lresolv" "-lm"))
+;                                  (else '("-lresolv" "-lm" "-lcrypt")))
 		    ;; XXX we don't really want this to require the
 		    ;; curl extension, but right now it has to, in
 		    ;; order for http://foo streams to work.
@@ -1269,7 +1272,6 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
    (register-extension (mkstr php-ext-name)
 		       (mkstr version)
 		       (mkstr ext-lib-name)
-		       '() ; required link libs (-l)
 		       required-extensions: (if (php-hash? depends-on)
 						(php-hash->list depends-on)
 						'())))

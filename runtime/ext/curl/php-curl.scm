@@ -92,20 +92,27 @@
 
 (register-extension "curl" "1.0.0"
                     "php-curl"
-                    ;; XXX we enable multiple definitions because the
-                    ;; SSL support causes duplicate definitions of a
-                    ;; bunch of symbols from libcrypto, (which is also
-                    ;; linked into our license code).  Allowing
-                    ;; multiple definitions is not nice because it
-                    ;; might hide real errors.
-                    (cond-expand
-                       (PCC_MINGW '("-lcurl" "-lz" "-lwinmm" "-lws2_32" "-lssl" "-lcrypto" "-lgw32c" "-lgdi32"
-                                             "-Wl,--allow-multiple-definition"))
-		       (PCC_MACOSX '("-lcurl" "-ldl" "-lssl" "-lcrypto" "-lz"))
-                       (PCC_FREEBSD '("-lcurl" "-lssl" "-lcrypto" "-lz"
-                                               "-Wl,--allow-multiple-definition"))
-                       (else '("-lcurl" "-ldl" "-lssl" "-lcrypto" "-lz"
-                                        "-Wl,--allow-multiple-definition")))
+                    ; XXX I removed the lib-list from the extension
+                    ; registry and made autoconf instead put the info
+                    ; in pcc.conf... don't know of autoconf on windows
+                    ; will put the --allow-multiple-definition thing
+                    ; in, tho.  --timjr Sat Dec 22 14:21:31 PST 2007
+                    
+                    ;  -Wl,--allow-multiple-definition in...
+;                     ;; XXX we enable multiple definitions because the
+;                     ;; SSL support causes duplicate definitions of a
+;                     ;; bunch of symbols from libcrypto, (which is also
+;                     ;; linked into our license code).  Allowing
+;                     ;; multiple definitions is not nice because it
+;                     ;; might hide real errors.
+;                     (cond-expand
+;                        (PCC_MINGW '("-lcurl" "-lz" "-lwinmm" "-lws2_32" "-lssl" "-lcrypto" "-lgw32c" "-lgdi32"
+;                                              "-Wl,--allow-multiple-definition"))
+; 		       (PCC_MACOSX '("-lcurl" "-ldl" "-lssl" "-lcrypto" "-lz"))
+;                        (PCC_FREEBSD '("-lcurl" "-lssl" "-lcrypto" "-lz"
+;                                                "-Wl,--allow-multiple-definition"))
+;                        (else '("-lcurl" "-ldl" "-lssl" "-lcrypto" "-lz"
+;                                         "-Wl,--allow-multiple-definition")))
 		    required-extensions: '("standard"))
 
 (define *curl-wrapper*

@@ -41,8 +41,10 @@
 
 (set! *backend-type* *fastcgi-version*)
 
-(register-extension "fastcgi" "1.0.0"
-                    "fastcgi" '("-lfcgi")
+(register-extension "fastcgi" "1.0.0" "fastcgi"
+                    ;; XXX I don't think autoconf is subbing this in yet
+                    ;; --timjr Sat Dec 22 14:29:28 PST 2007
+                    ; '("-lfcgi")
                     required-extensions: '("webconnect" "compiler"))
 
 ; clean upload temp files at end of page

@@ -157,6 +157,11 @@
                                                                   )
 							       (not-a-dir dir)))
 							value))
+                                   ((ldflags) (match-case value
+                                                 ((?extension . ?flags)
+                                                  (set-target-option! (string->keyword
+                                                                       (mkstr extension '-ldflags))
+                                                                      (map mkstr flags)))))
 				   ((debug-level) (when (and (number? (car value))
 							     ;only change the debug-level if it wasn't already set
 							     ;this prevents us from overriding the commandline

@@ -108,8 +108,7 @@
 (define (init-webconnect-lib)
    1)
 
-(register-extension "webconnect" "1.0.0"
-                    "webconnect" '()
+(register-extension "webconnect" "1.0.0" "webconnect"
                     required-extensions: '("compiler"))
 
 ;;;these functions and variables are the generic names for the stuff

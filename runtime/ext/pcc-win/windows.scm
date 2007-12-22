@@ -60,8 +60,7 @@
    1)
 
 ; register the extension
-(register-extension "pcc-win" "1.0.0"
-                    "pcc-win" '()
+(register-extension "pcc-win" "1.0.0" "pcc-win"
                     required-extensions: '("compiler"))
 
 

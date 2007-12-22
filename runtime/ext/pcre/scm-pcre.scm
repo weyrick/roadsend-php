@@ -48,8 +48,7 @@
 (pcc-pcre-setup)
 
 ; register the extension
-(register-extension "pcre" "1.0.0"
-                    "php-pcre" '("-lpcre")
+(register-extension "pcre" "1.0.0" "php-pcre"
                     required-extensions: '("compiler"))
 
 ;
