@@ -51,7 +51,8 @@ tags: unsafe
 
 libs/libwebserver.$(SOEXT):
 	(cd tools/libwebserver && \
-         ./configure && \
+         ./configure > configure.out && \
+         rm configure.out && \
          $(MAKE) all && \
          $(MAKE) install)
 
