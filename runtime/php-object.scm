@@ -79,6 +79,7 @@
     (php-object-property-visibility obj prop context)
     (php-class-static-property-visibility class prop context)
     (php-method-accessible obj-or-class method-name context)
+    (php-class-constructor-accessible class-name context)
     ; methods
     (make-php-object properties)
     (construct-php-object class-name . args)
@@ -1243,13 +1244,34 @@ argument, before the continuation: (obj prop ref? value k)."
            #f))))
 
 
+(define (php-class-constructor-accessible class-name context)
+   (let ((the-class (%lookup-class class-name)))
+      (unless the-class
+	 (php-error "Unable to identify class or object: " class-name))
+      (let ((cprocname (or (if (%lookup-method the-class "__construct")
+			       "__construct" #f)
+			   (if (%lookup-method the-class (%class-name-canonicalize class-name))
+			       (%class-name-canonicalize class-name) #f))))
+	 (if cprocname
+	     (let ((aresult (php-method-accessible the-class cprocname context)))
+		(if (pair? aresult)
+		    ; constructor but no access
+		    (cons (car aresult) cprocname)
+		    ; constructor, with access
+		    #t))
+	     ; no constructor
+	     #t))))
+   
 ; determine if the given method is accessible in the given context
 (define (php-method-accessible obj-or-class method-name context)
    (let ((has-access #t)
 	 (static? (not (php-object? obj-or-class)))
-	 (the-class (if (php-object? obj-or-class)
-			(%php-object-class obj-or-class)
-			(%lookup-class-with-autoload obj-or-class))))
+	 (the-class (cond ((php-object? obj-or-class)
+			   (%php-object-class obj-or-class))
+			  ((php-class? obj-or-class)
+			   obj-or-class)
+			  (else
+			   (%lookup-class-with-autoload obj-or-class)))))
       (unless the-class
 	 (php-error "Unable to identify class or object: " obj-or-class))
       (let ((the-method (%lookup-method the-class method-name))
@@ -1257,7 +1279,7 @@ argument, before the continuation: (obj prop ref? value k)."
 	 (when the-method
 ;  	    (debug-trace 0
 ;  			 " obj-or-class: " (%php-class-print-name the-class)
-;  			 " | method-name: " method-name
+;  			 " | method-name: " method-name " | visibility: " (%php-method-visibility the-method)
 ;  			 " | context: " (if context-class (%php-class-print-name context-class) #f)
 ;  			 " | method-origin: " (%php-class-print-name (%php-method-origin-class the-method)))
 	    (let ((accessible #t)

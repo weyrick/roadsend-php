@@ -935,9 +935,20 @@ gives the debugger a chance to run."
        (set! *PHP-FILE* (cdr location))
        (set! *PHP-LINE* (car location))
        (begin0
-	(make-container
-	 (apply construct-php-object (d/evaluate class-name)
-		(map d/evaluate arglist)))
+	(let* ((class-name (maybe-unbox (d/evaluate class-name)))
+	       (accessible (php-class-constructor-accessible
+			    class-name
+			    *current-class-name*)))
+	   (when (pair? accessible)
+	      (let ((vis (car accessible))
+		    (constructor-name (cdr accessible)))
+		 (php-error (format "Call to ~a ~a::~a() from invalid context"
+				    vis
+				    class-name
+				    constructor-name))))
+	   (make-container
+	    (apply construct-php-object class-name
+		   (map d/evaluate arglist))))
 	(set! *PHP-FILE* (cdr location))
 	(set! *PHP-LINE* (car location)))))
 
@@ -955,11 +966,12 @@ gives the debugger a chance to run."
 		 (method-name (d/evaluate prop))
 		 (accessible (php-method-accessible object
 						    method-name
-						    (if (eqv? *current-instance* object)
-							; current-class context
-							*current-class-name*
-							; no context
-							#f))))
+						    *current-class-name*)))
+						    ;(if (eqv? *current-instance* object)
+						;	; current-class context
+						;	*current-class-name*
+						;	; no context
+						;	#f))))
 	     
 	     ;;XXX okay, this is a problem, because we don't know if
 	     ;;we're getting the location or getting the value, so we
@@ -1244,10 +1256,6 @@ returning the value of the last. "
 
 (define-method (declare-for-eval node::class-decl)
    (with-access::class-decl node (name parent-list implements flags class-body)
-      ; require parent to be declared before us, if present
-      (when (not (null? parent-list))
-	 (unless (php-class-exists? (car parent-list))
-	    (php-error/loc node (format "Class '~A' not found" (car parent-list)))))
       (letrec ((declare-class-body
 		   (lambda (p)
 		      (cond

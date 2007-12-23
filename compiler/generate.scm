@@ -881,10 +881,24 @@ onum.  Append the bindings for the new symbols and code."
 	  (set! *PHP-FILE* ,*file-were-compiling*)
 	  (set! *PHP-LINE* ,(car location))
 	  (begin0
-	   (construct-php-object ,(if (ast-node? class-name)
-				      (get-value class-name)
-				      (mkstr class-name))
-				 ,@(map get-location arglist))
+	   (let ((accessible (php-class-constructor-accessible
+			      ,(if (ast-node? class-name)
+				   (get-value class-name)
+				   (mkstr class-name))
+			      ',*current-class-name*)))
+	      (when (pair? accessible)
+		 (let ((vis (car accessible))
+		       (constructor-name (cdr accessible)))
+		    (php-error (format "Call to ~a ~a::~a() from invalid context"
+				       vis
+				       ,(if (ast-node? class-name)
+					    (get-value class-name)
+					    (mkstr class-name))
+				       constructor-name))))
+	      (construct-php-object ,(if (ast-node? class-name)
+					 (get-value class-name)
+					 (mkstr class-name))
+				    ,@(map get-location arglist)))
 	   (set! *PHP-FILE* ,*file-were-compiling*)
 	   (set! *PHP-LINE* ,(car location))))))
 
@@ -906,11 +920,11 @@ onum.  Append the bindings for the new symbols and code."
 		       (prop-val ,(if (ast-node? prop)
 				      (get-value prop)
 				      (undollar prop)))
-		       (accessible (php-method-accessible obj-val prop-val ,(if *current-class-name*
-										`(if (eqv? this-unboxed obj-val)
-										     ',*current-class-name*
-										     #f)
-										#f))))
+		       (accessible (php-method-accessible obj-val prop-val ',*current-class-name*))) ;,(if *current-class-name*
+										;`(if (eqv? this-unboxed obj-val)
+										;     ',*current-class-name*
+										;     #f)
+										;#f))))
 		   (when (pair? accessible)
 		      (let ((vis (car accessible))
 			    (origin-class (cdr accessible)))
