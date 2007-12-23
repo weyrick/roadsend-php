@@ -713,6 +713,8 @@ XML_CFLAGS
 XML_LIBS
 PCRE_CFLAGS
 PCRE_LIBS
+STD_CFLAGS
+STD_LIBS
 PCC_EXT_LIST
 PDO_DRIVER_LIST
 srcdir
@@ -4379,7 +4381,8 @@ fi
 # target OS
 case "$target_os" in
 linux*)
-#	AC_MSG_NOTICE([configuring for linux])
+	{ echo "$as_me:$LINENO: configuring for linux" >&5
+echo "$as_me: configuring for linux" >&6;}
 	cat >>confdefs.h <<\_ACEOF
 #define PCC_OS "PCC_LINUX"
 _ACEOF
@@ -4387,9 +4390,12 @@ _ACEOF
 	PCC_OS="PCC_LINUX"
 #	SHARED_FLAG="-shared"
 	SO_EXT="so"
+	STD_LIBS="-lresolv -lm -lcrypt"
+	STD_CFLAGS=""
 	;;
 freebsd*)
-#	AC_MSG_NOTICE([configuring for FreeBSD])
+	{ echo "$as_me:$LINENO: configuring for FreeBSD" >&5
+echo "$as_me: configuring for FreeBSD" >&6;}
 	cat >>confdefs.h <<\_ACEOF
 #define PCC_OS "PCC_FREEBSD"
 _ACEOF
@@ -4397,9 +4403,12 @@ _ACEOF
 	PCC_OS="PCC_FREEBSD"
 #	SHARED_FLAG="-shared"
 	SO_EXT="so"
+	STD_LIBS="-lcrypt"
+	STD_CFLAGS=""
 	;;
 mingw*)
-#	AC_MSG_NOTICE([configuring for windows/mingw])
+	{ echo "$as_me:$LINENO: configuring for windows/mingw" >&5
+echo "$as_me: configuring for windows/mingw" >&6;}
 	cat >>confdefs.h <<\_ACEOF
 #define PCC_OS "PCC_MINGW"
 _ACEOF
@@ -4407,6 +4416,8 @@ _ACEOF
 	PCC_OS="PCC_MINGW"
 #	SHARED_FLAG="-shared"
 	SO_EXT="dll"
+	STD_LIBS="-lws2_32"
+	STD_CFLAGS=""
 	with_pccwin=yes
 	;;
 darwin*)
@@ -4419,6 +4430,8 @@ _ACEOF
 	PCC_OS="PCC_MACOSX"
 #	SHARED_FLAG="-r -dynamiclib -undefined dynamic_lookup"
 	SO_EXT="dylib"
+	STD_LIBS="-lresolv -lm"
+	STD_CFLAGS=""
 	;;
 *)
 	{ echo "$as_me:$LINENO: unknown/unsupported target operating system: $target_os" >&5
@@ -5349,6 +5362,10 @@ PCRE_CFLAGS=$PCRE_CFLAGS
 
 PCRE_LIBS=$PCRE_LIBS
 
+STD_CFLAGS=$STD_CFLAGS
+
+STD_LIBS=$STD_LIBS
+
 PCC_EXT_LIST=$PCC_EXT_LIST
 
 PDO_DRIVER_LIST=$PDO_DRIVER_LIST
@@ -6198,6 +6215,8 @@ for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
 PCRE_CFLAGS!$PCRE_CFLAGS$ac_delim
 PCRE_LIBS!$PCRE_LIBS$ac_delim
+STD_CFLAGS!$STD_CFLAGS$ac_delim
+STD_LIBS!$STD_LIBS$ac_delim
 PCC_EXT_LIST!$PCC_EXT_LIST$ac_delim
 PDO_DRIVER_LIST!$PDO_DRIVER_LIST$ac_delim
 srcdir!$srcdir$ac_delim
@@ -6208,7 +6227,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 10; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 12; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -6645,7 +6664,7 @@ echo "
         prefix:                   ${prefix}
         libdir:                   ${PCC_LIBS}
         bindir:                   ${PCC_BIN}
-        sysconfir:                ${CONF_HOME}
+        sysconfdir:               ${CONF_HOME}
 
         c compiler:               ${CC}
         cflags:                   ${CFLAGS}

@@ -30,12 +30,14 @@
 ; the default enables all extensions
 (default-commandline-lib @PCC_EXT_LIST@)
 
-(ldflags mysql	@MYSQL_LIBS@)
-(ldflags odbc	@ODBC_LIBS@)
-(ldflags sqlite	@SQLITE_LIBS@)
-(ldflags curl   @CURL_LIBS@)
-(ldflags xml	@XML_LIBS@)
-(ldflags gtk	@GTK_LIBS@)
+; flags passed to ld while linking a binary that uses the named extension
+(ldflags standard	@STD_LIBS@)
+(ldflags mysql		@MYSQL_LIBS@)
+(ldflags odbc		@ODBC_LIBS@)
+(ldflags sqlite		@SQLITE_LIBS@)
+(ldflags curl   	@CURL_LIBS@)
+(ldflags xml		@XML_LIBS@)
+;(ldflags gtk		@GTK_LIBS@)
 
 ;; DIRECTIVE: web-libs
 ; these libraries will be loaded by the web modules and
