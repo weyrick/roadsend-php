@@ -1035,13 +1035,14 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
       (when (string? etype)	 
 	 (if *commandline?*
 	     (begin
-		(when (equalp errno E_USER_ERROR)
-		   (fprint (current-error-port)
-			   (with-output-to-string
-			      (lambda ()
-				 (print-stack-trace)))))
-		(fprint (current-error-port) etype ": " errstr " in " errfile " on line " errline)
-		(flush-output-port (current-error-port))
+;		(when (equalp errno E_USER_ERROR)
+;		   (fprint (current-error-port)
+;			   (with-output-to-string
+;			      (lambda ()
+;				 (print-stack-trace)))))
+;		(fprint (current-error-port) etype ": " errstr " in " errfile " on line " errline)
+;		(flush-output-port (current-error-port))
+		(echo (mkstr "\n" etype ": " errstr " in " errfile " on line " errline "\n"))
 		(when (or (equalp errno E_USER_ERROR)
 			  (equalp errno E_RECOVERABLE_ERROR)) ;XXX any others?
 		   (php-exit 255)))
