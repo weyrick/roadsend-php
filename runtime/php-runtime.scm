@@ -560,8 +560,8 @@
 		(string=? rval "0")))
        #f)
       ((php-hash? rval) (not (zero? (php-hash-size rval))))
-      ((php-object? rval)
-       (not (zero? (php-hash-size (php-object-props rval)))))
+      ((php-object? rval) #t) ; php5, always true?
+;       (not (zero? (php-hash-size (php-object-props rval)))))
       (else #t)))
 
 
@@ -824,7 +824,8 @@
 	   (boolean? a)
 	   (null? a)
 	   (elong? a)
-	   (number? a))
+	   (number? a)
+	   (php-object? a))
        (convert-to-number a)
        a))
 

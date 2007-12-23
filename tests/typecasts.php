@@ -139,18 +139,18 @@ var_dump( (array)NULL );
 
 print( "***   object   ***\n");
 
-var_dump( $bar);
+print_r( $bar);
 $bar->cprop = $bar;
-var_dump( $bar);
-var_dump( (object)array("foo" => "Asdf") );
-var_dump( (object)FALSE );
-var_dump( (object)TRUE );
-var_dump( (object)-23 );
-var_dump( (object)"" );
-var_dump( (object)"0" );
-var_dump( (object)$foo );
-var_dump( (object)$bar );
-var_dump( (object)NULL );
+print_r( $bar);
+print_r( (object)array("foo" => "Asdf") );
+print_r( (object)FALSE );
+print_r( (object)TRUE );
+print_r( (object)-23 );
+print_r( (object)"" );
+print_r( (object)"0" );
+print_r( (object)$foo );
+print_r( (object)$bar );
+print_r( (object)NULL );
 
 
 

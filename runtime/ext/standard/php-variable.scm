@@ -609,6 +609,8 @@
 			(visit seen var)
 			(if (skip? seen var)
 			    (begin
+			       (echo (php-object-class var))
+			       (echo " Object\n")			       
 			       (echo " *RECURSION*"))
 			    (begin
 			       (echo (php-object-class var))
