@@ -715,6 +715,7 @@ PCRE_CFLAGS
 PCRE_LIBS
 STD_CFLAGS
 STD_LIBS
+FCGI_CFLAGS
 PCC_EXT_LIST
 PDO_DRIVER_LIST
 srcdir
@@ -5366,6 +5367,10 @@ STD_CFLAGS=$STD_CFLAGS
 
 STD_LIBS=$STD_LIBS
 
+FCGI_CFLAGS=$FCGI_CFLAGS
+
+FCGI_LIBS=$FCGI_LIBS
+
 PCC_EXT_LIST=$PCC_EXT_LIST
 
 PDO_DRIVER_LIST=$PDO_DRIVER_LIST
@@ -6220,6 +6225,7 @@ PCRE_CFLAGS!$PCRE_CFLAGS$ac_delim
 PCRE_LIBS!$PCRE_LIBS$ac_delim
 STD_CFLAGS!$STD_CFLAGS$ac_delim
 STD_LIBS!$STD_LIBS$ac_delim
+FCGI_CFLAGS!$FCGI_CFLAGS$ac_delim
 PCC_EXT_LIST!$PCC_EXT_LIST$ac_delim
 PDO_DRIVER_LIST!$PDO_DRIVER_LIST$ac_delim
 srcdir!$srcdir$ac_delim
@@ -6230,7 +6236,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 12; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 13; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

@@ -37,6 +37,7 @@
 (ldflags sqlite		@SQLITE_LIBS@)
 (ldflags curl   	@CURL_LIBS@)
 (ldflags xml		@XML_LIBS@)
+(ldflags fastcgi	@FCGI_LIBS@)
 ;(ldflags gtk		@GTK_LIBS@)
 
 ;; DIRECTIVE: web-libs
