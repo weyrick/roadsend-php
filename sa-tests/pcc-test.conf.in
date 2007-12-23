@@ -1,0 +1,10 @@
+; sa test configuraton
+(default-commandline-lib php-std php-pcre php-curl)
+(library "../libs/")
+(debug-level 0)
+(ldflags standard	@STD_LIBS@)
+(ldflags mysql		@MYSQL_LIBS@)
+(ldflags odbc		@ODBC_LIBS@)
+(ldflags sqlite		@SQLITE_LIBS@)
+(ldflags curl   	@CURL_LIBS@)
+(ldflags xml		@XML_LIBS@)

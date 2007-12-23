@@ -5446,6 +5446,8 @@ ac_config_files="$ac_config_files Makefile"
 
 ac_config_files="$ac_config_files doc/pcc.conf"
 
+ac_config_files="$ac_config_files sa-tests/pcc-test.conf"
+
 ac_config_files="$ac_config_files webconnect/Makefile"
 
 ac_config_files="$ac_config_files runtime/php-ext/pdo/Makefile"
@@ -6011,6 +6013,7 @@ do
     "Makefile.config") CONFIG_FILES="$CONFIG_FILES Makefile.config" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "doc/pcc.conf") CONFIG_FILES="$CONFIG_FILES doc/pcc.conf" ;;
+    "sa-tests/pcc-test.conf") CONFIG_FILES="$CONFIG_FILES sa-tests/pcc-test.conf" ;;
     "webconnect/Makefile") CONFIG_FILES="$CONFIG_FILES webconnect/Makefile" ;;
     "runtime/php-ext/pdo/Makefile") CONFIG_FILES="$CONFIG_FILES runtime/php-ext/pdo/Makefile" ;;
     "runtime/php-ext/pdo/pdo_init.php") CONFIG_FILES="$CONFIG_FILES runtime/php-ext/pdo/pdo_init.php" ;;
