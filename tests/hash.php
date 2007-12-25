@@ -25,10 +25,10 @@ TEST things that can't be in hashes
 
 class aclass {}
 $anobj = new aclass();
-$ahash[$anobj] = 12;
+@$ahash[$anobj] = 12;
 var_dump($ahash);
 
-$ahash[$ahash] = 42;
+@$ahash[$ahash] = 42;
 var_dump($ahash);
 
 //NULL becomes the empty string 

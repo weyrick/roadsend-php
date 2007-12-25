@@ -1073,7 +1073,7 @@ the current index if it was this entry."
 	 ((boolean? key) (fix-max-key (if key *one* *zero*)))
          ((php-resource? key) (fix-max-key (int->onum (resource-id key))))
 	 (else
-	  (php-warning "Illegal array index " key) #f))))
+	  (php-warning "Illegal offset type") #f))))
 
 
 
