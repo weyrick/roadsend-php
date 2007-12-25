@@ -602,9 +602,7 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
    (lookup-constant "PHP_VERSION"))
 
 (defbuiltin (zend_version)
-   (if PHP5?
-       *ZEND2-VERSION*
-       *ZEND-VERSION*))
+   *ZEND2-VERSION*)
 
 ;;;; miscellaneous functions
 
@@ -1193,9 +1191,7 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 (defbuiltin (is_subclass_of obj class-name)
    (if (php-object? obj)
        (php-object-is-subclass obj class-name)
-       (if PHP5?
-	   (php-class-is-subclass (mkstr obj) (mkstr class-name))
-	   #f)))
+       (php-class-is-subclass (mkstr obj) (mkstr class-name))))
 
 ; method_exists -- Checks if the class method exists
 (defbuiltin (method_exists obj method-name)
