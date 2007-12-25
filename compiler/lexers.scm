@@ -497,7 +497,7 @@
                    ((: #\\ #\r) (maybe-tok 'chars (string #a013)))		   
                    ((: #\\ #\t) (maybe-tok 'chars (string #\tab)))
                    ((: #\\ #\$) (maybe-tok 'chars "$"))
-                   ((: #\\ #\{) (if constant-string? (maybe-tok 'chars "\\{") (maybe-tok 'chars "{")))
+                   ((: #\\ #\{) (maybe-tok 'chars "\\{"))
                    ((: #\\ #\x (** 1 2 xdigit))
                     (maybe-tok 'chars
                                (handle-char-code (the-substring 2 (the-length)) 16)))
