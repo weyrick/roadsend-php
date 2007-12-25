@@ -95,6 +95,6 @@ class foo {
 
 $a = new foo();
 $a->assign();
-var_dump($a);
+print_r($a);
 
 ?>

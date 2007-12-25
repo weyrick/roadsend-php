@@ -489,7 +489,6 @@
 (define zval->phpval-coercion-routine
     (lambda (x) (php-error (format "stub zval->phpval, please load php-compat (wanted to convert ~a)" x))))
 
-(define *stringulate-recurse-protect* #f)
 (define (stringulate::bstring a)
    ;a copy of unbuffered-echo
    (cond
@@ -500,15 +499,11 @@
       ((flonum? a) (stringulate-float a))
       ((fixnum? a) (integer->string a))
       ((boolean? a) (if a "1" ""))
-      ((php-object? a) (if (eqv? *stringulate-recurse-protect* a)
-			   (begin
-			      (set! *stringulate-recurse-protect* #f)
-			      "Object")
-			   (begin
-			      (set! *stringulate-recurse-protect* a)			      
-			      (if (php-class-method-exists? (php-object-class a) "__toString")
-				  (mkstr (maybe-unbox (call-php-method-0 a "__toString")))
-				  (mkstr (php-recoverable-error "Object of class " (php-object-class a) " could not be converted to a string"))))))
+      ((php-object? a) (if (php-class-method-exists? (php-object-class a) "__toString")
+			   (mkstr (maybe-unbox (call-php-method-0 a "__toString")))
+			   (mkstr (php-recoverable-error "Object of class "
+							 (php-object-class a)
+							 " could not be converted to a string"))))
       ((symbol? a) (symbol->string a))
       ((char? a) (string a))
       ((elong? a)
