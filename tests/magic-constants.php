@@ -9,6 +9,7 @@ class Foo {
 
     function testm() {
         echo __CLASS__.' -- '.__METHOD__."\n";
+        echo "function: ".__FUNCTION__."\n";
     }
 
     function testm2() {
@@ -22,6 +23,7 @@ class BaR extends Foo {
     
     function __construct() {
         echo __CLASS__.' -- '.__METHOD__."\n";
+        echo "function: ".__FUNCTION__."\n";
         echo "location is ".basename(__FILE__)." on line ".__LINE__."\n";
     }
 

@@ -868,12 +868,13 @@ onum.  Append the bindings for the new symbols and code."
 		     (php-hash-for-each methods
 			 (lambda (method-name method)
 			    (with-access::method-decl method (location decl-arglist body ref? flags)
-			      (dynamically-bind (*current-method-name* (mkstr name "::" method-name))
+			     (dynamically-bind (*current-method-name* (mkstr name "::" method-name))
+			      (dynamically-bind (*current-function-name* method-name)
 			       (pushf `(define-php-method ',name
 					  ',method-name
 					  ',flags
 					  ,(generate-code method))
-				      code)))))))
+				      code))))))))
 		(pushf `(php-class-def-finalize ',name) code)
 		(cons 'begin (reverse code)))))))
 

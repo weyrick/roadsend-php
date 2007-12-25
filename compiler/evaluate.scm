@@ -1306,8 +1306,9 @@ returning the value of the last. "
 						  (set! *PHP-LINE* (car location))
 						  (let ((retval
 							 (bind-exit (return)
-					    (dynamically-bind (*current-method-name*
+					   (dynamically-bind (*current-method-name*
 							       (mkstr name "::" (method-decl-name p)))
+					    (dynamically-bind (*current-function-name* (method-decl-name p))
 					     (dynamically-bind (*current-return-escape* return)
 					      (dynamically-bind (*current-static-env* static-env)
 					       (dynamically-bind (*current-class-name* name)
@@ -1321,7 +1322,7 @@ returning the value of the last. "
 						     (add-arguments-to-env (mkstr name "::" (method-decl-name p))
 									   *current-env* args decl-arglist)
 						     (d/evaluate body)
-						     (make-container NULL))))))))))))
+						     (make-container NULL)))))))))))))
 						     (pop-func-args)
 						     (pop-stack)
 						     (if ref?
