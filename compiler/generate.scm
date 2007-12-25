@@ -46,8 +46,10 @@
 ;for parent static method invocations -- they don't know who their daddy is.
 (define *current-parent-class-name* #f)
 
-;for method-decl stack trace entries
+;for method-decl stack trace entries and magic constnats
 (define *current-class-name* #f)
+(define *current-function-name* #f)
+(define *current-method-name* #f)
 
 ;collect the actual code for the functions
 (define *functions* '())
@@ -866,11 +868,12 @@ onum.  Append the bindings for the new symbols and code."
 		     (php-hash-for-each methods
 			 (lambda (method-name method)
 			    (with-access::method-decl method (location decl-arglist body ref? flags)
+			      (dynamically-bind (*current-method-name* (mkstr name "::" method-name))
 			       (pushf `(define-php-method ',name
 					  ',method-name
 					  ',flags
 					  ,(generate-code method))
-				      code))))))
+				      code)))))))
 		(pushf `(php-class-def-finalize ',name) code)
 		(cons 'begin (reverse code)))))))
 
@@ -1091,7 +1094,8 @@ onum.  Append the bindings for the new symbols and code."
 		   variable-arity? toplevel? symbol-table static-vars body needs-return?)
       (let ((param-names (map formal-param-name decl-arglist)))
 	 ;generate the code for the body, so we know if we need an env
-	 (dynamically-bind (*current-block* node)
+	 (dynamically-bind (*current-function-name* name)
+  	   (dynamically-bind (*current-block* node)
 	    (dynamically-bind (*current-var-var-env* (if needs-env? 'env #f))
 	       ;we generate the code for the body first, because in the process the
 	       ;symbol-table is filled, so we know which variables to bind
@@ -1155,7 +1159,7 @@ onum.  Append the bindings for the new symbols and code."
 			 (pushf `(define ,(autoalias canonical-name) ,body-code) *functions*)
 			 (pushf (autoalias canonical-name) *exports*)
 			 (make-nop '("in generate.scm" . "should be stripped")))
-		      `(let ((,(autoalias canonical-name) ,body-code)) ,@(cdr signature-code)))))))))
+		      `(let ((,(autoalias canonical-name) ,body-code)) ,@(cdr signature-code))))))))))
 
 (define-method (generate-code node::method-decl)
    (with-access::method-decl/gen node
@@ -1276,12 +1280,19 @@ onum.  Append the bindings for the new symbols and code."
       (let ((name (mkstr name)))
          ;;XXX Really, I don't want to be modifying this literal constant.
          ;;I'd rather have toplevel code like for the elongs.
-         (if (string=? name "__LINE__")
-             `(begin
-                 ;; ensure that the line constant is up-to-date
-                 (set! *PHP-LINE* ,(loc-line location))
-                 (lookup-constant/smash '(,name)))
-             `(lookup-constant/smash '(,name))))))
+         (cond ((string=? name "__LINE__")
+		`(begin
+		    ;; ensure that the line constant is up-to-date
+		    (set! *PHP-LINE* ,(loc-line location))
+		    (lookup-constant/smash '(,name))))
+	       ((string=? name "__CLASS__")
+		`,(mkstr *current-class-name*))
+	       ((string=? name "__FUNCTION__")
+		`,(mkstr *current-function-name*))
+	       ((string=? name "__METHOD__")
+		`,(mkstr *current-method-name*))
+	       (else
+		`(lookup-constant/smash '(,name)))))))
 
 (define (strip-mkstr aval)
    ;this is so we can avoid nested mkstrs

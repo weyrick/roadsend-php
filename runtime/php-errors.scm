@@ -108,22 +108,6 @@
 ;current stack of catch blocks to try a thrown exception on
 (define *try-stack* '())
 
-; magic constants
-(store-special-constant "__FUNCTION__" (lambda ()
-					  (when (pair? *stack-trace*)
-					     (let ((top (car *stack-trace*)))
-						(stack-entry-function top)))))
-(store-special-constant "__METHOD__" (lambda ()
-					(when (pair? *stack-trace*)
-					   (let ((top (car *stack-trace*)))
-					      (if (stack-entry-class-name top)
-						  (mkstr (stack-entry-class-name top) "::" (stack-entry-function top))
-						  "")))))
-(store-special-constant "__CLASS__" (lambda ()
-					  (when (pair? *stack-trace*)
-					     (let ((top (car *stack-trace*)))
-						(stack-entry-class-name top)))))
-
 ; called at start and on page resets
 (define (init-php-error-lib)
    (set! *error-handler* "_default_error_handler")

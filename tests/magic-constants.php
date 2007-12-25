@@ -4,6 +4,7 @@ class Foo {
 
     function __construct() {
         echo __CLASS__.' -- '.__METHOD__."\n";
+        echo "location is ".basename(__FILE__)." on line ".__LINE__."\n";
     }
 
     function testm() {
@@ -21,10 +22,12 @@ class BaR extends Foo {
     
     function __construct() {
         echo __CLASS__.' -- '.__METHOD__."\n";
+        echo "location is ".basename(__FILE__)." on line ".__LINE__."\n";
     }
 
     function testm2() {
         echo __CLASS__.' -- '.__METHOD__."\n";
+        echo "location is ".basename(__FILE__)." on line ".__LINE__."\n";
     }
 }
 
@@ -33,6 +36,8 @@ function testfunc() {
 }
 
 echo __CLASS__.' -- '.__METHOD__.", function: ".__FUNCTION__."\n";
+
+echo "location is ".basename(__FILE__)." on line ".__LINE__."\n";
 
 $f = new foo();
 $f->testm();

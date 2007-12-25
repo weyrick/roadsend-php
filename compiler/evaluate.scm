@@ -72,6 +72,8 @@
 (define *current-instance* 'unset)
 
 (define *current-class-name* #f)
+(define *current-function-name* #f)
+(define *current-method-name* #f)
 
 ;for parent static method invocations -- they don't know who their daddy is.
 (define *current-parent-class-name* 'unset)
@@ -1125,7 +1127,15 @@ gives the debugger a chance to run."
 (define-method (evaluate node::php-constant)
    (set! *PHP-LINE* (car (ast-node-location node)))
    (with-access::php-constant node (name)
-      (lookup-constant (mkstr name))))
+      (let ((name (mkstr name)))
+	 (cond ((string=? "__CLASS__" name)
+		*current-class-name*)
+	       ((string=? "__FUNCTION__" name)
+		*current-function-name*)
+	       ((string=? "__METHOD__" name)
+		*current-method-name*)
+		(else
+		 (lookup-constant name))))))
 
 (define-method (evaluate node::string-cat)
    (set! *PHP-LINE* (car (ast-node-location node)))
@@ -1240,13 +1250,14 @@ returning the value of the last. "
 			       (set! *PHP-FILE* (cdr location))
 			       (let ((retval
 				      (bind-exit (return)
+					(dynamically-bind (*current-function-name* name)
 					 (dynamically-bind (*current-return-escape* return)
 					    (dynamically-bind (*current-static-env* static-env)
 					       (dynamically-bind (*current-env* (env-new))
 						  (dynamically-bind (*current-variable-environment* *current-env*)
 						     (add-arguments-to-env name *current-env* args decl-arglist)
 						     (d/evaluate body)
-						  NULL)))))))
+						  NULL))))))))
 				  (pop-func-args)
 				  (pop-stack)
 				  (if ref?
@@ -1294,7 +1305,9 @@ returning the value of the last. "
 						  (set! *PHP-FILE* (cdr location))
 						  (set! *PHP-LINE* (car location))
 						  (let ((retval
-							 (bind-exit (return)			       
+							 (bind-exit (return)
+					    (dynamically-bind (*current-method-name*
+							       (mkstr name "::" (method-decl-name p)))
 					     (dynamically-bind (*current-return-escape* return)
 					      (dynamically-bind (*current-static-env* static-env)
 					       (dynamically-bind (*current-class-name* name)
@@ -1308,7 +1321,7 @@ returning the value of the last. "
 						     (add-arguments-to-env (mkstr name "::" (method-decl-name p))
 									   *current-env* args decl-arglist)
 						     (d/evaluate body)
-						     (make-container NULL)))))))))))
+						     (make-container NULL))))))))))))
 						     (pop-func-args)
 						     (pop-stack)
 						     (if ref?
