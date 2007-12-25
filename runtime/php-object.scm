@@ -298,8 +298,8 @@ values the values."
 					prop-key
 					(if (container-reference? prop-value)
 					    prop-value
-					    (container-value prop-value)))
-		      (loop (+fx i 1))))))
+					    (container-value prop-value))))
+		      (loop (+fx i 1)))))
 	  ;;now copy in the extended properties
 	  (php-hash-for-each (%php-object-extended-properties obj)
 	     (lambda (k v)
@@ -326,8 +326,8 @@ values the values."
 		   ;		(if (container-reference? prop-value)
 		   (maybe-unbox prop-value)
 		   ;		    (container-value prop-value))
-		   (container-reference? prop-value))
-		  (loop (+fx i 1))))))
+		   (container-reference? prop-value)))
+		  (loop (+fx i 1)))))
       ;;now copy in the extended properties
       (php-hash-for-each-with-ref-status
        (%php-object-extended-properties obj) thunk)))
