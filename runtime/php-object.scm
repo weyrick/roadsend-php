@@ -925,13 +925,10 @@ values the values."
 					flags
                                         #f ; constructor
 					#f ; destructor
-					(copy-hashtable
-					 (%php-class-declared-property-offsets parent-class))
-					(copy-hashtable
-					 (%php-class-static-property-offsets parent-class))					
-					(copy-properties-vector (%php-class-properties parent-class))
-					(copy-prop-visibility
-					 (%php-class-prop-visibility parent-class))				 
+					(make-hashtable) ; declared prop offsets (copied in finalize)
+					(make-hashtable) ; static prop offsets (copied in finalize)
+					(make-vector 0)    ; properties vector (copied in finalize)
+					(make-hashtable) ; visibility (copied in finalize)
 					(copy-php-data (%php-class-extended-properties parent-class))
 					(make-php-hash) ; methods we do below
 					(%php-class-custom-prop-lookup parent-class)
@@ -967,9 +964,9 @@ argument, before the continuation: (obj prop ref? value k)."
 	     (%php-class-print-name-set! klass name))
 	  (error 'define-extended-php-class "could not define extended class" name))))
 
-(define (copy-prop-visibility table)
-   (let ((new-table (make-hashtable)))
-      (hashtable-for-each table
+(define (copy-prop-visibility old-table new-table)
+   (let ((new-table (if new-table new-table (make-hashtable))))
+      (hashtable-for-each old-table
 	 (lambda (k v)
 	    (unless (eqv? v 'private)
 	       (hashtable-put! new-table k v))))
@@ -1140,6 +1137,74 @@ argument, before the continuation: (obj prop ref? value k)."
 				  canonical-name
 				  visibility)))))))
 
+(define (%inherit-properties the-class)
+   (let* ((parent-class (%php-class-parent-class the-class))
+	  (parent-offsets-table (%php-class-declared-property-offsets
+				 parent-class))
+	  (parent-static-offsets-table (%php-class-static-property-offsets
+					parent-class))
+	  (parent-props (%php-class-properties parent-class))
+	  (class-prop-len (vector-length (%php-class-properties the-class)))
+	  (parent-prop-len (vector-length parent-props))
+	  ; final will be adjusted according to number of overridden properties
+	  (final-prop-len class-prop-len))
+;      (debug-trace 0 "inherit properties for " (%php-class-print-name the-class))
+      ; make room in sub class for inherited properties
+      (%php-class-properties-set! the-class
+				  (copy-vector
+				   (%php-class-properties the-class)
+				   (+ class-prop-len parent-prop-len)))
+;      (debug-trace 0 "parent props are: " parent-props)
+      ;;copy in the declared properties. we loop over the vector instead
+      ;;of for-each'ing over the hashtable to preserve the ordering.
+      (let loop ((i 0)
+		 (new-i class-prop-len))
+	 (when (< i parent-prop-len)
+;	    (debug-trace 0 "i " i ", new-i " new-i)
+	    (let ((prop-value (if (container-reference? (vector-ref parent-props i))
+				  (vector-ref parent-props i)
+				  (copy-php-data (vector-ref parent-props i))))
+		  (prop-key (hashtable-get parent-offsets-table i))
+		  (static-prop-key (hashtable-get parent-static-offsets-table i)))
+;	       (debug-trace 0 "  " (if prop-key prop-key (mkstr "[static] " static-prop-key)) " => " prop-value)
+	       ; if this property was already overridden, don't copy it and don't add to
+	       ; out final prop count
+	       (if (or (and prop-key
+			    (hashtable-get
+			     (%php-class-declared-property-offsets the-class) prop-key))
+		       (and static-prop-key
+			    (hashtable-get
+			     (%php-class-static-property-offsets the-class) static-prop-key)))
+		   ; overridden, don't increase new-i
+		   (loop (+fx i 1) new-i)
+		   ; not overridden
+		   (begin
+		      ; always set property vector
+		      (vector-set! (%php-class-properties the-class) new-i prop-value)	       
+		      ; we either have prop-key or static-prop-key but not both
+		      (if prop-key
+			  ; decl hash
+			  (begin
+			     (hashtable-put! (%php-class-declared-property-offsets the-class) prop-key new-i)
+			     (hashtable-put! (%php-class-declared-property-offsets the-class) new-i prop-key))
+			  ; static decl hash
+			  (begin
+			     (hashtable-put! (%php-class-static-property-offsets the-class) static-prop-key new-i)
+			     (hashtable-put! (%php-class-static-property-offsets the-class) new-i static-prop-key)))
+		      ; increase our final count
+		      (set! final-prop-len (+fx 1 final-prop-len))
+		      (loop (+fx i 1) (+fx new-i 1)))))))
+      ; no resize prop len to final size
+      (%php-class-properties-set!  the-class (copy-vector (%php-class-properties the-class) final-prop-len))
+;      (debug-trace 0 "final props for " (%php-class-print-name the-class) " are: " (%php-class-properties the-class))
+;      (debug-trace 0 "declared prop hash: " (%php-class-declared-property-offsets the-class))
+;      (debug-trace 0 "static declared prop hash: " (%php-class-static-property-offsets the-class))
+      ; finally visibility
+      (%php-class-prop-visibility-set! the-class (copy-prop-visibility
+						  (%php-class-prop-visibility parent-class)
+						  (%php-class-prop-visibility the-class)
+						  ))))
+
 (define (php-class-def-finalize class-name)
    (let ((the-class (%lookup-class class-name)))
       (unless the-class
@@ -1149,20 +1214,30 @@ argument, before the continuation: (obj prop ref? value k)."
 		   (not (member 'abstract-implied (%php-class-flags the-class))))
 	 (let ((acnt 0)
 	       (amissing ""))
-	    (php-hash-for-each (%php-class-methods the-class)
-			       (lambda (k v)
-				  (when (%php-method-abstract? v)
-				     (set! acnt (+ acnt 1))
-				     (set! amissing (mkstr amissing (if (string=? amissing "")
-									""
-									", ")
-							   (%php-class-print-name (%php-method-origin-class v)) "::" (%php-method-print-name v))))))
+	    (php-hash-for-each
+	     (%php-class-methods the-class)
+	     (lambda (k v)
+		(when (%php-method-abstract? v)
+		   (set! acnt (+ acnt 1))
+		   (set! amissing (mkstr
+				   amissing
+				   (if (string=? amissing "")
+				       ""
+				       ", ")
+				   (%php-class-print-name
+				    (%php-method-origin-class v))
+				   "::"
+				   (%php-method-print-name v))))))
 	    (when (> acnt 0)
-	       (php-error (format "Class ~A contains ~A abstract method~A and must therefore be declared abstract or implement the remaining methods (~A)"
-				  class-name
-				  acnt
-				  (if (= acnt 1) "" "s")
-				  amissing)))))))
+	       (php-error (format
+			   "Class ~A contains ~A abstract method~A and must therefore be declared abstract or implement the remaining methods (~A)"
+			   class-name
+			   acnt
+			   (if (= acnt 1) "" "s")
+			   amissing)))))
+      ; copy parent properties. this preserves the same order as zend (after local
+      ; property declarations)
+      (%inherit-properties the-class)))
 
 (define (%lookup-class name)
    (hashtable-get %php-class-registry (%class-name-canonicalize name)))
