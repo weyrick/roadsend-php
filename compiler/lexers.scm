@@ -316,21 +316,23 @@
 
 	 ; octal numbers
 	 ((: "0" (+ digit))
+	  ; XXX this is wrong, it needs to compare against octal limits
+	  ; or convert to decimal first. bigloo doesn't do this with
+	  ; the-flonum
 	  (if (or (> (the-flonum) *MAX-INT-SIZE-F*)
-		  (< (the-flonum) *MIN-INT-SIZE-F*)) 
+		  (< (the-flonum) *MIN-INT-SIZE-F*))
+	      ; XXX wrong
 	      (stok 'float (the-flonum))
+	      ; might be wrong
 	      (stok 'integer (string->elong (the-string) 8))))
 
 	 ; hex numbers
 	 ((: "0x" (+ xdigit))
-	  ; if > (SIZEOF_LONG*2) hex digits php automatically makes it an int maxed at MAX-INT-SIZE
-	  (if (> (- (the-length) 2) (* *SIZEOF-LONG* 2))
-	      (stok 'integer *MAX-INT-SIZE-L*)
-	      (let ((hex-flo (hex-string->flonum (the-substring 2 (the-length)))))
-		 (if (or (>fl hex-flo *MAX-INT-SIZE-F*)
-			 (<fl hex-flo *MIN-INT-SIZE-F*)) 
-		     (stok 'float hex-flo)
-		     (stok 'integer (flonum->elong hex-flo))))))
+	  (let ((hex-flo (hex-string->flonum (the-substring 2 (the-length)))))
+	     (if (or (>fl hex-flo *MAX-INT-SIZE-F*)
+		     (<fl hex-flo *MIN-INT-SIZE-F*)) 
+		 (stok 'float hex-flo)
+		 (stok 'integer (flonum->elong hex-flo)))))
 
 	 ; decimal numbers
 	 ((or (: (in "123456789") (* digit)) "0")
