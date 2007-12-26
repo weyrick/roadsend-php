@@ -6,9 +6,9 @@
 
 $n = ($argc == 2) ? $argv[1] : 100000;
 
-hash($n);
+myhash($n);
 
-function hash($n) {
+function myhash($n) {
 
   for ($i = 1; $i <= $n; $i++) {
       $X[dechex($i)] = $i;
