@@ -10,6 +10,7 @@ class a {
 }
 
 class b extends a {
+  public $a2 = 199;
   public $b1 = 3;
   private $pb1 = 11;
   static public $sb1 = 52;
