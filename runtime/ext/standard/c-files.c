@@ -88,6 +88,7 @@ obj_t php_fgets(FILE *stream, int limit) {
 	       && limit >= 0); 
       
       string  = string_to_bstring_len(bigbuf, actually_read);
+      if (bigbuf) free(bigbuf);
    }
   
    return string;
