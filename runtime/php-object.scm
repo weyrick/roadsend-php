@@ -1194,7 +1194,7 @@ argument, before the continuation: (obj prop ref? value k)."
 		      ; increase our final count
 		      (set! final-prop-len (+fx 1 final-prop-len))
 		      (loop (+fx i 1) (+fx new-i 1)))))))
-      ; no resize prop len to final size
+      ; resize prop vector to final size if necessary (only when class had overriden declared properties)
       (when (< final-prop-len (+ class-prop-len parent-prop-len))
 	 (%php-class-properties-set!  the-class (copy-vector (%php-class-properties the-class) final-prop-len)))
 ;      (debug-trace 0 "final props for " (%php-class-print-name the-class) " are: " (%php-class-properties the-class))
