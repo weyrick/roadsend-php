@@ -71,9 +71,10 @@
     (xml_parse_into_struct parser data values index)
     (xml_parser_set_option parser option value)
     (xml_parser_get_option parser option)
-    (xml_set_element_handler parser start-handler end-handler)
-    (utf8_encode str)
-    (utf8_decode str))
+    (xml_set_element_handler parser start-handler end-handler))
+   ; moved to standard/php-strings
+;    (utf8_encode str)
+;    (utf8_decode str))
    ;
    )
 
@@ -302,8 +303,8 @@
 
 
 ; utf8_decode --  Converts a string with ISO-8859-1 characters encoded with UTF-8 to single-byte ISO-8859-1.
-(defbuiltin (utf8_decode str)
-   (utf8->iso-latin (mkstr str)))
+;(defbuiltin (utf8_decode str)
+;   (utf8->iso-latin (mkstr str)))
 
 ;    (let* ((instr (mkstr str))
 ; 	  (isize (string-length instr))
@@ -326,8 +327,8 @@
 ; 	     #f))))
 
 ; utf8_encode -- encodes an ISO-8859-1 string to UTF-8
-(defbuiltin (utf8_encode str)
-   (iso-latin->utf8 (mkstr str)))
+;(defbuiltin (utf8_encode str)
+;   (iso-latin->utf8 (mkstr str)))
 
 ;    (let* ((instr (mkstr str))
 ; 	  (isize (string-length instr))

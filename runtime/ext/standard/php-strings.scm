@@ -137,6 +137,10 @@
     (ucwords str)
     (urlencode str)
     (urldecode str)
+    ; XXX these are originally from xml extension
+    (utf8_encode str)
+    (utf8_decode str)
+    ;
     (version_compare ver1 ver2 op)
     (vprintf format args)
     (vsprintf format args)
@@ -2187,7 +2191,15 @@
 		      (display str))))))))
 
 
-		   
+
+; utf8_decode --  Converts a string with ISO-8859-1 characters encoded with UTF-8 to single-byte ISO-8859-1.
+(defbuiltin (utf8_decode str)
+   (utf8->iso-latin (mkstr str)))
+
+; utf8_encode -- encodes an ISO-8859-1 string to UTF-8
+(defbuiltin (utf8_encode str)
+   (iso-latin->utf8 (mkstr str)))
+
 		       
 ; nl_langinfo --  Query language and locale information
 
