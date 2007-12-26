@@ -303,47 +303,51 @@
 
 ; utf8_decode --  Converts a string with ISO-8859-1 characters encoded with UTF-8 to single-byte ISO-8859-1.
 (defbuiltin (utf8_decode str)
-   (let* ((instr (mkstr str))
-	  (isize (string-length instr))
-	  (osize (+ isize 1))
-	  (outstr (make-string osize))
-	  (insize (make-int* 1))
-	  (outsize (make-int* 1))
-	  ; XXX compensate for 2.4.x/2.6.x versions
-	  (success (lambda (rval)
-		     (cond-expand
-		      (PCC_MINGW
-		       (= rval 0))
-		      (else
-		       (> rval 0))))))
-      (int*-set! outsize 0 osize)
-      (int*-set! insize 0 isize)
-      (let ((retval (utf8-decode outstr outsize instr insize)))
-	 (if (success retval)
-	     (substring outstr 0 (int*-ref outsize 0))
-	     #f))))
+   (utf8->iso-latin (mkstr str)))
+
+;    (let* ((instr (mkstr str))
+; 	  (isize (string-length instr))
+; 	  (osize (+ isize 1))
+; 	  (outstr (make-string osize))
+; 	  (insize (make-int* 1))
+; 	  (outsize (make-int* 1))
+; 	  ; XXX compensate for 2.4.x/2.6.x versions
+; 	  (success (lambda (rval)
+; 		     (cond-expand
+; 		      (PCC_MINGW
+; 		       (= rval 0))
+; 		      (else
+; 		       (> rval 0))))))
+;       (int*-set! outsize 0 osize)
+;       (int*-set! insize 0 isize)
+;       (let ((retval (utf8-decode outstr outsize instr insize)))
+; 	 (if (success retval)
+; 	     (substring outstr 0 (int*-ref outsize 0))
+; 	     #f))))
 
 ; utf8_encode -- encodes an ISO-8859-1 string to UTF-8
 (defbuiltin (utf8_encode str)
-   (let* ((instr (mkstr str))
-	  (isize (string-length instr))
-	  (osize (+ (* isize 4) 1))
-	  (outstr (make-string osize))
-	  (insize (make-int* 1))
-	  (outsize (make-int* 1))
-	  ; XXX compensate for 2.4.x/2.6.x versions
-	  (success (lambda (rval)
-		     (cond-expand
-		      (PCC_MINGW
-		       (= rval 0))
-		      (else
-		       (> rval 0))))))
-      (int*-set! outsize 0 osize)
-      (int*-set! insize 0 isize)
-      (let ((retval (utf8-encode outstr outsize instr insize)))
-	 (if (success retval)
-	     (substring outstr 0 (int*-ref outsize 0))
-	     #f))))
+   (iso-latin->utf8 (mkstr str)))
+
+;    (let* ((instr (mkstr str))
+; 	  (isize (string-length instr))
+; 	  (osize (+ (* isize 4) 1))
+; 	  (outstr (make-string osize))
+; 	  (insize (make-int* 1))
+; 	  (outsize (make-int* 1))
+; 	  ; XXX compensate for 2.4.x/2.6.x versions
+; 	  (success (lambda (rval)
+; 		     (cond-expand
+; 		      (PCC_MINGW
+; 		       (= rval 0))
+; 		      (else
+; 		       (> rval 0))))))
+;       (int*-set! outsize 0 osize)
+;       (int*-set! insize 0 isize)
+;       (let ((retval (utf8-encode outstr outsize instr insize)))
+; 	 (if (success retval)
+; 	     (substring outstr 0 (int*-ref outsize 0))
+; 	     #f))))
 
 ;
 ; IMPLEMENTATION
