@@ -45,7 +45,7 @@ pcc: $(PHPEVAL_LIBS) $(C_POPULATION)  commandline_$(SU).o
 
 ../libs/phpeval.heap : ast.scm lexers.scm parser.scm driver.scm evaluate.scm containers.scm generate.scm include.scm
 	$(BIGLOO) $(BHEAPFLAGS) -heap-library phpeval make-lib.scm -addheap ../libs/phpeval.heap
-	-cp *.init ../libs/
+	@find . -maxdepth 1 -name \*.init -exec cp '{}' ../libs \;
 
 lexers_$(SU).o: ../runtime/php-runtime.sch ast_$(SU).o
 
