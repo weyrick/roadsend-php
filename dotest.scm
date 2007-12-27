@@ -319,8 +319,10 @@ and compare the results"
 
 (define (color col txt)
    "colorize txt"
-   (format "\033[~a;1m~a\033[0m" col txt))
-   
+   (if (getenv "NOCOLOR")
+       txt
+       (format "\033[~a;1m~a\033[0m" col txt)))
+
 (define (dump-results test target)
    (when (> *build-fail* 0)
       (flush-print "Log:")
