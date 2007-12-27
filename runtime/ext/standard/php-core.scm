@@ -1141,11 +1141,11 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 ;	  #f)))
 
 ; class_exists -- Checks if the class has been defined
-(defbuiltin (class_exists class-name autoload)
+(defbuiltin (class_exists class-name (autoload TRUE))
    (php-class-exists? class-name (convert-to-boolean autoload)))
 
 ; interface_exists -- Checks if the interface has been defined
-(defbuiltin (interface_exists class-name autoload)
+(defbuiltin (interface_exists class-name (autoload TRUE))
    (php-interface-exists? class-name (convert-to-boolean autoload)))
 
 ; get_class -- Returns the name of the class of an object
