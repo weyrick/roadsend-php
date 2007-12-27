@@ -4,6 +4,9 @@
 
 class bling {
 
+  function __toString() {
+    return "[this is class ".__CLASS__."]";
+  }
   function bling() {
     echo "bling this is $this\n";
     echo "bling this->zot is " . $this->zot ."\n";
@@ -19,6 +22,9 @@ class bling {
 class foo extends bling {
   var $zot = 3;
 
+  function __toString() {
+    return "[this is class ".__CLASS__."]";
+  }
   function foo() {
     parent::bling();
     echo "this is $this\n";
