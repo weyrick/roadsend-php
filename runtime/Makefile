@@ -51,6 +51,7 @@ php-extensions:
 clean:
 	-/bin/rm -f *.a *.o *.heap *.so $(CLEFTOVERS) slib/*.o
 	@(cd ext && $(MAKE) clean)
+	@(cd php-ext && $(MAKE) clean)
 
 utils_$(SU).o: grasstable_$(SU).o
 
