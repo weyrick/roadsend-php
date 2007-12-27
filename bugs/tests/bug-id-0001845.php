@@ -35,7 +35,6 @@ class foo {
   var $list = "list";
   var $new = "new";
   var $return = "return";
-  var $break = "break";
   var $global = "global";
   var $static = "static";
   var $switch = "switch";
