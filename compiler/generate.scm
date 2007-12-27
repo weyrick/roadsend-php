@@ -255,38 +255,28 @@ onum.  Append the bindings for the new symbols and code."
 (define-method (generate-code node::literal-array)
    (with-access::literal-array node (array-contents)
       (let ((new-hash (gensym 'newhash)))
-         (if (every (lambda (a) (eqv? (array-entry-key a) :next)) array-contents)
-             `(vector->php-hash
-               (vector
-                ,@(map
-                   (lambda (a)
-                      (with-access::array-entry a (value ref?)
-                         (if ref?
-                             (get-location value)
-                             (get-value value))))
-                   array-contents)))
-             `(let ((,new-hash (make-php-hash)))
-                 ,@(map
-                    (lambda (a)
-                       (with-access::array-entry a (key value ref?)
-                          (let* ((key (if (eqv? key :next)
-                                          ':next
-                                          (get-value key)))
-                                 (pre (precalculate-string-hashnumber key)))
-                             (if pre
-                                 `(php-hash-insert!/pre ,new-hash
-                                                        ,key
-                                                        ,pre
-                                                        ,(if ref?
-                                                             (get-location value)
-                                                             (get-value value)))
-                                 `(php-hash-insert! ,new-hash
+         `(let ((,new-hash (make-php-hash)))
+             ,@(map
+                (lambda (a)
+                   (with-access::array-entry a (key value ref?)
+                      (let* ((key (if (eqv? key :next)
+                                      ':next
+                                      (get-value key)))
+                             (pre (precalculate-string-hashnumber key)))
+                         (if pre
+                             `(php-hash-insert!/pre ,new-hash
                                                     ,key
+                                                    ,pre
                                                     ,(if ref?
                                                          (get-location value)
-                                                         (get-value value)))))))
-                    array-contents)
-                 ,new-hash)))))
+                                                         (get-value value)))
+                             `(php-hash-insert! ,new-hash
+                                                ,key
+                                                ,(if ref?
+                                                     (get-location value)
+                                                     (get-value value)))))))
+                array-contents)
+             ,new-hash))))
 
 (define-method (generate-code node::postcrement)
    (with-access::postcrement node (crement lval)

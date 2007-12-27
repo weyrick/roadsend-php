@@ -69,7 +69,6 @@
 	   (php-hash-compare hash1::struct hash2::struct identical?::bool)
 	   (internal-hash-compare h1 h2 identical? seen)
 	   (list->php-hash::struct lst)
-           (vector->php-hash vector)
            (php-hash-entry hash)
            (php-hash-entry-next entry)
            (php-hash-entry-prev entry)
@@ -172,6 +171,22 @@
               6
               (make-container 0)
               #f))
+
+(define (make-php-hash/size-hint::struct size)
+   "Make a php hash big enough for at least _size_ entries. This is
+   useful to avoid resizing the hash a bunch of times as it grows."
+   (let ((bucket-len (least-power-of-2-greater-than (max 1 size))))
+      (when (< (expand-threshold bucket-len) size)
+         (set! bucket-len (bit-lsh bucket-len 1)))      
+      (%php-hash 0
+                 (make-vector bucket-len '())
+                 *sentinel-value* ;; current index
+                 *initial-max-key*
+                 *sentinel-value*  ;; initial head
+                 *sentinel-value*  ;; initial tail
+                 (expand-threshold bucket-len)
+                 (make-container 0)
+                 #f)))
 
 (define (clear-php-hash hash::struct)
    "Make a php-hash like new"
@@ -350,7 +365,6 @@
    "Return a copy of a php-hash that doesn't share any structure.
 Copies containers.  Keys are not copied."
    (cond
-      ((vector-hash? hash) (%copy-vector-hash (%copy-php-hash hash old-new)))
       ((custom? hash) (custom-read-entire hash))
       (else (%copy-php-hash hash old-new))))
 
@@ -702,7 +716,6 @@ a hash unserialized properly"
 					     
 (define (php-hash-remove! hash key)
    (cond
-      ((vector-hash? hash) (custom-read-entire hash))
       ((custom? hash)
        (php-warning "cannot remove entries from an overridden array")))
    (%force-copy! hash)
@@ -790,39 +803,30 @@ the current index if it was this entry."
 
 (define (php-hash-for-each hash thunk::procedure)
    "Thunk will be called once on each key/value set"
-   (if (vector-hash? hash)
-       (vector-hash-for-each hash thunk)
-       (begin
-          (when (custom? hash) (set! hash (custom-read-entire hash)))
-          (let loop ((entry (%php-hash-head hash)))
-             (unless (sentinel? entry)
-                (thunk (get-key-php-type-friendly entry) (container-value (%entry-value entry)))
-                (loop (%entry-next entry)))))))
+   (when (custom? hash) (set! hash (custom-read-entire hash)))
+   (let loop ((entry (%php-hash-head hash)))
+      (unless (sentinel? entry)
+         (thunk (get-key-php-type-friendly entry) (container-value (%entry-value entry)))
+         (loop (%entry-next entry)))))
 
 (define (php-hash-for-each-with-ref-status hash thunk::procedure)
    "Thunk will be called once on each key/value set. ref status is available to thunk"
-   (if (vector-hash? hash)
-       (vector-hash-for-each-with-ref-status hash thunk)
-       (begin
-          (when (custom? hash) (set! hash (custom-read-entire hash)))
-          (let loop ((entry (%php-hash-head hash)))
-             (unless (sentinel? entry)
-                (thunk (get-key-php-type-friendly entry)
-                       (container-value (%entry-value entry))
-                       (container-reference? (%entry-value entry)))
-                ;		(%entry-ref? entry))
-                (loop (%entry-next entry)))))))
+   (when (custom? hash) (set! hash (custom-read-entire hash)))
+   (let loop ((entry (%php-hash-head hash)))
+      (unless (sentinel? entry)
+         (thunk (get-key-php-type-friendly entry)
+                (container-value (%entry-value entry))
+                (container-reference? (%entry-value entry)))
+         ;		(%entry-ref? entry))
+         (loop (%entry-next entry)))))
 
 (define (php-hash-reverse-for-each hash thunk::procedure)
    "In reverse order, thunk will be called once on each key/value set"
-   (if (vector-hash? hash)
-       (vector-hash-reverse-for-each hash thunk)
-       (begin
-          (when (custom? hash) (set! hash (custom-read-entire hash)))
-          (let loop ((entry (%php-hash-tail hash)))
-             (unless (sentinel? entry)
-                (thunk (get-key-php-type-friendly entry) (container-value (%entry-value entry)))
-                (loop (%entry-prev entry)))))))
+   (when (custom? hash) (set! hash (custom-read-entire hash)))
+   (let loop ((entry (%php-hash-tail hash)))
+      (unless (sentinel? entry)
+         (thunk (get-key-php-type-friendly entry) (container-value (%entry-value entry)))
+         (loop (%entry-prev entry)))))
 
 (define (php-hash-for-each-ref hash thunk::procedure)
    "Thunk will be called once on each key/value set on the actual containers"
@@ -868,99 +872,72 @@ the current index if it was this entry."
 ;; code generator currently spits out for a foreach loop.
 (define (php-hash-current-key hash)
    "Return current key, or #f if current is past the end"
-   (if (vector-hash? hash)
-       (vector-hash-current-key hash)
-       (begin
-          (when (custom? hash) (set! hash (custom-read-entire hash)))
-          (let ((entry (%php-hash-current-index hash)))
-             (if (sentinel? entry)
-                 #f
-                 (get-key-php-type-friendly entry))))))
+   (when (custom? hash) (set! hash (custom-read-entire hash)))
+   (let ((entry (%php-hash-current-index hash)))
+      (if (sentinel? entry)
+          #f
+          (get-key-php-type-friendly entry))))
 
 (define (php-hash-current-value hash)
    "Return current value, or #f if current is past the end"
-   (if (vector-hash? hash)
-       (vector-hash-current-value hash)
-       (begin
-          (when (custom? hash) (set! hash (custom-read-entire hash)))
-          (let ((entry (%php-hash-current-index hash)))
-             (if (sentinel? entry)
-                 #f
-                 (container-value (%entry-value entry)))))))
+   (when (custom? hash) (set! hash (custom-read-entire hash)))
+   (let ((entry (%php-hash-current-index hash)))
+      (if (sentinel? entry)
+          #f
+          (container-value (%entry-value entry)))))
 
 (define (php-hash-has-next? hash)
    "Can the hash be advanced any more?"
-   (if (vector-hash? hash)
-       (vector-hash-has-next? hash)
-       (begin
-          (when (custom? hash) (set! hash (custom-read-entire hash)))
-          (not (or (sentinel? (%php-hash-current-index hash))
-                   (sentinel? (%entry-next
-                               (%php-hash-current-index hash))))))))
+   (when (custom? hash) (set! hash (custom-read-entire hash)))
+   (not (or (sentinel? (%php-hash-current-index hash))
+            (sentinel? (%entry-next
+                        (%php-hash-current-index hash))))))
 
 (define (php-hash-has-prev? hash)
    "Can the hash decrement any more?"
-   (if (vector-hash? hash)
-       (vector-hash-has-prev? hash)
-       (begin
-          (when (custom? hash) (set! hash (custom-read-entire hash)))
-          (not (or (sentinel? (%php-hash-current-index hash))
-                   (sentinel? (%entry-prev (%php-hash-current-index hash))))))))
+   (when (custom? hash) (set! hash (custom-read-entire hash)))
+   (not (or (sentinel? (%php-hash-current-index hash))
+            (sentinel? (%entry-prev (%php-hash-current-index hash))))))
 
 (define (php-hash-has-current? hash)
    "Is the current index valid?"
-   (if (vector-hash? hash)
-       (vector-hash-has-current? hash)
-       (begin
-          (when (custom? hash) (set! hash (custom-read-entire hash)))
-          (not (sentinel? (%php-hash-current-index hash))))))
+   (when (custom? hash) (set! hash (custom-read-entire hash)))
+   (not (sentinel? (%php-hash-current-index hash))))
 
 (define (php-hash-advance hash)
    "Advance the current index by one."
    ;(debug-trace 0 "advancing hash ")
-   (if (vector-hash? hash)
-       (vector-hash-advance hash)
-       (begin
-          (when (custom? hash) (set! hash (custom-read-entire hash)))
-          (let ((index (%php-hash-current-index hash)))
-             (or (sentinel? index)
-                 (begin
-                    ;(debug-trace 0 "setting index in php-hash-advance")
-                    (%php-hash-current-index-set! hash
-                                                  (%entry-next index)))))))
+   (when (custom? hash) (set! hash (custom-read-entire hash)))
+   (let ((index (%php-hash-current-index hash)))
+      (or (sentinel? index)
+          (begin
+             ;(debug-trace 0 "setting index in php-hash-advance")
+             (%php-hash-current-index-set! hash
+                                           (%entry-next index)))))
    hash)
 
 (define (php-hash-prev hash)
    "Decrement the current index by one"
    ;(debug-trace 0 "rewinding hash")
-   (if (vector-hash? hash)
-       (vector-hash-prev hash)
-       (begin
-          (when (custom? hash) (set! hash (custom-read-entire hash)))
-          (let ((index (%php-hash-current-index hash)))
-             (or (sentinel? index)
-                 ;((debug-trace 0 "setting index in php-hash-prev")
-                 (%php-hash-current-index-set! hash
-                                               (%entry-prev index))))))
+   (when (custom? hash) (set! hash (custom-read-entire hash)))
+   (let ((index (%php-hash-current-index hash)))
+      (or (sentinel? index)
+          ;((debug-trace 0 "setting index in php-hash-prev")
+          (%php-hash-current-index-set! hash
+                                        (%entry-prev index))))
    hash)
 
 (define (php-hash-reset hash)
    "Reset the current index to zero."
    ;(debug-trace 0 "resetting hash")
-   (if (vector-hash? hash)
-       (vector-hash-reset hash)
-       (begin
-          (when (custom? hash) (set! hash (custom-read-entire hash)))
-          (%php-hash-current-index-set! hash (%php-hash-head hash)))))
+   (when (custom? hash) (set! hash (custom-read-entire hash)))
+   (%php-hash-current-index-set! hash (%php-hash-head hash)))
 
 (define (php-hash-end hash)
    "Set current index to last item in hash"
    ;(debug-trace 0 "sending hash to end hash")
-   (if (vector-hash? hash)
-       (vector-hash-end hash)
-       (begin
-          (when (custom? hash) (set! hash (custom-read-entire hash)))
-          (%php-hash-current-index-set! hash (%php-hash-tail hash)))))
+   (when (custom? hash) (set! hash (custom-read-entire hash)))
+   (%php-hash-current-index-set! hash (%php-hash-tail hash)))
 
 (define (php-hash-pop hash)
    "pop element off end of array, ala array_pop"
@@ -1081,28 +1058,14 @@ the current index if it was this entry."
 (define *max-fixnum* 536870911)
 
 ;;;convenience functions
-; (define (list->php-hash lst)
-;    "Make a new php-hash containing the items in lst, with numeric keys
-;    starting at 0."
-;    (let ((array (make-php-hash)))
-;       (let loop ((lst lst)
-; 		 (key 0))
-; 	 (if (pair? lst)
-; 	     (begin
-; 		(php-hash-insert! array key (car lst))
-; 		(loop (cdr lst) (+ 1 key)))
-; 	     array))))
 
-;; third time's a charm?
 (define (list->php-hash lst)
-   (let* ((len (length lst))
-          (vector (make-vector len '())))
-      (let loop ((i 0)
-                 (lst lst))
-         (when (<fx i len)
-            (vector-set-ur! vector i (car lst))
-            (loop (+fx i 1) (cdr lst))))
-      (vector->php-hash vector)))
+   ;; it may seem weird to run over the list twice, but it turns out
+   ;; to really help for big lists and not matter for small lists.
+   (let ((hash (make-php-hash/size-hint (length lst))))
+      (enumerate (el i lst)
+         (%php-hash-insert! hash (container? el) i (int->onum i) el))
+      hash))
 
 (define (php-hash->list hash)
    "Make a list based on the values in the hash. Ignores keys."
@@ -1307,15 +1270,6 @@ the current index if it was this entry."
        value
        (%hash-overload-context o))))
 
-
-;; this is broken in the general case!  I'm just screwing around with
-;; vector hash thingies.  --timjr 2006.5.10
-(define (custom-for-each hash thunk)
-   (let* ((o (%php-hash-custom hash))
-          (context (%hash-overload-context o)))
-      (dotimes (i (vector-length context))
-         (thunk (int->onum i) (vector-ref-ur context i)))))
-
 (define (php-hash-entry hash)
   (%php-hash-head hash))
 
@@ -1332,214 +1286,5 @@ the current index if it was this entry."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; php arrays with dense integer keys
-(define *vector-hash-tag* (cons '() '()))
-
-(define (vector-hash? hash::struct)
-   (let ((overload-struct (%php-hash-custom hash)))
-      (and overload-struct
-        (let ((custom-context (%hash-overload-context overload-struct)))
-           (and (epair? custom-context)
-                (eq? (car custom-context) *vector-hash-tag*))))))
-
-(define (devectorize-vector-hash array)
-   [assert (array) (php-hash? array)]
-   [assert (array) (vector-hash? array)]
-   (let* ((data (%vector-hash-vector array))
-          (bucket-len (max *default-size*
-                           (least-power-of-2-greater-than (vector-length data))))
-          (buckets (make-vector bucket-len '()))
-          (bucket-mask (-fx bucket-len 1))
-          (last-entry *sentinel-value*)
-          (first-entry *sentinel-value*)
-          (old-current-index (%php-hash-current-index array))
-          (add-item!
-           (lambda (key value)
-              (let* ((ref? (container? value))
-                     (value (maybe-box value))
-                     (bucket-num (bit-and key bucket-mask))
-                     (new-entry (%entry (vector-ref-ur buckets bucket-num)
-                                        *sentinel-value* last-entry
-                                        key (int->onum key)
-                                        (if ref?
-                                            (container->reference! value)
-                                            value))))
-                 (when (= key old-current-index)
-                    (%php-hash-current-index-set! array new-entry))
-                 (if (sentinel? last-entry)
-                     (set! first-entry new-entry)
-                     (%entry-next-set! last-entry new-entry))
-                 (set! last-entry new-entry)
-                 (vector-set-ur! buckets bucket-num new-entry)))))
-
-      ;(debug-trace 0 "buckets are " buckets)
-      (%php-hash-buckets-set! array buckets)
-      (%php-hash-expand-threshold-set! array (expand-threshold bucket-len))
-      (%php-hash-current-index-set! array *sentinel-value*)
-      ;; Populate the hash buckets.
-      (let ((max-key (vector-length data)))
-         [assert (array data) (=fx (%php-hash-size array) (vector-length data))]
-         (let loop ((key 0))
-            (when (< key max-key)
-               (add-item! key (vector-ref-ur data key))
-               (loop (+ 1 key)))))
-      
-      ;; Fix up the important still-unset hash pointers.
-      (%php-hash-tail-set! array last-entry)
-      (%php-hash-head-set! array first-entry)
-      
-      ;; And decustomize the hash.
-      (%php-hash-custom-set! array #f))
-   array)
-
-(define (vector->php-hash vector)
-   [assert (vector) (vector? vector)]
-   (let ((hash
-          (make-custom-hash
-           ;; read
-           (lambda (key context)
-              (aif (->vector-key key (vector-length (cdr context)))
-                 (vector-ref-ur (cdr context) it)
-		 ;; By analogy with php-hash-lookup, return NULL on bogus key.
-		 NULL))
-           ;; write
-           (lambda (key value context)
-              (aif (->vector-key key (vector-length (cdr context)))
-                 (if (container? value)
-                     (vector-set-ur! (cdr context) it value)
-                     (let ((old-value (vector-ref-ur (cdr context) it)))
-                        (if (container? old-value)
-                            (container-value-set! old-value value)
-                            (vector-set-ur! (cdr context) it value))))
-		 ;; When someone writes an out-of-range key, convert
-		 ;; ourself to a normal hash.
-		 (let ((hash (cer context)))
-                    [assert (hash) (vector-hash? hash)]
-                    (devectorize-vector-hash hash)
-                    (php-hash-insert! hash key value))))
-           ;; read-entire
-           (lambda (context)
-              ;; If someone wants to read-entire once, figure they
-              ;; might want to do so again. Destructively convert
-              ;; ourself to a normal hash.
-              [assert (context) (vector-hash? (cer context))]
-              (devectorize-vector-hash (cer context)))
-           ;; the "context"
-           (econs *vector-hash-tag* vector '()))))
-      
-      (%php-hash-size-set! hash (vector-length vector))
-      (%php-hash-maximum-integer-key-set! hash (int->onum (- (vector-length vector) 1)))
-      (%php-hash-current-index-set! hash (if (zero? (vector-length vector)) -1 0))
-      ;; Make our context refer to the hash so read-entire can
-      ;; destructively convert over to a normal hash.
-      (set-cer! (%hash-overload-context (%php-hash-custom hash)) hash)
-      hash))
-      
-
-(define (->vector-key key vector-length)
-   (cond
-      ((and (onum? key)
-            (fast-onum-is-long key)
-            (< (onum->elong key) vector-length))
-       (onum->int key))
-      ((fixnum? key) key)
-      ((and (string? key)
-            (not (zero? (is-numeric-key key (string-length key)))))
-       (->vector-key (string->onum/long key) vector-length))
-      (else #f)))
-
-
-(define (%copy-vector-hash::struct new-hash::struct)
-   (let ((c (%php-hash-custom new-hash)))
-      (%php-hash-custom-set!
-       new-hash 
-       (%hash-overload (%hash-overload-read-single c)
-                       (%hash-overload-write-single c)
-                       (%hash-overload-read-entire c)
-                       (econs *vector-hash-tag*
-                              (%vector-hash-vector new-hash)
-                              new-hash))))
-   new-hash)
-
-(define (%vector-hash-vector hash)
-   (cdr (%hash-overload-context (%php-hash-custom hash))))
-
-;; iterate over the vector hashes
-(define (vector-hash-for-each hash thunk)
-   (let ((v (%vector-hash-vector hash)))
-      (let loop ((i 0))
-         (when (< i (vector-length v))
-            (thunk (int->onum i) (maybe-unbox (vector-ref-ur v i)))
-            (loop (+fx i 1))))))
-
-(define (vector-hash-for-each-with-ref-status hash thunk)
-   (let ((v (%vector-hash-vector hash)))
-      (let loop ((i 0))
-         (when (< i (vector-length v))
-            (let ((value (vector-ref-ur v i)))
-               (thunk (int->onum i) (maybe-unbox value) (container? value))
-               (loop (+fx i 1)))))))
-
-(define (vector-hash-reverse-for-each hash thunk)
-   (let ((v (%vector-hash-vector hash)))
-      (let loop ((i (-fx (vector-length v) 1)))
-         (when (>= i 0)
-            (thunk (int->onum i) (maybe-unbox (vector-ref-ur v i)))
-            (loop (-fx i 1))))))
-
-;; current index frobbing stuff
-(define (vector-hash-current-key hash)
-   (let ((v (%vector-hash-vector hash))
-         (i (%php-hash-current-index hash)))
-      (if (and (< i (vector-length v))
-               (>= i 0))
-          (int->onum i)
-          #f)))
-
-(define (vector-hash-current-value hash)
-   (let ((v (%vector-hash-vector hash))
-         (i (%php-hash-current-index hash)))
-      (if (and (< i (vector-length v))
-               (>= i 0))
-          (maybe-unbox (vector-ref-ur v i))
-          #f)))
-
-(define (vector-hash-has-next? hash)
-   (let ((v (%vector-hash-vector hash))
-         (i (%php-hash-current-index hash)))
-      (and (< i (vector-length v))
-           (> (vector-length v) 0))))
-
-(define (vector-hash-has-prev? hash)
-   (let ((v (%vector-hash-vector hash))
-         (i (%php-hash-current-index hash)))
-      (and (> i 0)
-           (> (vector-length v) 0))))
-
-(define (vector-hash-has-current? hash)
-   (let ((v (%vector-hash-vector hash))
-         (i (%php-hash-current-index hash)))
-      (and (>= i 0)
-           (< i (vector-length v)))))
-
-(define (vector-hash-advance hash)
-   (let ((v (%vector-hash-vector hash))
-         (i (%php-hash-current-index hash)))
-      (if (>= (+ i 1) (vector-length v))
-          (%php-hash-current-index-set! hash -1)
-          (%php-hash-current-index-set! hash (+ i 1)))))
-
-(define (vector-hash-prev hash)
-   (let ((v (%vector-hash-vector hash))
-         (i (%php-hash-current-index hash)))
-      (if (< (- i 1) 0)
-          (%php-hash-current-index-set! hash -1)
-          (%php-hash-current-index-set! hash (- i 1)))))
-
-(define (vector-hash-reset hash)
-   (%php-hash-current-index-set! hash 0))
-
-(define (vector-hash-end hash)
-   (let ((v (%vector-hash-vector hash)))
-      (%php-hash-current-index-set! hash (- (vector-length v) 1))))
-
-
+;; ... nothing here yet.  implementing them in terms of custom-hashes was
+;; not particularly faster.

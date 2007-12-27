@@ -92,6 +92,16 @@
 		  ,@body)
 	       (,loop-name (cdr ,lst-name))))))
 
+;; the list and the index
+(define-macro (enumerate (el index lst) . body)
+   (let ((lst-name (gensym 'lst))
+	 (loop-name (gensym 'loop)))
+      `(let ,loop-name ((,lst-name ,lst)
+                        (,index 0))
+	    (unless (null? ,lst-name)
+	       (let ((,el (car ,lst-name)))
+		  ,@body)
+	       (,loop-name (cdr ,lst-name) (+fx ,index 1))))))
 
 ;this is also unhygenic
 (define-macro dotimes
