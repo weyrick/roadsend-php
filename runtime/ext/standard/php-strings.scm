@@ -1362,9 +1362,9 @@
 		((eof-object? toker))
 
 		(unless (pair? toker)
-		   (php-warning
-		    (format "sprintf: Unexpected character '~A' in format string ~A"
-			    toker template))
+		   ;(php-warning
+		   ; (format "sprintf: Unexpected character '~A' in format string ~A"
+			;    toker template))
 		   (return ""))
 ;		(print "toker: " toker)
 		(case (car toker)
