@@ -28,7 +28,6 @@
 	   (grass "grasstable.scm")
 	   (url-rewriter "url-rewriter.scm")
 	   (signatures "signatures.scm")
-	   (fast-string-append "fast-string-append.scm")
            (php-errors "php-errors.scm")
 	   (builtin-interfaces "builtin-interfaces.scm")
            (php-ini "php-ini.scm"))
@@ -292,7 +291,7 @@
 
 ; this should be true for devlopment, false for a release build
 (define *RAVEN-DEVEL-BUILD* (cond-expand
-			       (unsafe #f)
+			       ;(unsafe #f)
 			       (else #t)))
 
 (define *RAVEN-VERSION-MAJOR* 2)
@@ -482,7 +481,7 @@
 (define (mkstr::bstring a . args)
    (case (length args)
       ((0) (stringulate a))
-      ((1) (fast-string-append (stringulate a) (stringulate (car args))))
+      ((1) (string-append (stringulate a) (stringulate (car args))))
       ((2) (string-append (stringulate a) (stringulate (car args)) (stringulate (cadr args))))
       (else (apply string-append (stringulate a) (map stringulate args)))))
 
@@ -495,7 +494,7 @@
       ((string? a) a)
       ((container? a) (stringulate (container-value a)))
       ((php-hash? a) "Array")
-      ((onum? a) (fast-onum->string a *float-precision*))
+      ((onum? a) (onum->string a *float-precision*))
       ((flonum? a) (stringulate-float a))
       ((fixnum? a) (integer->string a))
       ((boolean? a) (if a "1" ""))

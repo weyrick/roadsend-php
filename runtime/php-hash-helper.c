@@ -119,33 +119,6 @@ int php_string_hash_number(char *str)
 #define FNV_32A_OP(hash, octet) \
     (((u_int32_t)(hash) ^ (u_int8_t)(octet)) * FNV_32_PRIME)
 
-int mixed_hash_number( obj_t *obj1, obj_t *obj2)
-{
-  unsigned int hash = FNV1_32A_INIT;
-  /* note that this is undefined if the phpnum is a double */
-  unsigned int longval = (((unsigned int)CREF( obj1 )) >> TAG_SHIFT);
-  unsigned int longval1 = (((unsigned int)CREF( obj2 )) >> TAG_SHIFT);
-
-  hash = FNV_32A_OP(hash, longval);
-  longval >>= 8;
-  hash = FNV_32A_OP(hash, longval);
-  longval >>= 8;
-  hash = FNV_32A_OP(hash, longval);
-  longval >>= 8;
-  hash = FNV_32A_OP(hash, longval);
-
-  hash = FNV_32A_OP(hash, longval1);
-  longval1 >>= 8;
-  hash = FNV_32A_OP(hash, longval1);
-  longval1 >>= 8;
-  hash = FNV_32A_OP(hash, longval1);
-  longval1 >>= 8;
-  hash = FNV_32A_OP(hash, longval1);
-
-  return (hash>>24) ^ (hash & MASK_24);
-}
-
-
 int whoop_obj_hash_number( obj_t obj ) {
-   return ((int)((long)(CREF( obj )) >> TAG_SHIFT));
+  return ((int)((long)(CREF( obj )) >> TAG_SHIFT));
 }
