@@ -129,9 +129,9 @@
 ;;; Constants
 ;;; =========
 
-(defconstant STDIN  (local-file-stream "STDIN"  (pragma::FILE* "stdin")  #t #f))
-(defconstant STDOUT (local-file-stream "STDOUT" (pragma::FILE* "stdout") #f #t))
-(defconstant STDERR (local-file-stream "STDERR" (pragma::FILE* "stderr") #f #t))
+(defconstant STDIN  (std-file-stream "STDIN"  (pragma::FILE* "stdin")  #t #f))
+(defconstant STDOUT (std-file-stream "STDOUT" (pragma::FILE* "stdout") #f #t))
+(defconstant STDERR (std-file-stream "STDERR" (pragma::FILE* "stderr") #f #t))
 
 (defconstant SEEK_SET (int->onum (pragma::int "SEEK_SET")))
 (defconstant SEEK_END (int->onum (pragma::int "SEEK_END")))

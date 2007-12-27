@@ -68,6 +68,7 @@
     (readable-stream? stream)
     (writeable-stream? stream)
     (local-file-stream name file-ptr readable? writeable?)
+    (std-file-stream name file-ptr readable? writeable?)
     (local-file-stream? stream)
     (remote-file-stream name in-port out-port readable? writeable?)
     (remote-file-stream? stream)
@@ -286,6 +287,22 @@
                           #f
                           ;extended ops
                           *std-operations*))
+
+;; std-file-stream is like local-file-stream, except we don't finalize
+;; them.
+(define (std-file-stream name file-ptr readable? writeable?)
+   (stream-resource name
+                    'local-file
+                    file-ptr
+                    #f
+                    #f
+                    readable?
+                    writeable?
+                    0 0
+                    #t
+                    #f
+                    ;extended ops
+                    *std-operations*))
 
 (define (local-file-stream? stream)
    (and (stream? stream)
