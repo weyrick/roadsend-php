@@ -71,7 +71,7 @@ $b->c = 4;
 $b->d = 5;
 
 if ($a == $b) {
-  echo "differently ordered objcets are ==\n";
+  echo "differently ordered objects are ==\n";
 }
 
 if ($a === $b) {

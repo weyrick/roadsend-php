@@ -685,15 +685,15 @@ values the values."
 				    (if (and (grasstable-get seen o1-value)
 					     (grasstable-get seen o2-value))
                                         #t
-					(zero? (internal-object-compare o1-value o2-value #t seen))))
+					(zero? (internal-object-compare o1-value o2-value #f seen))))
 				   ((and (php-hash? o1-value)
 					 (php-hash? o2-value))
 				    (if (and (grasstable-get seen o1-value)
 					     (grasstable-get seen o2-value))
                                         #t
-                                        (zero? (internal-hash-compare o1-value o2-value #t seen))))
+                                        (zero? (internal-hash-compare o1-value o2-value #f seen))))
 				   (else
-				    (identicalp o1-value o2-value)))))
+				    (equalp o1-value o2-value)))))
 		       #f)))))
 	 ;;differently ordered properties in objects mean that they are not ===,
 	 ;;but since the objects have to be of the same class to be compared,
@@ -707,7 +707,7 @@ values the values."
 		(if (%php-object-extended-properties o2)
                     (let ((value (zero? (internal-hash-compare (%php-object-extended-properties o1)
                                                                (%php-object-extended-properties o2)
-                                                               #t seen))))
+                                                               #f seen))))
                        value)
 		    #f)
 		(if (%php-object-extended-properties o2)
