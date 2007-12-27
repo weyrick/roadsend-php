@@ -64,6 +64,6 @@ function Fannkuch($n){
    }
 }
 
-$n = $argv[1];
+$n = 9; #$argv[1];
 printf("Pfannkuchen(%d) = %d\n", $n, Fannkuch($n));
 ?>
