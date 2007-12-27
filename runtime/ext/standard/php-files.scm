@@ -986,6 +986,10 @@
                                          (if found found filename))
                                       filename))
                         (file-ptr (pfl-fopen filename mode)))
+                    (when (pragma::bool "$1 == NULL" file-ptr)
+                       ;; try a second time, after cleaning up a bit
+                       (reserve-stream-resource)
+                       (set! file-ptr (pfl-fopen filename mode)))
                     (if (pragma::bool "$1 == NULL" file-ptr)
                         FALSE
                         (local-file-stream filename file-ptr in-open? out-open?))))))))

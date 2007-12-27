@@ -56,6 +56,7 @@
     ;     (stream_set_write_buffer stream buffer-size)
     
     ;;; utility functions
+    (reserve-stream-resource)
     (php-stream-fd::int strm)
     (port->file port)
     (file->fd file-ptr)
@@ -252,13 +253,21 @@
     php-stream-fd))
 
 (define *stream-resource-counter* 0)
+;; 240-ish seems to be the limit on my mac.  it's a few more, if you
+;; consider that the 3 std streams aren't counted.  this should
+;; probably be configurable.
+(define *stream-resource-limit* 240)
+
+(define (reserve-stream-resource)
+   ;; when the stream counter exceeds an arbitrary limit, force the
+   ;; finalizers to run.
+   (when (> *stream-resource-counter* *stream-resource-limit*)
+      (gc-force-finalization
+       (lambda () (< *stream-resource-counter* *stream-resource-limit*)))))
+
 (define (make-finalized-stream . rest)
    (let ((stream (apply stream-resource rest)))
-      ;; when the stream counter exceeds an arbitrary limit, force the
-      ;; finalizers to run.  This might be a pretty low limit, on
-      ;; today's systems.
-      (when (> *stream-resource-counter* 255)
-         (gc-force-finalization (lambda () (<= *stream-resource-counter* 255))))
+      (reserve-stream-resource)
       ;; XXX fixme fclose doesn't close process streams, so we don't
       ;; increment the stream counter when we allocate one either.
       ;; This is a bad kludge, looking in the arglist like this.
