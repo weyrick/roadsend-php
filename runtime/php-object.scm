@@ -674,22 +674,22 @@ values the values."
 	     (let loop ((i 0)
 		       (continue? #t))
 	       (if (>= i (vector-length (%php-object-properties o1)))
-		   #t
+		   continue?
 		   (if continue?
 		       (loop (+ i 1)
-			     (let ((o1-value (vector-ref (%php-object-properties o1) i))
-				   (o2-value (vector-ref (%php-object-properties o2) i)))
+			     (let ((o1-value (maybe-unbox (vector-ref (%php-object-properties o1) i)))
+				   (o2-value (maybe-unbox (vector-ref (%php-object-properties o2) i))))
 				(cond
 				   ((and (php-object? o1-value)
 					 (php-object? o2-value))
-				    (if (and (grasstable-get o1-value seen)
-					     (grasstable-get o2-value seen))
+				    (if (and (grasstable-get seen o1-value)
+					     (grasstable-get seen o2-value))
                                         #t
 					(internal-object-compare o1-value o2-value identical? seen)))
 				   ((and (php-hash? o1-value)
 					 (php-hash? o2-value))
-				    (if (and (grasstable-get o1-value seen)
-					     (grasstable-get o2-value seen))
+				    (if (and (grasstable-get seen o1-value)
+					     (grasstable-get seen o2-value))
                                         #t
                                         (zero? (internal-hash-compare o1-value o2-value identical? seen))))
 				   (else

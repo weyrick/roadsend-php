@@ -6,8 +6,8 @@ class foo {
 
 $one = new foo();
 $two = new foo();
-$one->$roles = array(1, 2, 3);
-$two->$roles = array(1, 2);
+$one->roles = array(1, 2, 3);
+$two->roles = array(1, 2);
 
 if ($one == $two) {
   echo "same\n";
