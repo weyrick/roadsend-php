@@ -1118,8 +1118,10 @@ argument, before the continuation: (obj prop ref? value k)."
 			      (%php-class-static-property-offsets the-class)
 			      (%php-class-declared-property-offsets the-class))))
          (aif (hashtable-get offset-hash mangled-name)
-              ;; already defined, just set it
-              (vector-set! properties it (make-container (maybe-unbox default-value)))
+              ;; already defined, no no in php5. since we don't do property inheritance
+	      ; until we're finalizing the class definition, they've declared it twice
+	      ; in the same class decl
+	      (php-error (format "Cannot redeclare ~a::$~a" class-name property-name))
               ;; not defined yet, extend the properties vector and add
               ;; a new entry in the offset map
               (begin
