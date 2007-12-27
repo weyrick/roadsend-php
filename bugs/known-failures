@@ -1,9 +1,4 @@
-last updated: 4/15/07
-
-** KNOWN REGRESSIONS **
-linux:
-1123: base64 encode/decode (only amd64?)
-
+last updated: 12/27/07
 
 Other Known (acceptable) Failures:
 ----------------------------------

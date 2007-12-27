@@ -685,15 +685,15 @@ values the values."
 				    (if (and (grasstable-get seen o1-value)
 					     (grasstable-get seen o2-value))
                                         #t
-					(internal-object-compare o1-value o2-value identical? seen)))
+					(zero? (internal-object-compare o1-value o2-value #t seen))))
 				   ((and (php-hash? o1-value)
 					 (php-hash? o2-value))
 				    (if (and (grasstable-get seen o1-value)
 					     (grasstable-get seen o2-value))
                                         #t
-                                        (zero? (internal-hash-compare o1-value o2-value identical? seen))))
+                                        (zero? (internal-hash-compare o1-value o2-value #t seen))))
 				   (else
-				    ((if identical? identicalp equalp) o1-value o2-value)))))
+				    (identicalp o1-value o2-value)))))
 		       #f)))))
 	 ;;differently ordered properties in objects mean that they are not ===,
 	 ;;but since the objects have to be of the same class to be compared,
@@ -707,25 +707,27 @@ values the values."
 		(if (%php-object-extended-properties o2)
                     (let ((value (zero? (internal-hash-compare (%php-object-extended-properties o1)
                                                                (%php-object-extended-properties o2)
-                                                               identical? seen))))
+                                                               #t seen))))
                        value)
 		    #f)
 		(if (%php-object-extended-properties o2)
 		    #f
 		    #t)))))
-      ;;the return value is #f if the objects are of different classes
-      ;;0 if they are identical, 1 if they are different (but of the same class)
-      (if (not (string=? (php-object-class o1)
-			 (php-object-class o2)))
-	  #f
-	  ;only compare objects of the same class
-	  (begin
-	     (grasstable-put! seen o1 #t)
-	     (grasstable-put! seen o2 #t)
-	     (if (and (compare-declared-properties o1 o2 seen)
-		      (compare-extended-properties o1 o2 seen))
-		 0
-		 1)))))
+      (if identical?
+	  (if (=fx (%php-object-id o1) (%php-object-id o2)) 0 #f)
+	  ;;the return value is #f if the objects are of different classes
+	  ;;0 if they are identical, 1 if they are different (but of the same class)
+	  (if (not (string=? (php-object-class o1)
+			     (php-object-class o2)))
+	      #f
+	      ;only compare objects of the same class
+	      (begin
+		 (grasstable-put! seen o1 #t)
+		 (grasstable-put! seen o2 #t)
+		 (if (and (compare-declared-properties o1 o2 seen)
+			  (compare-extended-properties o1 o2 seen))
+		     0
+		     1))))))
 
 (define (php-object-id obj)
    (if (not (php-object? obj))
