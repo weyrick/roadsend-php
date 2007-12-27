@@ -502,7 +502,7 @@
 			   (mkstr (maybe-unbox (call-php-method-0 a "__toString")))
 			   (mkstr (php-recoverable-error "Object of class "
 							 (php-object-class a)
-							 " could not be converted to a string"))))
+							 " could not be converted to string"))))
       ((symbol? a) (symbol->string a))
       ((char? a) (string a))
       ((elong? a)

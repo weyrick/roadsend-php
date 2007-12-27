@@ -14,7 +14,7 @@ $foo = $ts[4];
 
 echo $ts["sasf"];
 
-unset($ts[1]);
+//unset($ts[1]);
 
 var_dump($ts);
 

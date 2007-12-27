@@ -808,6 +808,8 @@ gives the debugger a chance to run."
 (define-method (unset lval::hash-lookup)
    (with-access::hash-lookup lval (hash key)
       (let ((hash (container-value (d/evaluate hash))))
+	 (when (string? hash)
+	    (php-error "Cannot unset string offsets"))
 	 (when (php-hash? hash)
 	    (if (eqv? key :next)
 		(php-warning "Array unset not supported with empty [], Loc: " (ast-node-location lval) )

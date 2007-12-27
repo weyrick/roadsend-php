@@ -1667,6 +1667,8 @@ onum.  Append the bindings for the new symbols and code."
 				  (get-value key)))
 	  (let ((hash-name (gensym 'hash)))
 	     `(let ((,hash-name ,(get-value hash)))
+		 (when (string? ,hash-name)
+		    (php-error "Cannot unset string offsets"))
 		 (when (php-hash? ,hash-name)
 		    (php-hash-remove! ,hash-name
 				      ,(if (eqv? key :next)
