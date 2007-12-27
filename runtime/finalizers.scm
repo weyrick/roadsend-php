@@ -37,6 +37,8 @@
 
 (define *finalization-enabled?* #f)
 
+(define *finalizers-left* 0)
+
 (define (register-finalizer! obj::obj callback::procedure)
    "Register a finalizer for object obj. Callback should be a
    procedure of one argument, which will be obj when it is invoked."
@@ -45,9 +47,14 @@
       (set! *finalization-enabled?* #t)
       (register-exit-function!
        (lambda (status)
-	  (gc-force-finalization (lambda () #f))
+	  (gc-force-finalization (lambda () (> *finalizers-left* 0)))
 	  status)))
-   (gc-register-finalizer obj callback))
+   (set! *finalizers-left* (+ *finalizers-left* 1))
+   (gc-register-finalizer
+    obj
+    (lambda (obj)
+       (set! *finalizers-left* (- *finalizers-left* 1))
+       (callback obj))))
 
 (define (finalizer-callback obj::obj context::procedure)
    ;;The "context" is the user's callback,
