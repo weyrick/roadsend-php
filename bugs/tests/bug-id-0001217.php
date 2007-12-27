@@ -2,10 +2,16 @@
 
 class m {
     var $a = 1;
+    public function __toString() {
+      return "[class ".__CLASS__."]";
+    }
 }
 
 class o {
     var $c = 1;
+    public function __toString() {
+      return "[class ".__CLASS__."]";
+    }
 }
 
 $c =& new m();
@@ -61,8 +67,8 @@ foreach ($a as $v1) {
         if (is_string($v2) && is_numeric($v2))
             echo "$i,$j: b is a string and is numeric\n";
         echo "$i,$j: a == b: ".($v1 == $v2)."\n";
-	var_dump($v1);
-	var_dump($v2);
+	print_r($v1);
+	print_r($v2);
         echo "$i,$j: a === b: ".($v1 === $v2)."\n";
         echo "$i,$j: a < b: ".($v1 < $v2)."\n";
         echo "$i,$j: a > b: ".($v1 > $v2)."\n";
