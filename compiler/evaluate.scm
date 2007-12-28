@@ -688,9 +688,16 @@ gives the debugger a chance to run."
 (define-method (evaluate node::reference-assignment)
    (set! *PHP-LINE* (car (ast-node-location node)))
    (with-access::reference-assignment node (lval rval)
-      (let ((rval-value (maybe-box (get-location rval))))
-	 (update-location lval rval-value)
-	 rval-value)))
+      (if (or (function-invoke? rval)
+              (method-invoke? rval)
+              (constructor-invoke? rval)
+              (static-method-invoke? rval)
+              (parent-method-invoke? rval))
+          ;; maybe emit a strict warning?
+          (eval-assign lval (maybe-unbox (d/evaluate rval)))
+          (let ((rval-value (maybe-box (get-location rval))))
+             (update-location lval rval-value)
+             rval-value))))
 
 
 (define-generic (update-location lval rval)

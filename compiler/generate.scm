@@ -744,12 +744,16 @@ onum.  Append the bindings for the new symbols and code."
 		    ,rval-name)
 		 #f)))))
 
-
-		
 (define-method (generate-code node::reference-assignment)
    (with-access::reference-assignment node (lval rval)
-      (update-location lval (get-location rval))))
-
+      (if (or (function-invoke? rval)
+              (method-invoke? rval)
+              (constructor-invoke? rval)
+              (static-method-invoke? rval)
+              (parent-method-invoke? rval))
+          ;; maybe emit a strict warning?
+          (update-value lval (get-value rval))
+          (update-location lval (get-location rval)))))
 
 (define-method (generate-code node::unset-stmt)
    (with-access::unset-stmt node (lvals)
