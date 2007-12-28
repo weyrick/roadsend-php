@@ -62,7 +62,7 @@
 ;call this function to continue the current loop
 (define *continue-stack* '())
 
-;(define *class-decl-table-for-eval* (make-hashtable))
+(define *class-decl-table-for-eval* (make-hashtable))
 
 ;these are the functions that we need to remove from the function sig table to be
 ;clean for a fresh run.
@@ -84,7 +84,7 @@
    (set! *current-return-escape* 'unset)
    (set! *break-stack* '())
    (set! *continue-stack* '())
-;   (set! *class-decl-table-for-eval* (make-hashtable))
+   (set! *class-decl-table-for-eval* (make-hashtable))
    (set! *current-instance* 'unset)
    (set! *current-parent-class-name* 'unset)
    (set! *current-class-name* #f)
@@ -936,7 +936,9 @@ gives the debugger a chance to run."
 
 (define-method (evaluate node::class-decl)
    (set! *PHP-LINE* (car (ast-node-location node)))
-   '())
+   (unless (hashtable-get *class-decl-table-for-eval* (class-decl-name node))
+      (%do-class-declare node)
+      (hashtable-put! *class-decl-table-for-eval* (class-decl-name node) #t)))
 
 (define-method (evaluate node::constructor-invoke)
    (with-access::constructor-invoke node (location class-name arglist)
@@ -1258,7 +1260,7 @@ returning the value of the last. "
 				      (bind-exit (return)
 					(dynamically-bind (*current-function-name* name)
 					 (dynamically-bind (*current-return-escape* return)
-					    (dynamically-bind (*current-static-env* static-env)
+ 					    (dynamically-bind (*current-static-env* static-env)	   
 					       (dynamically-bind (*current-env* (env-new))
 						  (dynamically-bind (*current-variable-environment* *current-env*)
 						     (add-arguments-to-env name *current-env* args decl-arglist)
@@ -1271,10 +1273,20 @@ returning the value of the last. "
 				      (copy-php-data retval)))))))))
 
 
+
 (define-method (declare-for-eval node::class-decl)
+   ; essentially, declare all classes whose parent has already been declared (or has none)
+   ; the rest we do at runtime
+   (when (or (null? (class-decl-parent-list node))
+	     (and (not (null? (class-decl-parent-list node)))
+		  (php-class-exists? (car (class-decl-parent-list node)))))
+	 (%do-class-declare node)
+	 (hashtable-put! *class-decl-table-for-eval* (class-decl-name node) #t)))
+       
+(define (%do-class-declare node::class-decl)
    (with-access::class-decl node (name parent-list implements flags class-body)
       (letrec ((declare-class-body
-		   (lambda (p)
+		(lambda (p)
 		      (cond
 			 ;; statements
 			 ((list? p)
