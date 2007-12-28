@@ -834,7 +834,9 @@ onum.  Append the bindings for the new symbols and code."
 	  (begin
 	     (set! rendered? #t)
 	     (let ((code '()))
-		(pushf `(define-php-class ',name ',parent-list ',implements ',flags) code)
+		(if (member 'pcc-builtin flags)
+		    (pushf `(define-builtin-php-class ',name ',parent-list ',implements ',flags) code)
+		    (pushf `(define-php-class ',name ',parent-list ',implements ',flags) code))
 		(dynamically-bind (*current-parent-class-name* (if (null? parent-list) '() (car parent-list)))
 		   (dynamically-bind (*current-class-name* name)
                      (php-hash-for-each class-constants

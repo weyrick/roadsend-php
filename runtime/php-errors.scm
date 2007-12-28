@@ -108,42 +108,12 @@
 ;current stack of catch blocks to try a thrown exception on
 (define *try-stack* '())
 
-; called at start and on page resets
+; called once at initialization
 (define (init-php-error-lib)
    (set! *error-handler* "_default_error_handler")
    (set! *default-exception-handler* "_default_exception_handler")
    (set! *error-level* E_ALL)
-   (set! *anti-error-recurse* #f)
-   ; always have to rebuild, because object system resets
-   (build-Exception-class))
-
-; Exception base class
-; XXX this is incomplete
-(define (build-Exception-class)
-   (define-php-class 'Exception '() '() '())
-   (define-php-property 'Exception "message" "Unknown exception" 'protected #f)
-   (define-php-property 'Exception "code" *zero* 'protected #f)
-   (define-php-method 'Exception "__construct" '(public) Exception:__construct)
-   (define-php-method 'Exception "getMessage" '(public) Exception:getMessage))
-
-(define (Exception:__construct this-unboxed . optional-args)
-   (let ((message '())
-	 (code '()))
-      (when (pair? optional-args)
-	 (set! message
-	       (maybe-unbox (car optional-args)))
-	 (set! optional-args (cdr optional-args)))
-      (when (pair? optional-args)
-	 (set! code
-	       (maybe-unbox (car optional-args)))
-	 (set! optional-args (cdr optional-args)))
-      (when message
-	 (php-object-property-set!/string this-unboxed "message" message 'all))
-      (when code
-	 (php-object-property-set!/string this-unboxed "code" code 'all))))
-
-(define (Exception:getMessage this-unboxed . optional-args)
-   (make-container (php-object-property-h-j-f-r/string this-unboxed "message" 'all)))
+   (set! *anti-error-recurse* #f))
 
 ; try-stack is a list of pairs: (classname_list . <exception proc>)
 ; we traverse the list, and the list of classes for each exception, checking Classname's for is-a match

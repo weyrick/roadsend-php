@@ -29,7 +29,7 @@
 	   (url-rewriter "url-rewriter.scm")
 	   (signatures "signatures.scm")
            (php-errors "php-errors.scm")
-	   (builtin-interfaces "builtin-interfaces.scm")
+	   (builtin-classes "builtin-classes.scm")
            (php-ini "php-ini.scm"))
    (from (blib "blib.scm"))
    (from (opaque-math "opaque-math-binding.scm"))
@@ -1016,9 +1016,6 @@
    (hashtable-put! *superglobals* "_SESSION" #t)
    (hashtable-put! *superglobals* "_REQUEST" #t)
 
-   
-
-
    ; reset server superglobals, ready for web backend to fill again
    (init-server-superglobal)
    
@@ -1031,9 +1028,7 @@
    (set! *function-table* (make-hashtable))
    (reset-signatures!)
    (set! *interpreted-function-table* (make-hashtable))
-   (init-php-object-lib)
-   (init-php-error-lib) ; build Exception object, so must follow init-php-object-lib
-   (init-builtin-interfaces) ; build builtin interfaces
+   (reset-php-object-lib)
    (reset-ini!)   
    ; this doesn't change?
    ;(set! $argv 'unset)
@@ -1048,9 +1043,16 @@
 
    (when *runtime-uninitialized?*
 
+      ; error handling
+      (init-php-error-lib)
+
+      ; object system
+      (init-php-object-lib)
+      (init-builtin-classes)      
+                  
       ; base reset
       (common-reset)
-      
+
       ; ini entries
       (set-ini-entry "register_globals" #f) ; always false right now
       

@@ -62,7 +62,7 @@
 ;call this function to continue the current loop
 (define *continue-stack* '())
 
-(define *class-decl-table-for-eval* (make-hashtable))
+;(define *class-decl-table-for-eval* (make-hashtable))
 
 ;these are the functions that we need to remove from the function sig table to be
 ;clean for a fresh run.
@@ -84,7 +84,7 @@
    (set! *current-return-escape* 'unset)
    (set! *break-stack* '())
    (set! *continue-stack* '())
-   (set! *class-decl-table-for-eval* (make-hashtable))
+;   (set! *class-decl-table-for-eval* (make-hashtable))
    (set! *current-instance* 'unset)
    (set! *current-parent-class-name* 'unset)
    (set! *current-class-name* #f)
@@ -1337,7 +1337,9 @@ returning the value of the last. "
 			  ((nop? p) #t)
 			  (else (error 'declare-class "what's this noise doing in my class-decl?" p))))))
 	 ;; define class
-	 (define-php-class name parent-list implements flags)
+	 (if (member 'pcc-builtin flags)
+	     (define-builtin-php-class name parent-list implements flags)
+	     (define-php-class name parent-list implements flags))
 	 ;; define body statements
 	 (dynamically-bind (*current-class-name* name)
 	   (dynamically-bind (*current-parent-class-name* (if (null? parent-list) '() (car parent-list)))

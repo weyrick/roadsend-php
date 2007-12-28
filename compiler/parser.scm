@@ -46,7 +46,7 @@
        (left: dotequals punktequals plusequals minusequals equals refequals)
        (left: bitwise-shift-equals bitwise-not-equals bitwise-xor-equals bitwise-or-equals bitwise-and-equals)
        (right: printkey)
-       (right: static abstract final public private protected)
+       (right: static abstract final public private protected pcc-builtin)
        (right: catchkey)
        (left: andkey)
        (left: xorkey)
@@ -272,7 +272,8 @@
       (class-decl-flags
        (() '())
        ((final) (list 'final))
-       ((abstract) (list 'abstract)))
+       ((abstract) (list 'abstract))
+       ((pcc-builtin) (list 'pcc-builtin)))
 
       (class-statements
        ((class-statement class-statements)

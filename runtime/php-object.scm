@@ -32,6 +32,7 @@
     +constructor-failed+
     ; definitions
     (define-php-class name extends implements flags)
+    (define-builtin-php-class name extends implements flags)
     (define-extended-php-class name extends implements flags getter setter copier)
     (define-php-property class-name property-name default-value visibility static?)
     (define-php-method class-name method-name flags method)
@@ -99,6 +100,7 @@
     (php-object-custom-properties-set! obj props)
     ; misc
     (init-php-object-lib)
+    (reset-php-object-lib)    
     (pretty-print-php-object obj)
     (php-object-for-each-with-ref-status obj::struct thunk::procedure)
     ;
@@ -774,60 +776,30 @@ values the values."
    (if (string? name) name (mkstr name)))
 
 (define %php-class-registry 'unset)
+(define %php-builtin-class-registry 'unset)
 (define %php-autoload-registry 'unset)
 
 (define (get-declared-php-classes)
    (let ((clist (make-php-hash)))
       (hashtable-for-each %php-class-registry
 			  (lambda (k v)
-			     (php-hash-insert! clist :next (%php-class-print-name v))))
+			     (php-hash-insert! clist :next (%php-class-print-name v))))      
       clist))
 
-; NOTE: this is run by reset-runtime-state as well, so after every page view
-(define (init-php-object-lib)
-   (set! %php-class-registry (make-hashtable))
-   (set! %php-autoload-registry (make-hashtable))
+; called between page views
+(define (reset-php-object-lib)
    (set! *highest-instantiation* 0)
-   ;define the root of the class hierarchy
-   (let ((stdclass (%php-class "stdClass"       ; print name
-			       "stdclass"       ; canonical name
-			       '()              ; extends
-			       '()              ; implements
-			       '()              ; flags
-			       #f               ; constructor proc
-			       #f               ; destructor proc
-			       (make-hashtable) ; declared prop offsets
-			       (make-hashtable) ; static prop offets
-			       (make-vector 0)  ; props
-			       (make-hashtable) ; prop visibility
-			       (make-php-hash)  ; extended properties
-			       (make-php-hash)  ; methods
-			       #f               ; custom prop lookup
-			       #f               ; custom prop set
-			       #f               ; custom prop copy
-			       (make-php-hash)  ; class constants
-			       ))
-	 (inc-class (%php-class "__PHP_Incomplete_Class"       ; print name
-			       "__php_incomplete_class"       ; canonical name
-			       '()              ; extends
-			       '()              ; implements
-			       '()              ; flags
-			       #f               ; constructor proc
-			       #f               ; destructor proc
-			       (make-hashtable) ; declared prop offsets
-			       (make-hashtable) ; static prop offets
-			       (make-vector 0)  ; props
-			       (make-hashtable) ; prop visibility
-			       (make-php-hash)  ; extended properties
-			       (make-php-hash)  ; methods
-			       #f               ; custom prop lookup
-			       #f               ; custom prop set
-			       #f               ; custom prop copy
-			       (make-php-hash)  ; class constants
-			       )))
-      ;;default constructor
-      (hashtable-put! %php-class-registry "stdclass" stdclass)
-      (hashtable-put! %php-class-registry "__php_incomplete_class" inc-class)))
+   (set! %php-autoload-registry (make-hashtable))
+   (set! %php-class-registry (copy-hashtable %php-builtin-class-registry)))
+
+; called once on load
+(define (init-php-object-lib)
+   (set! *highest-instantiation* 0)   
+   (set! %php-class-registry (make-hashtable))
+   (set! %php-builtin-class-registry (make-hashtable))
+   (set! %php-autoload-registry (make-hashtable))   
+   (define-builtin-php-class 'stdClass '() '() '())
+   (define-builtin-php-class '__PHP_Incomplete_Class '() '() '()))
 
 (define (%resolve-classes class-list)
    "return a list of resolved %php-class structures based on the list given
@@ -900,28 +872,37 @@ values the values."
 									canonical-method-name
 									new-method))))))))
 		 (append extends-list implements-list)))))
-      
+
+; these survive runtime resets
+(define (define-builtin-php-class name extends implements flags)
+   (%define-class name extends implements flags #t))
+
+; these are wiped every runtime reset
 (define (define-php-class name extends implements flags)
+   (%define-class name extends implements flags #f))
+
+(define (%define-class name extends implements flags builtin?)
    (if (%lookup-class name)
        #t ;leave the errors to the evaluator/compiler for now
-       (let ((resolved-extends (if (null? extends)
-				   (list (%lookup-class "stdclass"))
-				   (with-exception-handler
-				      (lambda (unknown-classname)
-					 (php-error "Defining class " name ": unable to find parent class " unknown-classname))
-				      (lambda ()
-					 (%resolve-classes extends)))))
-	     (resolved-implements (if (null? implements)
-				      '()
-				      (with-exception-handler
-					 (lambda (unknown-classname)
-					    (php-error "Interface  '" unknown-classname "' not found"))
-					 (lambda ()
-					    (%resolve-classes implements))))))
-	  (when (%php-class-final? (car resolved-extends))
-	     (php-error (format "Class ~a may not inherit from final class (~a)" name (%php-class-print-name (car resolved-extends)))))
-	  (let* ((parent-class (car resolved-extends))
-		 (canonical-name (%class-name-canonicalize name))
+       (let* ((resolved-extends (if (null? extends)
+				    (if (eqv? name 'stdClass) '() (list (%lookup-class "stdclass")))
+				    (with-exception-handler
+				       (lambda (unknown-classname)
+					  (php-error "Defining class " name ": unable to find parent class " unknown-classname))
+				       (lambda ()
+					  (%resolve-classes extends)))))
+	      (resolved-implements (if (null? implements)
+				       '()
+				       (with-exception-handler
+					  (lambda (unknown-classname)
+					     (php-error "Interface  '" unknown-classname "' not found"))
+					  (lambda ()
+					     (%resolve-classes implements)))))
+	      (parent-class (if (pair? resolved-extends) (car resolved-extends) #f)))
+;	  (debug-trace 0 "defining class " name)
+	  (when (and parent-class (%php-class-final? parent-class))
+	     (php-error (format "Class ~a may not inherit from final class (~a)" name (%php-class-print-name parent-class))))
+	  (let* ((canonical-name (%class-name-canonicalize name))
 		 (new-class (%php-class (mkstr name)
 					canonical-name
 					resolved-extends
@@ -933,12 +914,12 @@ values the values."
 					(make-hashtable) ; static prop offsets (copied in finalize)
 					(make-vector 0)    ; properties vector (copied in finalize)
 					(make-hashtable) ; visibility (copied in finalize)
-					(copy-php-data (%php-class-extended-properties parent-class))
+					(if parent-class (copy-php-data (%php-class-extended-properties parent-class)) (make-php-hash))
 					(make-php-hash) ; methods we do below
-					(%php-class-custom-prop-lookup parent-class)
-					(%php-class-custom-prop-set parent-class)
-					(%php-class-custom-prop-copy parent-class)
-                                        (copy-php-data (%php-class-class-constants parent-class))
+					(if parent-class (%php-class-custom-prop-lookup parent-class) #f)
+					(if parent-class (%php-class-custom-prop-set parent-class) #f)
+					(if parent-class (%php-class-custom-prop-copy parent-class))
+                                        (if parent-class (copy-php-data (%php-class-class-constants parent-class)) (make-php-hash))
 					)))
 	     ; make sure implements only contains interfaces
 	     (unless (null? resolved-implements)
@@ -947,8 +928,13 @@ values the values."
 				(php-error (format "~a cannot implement ~a - it is not an interface" name (%php-class-print-name the-class)))))
 			  resolved-implements))
 	     ;
-	     (%inherit-methods new-class)
-	     (hashtable-put! %php-class-registry canonical-name new-class)))))
+	     (when parent-class
+		(%inherit-methods new-class))
+	     ; always main registry
+	     (hashtable-put! %php-class-registry canonical-name new-class)
+	     ; possibly builtins
+	     (when builtin?
+		(hashtable-put! %php-builtin-class-registry canonical-name new-class))))))
 
 (define (define-extended-php-class name extends implements flags getter setter copier)
    "Create a PHP class with an overridden getter and setter.  The getter takes
