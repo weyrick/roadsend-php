@@ -688,7 +688,10 @@ gives the debugger a chance to run."
               (static-method-invoke? rval)
               (parent-method-invoke? rval))
           ;; maybe emit a strict warning?
-          (eval-assign lval (maybe-unbox (d/evaluate rval)))
+          (let ((rval-value (maybe-box (get-location rval))))
+             (if (container-reference? rval-value)
+                 (update-location lval rval-value)
+                 (eval-assign lval (maybe-unbox rval-value))))
           (let ((rval-value (maybe-box (get-location rval))))
              (container->reference! (update-location lval rval-value))
              rval-value))))
@@ -1264,7 +1267,7 @@ returning the value of the last. "
 				  (pop-func-args)
 				  (pop-stack)
 				  (if ref?
-				      retval
+                                      (container->reference! retval)
 				      (copy-php-data retval)))))))))
 
 
@@ -1329,7 +1332,7 @@ returning the value of the last. "
 						     (pop-func-args)
 						     (pop-stack)
 						     (if ref?
-							 retval
+							 (container->reference! retval)
 							 (copy-php-data retval)))))))))
 			  ((nop? p) #t)
 			  (else (error 'declare-class "what's this noise doing in my class-decl?" p))))))

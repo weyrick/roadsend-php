@@ -519,7 +519,7 @@ onum.  Append the bindings for the new symbols and code."
 (define-method (generate-code node::return-stmt/gen)
    (with-access::return-stmt/gen node (value cont?)
       (if cont?
-	  `(return ,(get-location value))
+	  `(return (container->reference! ,(get-location value)))
           (if (method-decl? *current-block*)
               ;; I've changed it so that methods always return
               ;; containers, because container-value is so much
@@ -751,7 +751,11 @@ onum.  Append the bindings for the new symbols and code."
               (static-method-invoke? rval)
               (parent-method-invoke? rval))
           ;; maybe emit a strict warning?
-          (update-value lval (get-value rval))
+          (let ((rvalname (gensym 'rval)))
+             `(let ((,rvalname ,(get-location rval)))
+                 (if (container-reference? ,rvalname)
+                     ,(update-location lval rvalname)
+                     ,(update-value lval `(container-value ,rvalname)))))
           (update-location lval `(container->reference!
                                   ,(get-location rval))))))
 
