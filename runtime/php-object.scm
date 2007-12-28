@@ -65,14 +65,14 @@
     (php-object-has-declared-property? obj::struct property::bstring)
     (php-object-property/index obj::struct property::int property-name)
     (php-object-property/string obj property::bstring access-type)
-    (php-object-property-ref/string obj property::bstring access-type)
+    (php-object-property-location/string obj property::bstring access-type)
     (php-object-property-set!/string obj property::bstring value access-type)
     (php-object-property-h-j-f-r/string obj property::bstring access-type)
     (php-object-property obj property access-type)
-    (php-object-property-ref obj property access-type)
+    (php-object-property-location obj property access-type)
     (php-object-property-set! obj property value access-type)
     (php-class-static-property class-name property access-type)
-    (php-class-static-property-ref class-name property access-type)    
+    (php-class-static-property-location class-name property access-type)    
     (php-class-static-property-set! class-name property value access-type)
     (php-object-property-honestly-just-for-reading obj property access-type)
     ; visibility
@@ -603,15 +603,16 @@ values the values."
 	  (php-warning "Referencing a property of a non-object")
 	  NULL)))
 
-(define (php-object-property-ref obj property access-type)
+(define (php-object-property-location obj property access-type)
    (if (php-object? obj)
        (let ((l (get-custom-lookup obj)))
 	  (if (procedure? l)
 	      (do-custom-lookup obj property #t)
-	      (%lookup-prop-ref obj property access-type)))
+	      (%lookup-prop-location obj property access-type)))
        (begin
 	  (php-warning "Referencing a property of a non-object")
 	  (make-container NULL))))
+
 
 (define (php-object-property-set! obj property value access-type)
    (if (php-object? obj)
@@ -625,7 +626,7 @@ values the values."
    value)
 
 
-(define (do-custom-lookup obj property ref?)
+(define (do-custom-lookup obj property location?)
    (debug-trace 4 "custom lookup of " (php-object-class obj) "->" property)
 ;   (if ref?
        ;; so spake the engine of zend
@@ -633,11 +634,12 @@ values the values."
        (let loop ((cls (%php-object-class obj)))
 	  (let ((lookup (%php-class-custom-prop-lookup cls)))
 	     (if (procedure? lookup)
-		 (let ((val (lookup obj property ref? (lambda ()
-							 (loop (%php-class-parent-class cls))))))
-		    (if ref? (maybe-box val) (maybe-unbox val)))
-		 (if ref?
-		     (%lookup-prop-ref obj property 'all)
+		 (let ((val (lookup obj property location?
+                                    (lambda ()
+                                       (loop (%php-class-parent-class cls))))))
+		    (if location? (maybe-box val) (maybe-unbox val)))
+		 (if location?
+		     (%lookup-prop-location obj property 'all)
 		     (%lookup-prop obj property 'all))))))
 ;)
 
@@ -1472,11 +1474,11 @@ argument, before the continuation: (obj prop ref? value k)."
 	     val
 	  (php-error "Access to undeclared static property: " class-name "::" property)))))	     
 
-(define (php-class-static-property-ref class-name property access-type)
+(define (php-class-static-property-location class-name property access-type)
    (let ((the-class (%lookup-class-with-autoload class-name)))
       (unless the-class
 	 (php-error "Getting static property " property ": unknown class " class-name))
-      (let ((val (%lookup-static-prop-ref class-name property access-type)))
+      (let ((val (%lookup-static-prop-location class-name property access-type)))
 	 (if val
 	     val
 	     (begin
@@ -1549,7 +1551,7 @@ argument, before the continuation: (obj prop ref? value k)."
 	  (if offset #t #f))
        #f))
    
-(define (%lookup-prop-ref obj property access-type)
+(define (%lookup-prop-location obj property access-type)
    (let* ((canon-name (%property-name-canonicalize property))
 	  (offset (%prop-offset obj canon-name access-type)))
       (if offset
@@ -1559,12 +1561,12 @@ argument, before the continuation: (obj prop ref? value k)."
 	  (let ((get-method (%lookup-method (%php-object-class obj) "__get")))
 	     (if get-method
 		 (call-php-method-1 obj "__get" property)
-		 (php-hash-lookup-ref (%php-object-extended-properties obj)
-				      #t
-				      canon-name))))))
+		 (php-hash-lookup-location (%php-object-extended-properties obj)
+                                           #t
+                                           canon-name))))))
 
 (define (%lookup-prop obj property access-type)
-   (container-value (%lookup-prop-ref obj property access-type)))
+   (container-value (%lookup-prop-location obj property access-type)))
 
 (define (%lookup-prop-honestly-just-for-reading obj property access-type)
    (let* ((canon-name (%property-name-canonicalize property))
@@ -1597,11 +1599,11 @@ argument, before the continuation: (obj prop ref? value k)."
 	  (let ((set-method (%lookup-method (%php-object-class obj) "__set")))
 	     (if set-method
 		 (call-php-method-2 obj "__set" property value)
-		 (php-hash-insert! (%php-object-extended-properties obj)
-				   canon-name value)))))
+                 (php-hash-insert! (%php-object-extended-properties obj)
+                                   canon-name value)))))
    value)
 
-(define (%lookup-static-prop-ref class-name property access-type)
+(define (%lookup-static-prop-location class-name property access-type)
    (let ((the-class (%lookup-class class-name)))
       (if the-class   
 	  (let* ((canon-name (%property-name-canonicalize property))
@@ -1612,7 +1614,7 @@ argument, before the continuation: (obj prop ref? value k)."
 	  #f)))
 
 (define (%lookup-static-prop class-name property access-type)
-   (container-value (%lookup-static-prop-ref class-name property access-type)))
+   (container-value (%lookup-static-prop-location class-name property access-type)))
 
 (define (%php-class-method-reflection klass)
     (list->php-hash
@@ -1748,11 +1750,11 @@ argument, before the continuation: (obj prop ref? value k)."
 (define (php-object-property-set!/string obj property::bstring value access-type)
    (php-object-property-set! obj property value access-type))
 
-(define (php-object-property-ref/string obj property::bstring access-type)
-   (php-object-property-ref obj property access-type))
+(define (php-object-property-location/string obj property::bstring access-type)
+   (php-object-property-location obj property access-type))
 
-(define (%lookup-prop-ref/string obj property::bstring access-type)
-   (%lookup-prop-ref obj property access-type))
+(define (%lookup-prop-location/string obj property::bstring access-type)
+   (%lookup-prop-location obj property access-type))
 
 (define (%lookup-prop/string obj property::bstring access-type)
    (%lookup-prop obj property access-type))

@@ -753,7 +753,8 @@ onum.  Append the bindings for the new symbols and code."
               (parent-method-invoke? rval))
           ;; maybe emit a strict warning?
           (update-value lval (get-value rval))
-          (update-location lval (get-location rval)))))
+          (update-location lval `(container->reference!
+                                  ,(get-location rval))))))
 
 (define-method (generate-code node::unset-stmt)
    (with-access::unset-stmt node (lvals)
@@ -1484,10 +1485,10 @@ onum.  Append the bindings for the new symbols and code."
 			 :next
 			 (get-value key))))
 	 (if (is-hash? hash)
-	     `(php-hash-lookup-ref ,(get-value hash) #f ,the-key)
+	     `(php-hash-lookup-location ,(get-value hash) #f ,the-key)
 	     `(begin
 		 ,(update-value hash `(%coerce-for-insert ,(get-value hash)))
-		 (%general-lookup-ref ,(get-value hash) ,the-key))))))
+		 (%general-lookup-location ,(get-value hash) ,the-key))))))
 
 (define-method (get-location rval::property-fetch)
    (with-access::property-fetch rval (obj prop)
@@ -1502,9 +1503,9 @@ onum.  Append the bindings for the new symbols and code."
 		 (access-type ,(generate-get-prop-access-type 'obj-evald the-property)))
 	     ,(generate-prop-visibility-check 'obj-evald the-property)
 	     ,(if property-is-constant?
-		  `(php-object-property-ref/string
+		  `(php-object-property-location/string
 		    obj-evald ,(mkstr the-property) access-type)
-		  `(php-object-property-ref obj-evald ,the-property access-type))))))
+		  `(php-object-property-location obj-evald ,the-property access-type))))))
    
 
 (define-method (get-location rval::var)

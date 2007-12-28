@@ -44,7 +44,7 @@
 	   (php-hash-contains? hash key)
 	   (php-hash-lookup-honestly-just-for-reading hash key)
            (php-hash-lookup-honestly-just-for-reading/pre hash key hashnumber)
-	   (php-hash-lookup-ref hash create?::bool key)
+	   (php-hash-lookup-location hash create?::bool key)
 	   (php-hash-remove! hash key)
 	   (php-hash-for-each hash thunk::procedure)
 	   (php-hash-for-each-with-ref-status hash thunk::procedure)
@@ -516,7 +516,7 @@ Copies containers.  Keys are not copied."
 
 (define (%php-hash-insert!::vector hash::struct ref?::bool hashnumber key value)
 ;   [assert (hash) (not (%php-hash-shared? hash))]
-   [assert (value) (not (%internal-index? value))]   
+   [assert (value) (not (%internal-index? value))]
    (when (>fx (%php-hash-size hash) (%php-hash-expand-threshold hash))
       (php-hash-expand! hash))
    (let ((head (%php-hash-head hash))
@@ -654,7 +654,7 @@ for all variables, and by compiled code to implement globals.  Returns
 		     #t
 		     #f))))))
 
-(define (php-hash-lookup-ref hash create?::bool key)
+(define (php-hash-lookup-location hash create?::bool key)
    "get the container of a hash value.  if create? is true, add the
    value if it doesn't exist, so that the container returned will be a
    valid location."
@@ -671,15 +671,13 @@ for all variables, and by compiled code to implement globals.  Returns
 	  (if key
 	      (let* ((hashnumber (php-hashnumber key))
 		     (entry (%php-hash-lookup hash hashnumber key)))
-		 (if entry
-		     (%entry-value entry)
-		     (let ((acontainer (make-container NULL)))
-			(when create?
-			   (%php-hash-insert! hash #t hashnumber key acontainer))
-			acontainer)))
+                 (if entry
+                     (%entry-value entry)
+                     (if create?
+                         (%entry-value
+                          (%php-hash-insert! hash #f hashnumber key NULL))
+                         (make-container NULL))))
 	      (make-container NULL)))))
-
-
 
 (define (%php-hash-lookup hash::struct hashnumber key)
    (let* ((buckets (%php-hash-buckets hash))

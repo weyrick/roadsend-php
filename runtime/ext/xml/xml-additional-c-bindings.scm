@@ -99,7 +99,11 @@
 	 ; if php-handler is an array, first element is object, second is method name
 	 (if (php-hash? php-handler)
 	     (begin
-		(set! cb-obj (container-value (php-hash-lookup-ref php-handler #f 0)))
+                ;; this was a somewhat mystifying piece of
+                ;; code... anybody know why it doesn't just call
+                ;; php-hash-lookup?
+		;; (set! cb-obj (container-value (php-hash-lookup-ref php-handler #f 0)))
+                (set! cb-obj (php-hash-lookup php-handler 0))
 		(set! php-handler (php-hash-lookup php-handler 1))))
 	 (if (eqv? cb-obj 'unset)
 	     (apply php-funcall php-handler s-udata args)

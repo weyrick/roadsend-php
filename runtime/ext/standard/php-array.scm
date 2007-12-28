@@ -866,7 +866,9 @@
 						(set! overwrite? #f)))))
 				  ; ref?
 				  (if as-ref?
-				      (set! v (php-hash-lookup-ref source #f key)))
+                                      ;; argh, these will never really be un-referenced
+				      (set! v (container->reference!
+                                               (php-hash-lookup-location source #f key))))
 				  ; go
 				  (when (or overwrite?
 					    (not var-exists?))

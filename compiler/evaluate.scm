@@ -235,7 +235,7 @@ gives the debugger a chance to run."
 			    (d/evaluate key))))
 	     (container-value-set! thehash (%coerce-for-insert (container-value thehash)))
 	     (if (php-hash? (container-value thehash))
-		 (php-hash-lookup-ref (container-value thehash) #t thekey)
+		 (php-hash-lookup-location (container-value thehash) #t thekey)
 		 (make-container (%general-lookup (container-value thehash) thekey)))))
        (d/evaluate node)))
    
@@ -247,7 +247,7 @@ gives the debugger a chance to run."
 			:next
 			(d/evaluate key))))
 	 (if (php-hash? (container-value thehash))
-	     (php-hash-lookup-ref (container-value thehash) #f thekey)
+	     (php-hash-lookup-location (container-value thehash) #f thekey)
 	     (make-container (%general-lookup (container-value thehash) thekey))))))
 
 (define-method (evaluate node::literal-array)
@@ -696,7 +696,7 @@ gives the debugger a chance to run."
           ;; maybe emit a strict warning?
           (eval-assign lval (maybe-unbox (d/evaluate rval)))
           (let ((rval-value (maybe-box (get-location rval))))
-             (update-location lval rval-value)
+             (container->reference! (update-location lval rval-value))
              rval-value))))
 
 
@@ -1078,7 +1078,7 @@ gives the debugger a chance to run."
 	    (when (pair? access-type)
 	       (let ((vis (car access-type)))
 		  (php-error (format "Cannot access ~a static property ~a::$~a" vis class prop-name))))
-	    (php-class-static-property-ref class-canon prop-name access-type)))))
+	    (php-class-static-property-location class-canon prop-name access-type)))))
 
 (define-method (evaluate node::property-fetch)
    (set! *PHP-LINE* (car (ast-node-location node)))
@@ -1089,7 +1089,7 @@ gives the debugger a chance to run."
 	 (when (pair? access-type)
 	    (let ((vis (car access-type)))
 	       (php-error (format "Cannot access ~a property ~a::$~a" vis (php-object-class obj-val) prop-val))))
-	 (php-object-property-ref obj-val prop-val access-type))))
+	 (php-object-property-location obj-val prop-val access-type))))
 
 (define-method (evaluate node::class-constant-fetch)
    (with-access::class-constant-fetch node (location class name)

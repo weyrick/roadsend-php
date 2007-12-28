@@ -134,7 +134,7 @@
     (%general-lookup/pre obj key pre)
     (%general-lookup-honestly-just-for-reading obj key)
     (%general-lookup-honestly-just-for-reading/pre obj key pre)
-    (%general-lookup-ref obj key)
+    (%general-lookup-location obj key)
     (%coerce-for-insert obj)
     (%general-insert! obj key val)
     (%general-insert!/pre obj key pre val)
@@ -1200,14 +1200,14 @@
       new-hash))
 
 (define (env-lookup env name::bstring)
-   (php-hash-lookup-ref (env-bindings env) #t name))
+   (php-hash-lookup-location (env-bindings env) #t name))
 
 (define (env-lookup-internal-index env name::bstring)
    (let ((bindings (env-bindings env)))
       (or (php-hash-lookup-internal-index bindings name)
 	  (begin
 	     ;create it if it doesn't exist
-	     (php-hash-lookup-ref bindings #t name)
+	     (php-hash-lookup-location bindings #t name)
 	     (php-hash-lookup-internal-index bindings name)))))
 
 ;; merely inlining these two makes a 14% improvement in the
@@ -1587,7 +1587,8 @@
 	 (cons (if (eqv? callback 'unpassed)
 		   #f
 		   (if (php-hash? callback)
-		       (cons (container-value (php-hash-lookup-ref callback #f 0))
+		       (cons (container-value
+                              (php-hash-lookup-location callback #f 0))
 			     (php-hash-lookup callback 1))
 		       callback))
 	       *output-callback-stack*)) )
@@ -1683,17 +1684,17 @@
    (popf *func-args-stack*))
 
 ;;;;cruddy array operators
-(define (%general-lookup-ref obj key)
+(define (%general-lookup-location obj key)
    "Lookup key in obj. Always returns a container, if it returns.
 Obj should not be in a container."
    (cond
-      ((php-hash? obj) (let ((val (php-hash-lookup-ref obj #t key)))
+      ((php-hash? obj) (let ((val (php-hash-lookup-location obj #t key)))
 			  ; XXX add this back when we fix isset/empty
 			  ;(when (eqv? (container-value val) NULL)
 			     ;(php-notice "Undefined index: " key))
 			  val))
       ((string? obj) (php-error "Cannot create references to string offsets"))
-      ((foreign? obj) (%general-lookup-ref 
+      ((foreign? obj) (%general-lookup-location 
                        (zval->phpval-coercion-routine obj)
                        key))
       (else ;(php-warning "Cannot use a scalar as an array -- " obj)
