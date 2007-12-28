@@ -67,15 +67,18 @@
 
 ;;;; generate-code
 (define-generic (generate-code node)
-   (if (list? node)
+   (cond
+      ((list? node)
        (let ((node (filter (lambda (n) (not (nop? n))) node)))
 	  (cons 'begin
-		(map generate-code node)))
-       (error 'generate-code (with-output-to-string
-				(lambda ()
-				   (print "generate-code: Don't know what to do with node: " node ", see?")))
-	      #t)))
-
+		(map generate-code node))))
+      ((eqv? node :next) :next)
+      (else
+       (error 'generate-code
+              (with-output-to-string
+                 (lambda ()
+                    (print "generate-code: Don't know what to do with node: " node ", see?")))
+              #t))))
 
 (define-method (generate-code node::php-ast)
    (set! *functions* '())
@@ -229,9 +232,7 @@ onum.  Append the bindings for the new symbols and code."
 
 (define-method (generate-code node::hash-lookup)
    (with-access::hash-lookup node (hash key)
-      (let* ((the-key (if (eqv? key :next)
-                          :next
-                          (get-value key)))
+      (let* ((the-key (get-value key))
              (pre (precalculate-string-hashnumber the-key)))
          (if pre
              ;; precalculated hashnumber
@@ -259,9 +260,7 @@ onum.  Append the bindings for the new symbols and code."
              ,@(map
                 (lambda (a)
                    (with-access::array-entry a (key value ref?)
-                      (let* ((key (if (eqv? key :next)
-                                      ':next
-                                      (get-value key)))
+                      (let* ((key (get-value key))
                              (pre (precalculate-string-hashnumber key)))
                          (if pre
                              `(php-hash-insert!/pre ,new-hash
@@ -1481,9 +1480,7 @@ onum.  Append the bindings for the new symbols and code."
 
 (define-method (get-location rval::hash-lookup)
    (with-access::hash-lookup rval (hash key)
-      (let ((the-key (if (eqv? key :next)
-			 :next
-			 (get-value key))))
+      (let ((the-key (get-value key)))
 	 (if (is-hash? hash)
 	     `(php-hash-lookup-location ,(get-value hash) #f ,the-key)
 	     `(begin
@@ -1573,12 +1570,11 @@ onum.  Append the bindings for the new symbols and code."
 	    ;;trying to generate some fancy nested insert code, which ends
 	    ;;up multiply-evaluating key forms
 	    (if (hash-lookup? hash)
-		(let loop ((keys (list (if (eqv? key :next) :next (get-value key))))
+		(let loop ((keys (list (get-value key)))
 			   (next hash))
 		   (if (hash-lookup? next)
 		       (with-access::hash-lookup next (hash key)
-			  (loop (cons (if (eqv? key :next) :next (get-value key))
-				      keys)
+			  (loop (cons (get-value key) keys)
 				hash))
 		       `(let ((,rval-name ,rval-code))
 			   ;;this is the base case.  make sure to return the rval,
@@ -1590,7 +1586,7 @@ onum.  Append the bindings for the new symbols and code."
 							       ,rval-name))
 			   ,rval-name)))
                 ;; this is the non-nested case
-                (let* ((key (if (eqv? key :next) :next (get-value key)))
+                (let* ((key (get-value key))
                        (pre (precalculate-string-hashnumber key)))
                    (if (is-hash? hash)
                        ;simpler version for typed var	
@@ -1666,19 +1662,14 @@ onum.  Append the bindings for the new symbols and code."
 (define-method (unset lval::hash-lookup)
    (with-access::hash-lookup lval (hash key)
       (if (is-hash? hash)
-	  `(php-hash-remove! ,(get-value hash)
-			     ,(if (eqv? key :next)
-				  ':next
-				  (get-value key)))
+	  `(php-hash-remove! ,(get-value hash) ,(get-value key))
 	  (let ((hash-name (gensym 'hash)))
 	     `(let ((,hash-name ,(get-value hash)))
 		 (when (string? ,hash-name)
 		    (php-error "Cannot unset string offsets"))
 		 (when (php-hash? ,hash-name)
 		    (php-hash-remove! ,hash-name
-				      ,(if (eqv? key :next)
-					   ':next
-					   (get-value key))) ) )))))
+				      ,(get-value key))) ) ))))
 
 (define-method (unset lval::property-fetch)
    (with-access::property-fetch lval (obj prop)
@@ -1795,12 +1786,11 @@ onum.  Append the bindings for the new symbols and code."
       (dynamically-bind (*hash-lookup-writable* #t)
 	 (with-access::hash-lookup lval (hash key)
 	    (if (hash-lookup? hash)
-		(let loop ((keys (list (if (eqv? key :next) :next (get-value key))))
+		(let loop ((keys (list (get-value key)))
 			   (next hash))
 		   (if (hash-lookup? next)
 		       (with-access::hash-lookup next (hash key)
-			  (loop (cons (if (eqv? key :next) :next (get-value key))
-				      keys)
+			  (loop (cons (get-value key) keys)
 				hash))
 		       `(let ((,rval-name ,rval-code))
 			   ,(update-value next
@@ -1809,7 +1799,7 @@ onum.  Append the bindings for the new symbols and code."
                                                                '(,@(map precalculate-string-hashnumber keys))
 							       ,rval-name))
 			   ,rval-name)))
-		(let* ((the-key (if (eqv? key :next) :next (get-value key)))
+		(let* ((the-key (get-value key))
                        (pre (precalculate-string-hashnumber key)))
 		   (cond
 		      ;kludge for globals, since reference assignment doesn't do what you want there

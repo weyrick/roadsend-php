@@ -96,12 +96,13 @@
 
 
 (define-generic (evaluate node)
-   (if (list? node)
-       (evaluate-block node)
-       (error 'evaluate "Don't know what to do with node: "
-	      (with-output-to-string
-		 (lambda ()
-		    (print-pretty-ast node))))))
+   (cond
+      ((list? node) (evaluate-block node))
+      ((eqv? node :next) :next)
+      (else (error 'evaluate "Don't know what to do with node: "
+                   (with-output-to-string
+                      (lambda ()
+                         (print-pretty-ast node)))))))
 
 (define (d/evaluate node)
    "Call this instead of evaluate() for recusive calls.  It
@@ -230,9 +231,7 @@ gives the debugger a chance to run."
        (with-access::hash-lookup node (hash key)
 	  (set! *PHP-LINE* (car (ast-node-location node)))
 	  (let ((thehash (d/evaluate hash))
-		(thekey (if (eqv? key :next)
-			    :next
-			    (d/evaluate key))))
+		(thekey (d/evaluate key)))
 	     (container-value-set! thehash (%coerce-for-insert (container-value thehash)))
 	     (if (php-hash? (container-value thehash))
 		 (php-hash-lookup-location (container-value thehash) #t thekey)
@@ -243,9 +242,7 @@ gives the debugger a chance to run."
    (with-access::hash-lookup node (hash key)
       (set! *PHP-LINE* (car (ast-node-location node)))
       (let ((thehash (d/evaluate hash))
-	    (thekey (if (eqv? key :next)
-			:next
-			(d/evaluate key))))
+	    (thekey (d/evaluate key)))
 	 (if (php-hash? (container-value thehash))
 	     (php-hash-lookup-location (container-value thehash) #f thekey)
 	     (make-container (%general-lookup (container-value thehash) thekey))))))
@@ -258,9 +255,7 @@ gives the debugger a chance to run."
 	  (lambda (a)
 	     (with-access::array-entry a (key value ref?)
 		(php-hash-insert! new-hash
-				  (if (eqv? key :next)
-				      :next
-				      (d/evaluate key))
+                                  (d/evaluate key)
 				  (let ((val (d/evaluate value)))
 				     (if ref?
 					 (maybe-box val)
@@ -608,12 +603,11 @@ gives the debugger a chance to run."
 	  ;;if it's a nested hash lookup, evaluate all the keys and pass a
 	  ;;list of them into %general-insert-n!, since recursively calling
 	  ;;eval-assign causes us to multiply-evaluate the key forms
-	  (let loop ((keys (list (if (eqv? key :next) :next (d/evaluate key))))
+	  (let loop ((keys (list (d/evaluate key)))
 		     (next hash))
 	     (if (hash-lookup? next)
 		 (with-access::hash-lookup next (hash key)
-		    (loop (cons (if (eqv? key :next) :next (d/evaluate key))
-				keys)
+		    (loop (cons (d/evaluate key) keys)
 			  hash))
 		 ;;in the base case, we're assigning into a variable or property-lookup
 		 ;;or something, so call eval-assign recursively
@@ -626,7 +620,7 @@ gives the debugger a chance to run."
 	  ;;hash (in case it needed to be coerced) or string (in case
 	  ;;the string was modified)
 	  (eval-assign hash (%general-insert! (%coerce-for-insert (maybe-unbox (d/evaluate hash)))
-					      (if (eqv? key :next) :next (d/evaluate key))
+					      (d/evaluate key)
 					      rval))))
    rval)
 
