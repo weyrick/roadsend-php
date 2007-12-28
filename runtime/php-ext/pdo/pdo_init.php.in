@@ -4,19 +4,11 @@
 // running top level definition files
 pcc_register_extension('pdo','php-pdo','1.0.0');
 
-// database implementations
-$PCC_PDO_DRIVER_LIST_S = trim('@PDO_DRIVER_LIST@');
-$PCC_PDO_DRIVER_LIST = explode(' ', $PCC_PDO_DRIVER_LIST_S);
-
 // PDO, PDOStatement, PDOException
 require('pdo_class.php');
 
-if (in_array('mysql',$PCC_PDO_DRIVER_LIST)) {
-    require('pdo_mysql.php');
-}
-
-if (in_array('sqlite',$PCC_PDO_DRIVER_LIST)) {
-    require('pdo_sqlite.php');
+foreach (PDO::DB_DRIVER_LIST as $driver) {
+    require($driver.'.php');
 }
 
 ?>

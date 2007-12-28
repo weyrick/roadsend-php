@@ -31,12 +31,13 @@
  * @package xpdo.pdo
  */
 class PDO_mysql {
-    var $_connection;
-    var $_dbinfo;
-    var $_persistent= false;
-    var $_errorCode= PDO_ERR_NONE;
-    var $_errorInfo= array (
-        PDO_ERR_NONE
+    
+    protected $connection;
+    protected $dbinfo;
+    protected $persistent= false;
+    protected $errorCode= PDO::ERR_NONE;
+    protected $errorInfo= array (
+        PDO::ERR_NONE
     );
 
     /**
@@ -50,14 +51,14 @@ class PDO_mysql {
      * @return PDO_mysql
      */
     function PDO_mysql(& $host, & $db, & $user, & $pass) {
-        if (!$this->_connection= @ mysql_connect($host, $user, $pass, true)) {
-            $this->_setErrors('DBCON');
+        if (!$this->connection= @ mysql_connect($host, $user, $pass, true)) {
+            $this->setErrors('DBCON');
         } else {
-            if (!@ mysql_select_db($db, $this->_connection)) {
-                $this->_setErrors('DBER');
-                $this->_connection= null;
+            if (!@ mysql_select_db($db, $this->connection)) {
+                $this->setErrors('DBER');
+                $this->connection= null;
             } else {
-                $this->_dbinfo= array (
+                $this->dbinfo= array (
                     $host,
                     $user,
                     $pass,
@@ -68,34 +69,34 @@ class PDO_mysql {
     }
 
     function errorCode() {
-        return $this->_errorCode;
+        return $this->errorCode;
     }
 
     function errorInfo() {
-        return $this->_errorInfo;
+        return $this->errorInfo;
     }
 
     function exec($query) {
         $result= 0;
-        if (!is_null($this->_uquery($query)))
-            $result= mysql_affected_rows($this->_connection);
+        if (!is_null($this->uquery($query)))
+            $result= mysql_affected_rows($this->connection);
         if (is_null($result))
             $result= false;
         return $result;
     }
 
     function lastInsertId() {
-        return mysql_insert_id($this->_connection);
+        return mysql_insert_id($this->connection);
     }
 
     function prepare($statement, $driver_options= array ()) {
-        return new PDOStatement_mysql($statement, $this->_connection, $this->_dbinfo);
+        return new PDOStatement_mysql($statement, $this->connection, $this->dbinfo);
     }
 
     function query($statement) {
         $args= func_get_args();
         $result= false;
-        if ($stmt= new PDOStatement_mysql($statement, $this->_connection, $this->_dbinfo)) {
+        if ($stmt= new PDOStatement_mysql($statement, $this->connection, $this->dbinfo)) {
             if (count($args) > 1) {
                 $stmt->setFetchMode($args[1]);
             }
@@ -105,16 +106,16 @@ class PDO_mysql {
         return $result;
     }
 
-    function quote($string, $parameter_type= PDO_PARAM_STR) {
-        if (function_exists('mysql_real_escape_string') && $this->_connection) {
-            $string= mysql_real_escape_string($string, $this->_connection);
+    function quote($string, $parameter_type= PDO::PARAM_STR) {
+        if (function_exists('mysql_real_escape_string') && $this->connection) {
+            $string= mysql_real_escape_string($string, $this->connection);
         } else {
             $string= mysql_escape_string($string);
         }
         switch ($parameter_type) {
-        	case PDO_PARAM_NULL:
+        	case PDO::PARAM_NULL:
                 break;
-        	case PDO_PARAM_INT:
+        	case PDO::PARAM_INT:
         		break;
         	default:
                 $string= "'" . $string . "'";
@@ -125,19 +126,19 @@ class PDO_mysql {
     function getAttribute($attribute) {
         $result= false;
         switch ($attribute) {
-            case PDO_ATTR_SERVER_INFO :
-                $result= mysql_get_host_info($this->_connection);
+            case PDO::ATTR_SERVER_INFO :
+                $result= mysql_get_host_info($this->connection);
                 break;
-            case PDO_ATTR_SERVER_VERSION :
-                $result= mysql_get_server_info($this->_connection);
+            case PDO::ATTR_SERVER_VERSION :
+                $result= mysql_get_server_info($this->connection);
                 break;
-            case PDO_ATTR_CLIENT_VERSION :
+            case PDO::ATTR_CLIENT_VERSION :
                 $result= mysql_get_client_info();
                 break;
-            case PDO_ATTR_PERSISTENT :
-                $result= $this->_persistent;
+            case PDO::ATTR_PERSISTENT :
+                $result= $this->persistent;
                 break;
-            case PDO_ATTR_DRIVER_NAME :
+            case PDO::ATTR_DRIVER_NAME :
                 $result= 'mysql';
                 break;
         }
@@ -146,17 +147,17 @@ class PDO_mysql {
 
     function setAttribute($attribute, $value) {
         $result= false;
-        if ($attribute === PDO_ATTR_PERSISTENT && $value != $this->_persistent) {
+        if ($attribute === PDO::ATTR_PERSISTENT && $value != $this->persistent) {
             $result= true;
-            $this->_persistent= (boolean) $value;
-            mysql_close($this->_connection);
-            if ($this->_persistent === true) {
-                $this->_connection= mysql_pconnect($this->_dbinfo[0], $this->_dbinfo[1], $this->_dbinfo[2]);
+            $this->persistent= (boolean) $value;
+            mysql_close($this->connection);
+            if ($this->persistent === true) {
+                $this->connection= mysql_pconnect($this->dbinfo[0], $this->dbinfo[1], $this->dbinfo[2]);
             }
             else {
-                $this->_connection= mysql_connect($this->_dbinfo[0], $this->_dbinfo[1], $this->_dbinfo[2]);
+                $this->connection= mysql_connect($this->dbinfo[0], $this->dbinfo[1], $this->dbinfo[2]);
             }
-            mysql_select_db($this->_dbinfo[3], $this->_connection);
+            mysql_select_db($this->dbinfo[3], $this->connection);
         }
         return $result;
     }
@@ -174,24 +175,24 @@ class PDO_mysql {
     }
 
     function _setErrors($er) {
-        if (!is_resource($this->_connection)) {
+        if (!is_resource($this->connection)) {
             $errno= mysql_errno();
             $errst= mysql_error();
         } else {
-            $errno= mysql_errno($this->_connection);
-            $errst= mysql_error($this->_connection);
+            $errno= mysql_errno($this->connection);
+            $errst= mysql_error($this->connection);
         }
-        $this->_errorCode= & $er;
-        $this->_errorInfo= array (
-            $this->_errorCode,
+        $this->errorCode= & $er;
+        $this->errorInfo= array (
+            $this->errorCode,
             $errno,
             $errst
         );
     }
 
     function _uquery(& $query) {
-        if (!$query= @ mysql_query($query, $this->_connection)) {
-            $this->_setErrors('SQLER');
+        if (!$query= @ mysql_query($query, $this->connection)) {
+            $this->setErrors('SQLER');
             $query= null;
         }
         return $query;
@@ -204,87 +205,85 @@ class PDO_mysql {
  * @package xpdo.pdo
  */
 class PDOStatement_mysql extends PDOStatement {
-    function PDOStatement_mysql($queryString, & $connection, & $dbinfo) {
-        $this->__construct($queryString, $connection, $dbinfo);
-    }
-    function __construct($queryString, & $connection, & $dbinfo) {
-        parent :: __construct($queryString, $connection, $dbinfo);
+    
+    function __construct($queryString, $connection, $dbinfo) {
+        parent::__construct($queryString, $connection, $dbinfo);
     }
 
     function columnCount() {
         $result= 0;
-        if (!is_null($this->_result))
-            $result= mysql_num_fields($this->_result);
+        if (!is_null($this->result))
+            $result= mysql_num_fields($this->result);
         return $result;
     }
 
-    function fetch($mode= PDO_FETCH_BOTH, $cursor= null, $offset= null) {
+    function fetch($mode= PDO::FETCH_BOTH, $cursor= null, $offset= null) {
         if (func_num_args() == 0)
-            $mode= & $this->_fetchmode;
+            $mode= & $this->fetchmode;
         $result= false;
-        if (!is_null($this->_result)) {
+        if (!is_null($this->result)) {
             switch ($mode) {
-                case PDO_FETCH_NUM :
-                    $result= @ mysql_fetch_row($this->_result);
+                case PDO::FETCH_NUM :
+                    $result= @ mysql_fetch_row($this->result);
                     break;
-                case PDO_FETCH_ASSOC :
-                    $result= @ mysql_fetch_assoc($this->_result);
+                case PDO::FETCH_ASSOC :
+                    $result= @ mysql_fetch_assoc($this->result);
                     break;
-                case PDO_FETCH_OBJ :
-                    $result= @ mysql_fetch_object($this->_result);
+                case PDO::FETCH_OBJ :
+                    $result= @ mysql_fetch_object($this->result);
                     break;
-                case PDO_FETCH_BOTH :
+                case PDO::FETCH_BOTH :
                 default :
-                    $result= @ mysql_fetch_array($this->_result);
+                    $result= @ mysql_fetch_array($this->result);
                     break;
             }
         }
         if (!$result)
-            $this->_result= null;
+            $this->result= null;
         return $result;
     }
 
-    function fetchAll($mode= PDO_FETCH_BOTH, $column_index= 0) {
+    function fetchAll($mode= PDO::FETCH_BOTH, $column_index= 0) {
         if (func_num_args() == 0)
-            $mode= & $this->_fetchmode;
+            $mode= & $this->fetchmode;
         $result= array ();
-        if (!is_null($this->_result)) {
+        if (!is_null($this->result)) {
             switch ($mode) {
-                case PDO_FETCH_NUM :
-                    while ($r= @ mysql_fetch_row($this->_result))
+                case PDO::FETCH_NUM :
+                    while ($r= @ mysql_fetch_row($this->result))
                         array_push($result, $r);
                     break;
-                case PDO_FETCH_ASSOC :
-                    while ($r= @ mysql_fetch_assoc($this->_result))
+                case PDO::FETCH_ASSOC :
+                    while ($r= @ mysql_fetch_assoc($this->result))
                         array_push($result, $r);
                     break;
-                case PDO_FETCH_OBJ :
-                    while ($r= @ mysql_fetch_object($this->_result))
+                case PDO::FETCH_OBJ :
+                    while ($r= @ mysql_fetch_object($this->result))
                         array_push($result, $r);
                     break;
-                case PDO_FETCH_COLUMN :
-                    while ($r= @ mysql_fetch_row($this->_result))
+                case PDO::FETCH_COLUMN :
+                    while ($r= @ mysql_fetch_row($this->result))
                         array_push($result, $r[$column_index]);
                     break;
-                case PDO_FETCH_BOTH :
+                case PDO::FETCH_BOTH :
                 default :
-                    while ($r= @ mysql_fetch_array($this->_result))
+                    while ($r= @ mysql_fetch_array($this->result))
                         array_push($result, $r);
                     break;
             }
         }
-        $this->_result= null;
+        $this->result= null;
         return $result;
     }
 
     function fetchColumn($column_number= 0) {
         $result= false;
-        if (!is_null($this->_result)) {
-            $result= @ mysql_fetch_row($this->_result);
+        if (!is_null($this->result)) {
+            $result= @ mysql_fetch_row($this->result);
             if ($result)
                 $result= $result[$column_number];
             else
-                $this->_result= false;
+                $this->result= false;
         }
         return $result;
     }
@@ -292,35 +291,35 @@ class PDOStatement_mysql extends PDOStatement {
     function getAttribute($attribute) {
         $result= false;
         switch ($attribute) {
-            case PDO_ATTR_SERVER_INFO :
-                $result= mysql_get_host_info($this->_connection);
+            case PDO::ATTR_SERVER_INFO :
+                $result= mysql_get_host_info($this->connection);
                 break;
-            case PDO_ATTR_SERVER_VERSION :
-                $result= mysql_get_server_info($this->_connection);
+            case PDO::ATTR_SERVER_VERSION :
+                $result= mysql_get_server_info($this->connection);
                 break;
-            case PDO_ATTR_CLIENT_VERSION :
+            case PDO::ATTR_CLIENT_VERSION :
                 $result= mysql_get_client_info();
                 break;
-            case PDO_ATTR_PERSISTENT :
-                $result= $this->_persistent;
+            case PDO::ATTR_PERSISTENT :
+                $result= $this->persistent;
                 break;
-            case PDO_ATTR_DRIVER_NAME :
+            case PDO::ATTR_DRIVER_NAME :
                 $result= '';
                 break;
         }
         return $result;
     }
 
-    function quote($string, $parameter_type= PDO_PARAM_STR) {
-        if (function_exists('mysql_real_escape_string') && $this->_connection) {
-            $string= mysql_real_escape_string($string, $this->_connection);
+    function quote($string, $parameter_type= PDO::PARAM_STR) {
+        if (function_exists('mysql_real_escape_string') && $this->connection) {
+            $string= mysql_real_escape_string($string, $this->connection);
         } else {
             $string= mysql_escape_string($string);
         }
         switch ($parameter_type) {
-            case PDO_PARAM_NULL:
+            case PDO::PARAM_NULL:
                 break;
-            case PDO_PARAM_INT:
+            case PDO::PARAM_INT:
                 break;
             default:
                 $string= "'" . $string . "'";
@@ -329,48 +328,48 @@ class PDOStatement_mysql extends PDOStatement {
     }
 
     function rowCount() {
-        return mysql_affected_rows($this->_connection);
+        return mysql_affected_rows($this->connection);
     }
 
     function setAttribute($attribute, $value) {
         $result= false;
-        if ($attribute === PDO_ATTR_PERSISTENT && $value != $this->_persistent) {
+        if ($attribute === PDO::ATTR_PERSISTENT && $value != $this->persistent) {
             $result= true;
-            $this->_persistent= (boolean) $value;
-            mysql_close($this->_connection);
-            if ($this->_persistent === true) {
-                $this->_connection= mysql_pconnect($this->_dbinfo[0], $this->_dbinfo[1], $this->_dbinfo[2]);
+            $this->persistent= (boolean) $value;
+            mysql_close($this->connection);
+            if ($this->persistent === true) {
+                $this->connection= mysql_pconnect($this->dbinfo[0], $this->dbinfo[1], $this->dbinfo[2]);
             }
             else {
-                $this->_connection= mysql_connect($this->_dbinfo[0], $this->_dbinfo[1], $this->_dbinfo[2]);
+                $this->connection= mysql_connect($this->dbinfo[0], $this->dbinfo[1], $this->dbinfo[2]);
             }
-            mysql_select_db($this->_dbinfo[3], $this->_connection);
+            mysql_select_db($this->dbinfo[3], $this->connection);
         }
         return $result;
     }
 
-    function _uquery(& $query) {
-        if (!@ $query= mysql_query($query, $this->_connection)) {
-            $this->_setErrors('SQLER');
+    protected function uquery(& $query) {
+        if (!@ $query= mysql_query($query, $this->connection)) {
+            $this->setErrors('SQLER');
             $query= null;
         }
         return $query;
     }
 
-    function _setErrors($er) {
-        if (!is_resource($this->_connection)) {
+    protected function setErrors($er) {
+        if (!is_resource($this->connection)) {
             $errno= mysql_errno();
             $errst= mysql_error();
         } else {
-            $errno= mysql_errno($this->_connection);
-            $errst= mysql_error($this->_connection);
+            $errno= mysql_errno($this->connection);
+            $errst= mysql_error($this->connection);
         }
-        $this->_errorCode= & $er;
-        $this->_errorInfo= array (
-            $this->_errorCode,
+        $this->errorCode= & $er;
+        $this->errorInfo= array (
+            $this->errorCode,
             $errno,
             $errst
         );
-        $this->_result= null;
+        $this->result= null;
     }
 }

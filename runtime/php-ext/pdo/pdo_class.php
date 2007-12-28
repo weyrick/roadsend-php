@@ -49,8 +49,95 @@
  * PostgreSQL, and SQLite
  */
 class PDO {
-    var $_driver;
-    var $_dbtype= null;
+
+    const PARAM_NULL = 0;
+    const PARAM_INT = 1;
+    const PARAM_STR = 2;
+    const PARAM_LOB = 3;
+    const PARAM_STMT = 4;
+    const PARAM_BOOL = 5;
+
+    const PARAM_INPUT_OUTPUT = 0x80000000;
+
+    const PARAM_EVT_ALLOC = 0;
+    const PARAM_EVT_FREE = 1;
+    const PARAM_EVT_EXEC_PRE = 2;
+    const PARAM_EVT_EXEC_POST = 3;
+    const PARAM_EVT_FETCH_PRE = 4;
+    const PARAM_EVT_FETCH_POST = 5;
+    const PARAM_EVT_NORMALIZE = 6;
+
+    const FETCH_LAZY = 0;
+    const FETCH_ASSOC = 1;
+    const FETCH_NUM = 2;
+    const FETCH_BOTH = 3;
+    const FETCH_OBJ = 4;
+    const FETCH_BOUND = 5;
+    const FETCH_COLUMN = 6;
+    const FETCH_CLASS = 7;
+    const FETCH_INTO = 8;
+    const FETCH_FUNC = 9;
+    const FETCH_GROUP = 10;
+    const FETCH_UNIQUE = 11;
+    const FETCH_KEY_PAIR = 12;
+    const FETCH_CLASSTYPE = 13;
+    const FETCH_SERIALIZE = 14;
+    const FETCH_PROPS_LATE = 15;
+    const FETCH_NAMED = 16;
+
+    const ATTR_AUTOCOMMIT = 0;
+    const ATTR_PREFETCH = 1;
+    const ATTR_TIMEOUT = 2;
+    const ATTR_ERRMODE = 3;
+    const ATTR_SERVER_VERSION = 4;
+    const ATTR_CLIENT_VERSION = 5;
+    const ATTR_SERVER_INFO = 6;
+    const ATTR_CONNECTION_STATUS = 7;
+    const ATTR_CASE = 8;
+    const ATTR_CURSOR_NAME = 9;
+    const ATTR_CURSOR = 10;
+    const ATTR_ORACLE_NULLS = 11;
+    const ATTR_PERSISTENT = 12;
+    const ATTR_STATEMENT_CLASS = 13;
+    const ATTR_FETCH_TABLE_NAMES = 14;
+    const ATTR_FETCH_CATALOG_NAMES = 15;
+    const ATTR_DRIVER_NAME = 16;
+    const ATTR_STRINGIFY_FETCHES = 17;
+    const ATTR_MAX_COLUMN_LEN = 18;
+    const ATTR_EMULATE_PREPARES = 19;
+    const ATTR_DEFAULT_FETCH_MODE = 20;
+
+    const ERRMODE_SILENT = 0;
+    const ERRMODE_WARNING = 1;
+    const ERRMODE_EXCEPTION = 2;
+
+    const CASE_NATURAL = 0;
+    const CASE_LOWER = 1;
+    const CASE_UPPER = 2;
+
+    const NULL_NATURAL = 0;
+    const NULL_EMPTY_STRING = 1;
+    const NULL_TO_STRING = 2;
+
+    const ERR_NONE = "00000";
+
+    const FETCH_ORI_NEXT = 0;
+    const FETCH_ORI_PRIOR = 1;
+    const FETCH_ORI_FIRST = 2;
+    const FETCH_ORI_LAST = 3;
+    const FETCH_ORI_ABS = 4;
+    const FETCH_ORI_REL = 5;
+
+    const CURSOR_FWDONLY = 0;
+    const CURSOR_SCROLL = 1;
+
+    const MYSQL_ATTR_USE_BUFFERED_QUERY = 0;
+
+    const DB_DRIVER_LIST = array(@PDO_DRIVER_LIST@
+                                );
+    
+    private $driver;
+    private $dbtype = NULL;
 
     /**
      * Returns a list of available database drivers.
@@ -59,12 +146,12 @@ class PDO {
      * @return array All drivers available to any PDO instance.
      * @todo Implement this as a dynamic list of available drivers.
      */
-    function getAvailableDrivers() {
-        return array (
-            'mysql',
-//            'pgsql',
-            'sqlite'
-        );
+    public function getAvailableDrivers() {
+        // these are really lib names, we need to strip the pdo_ prefix
+        foreach ($self::DB_DRIVER_LIST as $dName) {
+            $driverList[] = substr($dName,4);
+        }
+        return $driverList;
     }
 
     /**#@+
@@ -88,33 +175,27 @@ class PDO {
      * @todo Add charset support for sqlite and pgsql drivers.
      * @todo Implement additional drivers.
      */
-    function PDO($dsn, $username= '', $password= '', $driver_options= null) {
-        $this->__construct($dsn, $username, $password, $driver_options);
-    }
-    /** @ignore */
-    function __construct($dsn, $username= '', $password= '', $driver_options= null) {
-        $con= xPDO :: parseDSN($dsn);
-        $driverClass= XPDO_CORE_PATH . 'pdo.' . $con['dbtype'] . '.inc.php';
-        include_once (XPDO_CORE_PATH . 'pdo.' . $con['dbtype'] . '.inc.php');
-        $this->_dbtype= $con['dbtype'];
+    public function __construct($dsn, $username= '', $password= '', $driver_options= null) {
+        $con =  self::parseDSN($dsn);
+        $this->dbtype= $con['dbtype'];
         if ($con['dbtype'] === 'mysql') {
             if (isset ($con['port']))
                 $con['host'] .= ':' . $con['port'];
-            if ($this->_driver= new PDO_mysql($con['host'], $con['dbname'], $username, $password)) {
+            if ($this->driver= new PDO_mysql($con['host'], $con['dbname'], $username, $password)) {
                 if (isset ($con['charset']) && !empty($con['charset'])) {
-                    $this->_driver->exec("SET CHARACTER SET " . $con['charset']);
+                    $this->driver->exec("SET CHARACTER SET " . $con['charset']);
                 }
             }
         }
         elseif ($con['dbtype'] === 'sqlite2' || $con['dbtype'] === 'sqlite') {
-            $this->_driver= new PDO_sqlite($con['dbname']);
+            $this->driver= new PDO_sqlite($con['dbname']);
         }
         /*
         elseif ($con['dbtype'] === 'pgsql') {
             $dsn= 'host=' . $con['host'] . ' dbname=' . $con['dbname'] . ' user=' . $username . ' password=' . $password;
             if (isset ($con['port']))
                 $dsn .= ' port=' . $con['port'];
-            $this->_driver= new PDO_pgsql($dsn);
+            $this->driver= new PDO_pgsql($dsn);
         }
         */
     }
@@ -128,7 +209,7 @@ class PDO {
     * @todo Have this method handle all methods of DSN specification as handled
     * by latest native PDO implementation.
     */
-    function parseDSN($string) {
+    public function parseDSN($string) {
         $result= array ();
         $pos= strpos($string, ':');
         $parameters= explode(';', substr($string, ($pos +1)));
@@ -147,85 +228,85 @@ class PDO {
     /** 
      * @see PHP_MANUAL#pdo-begintransaction
      */
-    function beginTransaction() {
-        $this->_driver->beginTransaction();
+    public function beginTransaction() {
+        $this->driver->beginTransaction();
     }
 
     /** 
      * @see PHP_MANUAL#pdo-commit
      */
-    function commit() {
-        $this->_driver->commit();
+    public function commit() {
+        $this->driver->commit();
     }
 
     /** 
      * @see PHP_MANUAL#pdo-exec
      */
-    function exec($query) {
-        return $this->_driver->exec($query);
+    public function exec($query) {
+        return $this->driver->exec($query);
     }
 
     /** 
      * @see PHP_MANUAL#pdo-errorcode
      */
-    function errorCode() {
-        return $this->_driver->errorCode();
+    public function errorCode() {
+        return $this->driver->errorCode();
     }
 
     /** 
      * @see PHP_MANUAL#pdo-errorinfo
      */
-    function errorInfo() {
-        return $this->_driver->errorInfo();
+    public function errorInfo() {
+        return $this->driver->errorInfo();
     }
 
     /** 
      * @see PHP_MANUAL#pdo-getattribute
      */
-    function getAttribute($attribute) {
-        return $this->_driver->getAttribute($attribute);
+    public function getAttribute($attribute) {
+        return $this->driver->getAttribute($attribute);
     }
 
     /** 
      * @see PHP_MANUAL#pdo-lastinsertid
      */
-    function lastInsertId() {
-        return $this->_driver->lastInsertId();
+    public function lastInsertId() {
+        return $this->driver->lastInsertId();
     }
 
     /** 
      * @see PHP_MANUAL#pdo-prepare
      */
-    function prepare($statement, $driver_options= array ()) {
-        return $this->_driver->prepare($statement, $driver_options= array ());
+    public function prepare($statement, $driver_options= array ()) {
+        return $this->driver->prepare($statement, $driver_options= array ());
     }
 
     /** 
      * @see PHP_MANUAL#pdo-query
      */
-    function query($query) {
-        return $this->_driver->query($query);
+    public function query($query) {
+        return $this->driver->query($query);
     }
 
     /** 
      * @see PHP_MANUAL#pdo-quote
      */
-    function quote($string, $parameter_type= PDO_PARAM_STR) {
-        return $this->_driver->quote($string, $parameter_type);
+    public function quote($string, $parameter_type= PDO::PARAM_STR) {
+        return $this->driver->quote($string, $parameter_type);
     }
 
     /** 
      * @see PHP_MANUAL#pdo-rollback
      */
-    function rollBack() {
-        $this->_driver->rollBack();
+    public function rollBack() {
+        $this->driver->rollBack();
     }
 
     /** 
      * @see PHP_MANUAL#pdo-setattribute
      */
-    function setAttribute($attribute, $value) {
-        return $this->_driver->setAttribute($attribute, $value);
+    public function setAttribute($attribute, $value) {
+        return $this->driver->setAttribute($attribute, $value);
     }
 }
 
@@ -241,18 +322,18 @@ class PDOStatement {
     /**
      * @var string The SQL query string for the statement to use.
      */
-    var $queryString= '';
+    protected $queryString= '';
 
-    var $_connection;
-    var $_dbinfo;
-    var $_persistent= false;
-    var $_result= null;
-    var $_fetchmode= PDO_FETCH_BOTH;
-    var $_errorCode= '';
-    var $_errorInfo= array (
-        PDO_ERR_NONE
+    protected $connection;
+    protected $dbinfo;
+    protected $persistent= false;
+    protected $result= null;
+    protected $fetchmode= PDO::FETCH_BOTH;
+    protected $errorCode= '';
+    protected $errorInfo= array (
+        PDO::ERR_NONE
     );
-    var $_boundParams= array ();
+    protected $boundParams= array ();
     
     /**#@+
      * A PDOStatement is created by calling PDO::prepare() and similar methods.
@@ -263,39 +344,35 @@ class PDOStatement {
      * @param array $dbinfo Meta information about the connection and driver.
      * @return PDOStatement_
      */
-    function PDOStatement($queryString, & $connection, & $dbinfo) {
-        $this->__construct($queryString, $connection, $dbinfo);
-    }
-    /** @ignore */
-    function __construct($queryString, & $connection, & $dbinfo) {
+    public function __construct($queryString, $connection, $dbinfo) {
         $this->queryString= $queryString;
-        $this->_connection= & $connection;
-        $this->_dbinfo= & $dbinfo;
+        $this->connection= $connection;
+        $this->dbinfo= $dbinfo;
     }
     /**#@-*/
 
-    function bindParam($param, & $variable, $data_type= PDO_PARAM_STR, $length= 0, $driver_options= null) {
-        $this->_boundParams[$param]['value']= $variable;
-        $this->_boundParams[$param]['type']= $data_type;
-        $this->_boundParams[$param]['length']= intval($length);
+    public function bindParam($param, & $variable, $data_type= PDO::PARAM_STR, $length= 0, $driver_options= null) {
+        $this->boundParams[$param]['value']= $variable;
+        $this->boundParams[$param]['type']= $data_type;
+        $this->boundParams[$param]['length']= intval($length);
     }
 
-    function bindValue($param, $value, $data_type= PDO_PARAM_STR) {
-        $this->_boundParams[$param]['value']= $value;
-        $this->_boundParams[$param]['type']= $data_type;
-        $this->_boundParams[$param]['length']= 0;
+    public function bindValue($param, $value, $data_type= PDO::PARAM_STR) {
+        $this->boundParams[$param]['value']= $value;
+        $this->boundParams[$param]['type']= $data_type;
+        $this->boundParams[$param]['length']= 0;
     }
 
-    function errorCode() {
-        return $this->_errorCode;
+    public function errorCode() {
+        return $this->errorCode;
     }
 
-    function errorInfo() {
-        return $this->_errorInfo;
+    public function errorInfo() {
+        return $this->errorInfo;
     }
 
-    function execute($input_parameters= null) {
-        $array= & $this->_boundParams;
+    public function execute($input_parameters= null) {
+        $array= & $this->boundParams;
         if (is_array($input_parameters) && !empty ($input_parameters)) {
             $array= $input_parameters;
         }
@@ -307,10 +384,10 @@ class PDOStatement {
                 $type= $param['type'];
                 if (!$v) {
                     switch ($type) {
-                    	case PDO_PARAM_INT:
+                    	case PDO::PARAM_INT:
                     		$v= '0';
                     		break;
-                    	case PDO_PARAM_BOOL:
+                    	case PDO::PARAM_BOOL:
                     		$v= '0';
                     		break;
                     	default:
@@ -334,7 +411,7 @@ class PDOStatement {
                 $queryString= preg_replace($tempf, $tempr, $queryString);
             }
         }
-        if (is_null($this->_result= $this->_uquery($queryString))) {
+        if (is_null($this->result= $this->uquery($queryString))) {
             $keyvars= false;
         } else {
             $keyvars= true;
@@ -342,24 +419,24 @@ class PDOStatement {
         return $keyvars;
     }
 
-    function setFetchMode($mode) {
+    public function setFetchMode($mode) {
         $result= false;
         if ($mode= intval($mode)) {
             switch ($mode) {
-                case PDO_FETCH_NUM :
-                case PDO_FETCH_ASSOC :
-                case PDO_FETCH_OBJ :
-                case PDO_FETCH_BOTH :
+                case PDO::FETCH_NUM :
+                case PDO::FETCH_ASSOC :
+                case PDO::FETCH_OBJ :
+                case PDO::FETCH_BOTH :
                 default:
                     $result= true;
-                    $this->_fetchmode= $mode;
+                    $this->fetchmode= $mode;
                     break;
             }
         }
         return $result;
     }
 
-    function closeCursor() {
+    public function closeCursor() {
         do {
            while ($this->fetch()) {}
            if (!$this->nextRowset())
@@ -367,33 +444,33 @@ class PDOStatement {
         } while (true);
     }
 
-    function bindColumn($column, & $param, $type= null, $max_length= null, $driver_option= null) { return false; }
+    public function bindColumn($column, & $param, $type= null, $max_length= null, $driver_option= null) { return false; }
 
-    function columnCount() { return false; }
+    public function columnCount() { return false; }
 
-    function getAttribute($attribute) { return false; }
+    public function getAttribute($attribute) { return false; }
 
-    function getColumnMeta($column) { return false; }
+    public function getColumnMeta($column) { return false; }
 
-    function fetch($mode= PDO_FETCH_BOTH, $cursor= null, $offset= null) { return false; }
+    public function fetch($mode= PDO::FETCH_BOTH, $cursor= null, $offset= null) { return false; }
 
-    function fetchAll($mode= PDO_FETCH_BOTH, $column_index= 0) { return false; }
+    public function fetchAll($mode= PDO::FETCH_BOTH, $column_index= 0) { return false; }
 
-    function fetchColumn($column_number= 0) { return false; }
+    public function fetchColumn($column_number= 0) { return false; }
 
-    function fetchObject($class_name= '', $ctor_args= null) { return false; }
+    public function fetchObject($class_name= '', $ctor_args= null) { return false; }
     
-    function nextRowset() { return false; }
+    public function nextRowset() { return false; }
 
-    function quote($string, $parameter_type= PDO_PARAM_STR) { return false; }
+    public function quote($string, $parameter_type= PDO::PARAM_STR) { return false; }
     
-    function rowCount() { return false; }
+    public function rowCount() { return false; }
 
-    function setAttribute($attribute, $value) { return false; }
+    public function setAttribute($attribute, $value) { return false; }
     
-    function debugDumpParams() { return false; }
+    public function debugDumpParams() { return false; }
 
-    function _setErrors($er) { return false; }
+    protected function setErrors($er) { return false; }
 
-    function _uquery(& $query) { return false; }
+    protected function uquery(& $query) { return false; }
 }
