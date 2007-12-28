@@ -35,6 +35,7 @@ pcc_builtin class PDO_mysql {
     protected $connection;
     protected $dbinfo;
     protected $persistent= false;
+    protected $autocommit = '0';
     protected $errorCode= PDO::ERR_NONE;
     protected $errorInfo= array (
         PDO::ERR_NONE
@@ -50,7 +51,7 @@ pcc_builtin class PDO_mysql {
      * @param string &$pass
      * @return PDO_mysql
      */
-    function PDO_mysql(& $host, & $db, & $user, & $pass) {
+    public function __construct($host, $db, $user, $pass) {
         if (!$this->connection= @ mysql_connect($host, $user, $pass, true)) {
             $this->setErrors('DBCON');
         } else {
@@ -68,15 +69,15 @@ pcc_builtin class PDO_mysql {
         }
     }
 
-    function errorCode() {
+    public function errorCode() {
         return $this->errorCode;
     }
 
-    function errorInfo() {
+    public function errorInfo() {
         return $this->errorInfo;
     }
 
-    function exec($query) {
+    public function exec($query) {
         $result= 0;
         if (!is_null($this->uquery($query)))
             $result= mysql_affected_rows($this->connection);
@@ -85,15 +86,15 @@ pcc_builtin class PDO_mysql {
         return $result;
     }
 
-    function lastInsertId() {
+    public function lastInsertId() {
         return mysql_insert_id($this->connection);
     }
 
-    function prepare($statement, $driver_options= array ()) {
+    public function prepare($statement, $driver_options= array ()) {
         return new PDOStatement_mysql($statement, $this->connection, $this->dbinfo);
     }
 
-    function query($statement) {
+    public function query($statement) {
         $args= func_get_args();
         $result= false;
         if ($stmt= new PDOStatement_mysql($statement, $this->connection, $this->dbinfo)) {
@@ -101,17 +102,13 @@ pcc_builtin class PDO_mysql {
                 $stmt->setFetchMode($args[1]);
             }
             $stmt->execute();
-            $result= & $stmt;
+            $result= $stmt;
         }
         return $result;
     }
 
-    function quote($string, $parameter_type= PDO::PARAM_STR) {
-        if (function_exists('mysql_real_escape_string') && $this->connection) {
-            $string= mysql_real_escape_string($string, $this->connection);
-        } else {
-            $string= mysql_escape_string($string);
-        }
+    public function quote($string, $parameter_type= PDO::PARAM_STR) {
+        $string= mysql_real_escape_string($string, $this->connection);
         switch ($parameter_type) {
         	case PDO::PARAM_NULL:
                 break;
@@ -123,7 +120,7 @@ pcc_builtin class PDO_mysql {
         return $string;
     }
 
-    function getAttribute($attribute) {
+    public function getAttribute($attribute) {
         $result= false;
         switch ($attribute) {
             case PDO::ATTR_SERVER_INFO :
@@ -141,11 +138,14 @@ pcc_builtin class PDO_mysql {
             case PDO::ATTR_DRIVER_NAME :
                 $result= 'mysql';
                 break;
+            case PDO::ATTR_AUTOCOMMIT:
+                $result = (bool)$this->autocommit;
+                break;
         }
         return $result;
     }
 
-    function setAttribute($attribute, $value) {
+    public function setAttribute($attribute, $value) {
         $result= false;
         if ($attribute === PDO::ATTR_PERSISTENT && $value != $this->persistent) {
             $result= true;
@@ -159,22 +159,26 @@ pcc_builtin class PDO_mysql {
             }
             mysql_select_db($this->dbinfo[3], $this->connection);
         }
+        if ($attribute === PDO::ATTR_AUTOCOMMIT) {
+            $this->autocommit = ($value ? '1' : '0');
+            $this->exec("SET AUTOCOMMIT=".$this->autocommit);
+        }
         return $result;
     }
 
-    function beginTransaction() {
-        return false;
+    public function beginTransaction() {
+        return $this->exec('BEGIN');
     }
 
-    function commit() {
-        return false;
+    public function commit() {
+        return $this->exec('COMMIT');
     }
 
-    function rollBack() {
-        return false;
+    public function rollBack() {
+        return $this->exec('ROLLBACK');
     }
 
-    function _setErrors($er) {
+    protected function setErrors($er) {
         if (!is_resource($this->connection)) {
             $errno= mysql_errno();
             $errst= mysql_error();
@@ -182,7 +186,7 @@ pcc_builtin class PDO_mysql {
             $errno= mysql_errno($this->connection);
             $errst= mysql_error($this->connection);
         }
-        $this->errorCode= & $er;
+        $this->errorCode = $er;
         $this->errorInfo= array (
             $this->errorCode,
             $errno,
@@ -190,7 +194,7 @@ pcc_builtin class PDO_mysql {
         );
     }
 
-    function _uquery(& $query) {
+    protected function uquery($query) {
         if (!$query= @ mysql_query($query, $this->connection)) {
             $this->setErrors('SQLER');
             $query= null;
@@ -206,20 +210,20 @@ pcc_builtin class PDO_mysql {
  */
 pcc_builtin class PDOStatement_mysql extends PDOStatement {
     
-    function __construct($queryString, $connection, $dbinfo) {
+    public function __construct($queryString, $connection, $dbinfo) {
         parent::__construct($queryString, $connection, $dbinfo);
     }
 
-    function columnCount() {
+    public function columnCount() {
         $result= 0;
         if (!is_null($this->result))
             $result= mysql_num_fields($this->result);
         return $result;
     }
 
-    function fetch($mode= PDO::FETCH_BOTH, $cursor= null, $offset= null) {
+    public function fetch($mode= PDO::FETCH_BOTH, $cursor= null, $offset= null) {
         if (func_num_args() == 0)
-            $mode= & $this->fetchmode;
+            $mode=$this->fetchmode;
         $result= false;
         if (!is_null($this->result)) {
             switch ($mode) {
@@ -243,9 +247,9 @@ pcc_builtin class PDOStatement_mysql extends PDOStatement {
         return $result;
     }
 
-    function fetchAll($mode= PDO::FETCH_BOTH, $column_index= 0) {
+    public function fetchAll($mode= PDO::FETCH_BOTH, $column_index= 0) {
         if (func_num_args() == 0)
-            $mode= & $this->fetchmode;
+            $mode= $this->fetchmode;
         $result= array ();
         if (!is_null($this->result)) {
             switch ($mode) {
@@ -276,7 +280,7 @@ pcc_builtin class PDOStatement_mysql extends PDOStatement {
         return $result;
     }
 
-    function fetchColumn($column_number= 0) {
+    public function fetchColumn($column_number= 0) {
         $result= false;
         if (!is_null($this->result)) {
             $result= @ mysql_fetch_row($this->result);
@@ -288,7 +292,7 @@ pcc_builtin class PDOStatement_mysql extends PDOStatement {
         return $result;
     }
 
-    function getAttribute($attribute) {
+    public function getAttribute($attribute) {
         $result= false;
         switch ($attribute) {
             case PDO::ATTR_SERVER_INFO :
@@ -310,12 +314,8 @@ pcc_builtin class PDOStatement_mysql extends PDOStatement {
         return $result;
     }
 
-    function quote($string, $parameter_type= PDO::PARAM_STR) {
-        if (function_exists('mysql_real_escape_string') && $this->connection) {
-            $string= mysql_real_escape_string($string, $this->connection);
-        } else {
-            $string= mysql_escape_string($string);
-        }
+    public function quote($string, $parameter_type= PDO::PARAM_STR) {
+        $string= mysql_real_escape_string($string, $this->connection);
         switch ($parameter_type) {
             case PDO::PARAM_NULL:
                 break;
@@ -327,11 +327,11 @@ pcc_builtin class PDOStatement_mysql extends PDOStatement {
         return $string;
     }
 
-    function rowCount() {
+    public function rowCount() {
         return mysql_affected_rows($this->connection);
     }
 
-    function setAttribute($attribute, $value) {
+    public function setAttribute($attribute, $value) {
         $result= false;
         if ($attribute === PDO::ATTR_PERSISTENT && $value != $this->persistent) {
             $result= true;
@@ -348,7 +348,7 @@ pcc_builtin class PDOStatement_mysql extends PDOStatement {
         return $result;
     }
 
-    protected function uquery(& $query) {
+    protected function uquery($query) {
         if (!@ $query= mysql_query($query, $this->connection)) {
             $this->setErrors('SQLER');
             $query= null;
@@ -364,7 +364,7 @@ pcc_builtin class PDOStatement_mysql extends PDOStatement {
             $errno= mysql_errno($this->connection);
             $errst= mysql_error($this->connection);
         }
-        $this->errorCode= & $er;
+        $this->errorCode= $er;
         $this->errorInfo= array (
             $this->errorCode,
             $errno,
@@ -373,3 +373,5 @@ pcc_builtin class PDOStatement_mysql extends PDOStatement {
         $this->result= null;
     }
 }
+
+?>
