@@ -718,6 +718,7 @@ STD_LIBS
 FCGI_CFLAGS
 PCC_EXT_LIST
 PDO_DRIVER_LIST
+PDO_DRIVER_ARRAY
 srcdir
 CONF_HOME
 PCC_LIBS
@@ -3125,7 +3126,8 @@ with_pdo_sqlite=no
 EXT_LIST="standard curl"
 PCC_EXT_LIST="php-std php-curl"
 PHP_EXT_LIST=""
-PDO_DRIVER_LIST=""
+PDO_DRIVER_LIST=""   # for use in Makefile, actual source files, delimited by space
+PDO_DRIVER_ARRAY=""  # for use in PHP array, quoted and delimited by comma
 BE_LIST="micro"
 
 # bigloo
@@ -3651,6 +3653,7 @@ fi
 
            with_pdo_mysql=yes
            PDO_DRIVER_LIST="$PDO_DRIVER_LIST pdo_mysql"
+           PDO_DRIVER_ARRAY="$PDO_DRIVER_ARRAY 'pdo_mysql',"
          fi
 
 fi
@@ -4206,6 +4209,7 @@ fi
 
    with_pdo_sqlite=yes
    PDO_DRIVER_LIST="$PDO_DRIVER_LIST pdo_sqlite"
+   PDO_DRIVER_ARRAY="$PDO_DRIVER_ARRAY 'pdo_sqlite',"
 fi
 
 # ODBC
@@ -5375,6 +5379,8 @@ PCC_EXT_LIST=$PCC_EXT_LIST
 
 PDO_DRIVER_LIST=$PDO_DRIVER_LIST
 
+PDO_DRIVER_ARRAY=$PDO_DRIVER_ARRAY
+
 
 prefix=$prefix
 
@@ -5457,7 +5463,7 @@ ac_config_files="$ac_config_files webconnect/Makefile"
 
 ac_config_files="$ac_config_files runtime/php-ext/pdo/Makefile"
 
-ac_config_files="$ac_config_files runtime/php-ext/pdo/pdo_init.php"
+ac_config_files="$ac_config_files runtime/php-ext/pdo/pdo_class.php"
 
 
 #AC_CONFIG_SUBDIRS([tools/libwebserver])
@@ -6021,7 +6027,7 @@ do
     "sa-tests/pcc-test.conf") CONFIG_FILES="$CONFIG_FILES sa-tests/pcc-test.conf" ;;
     "webconnect/Makefile") CONFIG_FILES="$CONFIG_FILES webconnect/Makefile" ;;
     "runtime/php-ext/pdo/Makefile") CONFIG_FILES="$CONFIG_FILES runtime/php-ext/pdo/Makefile" ;;
-    "runtime/php-ext/pdo/pdo_init.php") CONFIG_FILES="$CONFIG_FILES runtime/php-ext/pdo/pdo_init.php" ;;
+    "runtime/php-ext/pdo/pdo_class.php") CONFIG_FILES="$CONFIG_FILES runtime/php-ext/pdo/pdo_class.php" ;;
 
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
@@ -6228,6 +6234,7 @@ STD_LIBS!$STD_LIBS$ac_delim
 FCGI_CFLAGS!$FCGI_CFLAGS$ac_delim
 PCC_EXT_LIST!$PCC_EXT_LIST$ac_delim
 PDO_DRIVER_LIST!$PDO_DRIVER_LIST$ac_delim
+PDO_DRIVER_ARRAY!$PDO_DRIVER_ARRAY$ac_delim
 srcdir!$srcdir$ac_delim
 CONF_HOME!$CONF_HOME$ac_delim
 PCC_LIBS!$PCC_LIBS$ac_delim
@@ -6236,7 +6243,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 13; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 14; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

@@ -39,7 +39,8 @@ with_pdo_sqlite=no
 EXT_LIST="standard curl"
 PCC_EXT_LIST="php-std php-curl"
 PHP_EXT_LIST=""
-PDO_DRIVER_LIST=""
+PDO_DRIVER_LIST=""   # for use in Makefile, actual source files, delimited by space
+PDO_DRIVER_ARRAY=""  # for use in PHP array, quoted and delimited by comma
 BE_LIST="micro"
 
 # bigloo
@@ -175,6 +176,7 @@ AS_IF([test "x$with_mysql" != xno],
             ])
            with_pdo_mysql=yes
            PDO_DRIVER_LIST="$PDO_DRIVER_LIST pdo_mysql"
+           PDO_DRIVER_ARRAY="$PDO_DRIVER_ARRAY 'pdo_mysql',"
          fi
 	 ])
 
@@ -193,6 +195,7 @@ if test "x$with_sqlite3" == xyes; then
     ])
    with_pdo_sqlite=yes
    PDO_DRIVER_LIST="$PDO_DRIVER_LIST pdo_sqlite"
+   PDO_DRIVER_ARRAY="$PDO_DRIVER_ARRAY 'pdo_sqlite',"
 fi
 
 # ODBC
@@ -352,6 +355,7 @@ AC_SUBST(FCGI_CFLAGS, $FCGI_CFLAGS)
 AC_SUBST(FCGI_LIBS, $FCGI_LIBS)
 AC_SUBST(PCC_EXT_LIST, $PCC_EXT_LIST)
 AC_SUBST(PDO_DRIVER_LIST, $PDO_DRIVER_LIST)
+AC_SUBST(PDO_DRIVER_ARRAY, $PDO_DRIVER_ARRAY)
 
 AC_SUBST(prefix, $prefix)
 AC_SUBST(exec_prefix, $exec_prefix)
@@ -374,7 +378,7 @@ AC_CONFIG_FILES([doc/pcc.conf])
 AC_CONFIG_FILES([sa-tests/pcc-test.conf])
 AC_CONFIG_FILES([webconnect/Makefile])
 AC_CONFIG_FILES([runtime/php-ext/pdo/Makefile])
-AC_CONFIG_FILES([runtime/php-ext/pdo/pdo_init.php])
+AC_CONFIG_FILES([runtime/php-ext/pdo/pdo_class.php])
 
 #AC_CONFIG_SUBDIRS([tools/libwebserver])
 AC_OUTPUT
