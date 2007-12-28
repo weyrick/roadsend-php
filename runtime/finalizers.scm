@@ -47,7 +47,7 @@
       (set! *finalization-enabled?* #t)
       (register-exit-function!
        (lambda (status)
-	  (gc-force-finalization (lambda () (> *finalizers-left* 0)))
+	  (gc-force-finalization (lambda () (= *finalizers-left* 0)))
 	  status)))
    (set! *finalizers-left* (+ *finalizers-left* 1))
    (gc-register-finalizer
