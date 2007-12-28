@@ -48,7 +48,7 @@
  * @todo Implement additional driver support; currently only supports MySQL,
  * PostgreSQL, and SQLite
  */
-class PDO {
+pcc_builtin class PDO {
 
     const PARAM_NULL = 0;
     const PARAM_INT = 1;
@@ -133,7 +133,7 @@ class PDO {
 
     const MYSQL_ATTR_USE_BUFFERED_QUERY = 0;
 
-    const DB_DRIVER_LIST = array(@PDO_DRIVER_LIST@
+    const DB_DRIVER_LIST = array(@PDO_DRIVER_ARRAY@
                                 );
     
     private $driver;
@@ -148,7 +148,7 @@ class PDO {
      */
     public function getAvailableDrivers() {
         // these are really lib names, we need to strip the pdo_ prefix
-        foreach ($self::DB_DRIVER_LIST as $dName) {
+        foreach (self::DB_DRIVER_LIST as $dName) {
             $driverList[] = substr($dName,4);
         }
         return $driverList;
@@ -318,7 +318,7 @@ class PDO {
  * @license http://opensource.org/licenses/gpl-license.php GNU Public License
  * @package xpdo.pdo
  */
-class PDOStatement {
+pcc_builtin class PDOStatement {
     /**
      * @var string The SQL query string for the statement to use.
      */

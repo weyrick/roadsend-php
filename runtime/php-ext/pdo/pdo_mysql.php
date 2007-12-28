@@ -30,7 +30,7 @@
  * 
  * @package xpdo.pdo
  */
-class PDO_mysql {
+pcc_builtin class PDO_mysql {
     
     protected $connection;
     protected $dbinfo;
@@ -204,7 +204,7 @@ class PDO_mysql {
  * 
  * @package xpdo.pdo
  */
-class PDOStatement_mysql extends PDOStatement {
+pcc_builtin class PDOStatement_mysql extends PDOStatement {
     
     function __construct($queryString, $connection, $dbinfo) {
         parent::__construct($queryString, $connection, $dbinfo);

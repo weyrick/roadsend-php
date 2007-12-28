@@ -7,8 +7,9 @@ pcc_register_extension('pdo','php-pdo','1.0.0');
 // PDO, PDOStatement, PDOException
 require('pdo_class.php');
 
+// individual db driver implementations
 foreach (PDO::DB_DRIVER_LIST as $driver) {
-    require($driver.'.php');
+   require($driver.'.php');
 }
 
 ?>
