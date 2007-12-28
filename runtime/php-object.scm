@@ -661,13 +661,13 @@ values the values."
 (define (php-object-instanceof a b)
    (let ((l (maybe-unbox a))
 	 (r (maybe-unbox b)))
-      (unless (php-object? l)
-	 (php-error "instanceof expects an object instance"))
-      (if (php-object? r)
-	  ; use object to get class to compare against
-	  (php-object-is-a l (php-object-class r))
-	  ; consider b as a literal class name
-	  (php-object-is-a l (mkstr r)))))
+      (if (php-object? l)
+	  (if (php-object? r)
+	      ; use object to get class to compare against
+	      (php-object-is-a l (php-object-class r))
+	      ; consider b as a literal class name
+	      (php-object-is-a l (mkstr r)))
+	  #f)))
 
 (define (php-object-compare o1 o2 identical?)
    (internal-object-compare o1 o2 identical? (make-grasstable)))

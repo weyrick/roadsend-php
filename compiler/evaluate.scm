@@ -1170,9 +1170,9 @@ gives the debugger a chance to run."
 
 (define-method (evaluate node::comparator)
    (set! *PHP-LINE* (car (ast-node-location node)))
-   (with-access::comparator node (op p q)
-      (let ((p (d/evaluate p))
-	    (q (d/evaluate q)))
+   (with-access::comparator node (op (l p) (r q))
+      (let ((p (d/evaluate l))
+	    (q (d/evaluate r)))
 	 (ecase op
 	    ((equalp) (equalp p q))
 	    ((not-equal-p) (not (equalp p q)))
@@ -1182,7 +1182,11 @@ gives the debugger a chance to run."
 	    ((less-than-or-equal-p) (less-than-or-equal-p p q))
 	    ((greater-than-p) (greater-than-p p q))
 	    ((greater-than-or-equal-p) (greater-than-or-equal-p p q))
-	    ((instanceof) (php-object-instanceof p q))))))
+	    ((instanceof) (begin
+			     (when (lyteral? l)
+				(php-error "instanceof expects an object instance"))
+			     (php-object-instanceof p q))
+	    )))))
 
 (define-method (evaluate node::boolean-not)
    (set! *PHP-LINE* (car (ast-node-location node)))
