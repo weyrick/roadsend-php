@@ -241,7 +241,10 @@
      
      ,@(if main?
 	   `((define (main argv)
-;		(set! *debug-level* ,*debug-level*)
+		,@(if *RAVEN-DEVEL-BUILD*
+		      '((when (getenv "PCC_DEBUG_LEVEL")
+			   (set! *debug-level* (mkfixnum (getenv "PCC_DEBUG_LEVEL")))))
+		      '())		
 		,@(if *source-level-profile*
 		      '((begin (set! *source-level-profile* #t)
 			 (register-exit-function! (lambda (s) (finish-profiling) s))))
