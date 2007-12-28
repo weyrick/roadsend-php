@@ -437,7 +437,7 @@ Copies containers.  Keys are not copied."
                                     (if (eqv? old-value hash)
                                         hash
                                         (copy-php-hash old-value #f)))
-                                   ((php-object? old-value) (copy-php-object old-value #f))
+                                   ((php-object? old-value) old-value) ; (copy-php-object old-value #f)
                                    (else old-value))))))
 		  (let ((new-entry
 			 (%php-hash-insert! hash ref? (%entry-hashnumber old-entry)
