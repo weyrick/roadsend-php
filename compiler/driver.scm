@@ -46,6 +46,7 @@
     load-web-libs
     (php-eval code)
     (init-eval-lib)
+    (pcc_memo_stats)
     (dump-tokens input-file)
     (dump-ast input-file)
     (dump-containers input-file)
@@ -90,6 +91,13 @@
                   (fprint (current-error-port) "*interrupted*")
                   (exit 1)))))
 
+
+(defbuiltin (pcc_memo_stats)
+   (let ((retval (make-php-hash)))
+      (php-hash-insert! retval "hits" (convert-to-number %%memo-count))
+      (php-hash-insert! retval "missess" (convert-to-number %%memo-reset-count))
+      (php-hash-insert! retval "resets" (convert-to-number %%memo-miss-count))
+      retval))
 
 ; load runtime libraries
 (define *libraries-loaded* (make-hashtable)) ; prevent dupes based on name, without _s or _u 
