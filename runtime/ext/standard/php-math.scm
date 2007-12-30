@@ -498,7 +498,7 @@
 ;; pow -- Exponential expression
 (defbuiltin (pow base power)
 ;  (_c-pow  (mkflo base) (mkflo power)))
-  (php-expt (mkfix-or-flonum base) (mkfix-or-flonum power)))
+  (convert-to-number (php-expt (mkfix-or-flonum base) (mkfix-or-flonum power))))
 
 ;; rad2deg --  Converts the radian number to the equivalent number in degrees
 (defbuiltin (rad2deg num)
