@@ -20,16 +20,6 @@
 #ifndef OPQMTH
 #define OPQMTH
 
-typedef union _phpnum_val {
-  long lval;
-  double dval;
-} phpnum_val;
-
-typedef struct _phpnum {
-  char type;
-  phpnum_val value;
-} phpnum;
-
 #define LONG_TYPE   0
 #define DOUBLE_TYPE 1
 
