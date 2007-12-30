@@ -29,6 +29,9 @@ class myClass {
     var $p5 = NULL;
     var $p6 = false;
 
+    function __toString() {
+        return "[myClass instance]";
+    }
     function hello() {
         echo 'hello';
     }
@@ -98,7 +101,7 @@ $d = new myClass2();
 $sd = serialize($d);
 echo $sd;
 $e = unserialize($sd);
-var_dump($e);
+print_r($e);
 $e->hello();
 
 ?>

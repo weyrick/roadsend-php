@@ -107,9 +107,10 @@ int php_getservbyname(char *name, char *protocol) {
 
 long php_ip2long(char *ip_address) {
   unsigned long ip = inet_addr(ip_address);
-  if (ip == INADDR_NONE)
-    return -1;
-  else
+  // XXX php5 no longer does this? -weyrick 12/07
+  //  if (ip == INADDR_NONE)
+  //  return -1;
+  //else
     return ntohl(ip);
 }
 
