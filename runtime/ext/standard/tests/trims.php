@@ -8,7 +8,7 @@ function exercise_trims($string, $chars)
 
   echo "\n\n";
 
-  echo $string.trim().$strings; echo $string.ltrim().$strings; echo $string.rtrim().$strings; echo $string.chop().$strings; echo "\n\n";
+    echo $string.$strings; echo $string.$strings; echo $string.$strings; echo $string.$strings; echo "\n\n";
   echo $string.trim($chars).$strings; echo $string.ltrim($chars).$strings; echo $string.rtrim($chars).$strings; echo $string.chop($chars).$strings; echo "\n\n";
   echo $string.trim('').$strings; echo $string.ltrim('').$strings; echo $string.rtrim('').$strings; echo $string.chop('').$strings; echo "\n\n";
 
