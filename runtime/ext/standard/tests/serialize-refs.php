@@ -5,7 +5,7 @@ function test_ser($val) {
     $sv = serialize($val);
     echo "val is $val, type: ".gettype($val)." serialize is \n$sv\n";
     $usv = unserialize($sv);
-    var_dump($usv);
+    print_r($usv);
 
     return $usv;
 }
@@ -31,6 +31,9 @@ class myClass {
     var $p5 = NULL;
     var $p6 = false;
 
+    function __toString() {
+        return "[myClass instance]";
+    }
     function multi() {
         global $globa;
         $this->p5 =& new zot();
@@ -61,7 +64,7 @@ $b = test_ser($a);
 
 // test ref assignment from unserialized array
 $b['luck'] = 'new val';
-var_dump($b);
+print_r($b);
 
 $sing =& $globa;
 $b = test_ser($sing);
@@ -77,7 +80,7 @@ $c->multi();
 $d = test_ser($c);
 
 $d->p6 = 'new val';
-var_dump($d);
+print_r($d);
 
 $a = array('hi', &$a);
 test_ser($a);
