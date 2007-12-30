@@ -1,6 +1,6 @@
 <?
 
-echo curl_version();
+var_dump(curl_version());
 
 echo "initing\n";
 $ch = curl_init();

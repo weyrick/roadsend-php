@@ -709,7 +709,19 @@
 
 ; curl_version
 (defbuiltin (curl_version)
-   (ccurl_version))
+   (let ((vdata (ccurl_version_info (CURLversion-CURLVERSION_NOW)))
+	 (rval (make-php-hash)))
+      (php-hash-insert! rval "version_number" (convert-to-number (curl_version_info_data*-version_num vdata)))
+      (php-hash-insert! rval "age" (convert-to-number 3))
+      (php-hash-insert! rval "features" (convert-to-number (curl_version_info_data*-features vdata)))
+      (php-hash-insert! rval "ssl_version_number" (convert-to-number (curl_version_info_data*-ssl_version_num vdata)))
+      (php-hash-insert! rval "version" (curl_version_info_data*-version vdata))
+      (php-hash-insert! rval "host" (curl_version_info_data*-host vdata))
+      (php-hash-insert! rval "ssl_version" (curl_version_info_data*-ssl_version vdata))
+      (php-hash-insert! rval "libz_version" (curl_version_info_data*-libz_version vdata))
+      (php-hash-insert! rval "protocols" "")      
+      rval))
+;   (ccurl_version))
 
 ; curl_init
 (defbuiltin (curl_init (url 'unpassed))

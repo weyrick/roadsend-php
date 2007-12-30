@@ -517,7 +517,8 @@
 				(CURLVERSION_FIRST "CURLVERSION_FIRST")
 				(CURLVERSION_SECOND "CURLVERSION_SECOND")
 				(CURLVERSION_THIRD "CURLVERSION_THIRD")
-				(CURLVERSION_LAST "CURLVERSION_LAST")) "long")
+				(CURLVERSION_LAST "CURLVERSION_LAST")
+				(CURLVERSION_NOW "CURLVERSION_NOW")) "long")
     (type CURLversion curl-bindings__e1022 "CURLversion")
     (type s-curl-bindings__s1001 (struct
 				  (age::CURLversion "age")
