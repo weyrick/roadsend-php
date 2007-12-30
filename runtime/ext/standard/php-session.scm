@@ -42,7 +42,7 @@
     (session_regenerate_id)
     (session_register . var1-n)
     (session_save_path newpath)
-    (session_set_cookie_params lifetime path domain secure)
+    (session_set_cookie_params lifetime path domain secure httponly)
     (session_set_save_handler open close read write destroy gc)
     (session_start)
     (session_unregister var)
@@ -95,6 +95,7 @@
    cookie-path
    cookie-domain
    cookie-secure
+   cookie-httponly
    fd              ; session file descriptor for read/write/lock
    size            ; session file size
    php-open        ; php level handlers
@@ -124,6 +125,7 @@
    (session-cookie-path-set! *current-session* (get-ini-entry "session.cookie_path"))
    (session-cookie-domain-set! *current-session* (get-ini-entry "session.cookie_domain"))
    (session-cookie-secure-set! *current-session* (get-ini-entry "session.cookie_secure"))
+   (session-cookie-httponly-set! *current-session* #f)
    (session-php-open-set! *current-session* #f)
    (session-php-close-set! *current-session* #f)
    (session-php-read-set! *current-session* #f)
@@ -435,6 +437,7 @@
       (php-hash-insert! params "path" (mkstr (session-cookie-path *current-session*)))
       (php-hash-insert! params "domain" (mkstr (session-cookie-domain *current-session*)))
       (php-hash-insert! params "secure" (convert-to-boolean (session-cookie-secure *current-session*)))
+      (php-hash-insert! params "httponly" (convert-to-boolean (session-cookie-httponly *current-session*)))
       params))
 
 ; session_id -- Get and/or set the current session id
@@ -494,7 +497,7 @@
 	  oldpath)))
 
 ; session_set_cookie_params --  Set the session cookie parameters
-(defbuiltin (session_set_cookie_params lifetime (path 'unpassed) (domain 'unpassed) (secure 'unpassed))
+(defbuiltin (session_set_cookie_params lifetime (path 'unpassed) (domain 'unpassed) (secure 'unpassed) (httponly 'unpassed))
    (session-cookie-lifetime-set! *current-session* (convert-to-integer lifetime))
    (unless (eqv? path 'unpassed)
       (session-cookie-path-set! *current-session* (mkstr path)))
@@ -502,6 +505,8 @@
       (session-cookie-domain-set! *current-session* (mkstr domain)))
    (unless (eqv? secure 'unpassed)
       (session-cookie-secure-set! *current-session* (convert-to-boolean secure)))
+   (unless (eqv? httponly 'unpassed)
+      (session-cookie-httponly-set! *current-session* (convert-to-boolean httponly)))
    #t)
    
 ; session_set_save_handler --  Sets user-level session storage functions

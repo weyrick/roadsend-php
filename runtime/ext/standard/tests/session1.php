@@ -1,7 +1,7 @@
 <?php
 // page1.php
 
-echo "save path is ".session_save_path()."\n";
+//echo "save path is ".session_save_path()."\n";
 
 session_save_path("/tmp/foo");
 
@@ -79,18 +79,18 @@ $_SESSION['myobj'] = new aclass();
 $_SESSION['undef'] = 'erase';
 unset($_SESSION['undef']);
 
-var_dump($_SESSION);
+print_r($_SESSION);
 
 $vs= session_encode();
 echo $vs;
 
 session_unset();
 
-var_dump($_SESSION);
+print_r($_SESSION);
 
 echo session_encode();
 
 session_decode($vs);
-var_dump($_SESSION);
+print_r($_SESSION);
 
 ?> 
