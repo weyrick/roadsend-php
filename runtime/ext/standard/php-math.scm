@@ -480,7 +480,7 @@
 
 (define (php-expt base power)
   (define (maybe-integer-expt acc pwr) ;expects integer pwr>=1
-    (debug-trace 0 "acc is " acc ", pwr is " pwr ", is it fixnum? " (fixnum? acc) " or flonum? " (flonum? acc))
+;    (debug-trace 0 "acc is " acc ", pwr is " pwr ", is it fixnum? " (fixnum? acc) " or flonum? " (flonum? acc))
     (if (fixnum? acc)
         (cond ((= pwr 1) acc)
               ((even? pwr) (maybe-integer-expt (onum*-bgl acc acc) (/ pwr 2)))

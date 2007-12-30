@@ -424,11 +424,16 @@ values the values."
 	  (%php-class-method-reflection the-class))))
 
 (define (php-class-method-exists? class-name method-name)
-   (let ((mlist (php-class-methods class-name)))
-      (if mlist ;is this test REALLY necessary?
-;	  (php-hash-in-array? mlist (string-downcase (mkstr method-name)) #f)
-          (php-hash-in-array? mlist (mkstr method-name) #f)
+   (let ((the-class (%lookup-class class-name)))
+      (if the-class
+	  (not (eqv? (%lookup-method the-class method-name) #f))
 	  #f)))
+
+;   (let ((mlist (php-class-methods class-name)))
+;      (if mlist ;is this test REALLY necessary?
+;	  (php-hash-in-array? mlist (string-downcase (mkstr method-name)) #f)
+;          (php-hash-in-array? mlist (mkstr method-name) #f)
+;	  #f)))
 
 (define (method-minimum-arity method)
    ;;one less than the procedure arity, since the first argument is $this

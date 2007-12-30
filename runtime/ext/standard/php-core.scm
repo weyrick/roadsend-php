@@ -1196,8 +1196,8 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 ; method_exists -- Checks if the class method exists
 (defbuiltin (method_exists obj method-name)
    (if (php-object? obj)
-       (php-class-method-exists? (php-object-class obj) method-name)
-       #f))
+       (php-class-method-exists? (php-object-class obj) (mkstr method-name))
+       (php-class-method-exists? (mkstr obj) (mkstr method-name))))
 
 ;;;;;
 
