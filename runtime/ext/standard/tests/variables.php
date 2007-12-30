@@ -28,6 +28,9 @@ var_dump($multi);
 
 class tclass {
     var $a;
+    function __toString() {
+        return "[class ".__CLASS__."]";
+    }
     function tclass() {
         //    $this->a=1;
         $this->a = array('test',array('hi'=>'there'));
@@ -59,7 +62,7 @@ $a = array('string' => 'test',
            'null' => NULL,
            'double' => 3.21,
            'array' => array('a'),
-           'object' => $obj,
+ //           'object' => $obj,
            'boolean' => false);
 
 $lastkey=NULL;
