@@ -35,8 +35,7 @@
     )
    (extern
     (include "opaque-math.h")
-    ;onum stands for opaque number.  we use void* instead of phpnum* so that
-    ;nobody needs to include opaque-math.h.
+    ;onum stands for opaque number.
     (onum+::onum (a::onum b::onum) "phpadd")
     (onum-::onum (a::onum b::onum) "phpsub")
     (onum*::onum (a::onum b::onum) "phpmul")
