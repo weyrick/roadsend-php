@@ -95,8 +95,8 @@
 (defbuiltin (pcc_memo_stats)
    (let ((retval (make-php-hash)))
       (php-hash-insert! retval "hits" (convert-to-number %%memo-count))
-      (php-hash-insert! retval "missess" (convert-to-number %%memo-reset-count))
-      (php-hash-insert! retval "resets" (convert-to-number %%memo-miss-count))
+      (php-hash-insert! retval "misses" (convert-to-number %%memo-miss-count))
+      (php-hash-insert! retval "resets" (convert-to-number %%memo-reset-count))
       retval))
 
 ; load runtime libraries
