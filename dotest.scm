@@ -46,10 +46,6 @@
 (define *diff* (cond-expand (PCC_MINGW "diff -u -w ") (else "diff -u ")))
 
 
-(flush-fprint (current-error-port) "using roadsend command: " *phpoo*)
-(flush-fprint (current-error-port) "using zend command    : " *php*)
-
-
 ; optimize?
 (when (getenv "OPTIMIZE")
    (flush-fprint (current-error-port) "compiling all tests with optimization")
@@ -59,7 +55,9 @@
 (when (getenv "TEST_CYCLES")
    (flush-fprint (current-error-port) (format "operating with ~a test cycles" (getenv "TEST_CYCLES")))) 
 
-;XXX this is temporary
+(flush-fprint (current-error-port) "using roadsend command: " *phpoo*)
+(flush-fprint (current-error-port) "using zend command    : " *php*)
+
 (define *phpoo-interpreter* (string-append "pcc " (or (getenv "PCC_OPTS") "") " -f "))
 
 (define *run* 0)
