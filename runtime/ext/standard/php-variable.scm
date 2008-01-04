@@ -50,7 +50,7 @@
     (unserialize var)
     ;unset  (unset is not a function)
     (var_dump . vars)
-    ;(var_export var)
+    (var_export var return-result)
     ;(is_callable var syntax_only callable_name)
     (init-php-variable-lib)))
 
@@ -564,9 +564,75 @@
 
 
 ; var_export -- Outputs or returns a string representation of avariable
-;(defbuiltin (var_export var)
-;   (error 'var_export "This function is not yet implemented." var))
-
+(defbuiltin (var_export var (return-result #f))
+   (letrec ((dump-hash-entries
+	     ;dump a php-hash to a string and return that
+	     (lambda (hash seen indent)
+		(let ((entries ""))
+		   (php-hash-for-each-with-ref-status
+		    hash
+		    (lambda (key val ref?)
+		       (set! entries 
+			     (mkstr entries  "  " indent
+				    (if (string? key)
+					(mkstr "'" key "'")
+					key)
+				    " => " 
+				    (recursive-var-export val seen (mkstr "  " indent) ref? #t)))))
+		   entries)))
+	    (dump-object-entries
+	     ;dump a php-object to a string and return that
+	     (lambda (hash seen indent)
+		(let ((entries ""))
+		   (php-object-for-each-with-ref-status
+		    hash
+		    (lambda (key val ref?)
+		       ; demangle if necessary
+		       (when (string-index key #\:)
+			  (set! key (car (string-split key ":"))))
+		       (set! entries 
+			     (mkstr entries  "   " indent
+				    (if (string? key)
+					(mkstr "'" key "'")
+					key)
+				    " => "
+				    (recursive-var-export val seen (mkstr "  " indent) ref? #t)))))
+		   entries)))
+	    (recursive-var-export
+	     (lambda (var seen indent ref? array-entry?)
+		(if (skip? seen var)
+		    (mkstr indent "*RECURSION*\n")
+		    (let ((rtag (if ref? "&" ""))
+			  (line-end (if array-entry? ",\n" (if (string=? indent "") "" "\n")))
+			  (indent (if (or (not array-entry?)
+					  (and array-entry?
+					       (is_array var)))
+				      indent)))
+		       (cond
+			  ((is_null var) (mkstr indent rtag "NULL" line-end))
+			  ((is_bool var) (mkstr indent rtag (if var "true" "false") line-end))
+			  ((is_int var) (mkstr indent rtag var line-end))
+			  ((is_float var) 
+                           (mkstr indent rtag (onum->string/g-vardump var *float-precision*) line-end))
+			  ((is_string var) (mkstr indent rtag "'" var "'" line-end))
+			  ((is_array var)
+			   (visit seen var)
+			   (let ((entries (dump-hash-entries var seen indent)))
+			      (leave seen var)
+			      (mkstr (if array-entry? "\n" "") indent rtag "array (\n" entries indent ")" line-end)))
+			  ((is_object var)
+			   (visit seen var) ;)
+			   (let ((entries (dump-object-entries var seen indent)))
+			      (leave seen var) 
+			      (mkstr (if array-entry? "\n" "") indent rtag (php-object-class var) "::__set_state(array(\n" entries indent "))" line-end)))
+			  (else (mkstr ""))))))))
+      (let ((ret (recursive-var-export var (make-grasstable) "" #f #f)))
+	 (if return-result
+	     ret
+	     (begin
+		(echo ret)
+		NULL)))))
+	     
 ; is_callable --  Find out whether the argument is a valid callable construct
 ;(defbuiltin (is_callable var syntax_only callable_name)
 ;   (error 'is_callable "This function is not yet implemented." var))
