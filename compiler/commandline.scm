@@ -369,10 +369,10 @@
        ; 	 (("--show-copies" ;(help "Dump the syntax tree produced by the parser, after type inference")
        ; 			  )
        ;	  (set! show-copies? #t))
-;        (("--dump-flow" (help "Dump the flow graph of the program")
-;          )
-;         (when *RAVEN-DEVEL-BUILD*
-;            (widen!::dump-target *current-target* (dump-type 'flow-graph))))
+        (("--dump-flow" (help "Dump the flow graph of the program")
+          )
+         (when *RAVEN-DEVEL-BUILD*
+            (widen!::dump-target *current-target* (dump-type 'flow-graph))))
 
 ;        (("--dump-times" (help "Compile, printing the times required for each stage")
 ;          )

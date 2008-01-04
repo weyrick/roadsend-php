@@ -478,6 +478,7 @@
          ((tokens) (dump-tokens (car source-files)))
          ((types) (dump-types (car source-files)))
          ((ast) (dump-ast (car source-files)))
+	 ((flow-graph) (dump-flow (car source-files)))
          ((preprocessor-tokens) (dump-preprocessed (car source-files)))
          (else (bomb "unsupported dump type")))))
 
