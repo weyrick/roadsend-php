@@ -92,6 +92,10 @@
    ; note this is specified in bytes
    (upload_max_filesize		2048000))
 
+;; DIRECTIVE: ini-file
+; you can load a standard php ini file
+;(ini-file "/usr/local/etc/php.ini")
+
 ;; DIRECTIVE: debug-level
 ; a level of 0 will turn off all debugging messages.
 ; set to 1 or 2 to receive verbose errors and warnings while

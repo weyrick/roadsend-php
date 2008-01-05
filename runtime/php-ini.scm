@@ -93,10 +93,9 @@
 ;
 
 ;
-; XXX this still needs more work to be compatible with php:
+; this still needs more work to be compatible with php:
 ;  1) it will replace constants with their values
-;  2) it will change true/on/false/off to 1/1/0/0 repectively (as strings, not numbers)
-;  3) others?
+;  2) bitewise operations
 
 (define *current-lineno* 1)
 
@@ -110,18 +109,22 @@
       ("]" 'rbrak)
       ("=" 'assign)
       ; space, newlines
-      ((+ (in space)) (ignore))
+      ((+ (in space #\Tab)) (ignore))
       ;
       (crlf (begin
 	       (set! *current-lineno* (+ *current-lineno* 1))
 	       'nl))
       ; comment
-      ((: (in #\; #\#) (* all) crlf) (ignore))
+      ((: (in #\; #\#) (* all) crlf)
+       (begin
+	       (set! *current-lineno* (+ *current-lineno* 1))
+	       'nl))
       ; value (quoted string)
       ((: #\" (* (or (out #\\ #\") (: #\\ (or all crlf)))) #\")
+       ; XXX if the string was multiline, our current-lineno isn't advanced. does this happen?
        (cons 'string (the-substring 1 (-fx (the-length) 1))))
       ; value (symbol)
-      ((+ (out #\= #\newline "\r" #\[ #\] #\"))
+      ((+ (out space #\= #\newline #\tab "\r" #\[ #\] #\" #\; #\#))
        (cons 'symbol (the-string)))
       (else
        ;; this trick is so that the first time we see the eof, it will
@@ -150,10 +153,12 @@
 
       (line
        ; section header
-       ((lbrak symbol rbrak nl) (cons 'section symbol))
+       ; XXX symbol-list here because headers can contain spaces
+       ((lbrak symbol-list rbrak nl) (cons 'section symbol-list))
 
-       ; value assign, symbol
-       ((symbol@key assign symbol@val nl) (cons* 'value key val))
+       ; XXX this symbol-list gets us around not supporting bitwise
+       ; operations on constants (e.g. error_reporting). we just concat the symbols together
+       ((symbol@key assign symbol-list nl) (cons* 'value key symbol-list))
 
        ; value assign, quoted string 
        ((symbol@key assign string@val nl) (cons* 'value key val))
@@ -163,6 +168,10 @@
 
        ; blank line
        ((nl) '()))
+
+      (symbol-list
+       ((symbol symbol-list) (mkstr symbol symbol-list))
+       ((symbol) (mkstr symbol)))
       
        ))
 
@@ -173,15 +182,20 @@
 	  (let ((rhash (make-php-hash))
 		(current-section "")
 		(ini-toks '()))
-	     (set! *current-lineno* 1)
+; XXX grammer debug	     
+;	     (set! *current-lineno* 1)
+;	     (with-input-from-file fname
+;		(lambda ()
+;		   (pp (get-tokens *ini-surface* (current-input-port)))))
+	     (set! *current-lineno* 1)	     
 	     (try
 	      (set! ini-toks (with-input-from-file fname
 				(lambda ()
 				   (read/lalrp *ini-grammar* *ini-surface* (current-input-port)))))
 	      (lambda (e p m o)
-		 (php-warning (format "On line ~a of ini file: ~a" *current-lineno* m))
+		 (php-warning (format "On line ~a of ~a: ~a" *current-lineno* fname m))
 		 (exit #f)))
-	     ; go through tokens and build php hash	     
+	     ; go through tokens and build php hash
 	     (for-each (lambda (a)
 			  (unless (null? a)
 			  (let ((tok (car a)))
@@ -189,6 +203,13 @@
 				((eqv? tok 'section) (set! current-section (mkstr (cdr a))))
 				((eqv? tok 'value) (let ((key (mkstr (cadr a)))
 							 (val (coerce-to-php-type (cddr a))))
+						      (when (and (string? val) (or (string=? (string-downcase val) "on")
+										   (string=? (string-downcase val) "true")))
+							 (set! val "1"))
+						      (when (and (string? val) (or (string=? (string-downcase val) "off")
+										   (string=? (string-downcase val) "null")
+										   (string=? (string-downcase val) "false")))
+							 (set! val ""))
 						      (if (and parse-sections?
 							       (> (string-length current-section) 0))
 							  ; use section

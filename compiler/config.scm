@@ -188,11 +188,20 @@
                                                                         ;; adds then to the front of the list, so they end up in the same order as in
                                                                         ;; the config file.
 									(map mkstr (reverse value))))
+				   ((ini-file) (begin
+;						  (fprint (current-error-port) "parsing php ini file: " (car value))))
+						  (let ((parsed-ini (ini-file-parse (car value) #f)))
+						     (if parsed-ini
+							 (php-hash-for-each parsed-ini
+									    (lambda (k v)
+;									       (debug-trace 2 (format "setting ini directive ~a to ~a" k v))
+									       (config-ini-entry k v)))
+							 (debug-trace 1 "invalid php ini file (ignored): " (car value))))))
 				   ((ini) (for-each (lambda (ini-entry)
 						       (unless (and (list? ini-entry)
 								    (= (length ini-entry) 2))
 							  (directive-error value))
-						       (debug-trace 6 (format "setting ini directive ~a to ~a"
+						       (debug-trace 2 (format "setting ini directive ~a to ~a"
 									      (car ini-entry)
 									      (cadr ini-entry)))
 						       (config-ini-entry (car ini-entry)
