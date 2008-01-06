@@ -23,8 +23,6 @@
    (import (utils "utils.scm")
 	   (php-hash "php-hash.scm")
 	   (php-object "php-object.scm")
-	   (elong-lib "elongs.scm")
-	   (grass "grasstable.scm")
 	   (signatures "signatures.scm")
            (php-errors "php-errors.scm")
 	   (builtin-classes "builtin-classes.scm")
