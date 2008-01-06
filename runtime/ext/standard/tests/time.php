@@ -4,6 +4,11 @@
 // this works, it will just always fail since tests are run at different seconds
 //echo time()."\n";
 
+
+echo "timezone 1: ".date_default_timezone_set("America/New_York")."\n";
+echo "timezone 2: ".date_default_timezone_get()."\n";
+echo "timezone 3: ".date_default_timezone_get()."\n";
+
 // checkdate
 echo 'checkdate 1:'.checkdate(0, 0, 0)."\n";
 echo 'checkdate 2:'.checkdate(1, 1, 1970)."\n";
@@ -11,11 +16,11 @@ echo 'checkdate 3:'.checkdate(2, 12, 1978)."\n";
 echo 'checkdate 4:'.checkdate('2', '12', '1978')."\n";
 echo 'checkdate 5:'.checkdate(2, 29, 2004)."\n";
 echo 'checkdate 6:'.checkdate(2, 29, 2003)."\n";
-echo 'checkdate 7:'.checkdate('hello', 'hi there', 'boing')."\n";
+echo 'checkdate 7:'.@checkdate('hello', 'hi there', 'boing')."\n";
 // ?
 //echo '8:'.checkdate('6 days', '3 months', '2003 years');
-echo 'checkdate 8:'.checkdate('6 days', '3 months', '2003')."\n";
-echo 'checkdate 9:'.checkdate('6 days', '3 months', 2003)."\n";
+echo 'checkdate 8:'.@checkdate('6 days', '3 months', '2003')."\n";
+echo 'checkdate 9:'.@checkdate('6 days', '3 months', 2003)."\n";
 echo 'checkdate 10:'.checkdate('6', '3', '2003')."\n";
 echo 'checkdate 11:'.checkdate(6, 3, 2003)."\n";
 
@@ -24,7 +29,7 @@ echo "date 1: ".date("l \\t\h\e jS")."\n";
 echo "date 2: ".date('l \t\h\e jS\\')."\n";
 
 echo "date 3: ".date('[  a  ]')."\n";
-echo "*date 4: ".date ("l dS of F Y h:i A")."\n";
+echo "*date 4: ".date ("l dS of F Y h:i A e")."\n";
 echo "date 4a: ".date ("l dS of F Y h:i A", 1066316052)."\n";
 echo "date 5: ".date("l \\t\h\e jS")."\n";
 echo "date 6: ".date("F j, Y, g:i a")."\n";                 // March 10, 2001, 5:16 pm

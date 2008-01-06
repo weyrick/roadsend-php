@@ -29,6 +29,8 @@
     (init-php-time-lib)
 
     ; standard lib
+    (date_default_timezone_set ident)
+    (date_default_timezone_get)
     (checkdate mon day year)
     (php-date format tstamp)
     (getdate tstamp)
@@ -63,19 +65,19 @@
 
 ; checkdate -- Validate a gregorian date
 (defbuiltin (checkdate mon day year)
-   (letrec ((numeric-string-or-num?
-	     ; for checking if a value is either a number or a numeric string
-	    (lambda (rval)
-	       (or (php-number? rval)
-		   (numeric-string? rval)))))
+;   (letrec ((numeric-string-or-num?
+;	     ; for checking if a value is either a number or a numeric string
+;	    (lambda (rval)
+;	       (or (php-number? rval)
+;		   (numeric-string? rval)))))
       ; if not numbers, return #f as per php 4.3.4
-      (if (not (and (numeric-string-or-num? mon)
-		    (numeric-string-or-num? day)
-		    (numeric-string-or-num? year)))
-	  (begin
-	     (php-warning "checkdate expects numbers for parameters")
-	     #f)
-	  (begin
+;      (if (not (and (numeric-string-or-num? mon)
+;		    (numeric-string-or-num? day)
+;		    (numeric-string-or-num? year)))
+;	  (begin
+;	     (php-warning "checkdate expects numbers for parameters")
+;	     #f)
+;	  (begin
 	     (set! mon (convert-to-number mon))
 	     (set! day (convert-to-number day))
 	     (set! year (convert-to-number year))
@@ -83,7 +85,7 @@
 		     (or (php-< year 1) (php-> year 32767))
 		     (or (php-< day 1) (php-> day (days-in-month mon year))))
 		 #f
-		 #t)))))
+		 #t));)))
    
 
 ; date -- Format a local time/date
@@ -118,7 +120,6 @@
 	  (number->string min))))
 
 
-;XXX the tzname in bigloo-lib has a bug: it assumes all tznames are 3 characters long
 (define (tzname)
    (values
     (pragma::bstring
@@ -191,6 +192,8 @@
 			(number->string (date-day tstamp))))
 	     ;D	A textual representation of a day, three letters	Mon through Sun
 	     (#\D (day-aname (date-wday tstamp)))
+	     ;e Timezone identifier
+	     (#\e (or (getenv "TZ") ""))
 	     ;F	A full textual representation of a month, such as January or March
 	     ;January through December
 	     (#\F (month-name (date-month tstamp)))
@@ -225,6 +228,9 @@
 	     (#\n (number->string (date-month tstamp)))
 	     ;O	Difference to Greenwich time (GMT) in hours	Example: +0200
 	     (#\O (GMT-hours tstamp))
+	     ;o ISO-8601 year number. This has the same value as Y, except that if the ISO week number (W) belongs to the previous or next year, that year is used instead
+	     ; XXX
+	     (#\o (number->string (date-year tstamp)))
 	     ;r	RFC 822 formatted date	Example: Thu, 21 Dec 2000 16:01:07 +0200
 	     (#\r (mkstr ; 3 letter name of weekday
 		         (day-aname (date-wday tstamp)) ", "
@@ -264,6 +270,7 @@
 	     ;w	Numeric representation of the day of the week	0 (for Sunday) through 6 (for Saturday)
 	     (#\w (number->string (- (date-wday tstamp) 1)))
 	     ;W	ISO-8601 week number of year, weeks starting on Monday
+	     ; XXX
 	     ;(added in PHP 4.1.0) Example: 42 (the 42nd week in the year)
 	     ;Y	A full numeric representation of a year, 4 digits
 	     ;Examples: 1999 or 2003
@@ -311,6 +318,19 @@
 (define (make-timezone::timezone*)
    (pragma::timezone* "(struct timezone*)GC_MALLOC_ATOMIC(sizeof(struct timezone))"))
 
+(define *default-timezone* "UTC")
+
+; set timezone
+(defbuiltin (date_default_timezone_set ident)
+   (let ((tz (mkstr ident)))
+      (putenv "TZ" tz)
+      #t))
+
+; get timezone
+(defbuiltin (date_default_timezone_get)
+   (or (getenv "TZ")
+       *default-timezone*))
+
 ; gettimeofday -- Get current time
 (defbuiltin (gettimeofday)
    (let ((result (make-php-hash))
@@ -320,8 +340,8 @@
 	  (begin
 	     (php-hash-insert! result "sec" (elong->onum (timeval*-sec tv)))
 	     (php-hash-insert! result "usec" (elong->onum (timeval*-usec tv)))
-	     (php-hash-insert! result "minuteswest" (int->onum (timezone*-minuteswest tz)))
-	     (php-hash-insert! result "dsttime" (int->onum (timezone*-dsttime tz)))
+	     (php-hash-insert! result "minuteswest" (/fx (date-timezone (current-date)) 60)) ;(int->onum (timezone*-minuteswest tz)))
+	     (php-hash-insert! result "dsttime" (date-is-dst (current-date))) ;(int->onum (timezone*-dsttime tz)))
 	     result)
 	  #f)))
       
@@ -410,8 +430,8 @@
 	 (set! day (date-day c-date)))
       (when (eqv? year 'unpassed)
 	 (set! year (date-year c-date)))
-      (when (eqv? is_dst 'unpassed)
-	 (set! is_dst -1))
+      ; is_dst is deprecated, always set to dst from current TZ
+      (set! is_dst (date-is-dst (current-date)))
       (cond ((php-< year 70) (set! year (php-+ year 2000)))
 	    ((and (php->= year 70)
 		  (php-<= year 99)) (set! year (php-+ year 1900))))

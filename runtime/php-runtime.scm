@@ -1057,6 +1057,9 @@
 
       ; ini entries
       (set-ini-entry "register_globals" #f) ; always false right now
+      ; if we have a date.timezone, set TZ
+      (if (get-ini-entry "date.timezone")
+	  (putenv "TZ" (get-ini-entry "date.timezone")))
       
       ; setup _ENV variable
       ; doesn't change per runtime load and so not reset

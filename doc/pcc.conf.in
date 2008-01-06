@@ -64,6 +64,10 @@
 ;(ini
 ;  (odbc.max_links -1))
 
+; default timezone
+;(ini
+;  (date.timezone "Europe/Prague"))
+
 ; session configuration
 (ini 
    (session.cookie_lifetime   0)
