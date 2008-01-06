@@ -10,6 +10,7 @@
 	   (php-ini "php-ini.scm")
 	   (signatures "signatures.scm")
            (php-errors "php-errors.scm")
+	   (output-buffering "output-buffering.scm")
 	   (builtin-classes "builtin-classes.scm"))
    (eval (export-all)) )
 

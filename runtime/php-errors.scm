@@ -25,6 +25,8 @@
 	   (constants "constants.scm")
            (signatures "signatures.scm"))
    (load (php-macros "../php-macros.scm"))
+   (extern
+    (export *debug-level* "pcc_debug_level"))    
    (export
     *error-handler*
     *default-exception-handler*
@@ -35,6 +37,7 @@
     *track-stack?*
     *compile-mode?*
     *delayed-errors*
+    *debug-level*    
     ;error constants
      E_ERROR
      E_WARNING
@@ -51,6 +54,7 @@
      E_RECOVERABLE_ERROR
      E_ALL
      ;
+    (debug-trace level . rest)     
     (init-php-error-lib)
     (push-stack class-name name . args)
     (pop-stack)
@@ -76,8 +80,13 @@
 ; current determines how we print errors
 (define *compile-mode?* #f)
 
+;; it can be confusing that actually quite a bit of code gets executed
+;; before commandline.scm or driver.scm has setup the *debug-level*.
+;; We could set this to e.g. 'too-early, to make such bugs more
+;; obvious, but that breaks a lot of code that calls debug-trace both
+;; too-early and late enough.  Hmm.. what to do?
+(define *debug-level* 0)
 
-;;;;PHP errors
 
 ; this is #t when prefixing php
 (define *errors-disabled* #f)
@@ -371,3 +380,30 @@
    (set! *error-level* E_ALL)
    (set! *stack-trace* '())
    (set! *saved-stack-trace* '()))
+
+(define (debug-trace level . rest)
+   "print REST when *DEBUG-LEVEL* is >= LEVEL"
+   (let ((prefix (string-append ">>> " (make-string level #\space))))
+      (when (>= *debug-level* level)
+         (display prefix (current-error-port))
+         (for-each
+          (lambda (a)
+             (cond
+                ((php-object? (maybe-unbox a))
+                 (fprint (current-error-port)
+                         (with-output-to-string
+                            (lambda ()
+                               (when (container? a) (display "("))
+                               (pretty-print-php-object (maybe-unbox a))
+                               (when (container? a)
+                                  (display " . ")
+                                  (display (cdr a))
+                                  (display ")"))))))
+                (else (display-circle a (current-error-port)))))
+          rest)
+         (newline (current-error-port))))
+   ;; we return false so that adding a debug-trace to the end of a
+   ;; builtin won't cause an #unspecified to make its way up to PHP
+   ;; user code.
+   #f)
+

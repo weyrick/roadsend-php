@@ -23,12 +23,16 @@
     (include "stdlib.h")
     (include "stdio.h")
     (macro c-path-max::int "PATH_MAX") )
-   (import (grass "grasstable.scm"))
+   (import
+    (grass "grasstable.scm")
+    (php-types "php-types.scm"))
    (extern
     ;; bigloo's flush-output-port is not binary safe on string ports,
     ;; and in recent versions it no longer resets the position to 0
     (flush-string-port/bin::bstring (::output-port) "strport_bin_flush"))
    (export
+    (hashtable-copy hash)
+    (undollar str)    
     (vector-swap! v a b)
     (escape-path path)
     (normalize-path loc)
@@ -583,4 +587,17 @@ for example:  /foo/bar/baz + ../bling/zot = /foo/bling/zot"
    (cond-expand
       (unsafe "_u")
       (else "_s")))
+
+(define (undollar str)
+   (let ((str (mkstr str)))
+      (if (char=? (string-ref str 0) #\$)
+	  (substring str 1 (string-length str))
+	  str)))
+
+(define (hashtable-copy hash)
+   (let ((new-hash (make-hashtable (max 1 (hashtable-size hash)))))
+      (hashtable-for-each hash
+			  (lambda (key val)
+			     (hashtable-put! new-hash key val)))
+      new-hash))
 
