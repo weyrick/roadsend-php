@@ -49,11 +49,22 @@
 ; optimize?
 (when (getenv "OPTIMIZE")
    (flush-fprint (current-error-port) "compiling all tests with optimization")
-   ;;looks like static is no longer fastest.. ?!
-   (set! *phpoo* (string-append *phpoo* " -O"))); --static")))
+   (set! *phpoo* (string-append *phpoo* " -O")))
+
+; static?
+(when (getenv "STATIC")
+   (flush-fprint (current-error-port) "using static linking")
+   (set! *phpoo* (string-append *phpoo* " --static")))
 
 (when (getenv "TEST_CYCLES")
    (flush-fprint (current-error-port) (format "operating with ~a test cycles" (getenv "TEST_CYCLES")))) 
+
+(define *timing-file* #f)
+(when (getenv "STORE_RESULTS")
+   (if (file-exists? (getenv "STORE_RESULTS"))
+       (set! *timing-file* (getenv "STORE_RESULTS"))
+       (set! *timing-file* "timing-data.txt"))
+   (flush-fprint (current-error-port) (format "saving timing results to: ~a " *timing-file*)))
 
 (flush-fprint (current-error-port) "using roadsend command: " *phpoo*)
 (flush-fprint (current-error-port) "using zend command    : " *php*)
@@ -74,6 +85,11 @@
 (define *php-run-total* 0.0)
 (define *raven-run-total* 0.0)
 (define *raven-interp-total* 0.0)
+
+; storing timing information
+(define *zend-times* (make-hashtable))
+(define *pcc-times* (make-hashtable))
+(define *pcci-times* (make-hashtable))
 
 (define-macro (time . prog)
    `(let ((t1 (make-timeval*))
@@ -190,7 +206,11 @@ and compare the results"
 	    (set! raven-time (average-time cycles (lambda () (raven-run basename))))
 	    (when (getenv "INTERPRETER")
 	       (set! raven-interpreter-time (average-time cycles (lambda () (raven-interpret basename))))))	      
-	 
+
+	 (hashtable-put! *zend-times* file zend-time)
+	 (hashtable-put! *pcc-times* file raven-time)
+	 (when (getenv "INTERPRETER")	 
+	    (hashtable-put! *pcci-times* file raven-interpreter-time))
 	 (set! *php-run-total* (+ *php-run-total* zend-time))
 	 (set! *raven-run-total* (+ *raven-run-total* raven-time))
 	 (set! *raven-interp-total* (+ *raven-interp-total* raven-interpreter-time))
@@ -258,17 +278,20 @@ and compare the results"
 	 (exit 3))
       ;;so that zend can find the include files
       (aborting-system "cp " home "/*.inc " target "/")
-      (let ((single-test (getenv "TEST")))
+      (let ((single-test (getenv "TEST"))
+	    (test-list '()))
 	 (if single-test
 	     (begin
 		(unless (string=? (suffix single-test) "php")
 		   (set! single-test (string-append single-test ".php")))
+		(set! test-list (list single-test))
 		(test single-test home target cycles)
 		(dump-results single-test target))
 	     (begin
+		(set! test-list (scripts home))
 		(for-each (lambda (t)
 			     (test t home target cycles))
-			  (scripts home))
+			  test-list)
 		(when (> (length *run-failures*) 0)
 		   (flush-print "compiler run failures:")
 		   (for-each (lambda (v)
@@ -280,12 +303,50 @@ and compare the results"
 		   (for-each (lambda (v)
 				(flush-print v))
 			     *interpret-failures*)
-                   (newline)))))
+                   (newline))))
+	 (when *timing-file*
+	    ; store results
+	    (let ((fp (append-output-file *timing-file*)))
+	       (if fp
+		   (with-output-to-port fp
+		      (lambda ()
+			 (print (date->rfc2822-date (current-date)))
+			 (print (string-replace (system->string "uname -a") #\Newline #\space))
+			 (print "Roadsend PHP: " (string-replace (system->string "pcc --version") #\Newline #\space) " | " *phpoo*)
+			 (print "Zend PHP: " (system->string "php -r 'echo phpversion();'") " | " *php*)
+			 (print "test cycles: " cycles)
+			 (format "~a~a~a~a~a"
+				 "script"
+				 #\tab
+				 "zend"
+				 #\tab
+				 "compiled"
+				 #\tab
+				 "interpreted")
+			 (for-each (lambda (t)
+				      (print (format "~a~a~a~a~a"
+						     t
+						     #\tab
+						     (hashtable-get *zend-times* t)
+						     #\tab
+						     (hashtable-get *pcc-times* t)					   
+						     #\tab
+						     (hashtable-get *pcci-times* t))))
+				   test-list)
+			 (print (format "AVERAGE ZEND TIME: ~a" (/ *php-run-total* *run*)))		      
+			 (print (format "AVERAGE PCC TIME: ~a" (/ *raven-run-total* *run*)))
+			 (print *run* " total tests, " *build-fail* " failed to compile and "
+				*run-fail* " ran wrong.")
+			 (when (getenv "INTERPRETER")
+			    (print (format "AVERAGE INTERPRETER TIME: ~a" (/ *raven-interp-total* *run*)))
+			    (print *interpret-fail* " of " *run* " failed to interpret."))
+			 (print)))
+		   (flush-print "couldn't write to timing file: " *timing-file*)))))
       (flush-print *run* " total tests, " *build-fail* " failed to compile and "
 		   *run-fail* " ran wrong. \n")
       (when (> *run* 1)
 	 (flush-print (format "~a tests ran faster than zend php" *faster-compiled*))
-	 (flush-print (format "AVERAGE PHP TIME: ~a" (/ *php-run-total* *run*)))
+	 (flush-print (format "AVERAGE ZEND TIME: ~a" (/ *php-run-total* *run*)))
 	 (flush-print (format "AVERAGE PCC TIME: ~a" (/ *raven-run-total* *run*)))
 	 )
       (when (getenv "INTERPRETER")
@@ -301,7 +362,9 @@ and compare the results"
    (flush-print "     are run CYCLES times, (for benchmarking).")
    (flush-print)
    (flush-print "     The CYCLES option can be passed via environment variable TEST_CYCLES.")
-   (flush-print "     If OPTIMIZE environment variable is set, -O --static is passed to pcc")
+   (flush-print "     If OPTIMIZE environment variable is set, -O is passed to pcc")
+   (flush-print "     If STATIC environment variable is set, --static is passed to pcc")
+   (flush-print "     If INTERPRETER environment variable is set, the tests will be run through interpreter as well")
    (flush-print)
    (flush-print "     If the environment variable TEST is set, it will cause only that test")
    (flush-print "     to be run."))
