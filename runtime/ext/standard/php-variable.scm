@@ -614,7 +614,7 @@
 			  ((is_int var) (mkstr indent rtag var line-end))
 			  ((is_float var) 
                            (mkstr indent rtag (onum->string/g-vardump var *float-precision*) line-end))
-			  ((is_string var) (mkstr indent rtag "'" var "'" line-end))
+			  ((is_string var) (mkstr indent rtag "'" (string-subst var "'" "\\'") "'" line-end))
 			  ((is_array var)
 			   (visit seen var)
 			   (let ((entries (dump-hash-entries var seen indent)))
