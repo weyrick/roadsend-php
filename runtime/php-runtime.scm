@@ -111,7 +111,7 @@
 
 ; this should be true for devlopment, false for a release build
 (define *RAVEN-DEVEL-BUILD* (cond-expand
-			       ;(unsafe #f)
+			       (unsafe #f)
 			       (else #t)))
 
 (define *RAVEN-VERSION-MAJOR* 2)
@@ -121,9 +121,9 @@
 				       *RAVEN-VERSION-MAJOR*
 				       *RAVEN-VERSION-MINOR*
 				       *RAVEN-VERSION-RELEASE*
-				       (if *RAVEN-DEVEL-BUILD*
-					   "_debug"
-					   "")
+				       (cond-expand
+					  (unsafe "")
+					  (else " (debug/safe)"))
 				       ))
 (define *RAVEN-NAME* "Roadsend PHP")
 (define *RAVEN-VERSION-TAG* (string-append *RAVEN-NAME*
