@@ -310,7 +310,7 @@ and compare the results"
 	       (if fp
 		   (with-output-to-port fp
 		      (lambda ()
-			 (print (date->rfc2822-date (current-date)))
+			 (print (current-date))
 			 (print (string-replace (system->string "uname -a") #\Newline #\space))
 			 (print "Roadsend PHP: " (string-replace (system->string "pcc --version") #\Newline #\space) " | " *phpoo*)
 			 (print "Zend PHP: " (system->string "php -r 'echo phpversion();'") " | " *php*)
