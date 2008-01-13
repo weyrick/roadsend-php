@@ -22,17 +22,14 @@
    (library phpeval)
    (library webconnect)
    (library profiler)
-   (import (fcgi-binding "fcgi-binding.scm"))
+   (import
+    (c-fcgi-bindings "c-fcgi-bindings.scm")
+    (fcgi-binding "fcgi-binding.scm"))
    (load (php-macros "../../php-macros.scm"))
    (include "../../runtime/php-runtime.sch")
-;   (main fastcgi-main)
    (export
     (fastcgi-main argv)
     *fastcgi-webapp*)
-;    (export
-;     (init-fastcgi-lib)
-;     (fastcgi-init)
-;     (fastcgi-print-headers))
    )
 
 
@@ -42,9 +39,6 @@
 (set! *backend-type* *fastcgi-version*)
 
 (register-extension "fastcgi" "1.0.0" "fastcgi"
-                    ;; XXX I don't think autoconf is subbing this in yet
-                    ;; --timjr Sat Dec 22 14:29:28 PST 2007
-                    ; '("-lfcgi")
                     required-extensions: '("webconnect" "compiler"))
 
 ; clean upload temp files at end of page
@@ -61,7 +55,20 @@
 
 (define (fastcgi-main argv)
    (let ((web-doc-root (mkstr (getenv "WEB_DOC_ROOT")))
-         (count::int 0))
+	 (max-requests (if (getenv "PHP_FCGI_MAX_REQUESTS")
+			   (mkfixnum (getenv "PHP_FCGI_MAX_REQUESTS"))
+			   0))
+	 (num-children (if (getenv "PHP_FCGI_CHILDREN")
+			   (mkfixnum (getenv "PHP_FCGI_CHILDREN"))
+			   0))
+	 (parent? #t))
+
+      (when (<fx max-requests 0)
+	 (print "invalid PHP_FCGI_MAX_REQUESTS")
+	 (exit 1))
+      (when (<fx num-children 0)
+	 (print "invalid PHP_FCGI_CHILDREN")
+	 (exit 1))
       
       (args-parse (cdr argv)
          ((("-h" "--help") (help "This help message"))
@@ -73,7 +80,8 @@
           (pragma "close(0)")
           (unless (zero? (FCGX_OpenSocket (string-append ":" (integer->string (string->integer port))) 100))
              (php-error "Unable to open socket.")))
-	 ((("-i" "--default-index") ?name (help (mkstr "Set the default index page name [default: " *webapp-index-page* "]")))
+	 ((("-i" "--default-index") ?name (help
+					   (mkstr "Set the default index page name [default: " *webapp-index-page* "]")))
 	  (set! *webapp-index-page* name))
          ((("-n" "--not-found") ?name (help (mkstr "Set the default not found page [default: " *webapp-404-page* "]")))
           (set! *webapp-404-page* name))
@@ -91,7 +99,17 @@
       (when (getenv "PCC_NOTFOUND_PAGE")
          (set! *webapp-404-page* (mkstr (getenv "PCC_NOTFOUND_PAGE"))))
 
-      (let loop ()
+      ; shall we have children?
+      (when (>fx num-children 0)
+	 ;
+	 ; this sets up our spawn loop. children will drop through
+	 ; to the serve loop below. the parent manages the children
+	 ; in c-fcgi.c and never returns
+	 ;
+	 (pcc-fcgi-spawn num-children))
+      
+      ; if we get here, either we're a spawned child, or we're running in a single proc
+      (let loop ((serve-cnt::bint 0))	 
          (when (>= (FCGI_Accept) 0)
             (fastcgi-init)
             (let* ((server-vars (container-value $HTTP_SERVER_VARS))
@@ -141,7 +159,10 @@
 		  (FCGI_fwrite headers 1 (string-length headers) FCGI_stdout))
 	       (FCGI_fwrite content 1 (string-length content) FCGI_stdout)
 	       (FCGI_fflush FCGI_stdout)
-	       (loop))))))
+	       (when (or (=fx max-requests 0)
+			 (<fx serve-cnt max-requests))
+		  (loop (+fx serve-cnt 1))))))))
+   
 
 ; show the runtime error in a nice page, with backtrace
 (define (runtime-error-handler p m o)
@@ -191,13 +212,6 @@
 ;          (loop (pragma::string* "$1+1" envp))))
 ;    (FCGX_FPrintF out "</pre><p>\n"))
 
-
-               
-;               (print "main!")))
-
-; (define (init-fastcgi-lib)
-;    1)
-
 (define fastcgi-log-message
    (lambda (msg)
       (fprint (current-error-port) msg)))
@@ -239,13 +253,6 @@
 		   (php-hash-insert! server-vars (car a) (cdr a)))
 		(environ))
       
-;       (let loop ((envp envp))
-;          (when (pragma::bool "*$1 != NULL" envp)
-;             (multiple-value-bind (var value)
-;                (split-on-first #\= (pragma::string "*$1" envp))
-;                (php-hash-insert! server-vars var value))           
-;             (loop (pragma::string* "$1+1" envp))))
-
       ;; PHP_SELF is not set by fastcgi, for obvious reasons, but it
       ;; seems to be the same as PATH_INFO (apache1/mod_fastcgi) or SCRIPT_NAME
       (php-hash-insert! server-vars "PHP_SELF"
