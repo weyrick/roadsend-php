@@ -114,7 +114,7 @@
             (fastcgi-init)
             (let* ((server-vars (container-value $HTTP_SERVER_VARS))
                    (script-path (if *fastcgi-webapp*
-                                    (let ((path (mkstr (php-hash-lookup server-vars "PATH_INFO"))))
+                                    (let ((path (mkstr (php-hash-lookup server-vars "PHP_SELF"))))
 				       (if (> (string-length path) 1)
 					   (substring path 1 (string-length path))
 					   ""))
@@ -135,9 +135,10 @@
                           (not *static-webapp?*))
                   (load-runtime-libs (list *fastcgi-webapp*)))
                
-               
-               (chdir (dirname (append-paths web-doc-root   ;(php-hash-lookup server-vars "WEB_DOC_ROOT")
-                                             (mkstr (php-hash-lookup server-vars "PATH_INFO")))))
+	       (if (string=? (mkstr web-doc-root) "")
+	         (set! web-doc-root (mkstr (php-hash-lookup server-vars "DOCUMENT_ROOT"))))
+
+               (chdir web-doc-root)
 	       ; (FCGX_FPrintF err "webdocroot is now %s\n" (mkstr (php-hash-lookup server-vars "WEB_DOC_ROOT")))
 ;                (FCGX_FPrintF err "other webdocroot is now %s\n" (mkstr (getenv "WEB_DOC_ROOT")))
 ;                (FCGX_FPrintF err "pwd is now %s\n" (pwd))
@@ -197,7 +198,7 @@
 <title>404 Not Found</title>
 </head><body>
 <h1>Not Found</h1>
-<p>The requested URL ~a was not found on this server.</p>
+<p>The requested URL \"~a\" was not found on this server.</p>
 <hr>
 </body></html>\n" script-path)))
 		  (set! content (runtime-error-handler p m o)))
