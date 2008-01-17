@@ -64,7 +64,7 @@
 	   "c:/msys/1.0/etc/pcc.conf"))
       (else
        (or (getenv "PCC_CONF")
-	   "/etc/pcc.conf"))))
+	   "@CONF_HOME@/pcc.conf"))))
 
 (define (setup-library-paths)
    ;; Add home/libs to dynamic-load-path by default.  Also add current
@@ -116,7 +116,7 @@
 	     (lambda (dir)
 		(php-warning (format "~a: Specified directory does not exist: ~A" *config-file* dir)))))
 	 (if (not (file-exists? *config-file*))
-	     (debug-trace 1 "Config file " *config-file* " not found.")
+	     (debug-trace 0 "Config file " *config-file* " not found.")
 	     (with-input-from-file *config-file*
 		(lambda ()
 		   (let loop ((directive (read)))

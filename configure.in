@@ -328,6 +328,10 @@ AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h malloc.h netdb.h netinet/in.h std
 #AC_FUNC_STAT
 #AC_CHECK_FUNCS([gethostbyname inet_ntoa memchr memmove memset select socket strcasecmp strchr strerror strstr strtol])
 
+AC_DEFINE_DIR(CONF_HOME, sysconfdir, [pcc conf home])
+AC_DEFINE_DIR(PCC_LIBS, libdir, [pcc lib dir])
+AC_DEFINE_DIR(PCC_BIN, bindir, [pcc bin dir])
+
 # Substitutions
 AC_SUBST(PCC_OS, $PCC_OS)
 AC_SUBST(EXT_LIST, $EXT_LIST)
@@ -356,6 +360,7 @@ AC_SUBST(FCGI_LIBS, $FCGI_LIBS)
 AC_SUBST(PCC_EXT_LIST, $PCC_EXT_LIST)
 AC_SUBST(PDO_DRIVER_LIST, $PDO_DRIVER_LIST)
 AC_SUBST(PDO_DRIVER_ARRAY, $PDO_DRIVER_ARRAY)
+AC_SUBST(CONF_HOME, $CONF_HOME)
 
 AC_SUBST(prefix, $prefix)
 AC_SUBST(exec_prefix, $exec_prefix)
@@ -363,10 +368,6 @@ AC_SUBST(libdir, $libdir)
 AC_SUBST(bindir, $bindir)
 AC_SUBST(srcdir, $srcdir)
 AC_SUBST(sysconfdir, $sysconfdir)
-
-AC_DEFINE_DIR(CONF_HOME, sysconfdir, [pcc conf home])
-AC_DEFINE_DIR(PCC_LIBS, libdir, [pcc lib dir])
-AC_DEFINE_DIR(PCC_BIN, bindir, [pcc bin dir])
 
 # need PCRE_STATIC_CLAGS?
 # gtk missing
@@ -379,6 +380,7 @@ AC_CONFIG_FILES([sa-tests/pcc-test.conf])
 AC_CONFIG_FILES([webconnect/Makefile])
 AC_CONFIG_FILES([runtime/php-ext/pdo/Makefile])
 AC_CONFIG_FILES([runtime/php-ext/pdo/pdo_class.php])
+AC_CONFIG_FILES([compiler/config.scm])
 
 #AC_CONFIG_SUBDIRS([tools/libwebserver])
 AC_OUTPUT

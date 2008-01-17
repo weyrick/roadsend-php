@@ -696,6 +696,9 @@ gtkconfig
 CPP
 GREP
 EGREP
+CONF_HOME
+PCC_LIBS
+PCC_BIN
 PCC_OS
 EXT_LIST
 PHP_EXT_LIST
@@ -720,9 +723,6 @@ PCC_EXT_LIST
 PDO_DRIVER_LIST
 PDO_DRIVER_ARRAY
 srcdir
-CONF_HOME
-PCC_LIBS
-PCC_BIN
 LIBOBJS
 LTLIBOBJS'
 ac_subst_files=''
@@ -5327,6 +5327,58 @@ done
 #AC_FUNC_STAT
 #AC_CHECK_FUNCS([gethostbyname inet_ntoa memchr memmove memset select socket strcasecmp strchr strerror strstr strtol])
 
+
+  prefix_NONE=
+  exec_prefix_NONE=
+  test "x$prefix" = xNONE && prefix_NONE=yes && prefix=$ac_default_prefix
+  test "x$exec_prefix" = xNONE && exec_prefix_NONE=yes && exec_prefix=$prefix
+  eval ac_define_dir="\"$sysconfdir\""
+  eval ac_define_dir="\"$ac_define_dir\""
+  CONF_HOME="$ac_define_dir"
+
+
+cat >>confdefs.h <<_ACEOF
+#define CONF_HOME "$ac_define_dir"
+_ACEOF
+
+  test "$prefix_NONE" && prefix=NONE
+  test "$exec_prefix_NONE" && exec_prefix=NONE
+
+
+  prefix_NONE=
+  exec_prefix_NONE=
+  test "x$prefix" = xNONE && prefix_NONE=yes && prefix=$ac_default_prefix
+  test "x$exec_prefix" = xNONE && exec_prefix_NONE=yes && exec_prefix=$prefix
+  eval ac_define_dir="\"$libdir\""
+  eval ac_define_dir="\"$ac_define_dir\""
+  PCC_LIBS="$ac_define_dir"
+
+
+cat >>confdefs.h <<_ACEOF
+#define PCC_LIBS "$ac_define_dir"
+_ACEOF
+
+  test "$prefix_NONE" && prefix=NONE
+  test "$exec_prefix_NONE" && exec_prefix=NONE
+
+
+  prefix_NONE=
+  exec_prefix_NONE=
+  test "x$prefix" = xNONE && prefix_NONE=yes && prefix=$ac_default_prefix
+  test "x$exec_prefix" = xNONE && exec_prefix_NONE=yes && exec_prefix=$prefix
+  eval ac_define_dir="\"$bindir\""
+  eval ac_define_dir="\"$ac_define_dir\""
+  PCC_BIN="$ac_define_dir"
+
+
+cat >>confdefs.h <<_ACEOF
+#define PCC_BIN "$ac_define_dir"
+_ACEOF
+
+  test "$prefix_NONE" && prefix=NONE
+  test "$exec_prefix_NONE" && exec_prefix=NONE
+
+
 # Substitutions
 PCC_OS=$PCC_OS
 
@@ -5381,6 +5433,8 @@ PDO_DRIVER_LIST=$PDO_DRIVER_LIST
 
 PDO_DRIVER_ARRAY=$PDO_DRIVER_ARRAY
 
+CONF_HOME=$CONF_HOME
+
 
 prefix=$prefix
 
@@ -5393,58 +5447,6 @@ bindir=$bindir
 srcdir=$srcdir
 
 sysconfdir=$sysconfdir
-
-
-
-  prefix_NONE=
-  exec_prefix_NONE=
-  test "x$prefix" = xNONE && prefix_NONE=yes && prefix=$ac_default_prefix
-  test "x$exec_prefix" = xNONE && exec_prefix_NONE=yes && exec_prefix=$prefix
-  eval ac_define_dir="\"$sysconfdir\""
-  eval ac_define_dir="\"$ac_define_dir\""
-  CONF_HOME="$ac_define_dir"
-
-
-cat >>confdefs.h <<_ACEOF
-#define CONF_HOME "$ac_define_dir"
-_ACEOF
-
-  test "$prefix_NONE" && prefix=NONE
-  test "$exec_prefix_NONE" && exec_prefix=NONE
-
-
-  prefix_NONE=
-  exec_prefix_NONE=
-  test "x$prefix" = xNONE && prefix_NONE=yes && prefix=$ac_default_prefix
-  test "x$exec_prefix" = xNONE && exec_prefix_NONE=yes && exec_prefix=$prefix
-  eval ac_define_dir="\"$libdir\""
-  eval ac_define_dir="\"$ac_define_dir\""
-  PCC_LIBS="$ac_define_dir"
-
-
-cat >>confdefs.h <<_ACEOF
-#define PCC_LIBS "$ac_define_dir"
-_ACEOF
-
-  test "$prefix_NONE" && prefix=NONE
-  test "$exec_prefix_NONE" && exec_prefix=NONE
-
-
-  prefix_NONE=
-  exec_prefix_NONE=
-  test "x$prefix" = xNONE && prefix_NONE=yes && prefix=$ac_default_prefix
-  test "x$exec_prefix" = xNONE && exec_prefix_NONE=yes && exec_prefix=$prefix
-  eval ac_define_dir="\"$bindir\""
-  eval ac_define_dir="\"$ac_define_dir\""
-  PCC_BIN="$ac_define_dir"
-
-
-cat >>confdefs.h <<_ACEOF
-#define PCC_BIN "$ac_define_dir"
-_ACEOF
-
-  test "$prefix_NONE" && prefix=NONE
-  test "$exec_prefix_NONE" && exec_prefix=NONE
 
 
 # need PCRE_STATIC_CLAGS?
@@ -5464,6 +5466,8 @@ ac_config_files="$ac_config_files webconnect/Makefile"
 ac_config_files="$ac_config_files runtime/php-ext/pdo/Makefile"
 
 ac_config_files="$ac_config_files runtime/php-ext/pdo/pdo_class.php"
+
+ac_config_files="$ac_config_files compiler/config.scm"
 
 
 #AC_CONFIG_SUBDIRS([tools/libwebserver])
@@ -6028,6 +6032,7 @@ do
     "webconnect/Makefile") CONFIG_FILES="$CONFIG_FILES webconnect/Makefile" ;;
     "runtime/php-ext/pdo/Makefile") CONFIG_FILES="$CONFIG_FILES runtime/php-ext/pdo/Makefile" ;;
     "runtime/php-ext/pdo/pdo_class.php") CONFIG_FILES="$CONFIG_FILES runtime/php-ext/pdo/pdo_class.php" ;;
+    "compiler/config.scm") CONFIG_FILES="$CONFIG_FILES compiler/config.scm" ;;
 
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
@@ -6171,6 +6176,9 @@ gtkconfig!$gtkconfig$ac_delim
 CPP!$CPP$ac_delim
 GREP!$GREP$ac_delim
 EGREP!$EGREP$ac_delim
+CONF_HOME!$CONF_HOME$ac_delim
+PCC_LIBS!$PCC_LIBS$ac_delim
+PCC_BIN!$PCC_BIN$ac_delim
 PCC_OS!$PCC_OS$ac_delim
 EXT_LIST!$EXT_LIST$ac_delim
 PHP_EXT_LIST!$PHP_EXT_LIST$ac_delim
@@ -6183,9 +6191,6 @@ ODBC_CFLAGS!$ODBC_CFLAGS$ac_delim
 ODBC_LIBS!$ODBC_LIBS$ac_delim
 SQLITE_CFLAGS!$SQLITE_CFLAGS$ac_delim
 SQLITE_LIBS!$SQLITE_LIBS$ac_delim
-CURL_STATIC_CFLAGS!$CURL_STATIC_CFLAGS$ac_delim
-XML_CFLAGS!$XML_CFLAGS$ac_delim
-XML_LIBS!$XML_LIBS$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -6227,6 +6232,9 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+CURL_STATIC_CFLAGS!$CURL_STATIC_CFLAGS$ac_delim
+XML_CFLAGS!$XML_CFLAGS$ac_delim
+XML_LIBS!$XML_LIBS$ac_delim
 PCRE_CFLAGS!$PCRE_CFLAGS$ac_delim
 PCRE_LIBS!$PCRE_LIBS$ac_delim
 STD_CFLAGS!$STD_CFLAGS$ac_delim
@@ -6236,9 +6244,6 @@ PCC_EXT_LIST!$PCC_EXT_LIST$ac_delim
 PDO_DRIVER_LIST!$PDO_DRIVER_LIST$ac_delim
 PDO_DRIVER_ARRAY!$PDO_DRIVER_ARRAY$ac_delim
 srcdir!$srcdir$ac_delim
-CONF_HOME!$CONF_HOME$ac_delim
-PCC_LIBS!$PCC_LIBS$ac_delim
-PCC_BIN!$PCC_BIN$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
