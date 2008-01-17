@@ -306,6 +306,7 @@
 	(when (maybe-add-script-argv "-R")	
 	   (add-target-option! bigloo-args: "-pg")
 	   (add-target-option! bigloo-args: "-p2")
+	   (add-target-option! c-profile?: #t)
 	   (set-target-option! bigloo-optimization: "-O4")))
        
        ; GET/POST definitions

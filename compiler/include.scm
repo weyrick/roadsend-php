@@ -289,7 +289,7 @@
 					      ;					   (set! name (include-name include-file))
 					      ))))
 				  ; here they most likely did include($someDir.'file.php')
-				  (debug-trace 1 (format "warning: can't search for non-literal include file: ~A, will resolve at runtime" (car arglist)))))))
+				  (debug-trace 1 (format "warning: can't search for non-literal include file at ~A, will resolve at runtime" (ast-node-location (car arglist))))))))
 		   (k)))
       (map util-realpath include-files)))
 

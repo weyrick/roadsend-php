@@ -265,6 +265,7 @@
    (apply run-command #t LD "-o" output-pathname o-file
           "-L" (bigloo-lib-dir) 
           `(,@(if (target-option static?:) '("-static") '())
+	      ,@(if (target-option c-profile?:) '("-pg") '())
               ;; microservers always get -mwindows on windows,
               ;; standalones only get it if --gui is specified.
               ,@(if (or (target-option gui?:)
