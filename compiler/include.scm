@@ -165,7 +165,9 @@
 		       (hashtable-put! *all-files-ever-included* lib-inc-name #t)
 		       (php-funcall lib-inc-name 'unset))
 		    ;; oh well...
-		    (debug-trace 2 "  Not including file " lib-inc-name " from lib (already included)")))
+		    (begin
+		       (debug-trace 2 "  Not including file " lib-inc-name " from lib (already included)")
+		       FALSE)))
 	     ;; II. look on disk
 	     (let ((include-file (try (find-include file *PHP-FILE*)
 				      (lambda (e p m o)
@@ -183,9 +185,15 @@
 		    (begin
 		       (debug-trace 2 "  Including file " include-file)
 		       (hashtable-put! *all-files-ever-included* (include-name include-file) #t)
-		       (evaluate-from-file include-file (include-name include-file)))
+		       (let ((ret (evaluate-from-file include-file (include-name include-file))))
+			  ; XXX note, this is still not semantically correct if the include file exits with "return NULL"
+			  (if (null? ret)
+			      *one*
+			      ret)))
 		    ;; oh well...
-		    (debug-trace 2 "  Not including file " include-file " (already included)")))))))
+		    (begin
+		       (debug-trace 2 "  Not including file " include-file " (already included)")
+		       FALSE)))))))
 
 ;; this does steps II-a and II-b
 (define (find-include include-file current-file)
