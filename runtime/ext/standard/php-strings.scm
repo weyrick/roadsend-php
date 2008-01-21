@@ -1696,34 +1696,20 @@
 
 ; strpos --  Find position of first occurrence of a string
 (defbuiltin (strpos haystack needle (offset 'unpassed))
-   (set! haystack (mkstr haystack))
-   (set! needle (mkstr needle))
-   (if (= (string-length needle) 0)
-       (begin
-	  (php-warning "empty needle")
-	  #f)
-       (if (eqv? offset 'unpassed)
-	   (coerce-to-php-type
-	    (substring? needle haystack))
-	   (let ((m (substring? needle (substring haystack (mkfixnum offset) (string-length haystack)))))
-	      (if (eqv? m #f)
-		  #f
-		  (php-+ offset m))))))
+   (let* ((kmpt (kmp-table (mkstr needle)))
+	  (off (if (eqv? 'unpassed offset)
+		   0
+		   (mkfixnum offset)))
+	  (res (kmp-string kmpt (mkstr haystack) off)))
+      (if (=fx res -1)
+	  FALSE
+	  (convert-to-number res))))
 
 ; stripos
 (defbuiltin (stripos haystack needle (offset 'unpassed))
-   (set! haystack (mkstr haystack))
-   (set! needle (mkstr needle))
-   (if (= (string-length needle) 0)
-       (begin
-	  (php-warning "empty needle")
-	  #f)
-       (if (eqv? offset 'unpassed)
-	   (substring-ci? needle haystack)
-	   (let ((m (substring-ci? needle (substring haystack (mkfixnum offset) (string-length haystack)))))
-	      (if (eqv? m #f)
-		  #f
-		  (php-+ offset m))))))
+   (let ((h (string-downcase haystack))
+	 (n (string-downcase needle)))
+      (strpos h n offset)))
 
 ; str_repeat -- Repeat a string
 (defbuiltin (str_repeat str iter)
