@@ -548,6 +548,20 @@
 	  (syntax-highlight-line line 'ansi)
 	  line)))
 
+(define (pdb-prompt-display)
+   (cond-expand (HAVE_LIBREADLINE #f)
+		(else
+		 (display "\n(pdb) "
+			  (if *web-debugger?*
+			      (current-error-port)
+			      (current-output-port))))))
+
+(define (pdb-readline)
+   (cond-expand (HAVE_LIBREADLINE
+		 (readline "(pdb) "))
+		(else
+		 (read-line))))
+
 ;;;## Command Definitions
 
 ;;; The function `debugger-repl' defines all of the commands that the
@@ -568,13 +582,10 @@
 			#\newline *debugger-file* #\newline *debugger-line* #\tab
 			(get-hl-source-at-file-line *debugger-file* *debugger-line*)))
 	     ; prompt
-	     (display "\n(pdb) "
-		      (if *web-debugger?*
-			  (current-error-port)
-			  (current-output-port)))))
+	     (pdb-prompt-display)))
       (flush-output-port (current-output-port))
       (flush-output-port (current-error-port))
-      (let ((command (read-line)))
+      (let ((command (pdb-readline)))
 	 (when (eof-object? command)
 	    (print)
 	    (exit 0))

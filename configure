@@ -681,6 +681,7 @@ HAVE_BIGLOO
 CURL_CONFIG
 CURL_CFLAGS
 CURL_LIBS
+LIBREADLINE
 pcreconfig
 FCGI_LIBS
 pkgconfig
@@ -1311,6 +1312,7 @@ if test -n "$ac_init_help"; then
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-readline         support fancy command line editing [default=check]
   --with-pcre             support pcre extension [default=check]
   --with-fcgi             support FastCGI web backend [default=check]
   --with-xml              support xml extension [default=check]
@@ -1760,6 +1762,8 @@ ac_config_headers="$ac_config_headers runtime/config.h"
 
 
 # items we want defined in config.h
+
+
 
 
 
@@ -3308,6 +3312,97 @@ See \`config.log' for more details." >&2;}
 
 with_curl=yes
 
+# readline
+
+# Check whether --with-readline was given.
+if test "${with_readline+set}" = set; then
+  withval=$with_readline;
+else
+  with_readline=check
+fi
+
+  LIBREADLINE=
+
+if test "x$with_readline" != xno; then
+  { echo "$as_me:$LINENO: checking for main in -lreadline" >&5
+echo $ECHO_N "checking for main in -lreadline... $ECHO_C" >&6; }
+if test "${ac_cv_lib_readline_main+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lreadline -lncurses $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+
+int
+main ()
+{
+return main ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_readline_main=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_readline_main=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_readline_main" >&5
+echo "${ECHO_T}$ac_cv_lib_readline_main" >&6; }
+if test $ac_cv_lib_readline_main = yes; then
+  LIBREADLINE="-lreadline -lncurses"
+
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_LIBREADLINE 1
+_ACEOF
+
+	     with_readline=yes
+
+else
+  if test "x$with_readline" != xcheck; then
+               { { echo "$as_me:$LINENO: error: --with-readline was given, but test for readline failed
+See \`config.log' for more details." >&5
+echo "$as_me: error: --with-readline was given, but test for readline failed
+See \`config.log' for more details." >&2;}
+   { (exit 1); exit 1; }; }
+             fi
+
+fi
+
+fi
+
+
 # PCRE
 
 # Check whether --with-pcre was given.
@@ -3395,8 +3490,7 @@ else
 fi
 
 
-
-if test "x$with_fcgi" != xno; then
+  if test "x$with_fcgi" != xno; then
   { echo "$as_me:$LINENO: checking for FCGX_Accept_r in -lfcgi" >&5
 echo $ECHO_N "checking for FCGX_Accept_r in -lfcgi... $ECHO_C" >&6; }
 if test "${ac_cv_lib_fcgi_FCGX_Accept_r+set}" = set; then
@@ -6161,6 +6255,7 @@ HAVE_BIGLOO!$HAVE_BIGLOO$ac_delim
 CURL_CONFIG!$CURL_CONFIG$ac_delim
 CURL_CFLAGS!$CURL_CFLAGS$ac_delim
 CURL_LIBS!$CURL_LIBS$ac_delim
+LIBREADLINE!$LIBREADLINE$ac_delim
 pcreconfig!$pcreconfig$ac_delim
 FCGI_LIBS!$FCGI_LIBS$ac_delim
 pkgconfig!$pkgconfig$ac_delim
@@ -6190,7 +6285,6 @@ MYSQL_LIBS!$MYSQL_LIBS$ac_delim
 ODBC_CFLAGS!$ODBC_CFLAGS$ac_delim
 ODBC_LIBS!$ODBC_LIBS$ac_delim
 SQLITE_CFLAGS!$SQLITE_CFLAGS$ac_delim
-SQLITE_LIBS!$SQLITE_LIBS$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -6232,6 +6326,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+SQLITE_LIBS!$SQLITE_LIBS$ac_delim
 CURL_STATIC_CFLAGS!$CURL_STATIC_CFLAGS$ac_delim
 XML_CFLAGS!$XML_CFLAGS$ac_delim
 XML_LIBS!$XML_LIBS$ac_delim
@@ -6248,7 +6343,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 14; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 15; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -6691,6 +6786,7 @@ echo "
         cflags:                   ${CFLAGS}
 
         bigloo version:           ${BIGLOO_VERSION}
+        readline:                 ${with_readline}
 
         = Web Backends =
 

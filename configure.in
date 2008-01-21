@@ -10,6 +10,7 @@ AH_TEMPLATE(HAVE_PCRE,[perl compatible regular expressions])
 AH_TEMPLATE(HAVE_FCGI,[FastCGI web backend support])
 AH_TEMPLATE(HAVE_XML,[libxml extension])
 AH_TEMPLATE(HAVE_MYSQL,[MySQL extension])
+AH_TEMPLATE(HAVE_LIBREADLINE,[readline support])
 AH_TEMPLATE(PCC_OS,[target os])
 
 # Checks for programs.
@@ -64,6 +65,26 @@ AC_CHECK_CURL([$want_curl],
 	      AC_DEFINE([HAVE_CURL], [1],[Define if you have curl]),
 	      AC_MSG_FAILURE([libcurl version $want_curl required]))
 with_curl=yes
+
+# readline
+AC_ARG_WITH([readline],
+  [AS_HELP_STRING([--with-readline],
+                  [support fancy command line editing @<:@default=check@:>@])],
+         	  [],
+            	[with_readline=check])
+  LIBREADLINE=
+    AS_IF([test "x$with_readline" != xno],
+          [AC_CHECK_LIB([readline], [main],
+            [AC_SUBST([LIBREADLINE], ["-lreadline -lncurses"])
+             AC_DEFINE([HAVE_LIBREADLINE], [1],
+                       [Define if you have libreadline])
+	     with_readline=yes
+            ],
+            [if test "x$with_readline" != xcheck; then
+               AC_MSG_FAILURE(
+                 [--with-readline was given, but test for readline failed])
+             fi
+            ], -lncurses)])
 
 # PCRE
 AC_ARG_WITH([pcre],
@@ -399,6 +420,7 @@ echo "
         cflags:                   ${CFLAGS}
 
         bigloo version:           ${BIGLOO_VERSION}
+        readline:                 ${with_readline}
 
         = Web Backends =
 

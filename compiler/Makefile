@@ -87,5 +87,11 @@ pcctags: tags_$(SU).o $(PHPEVAL_LIBS)
 	bigloo -ldopt -L/usr/local/lib $(SAFETY) $(BCOMMONFLAGS) -O6 -o pcctags tags_$(SU).o -library phpeval -library php-runtime -library profiler -library webconnect
 
 pdb: pdb_$(SU).o $(PHPEVAL_LIBS)
-	bigloo -ldopt -L/usr/local/lib $(SAFETY) $(BCOMMONFLAGS) -O6 -o pdb pdb_$(SU).o -library phpeval -library php-runtime -library profiler -library webconnect -library mhttpd -lwebserver
+	bigloo -ldopt -L/usr/local/lib $(SAFETY) $(BCOMMONFLAGS) -O6 -o pdb pdb_$(SU).o -library phpeval -library php-runtime -library profiler -library webconnect -library mhttpd -lwebserver $(READLINE_BL_LIB)
 
+# we have to override these to add in READLINE_BL_LIB if it's available, since we can't do it
+# conditionally in the module clause
+pdb_s.o: 
+	$(BIGLOO) $(BSAFEFLAGS) $(READLINE_BL_LIB) $(READLINE_SRFI) $(BIGLOO_PIC)  -c pdb.scm -o pdb_s.o
+pdb_u.o:
+	$(BIGLOO) $(BUNSAFEFLAGS) $(READLINE_BL_LIB) $(READLINE_SRFI) $(BIGLOO_PIC)  -c pdb.scm -o pdb_s.o

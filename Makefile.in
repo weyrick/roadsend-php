@@ -20,7 +20,6 @@
 # dotest     	- build "dotest" regression testing program
 # test		- run the stand alone test suite
 # check      	- run main test suite, using dotest program (compares against Zend PHP)
-# check5     	- run PHP5 specific test suite (compares against Zend PHP)
 # check-all  	- run main test suite, and all extension test suites
 #
 #
@@ -37,7 +36,7 @@ bindir  	= @bindir@
 libdir		= @libdir@
 sysconfdir	= @sysconfdir@
 
-all: Makefile.config libs libs/libwebserver.$(SOEXT) profiler runtime webconnect \
+all: Makefile.config libs libs/libwebserver.$(SOEXT) tools runtime webconnect \
      compiler extensions php-extensions web-backends debugger shortpath dotest 
 
 Makefile.config:
@@ -91,9 +90,14 @@ webconnect:
 web-backends: webconnect compiler runtime
 	(cd webconnect && $(MAKE) web-backends)
 
-#profiler
-profiler: libs
-	(cd tools/profiler && $(MAKE) all)
+#tools: profiler, readline
+tools: libs
+	@for d in $(TOOLS_LIST); do \
+           if [ -d tools/$$d ]; then \
+             echo "making runtime tool: $$d ..."; \
+             (cd tools/$$d && $(MAKE) all); \
+           fi \
+        done
 
 libs: 
 	-mkdir libs
@@ -107,7 +111,11 @@ clean:
 	(cd webconnect && $(MAKE) clean && UNSAFE=t $(MAKE) clean)
 	(cd bugs && $(MAKE) clean && UNSAFE=t $(MAKE) clean)
 #	(cd doc && $(MAKE) clean && UNSAFE=t $(MAKE) clean)
-	(cd tools/profiler && $(MAKE) clean && UNSAFE=t $(MAKE) clean)
+	@for d in $(TOOLS_LIST); do \
+           if [ -d $$d ]; then \
+             (cd $$d && $(MAKE) clean && UNSAFE=t $(MAKE) clean); \
+           fi \
+        done
 	-(cd tools/libwebserver && $(MAKE) clean)
 	-(cd sa-tests && $(MAKE) clean)
 
