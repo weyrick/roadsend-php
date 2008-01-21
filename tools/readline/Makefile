@@ -4,7 +4,7 @@ include $(PCC_ROOT)/bigloo-rules.mk
 BCOMMONFLAGS	= -copt -D_ISOC99_SOURCE
 CCOMMONFLAGS	=  -I. -I$(BGL_DEFAULT_LIB_DIR) -O -I/usr/local/include
 
-SOURCE_LIST	= readline
+SOURCE_LIST	= readline history
 C_SOURCE_LIST   = 
 
 C_SOURCE_FILES   := $(patsubst %,%.c,$(C_SOURCE_LIST))

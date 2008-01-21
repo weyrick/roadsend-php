@@ -570,6 +570,7 @@
 ;; k is either #f or the kontinuation for the redo command
 (define (debugger-repl node #!optional k)
 ;   (dump-bigloo-stack (current-error-port) 10)
+   (cond-expand (HAVE_LIBREADLINE (history-init)))
    (let loop ()
       (if *slavemode*
 	  (debug-print "Location: " *debugger-file* ":" *debugger-line*)
@@ -589,6 +590,7 @@
 	 (when (eof-object? command)
 	    (print)
 	    (exit 0))
+	 (cond-expand (HAVE_LIBREADLINE (history-add command)))
 	 (string-case command
 ;;; The all important help command.
 	    ((or "h" "help")

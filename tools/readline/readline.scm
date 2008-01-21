@@ -20,8 +20,7 @@
 ;* USA                                                                  */
 ;*                                                                      */
 ;************************************************************************/
-(module
-  pcc-readline
+(module pcc-readline
   (extern
     (include #"readline/readline.h")
     (include #"string.h"))

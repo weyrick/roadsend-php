@@ -91,7 +91,7 @@ pdb: pdb_$(SU).o $(PHPEVAL_LIBS)
 
 # we have to override these to add in READLINE_BL_LIB if it's available, since we can't do it
 # conditionally in the module clause
-pdb_s.o: 
+pdb_s.o: pdb.scm
 	$(BIGLOO) $(BSAFEFLAGS) $(READLINE_BL_LIB) $(READLINE_SRFI) $(BIGLOO_PIC)  -c pdb.scm -o pdb_s.o
-pdb_u.o:
+pdb_u.o: pdb.scm
 	$(BIGLOO) $(BUNSAFEFLAGS) $(READLINE_BL_LIB) $(READLINE_SRFI) $(BIGLOO_PIC)  -c pdb.scm -o pdb_s.o
