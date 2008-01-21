@@ -170,8 +170,8 @@
        ((nl) '()))
 
       (symbol-list
-       ((symbol symbol-list) (mkstr symbol symbol-list))
-       ((symbol) (mkstr symbol)))
+       ((symbol symbol-list) (string-append symbol symbol-list))
+       ((symbol) symbol))
       
        ))
 
@@ -200,15 +200,19 @@
 			  (unless (null? a)
 			  (let ((tok (car a)))
 			     (cond
-				((eqv? tok 'section) (set! current-section (mkstr (cdr a))))
-				((eqv? tok 'value) (let ((key (mkstr (cadr a)))
-							 (val (coerce-to-php-type (cddr a))))
-						      (when (and (string? val) (or (string=? (string-downcase val) "on")
-										   (string=? (string-downcase val) "true")))
+				;
+				; NOTE: assumes parser has already handler conversion to string
+				;
+				((eqv? tok 'section) (set! current-section (cdr a)))
+				((eqv? tok 'value) (let* ((key (cadr a))
+							  (val (cddr a))
+							  (down-val (string-downcase val)))
+						      (when (or (string=? down-val "on")
+								(string=? down-val "true"))
 							 (set! val "1"))
-						      (when (and (string? val) (or (string=? (string-downcase val) "off")
-										   (string=? (string-downcase val) "null")
-										   (string=? (string-downcase val) "false")))
+						      (when (or (string=? down-val "off")
+								(string=? down-val "null")
+								(string=? down-val "false"))
 							 (set! val ""))
 						      (if (and parse-sections?
 							       (> (string-length current-section) 0))
