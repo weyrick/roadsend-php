@@ -22,6 +22,7 @@
    (import (php-variable-lib "php-variable.scm"))
    (import (php-math-lib "php-math.scm"))
    (import (pcc-web-url "url.scm"))
+   (import (soundex "soundex.scm"))
    (library profiler)
    (extern
     (include "crc.h")
@@ -693,7 +694,7 @@
  		      (begin
 			(add-result! str2)
 			(finish-results))
-		      (let ((pos (substring? sep str2)))
+		      (let ((pos (string-contains str2 sep)))
 			(if pos
 			    (begin
 			      (add-result! (substring str2 0 pos))
@@ -1196,8 +1197,7 @@
 ; soundex -- Calculate the soundex key of a string
 (defalias soundex php-soundex)
 (defbuiltin (php-soundex str)
-   (set! str (mkstr str))
-   (soundex str))
+   (soundex (mkstr str)))
 
 ; sprintf -- Return a formatted string
 (defbuiltin-v (sprintf t-data)
@@ -1478,7 +1478,7 @@
    ;(print "checktag allow " allow " and " str)
    (let* ((t1 (pregexp-replace "^\\/*([a-zA-Z]+)\s*" str "<\\1>"))
 	  (t2 (substring t1 0 (+ (mkfixnum (strpos t1 ">" 0)) 1))))
-      (if (not (eqv? (substring-ci? t2 allow) #f))
+      (if (not (eqv? (string-contains-ci allow t2) #f))
 	  (string-append "<" str ">")
 	  "")))
 
@@ -1632,7 +1632,7 @@
 (defbuiltin (stristr haystack needle)
    (set! haystack (mkstr haystack))
    (set! needle (mkstr needle))
-   (let ((s-pos (substring-ci? needle haystack)))
+   (let ((s-pos (string-contains-ci haystack needle)))
       (if (eqv? s-pos #f)
 	  #f
 	  (substring haystack s-pos (string-length haystack)))))
@@ -1777,7 +1777,7 @@
        (begin
 	  (php-warning "empty needle")
 	  #f)
-       (let ((s-pos (substring? needle haystack)))
+       (let ((s-pos (string-contains haystack needle)))
 	  (if (eqv? s-pos #f)
 	      #f
 	      (coerce-to-php-type
@@ -1982,12 +1982,12 @@
        (let ((count 0)
 	     (h-len (string-length haystack))
 	     (n-len (string-length needle)))
-	  (let loop ((i (substring? needle haystack))
+	  (let loop ((i (string-contains haystack needle))
 		     (offset 0))
 	     (if (not (eqv? i #f))
 		 (begin
 		    (set! count (+ count 1))
-		    (loop (substring? needle (substring haystack (+ i n-len offset) h-len)) (+ i n-len offset)))
+		    (loop (string-contains (substring haystack (+ i n-len offset) h-len) needle) (+ i n-len offset)))
 		 (convert-to-number count))))))
 
 ; substr_replace -- Replace text within a portion of a string

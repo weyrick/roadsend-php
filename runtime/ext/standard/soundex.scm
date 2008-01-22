@@ -1,8 +1,5 @@
 (module soundex
-   (include "slib/bigloo.init") 
-   (export (remove-if pred? lst)
-	   (soundex str)
-	   do-SOUNDEX))
+   (export (soundex str)))
 
 ;"soundex.scm" Original SOUNDEX algorithm.
 ;From jjb@isye.gatech.edu Mon May  2 22:29:43 1994
@@ -23,9 +20,9 @@
 	  (else (remove-if (cdr lst) (cons (car lst) result))))))
 
 (define (soundex str)
-   (do-SOUNDEX str))
+   (do-soundex str))
 
-(define do-SOUNDEX
+(define do-soundex
   (let* ((letters-to-omit
           (list #\A #\E #\H #\I #\O #\U #\W #\Y))
          (codes

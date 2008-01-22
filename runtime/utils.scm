@@ -31,6 +31,7 @@
     ;; and in recent versions it no longer resets the position to 0
     (flush-string-port/bin::bstring (::output-port) "strport_bin_flush"))
    (export
+    (string-subst::bstring text::bstring old::bstring new::bstring . rest)
     (hashtable-copy hash)
     (undollar str)    
     (vector-swap! v a b)
@@ -73,6 +74,26 @@
     (make-tmpfile-name dir pref)
     (pcc-file-separator)
     (force-trailing-/ p)))
+
+; a version of php's str_replace
+(define (string-subst::bstring text::bstring old::bstring new::bstring . rest)
+   (let ((tbl (kmp-table old))
+	 (result "")
+	 (text-len (string-length text))
+	 (old-len (string-length old)))
+      (let loop ((offset 0))
+	 (when (<fx offset text-len)
+	    (let ((match-i::bint (kmp-string tbl text offset)))
+	       (if (>=fx match-i 0)
+		   (begin
+		      (set! result (string-append result
+						  (substring text offset match-i)
+						  new))
+		      (loop (+fx match-i old-len)))
+		   (set! result (string-append result (substring text offset (string-length text))))))))
+      (if (null? rest)
+	  result
+	  (apply string-subst result rest))))
 
 (define (make-tmpfile-name dir prefix)
    (let* ((alphabet (list->vector '(0 1 2 3 4 5 6 7 8 9

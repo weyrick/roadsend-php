@@ -41,7 +41,8 @@ SOURCE_LIST     = php-strings \
 		  php-network \
 		  streams-c-bindings \
 		  php-image \
-		  url
+		  url \
+		  soundex
 
 
 C_SOURCE_LIST   = strnatcmp \

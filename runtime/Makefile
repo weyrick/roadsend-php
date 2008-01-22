@@ -6,10 +6,9 @@ include $(PCC_ROOT)/bigloo-rules.mk
 BCOMMONFLAGS	=  -copt -D_GNU_SOURCE # -D_ISOC99_SOURCE
 CCOMMONFLAGS	=  -I. -I$(BGL_DEFAULT_LIB_DIR)
 
-SLIB_FILES	= slib/format  slib/slib  slib/sort  slib/soundex  slib/strcase  slib/strsrch
 SOURCE_LIST	= php-runtime php-hash php-object php-ini utils elongs opaque-math-binding \
                   grasstable url-rewriter signatures extended-streams constants finalizers \
-                  php-errors builtin-classes resources blib output-buffering $(SLIB_FILES) \
+                  php-errors builtin-classes resources blib output-buffering \
 		  php-types containers php-operators environments php-functions
 C_SOURCE_LIST   = c-runtime opaque-math php-hash-helper pcc_snprintf
 
@@ -50,7 +49,7 @@ php-extensions:
 	cp php-runtime.sch ../libs/php-runtime.sch
 
 clean-runtime:
-	-/bin/rm -f *.a *.o *.heap *.so $(CLEFTOVERS) slib/*.o
+	-/bin/rm -f *.a *.o *.heap *.so $(CLEFTOVERS)
 
 clean: clean-runtime
 	@(cd ext && $(MAKE) clean)
@@ -67,12 +66,10 @@ opaque-math-binding_$(SU).o: opaque-math_$(SU).o
 
 opaque-math_$(SU).o: opaque-math.h opaque-piddle.h
 
-php-runtime_$(SU).o: ../php-macros.scm elongs_$(SU).o slib/slib_$(SU).o opaque-math-binding_$(SU).o \
+php-runtime_$(SU).o: ../php-macros.scm elongs_$(SU).o opaque-math-binding_$(SU).o \
       php-object_$(SU).o php-hash_$(SU).o utils_$(SU).o php-runtime.sch url-rewriter_$(SU).o signatures_$(SU).o \
       constants_$(SU).o php-ini_$(SU).o extended-streams_$(SU).o finalizers_$(SU).o resources_$(SU).o output-buffering_$(SU).o \
       php-types_$(SU).o containers_$(SU).o php-operators_$(SU).o environments_$(SU).o php-functions_$(SU).o
-
-slib/slib_$(SU).o: slib/format_$(SU).o  slib/sort_$(SU).o  slib/soundex_$(SU).o  slib/strcase_$(SU).o  slib/strsrch_$(SU).o
 
 #make-lib_$(SU).o: utils_$(SU).o elongs_$(SU).o php-object_$(SU).o           \
 #      php-hash_$(SU).o php-runtime_$(SU).o php-runtime.sch 
