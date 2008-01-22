@@ -94,4 +94,4 @@ pdb: pdb_$(SU).o $(PHPEVAL_LIBS)
 pdb_s.o: pdb.scm
 	$(BIGLOO) $(BSAFEFLAGS) $(READLINE_BL_LIB) $(READLINE_SRFI) $(BIGLOO_PIC)  -c pdb.scm -o pdb_s.o
 pdb_u.o: pdb.scm
-	$(BIGLOO) $(BUNSAFEFLAGS) $(READLINE_BL_LIB) $(READLINE_SRFI) $(BIGLOO_PIC)  -c pdb.scm -o pdb_s.o
+	$(BIGLOO) $(BUNSAFEFLAGS) $(READLINE_BL_LIB) $(READLINE_SRFI) $(BIGLOO_PIC)  -c pdb.scm -o pdb_u.o
