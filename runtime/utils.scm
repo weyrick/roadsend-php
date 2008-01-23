@@ -77,22 +77,63 @@
 
 ; a version of php's str_replace
 (define (string-subst::bstring text::bstring old::bstring new::bstring . rest)
-   (let ((tbl (kmp-table old))
-	 (result (open-output-string))
-	 (text-len (string-length text))
-	 (old-len (string-length old)))
+   (multiple-value-bind (num-matches matches) (find-idxs text old)
+      (if (=fx num-matches 0)
+	  (if (null? rest)
+	      text
+	      (apply string-subst text rest))
+	  (let* ((text-len (string-length text))
+		 (new-len (string-length new))
+		 (old-len (string-length old))
+		 (new-buf-size (cond ((=fx new-len old-len) text-len)
+				     ((<fx new-len old-len) (-fx text-len
+								 (*fx (-fx old-len new-len) num-matches)))
+				     ((>fx new-len old-len) (+fx text-len
+								 (*fx (-fx new-len old-len) num-matches)))))
+		 (result (make-string new-buf-size)))
+	     (let loop ((o-text 0)
+			(o-result 0)
+			(i 0))
+		(if (=fx i num-matches)
+		    ; no more matches, copy ending if we have it
+		    (when (<fx o-text text-len)
+		       (blit-string! text o-text result o-result (-fx text-len o-text)))
+		    ; copy match
+		    (let ((copy-len (-fx (vector-ref matches i) o-text)))
+		       ; fill before match
+		       (when (>fx copy-len 0)
+			  (blit-string! text o-text result o-result copy-len))
+		       ; fill replacement
+		       (blit-string! new 0 result (+fx o-result copy-len) new-len)
+		       ; next match
+		       (loop (+fx (vector-ref matches i) old-len)
+			     (+fx o-result (+fx new-len copy-len))
+			     (+fx i 1)))))
+	     (if (null? rest)
+		 result
+		 (apply string-subst result rest))))))
+
+(define (find-idxs haystack::bstring needle::bstring)
+   (let ((tbl (kmp-table needle))
+	 (matches (make-vector 10))
+	 (vsize 10)
+	 (pages 1)
+	 (num-matches 0)
+	 (text-len (string-length haystack))
+	 (old-len (string-length needle)))
       (let loop ((offset 0))
 	 (when (<fx offset text-len)
-	    (let ((match-i::bint (kmp-string tbl text offset)))
-	       (if (>=fx match-i 0)
-		   (begin
-		      (display (substring text offset match-i) result)
-		      (display new result)
-		      (loop (+fx match-i old-len)))
-		   (display (substring text offset text-len) result)))))
-      (if (null? rest)
-	  (close-output-port result)
-	  (apply string-subst (close-output-port result) rest))))
+	    (let ((match-i (kmp-string tbl haystack offset)))
+	       (when (>=fx match-i 0)
+		  ; do we need to expand our vector?
+		  (when (=fx num-matches vsize)
+		     (set! pages (+fx 1 pages))
+		     (set! vsize (+fx vsize (*fx pages vsize)))
+		     (set! matches (copy-vector matches vsize)))
+		  (vector-set! matches num-matches match-i)
+		  (set! num-matches (+fx num-matches 1))
+		  (loop (+fx match-i old-len))))))
+      (values num-matches matches)))
 
 (define (make-tmpfile-name dir prefix)
    (let* ((alphabet (list->vector '(0 1 2 3 4 5 6 7 8 9
