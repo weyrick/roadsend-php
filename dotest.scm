@@ -310,6 +310,8 @@ and compare the results"
 	       (if fp
 		   (with-output-to-port fp
 		      (lambda ()
+			 (when (getenv "RUN_DESC")
+			    (print "-------------" (getenv "RUN_DESC") "--------------"))
 			 (print (current-date))
 			 (print (string-replace (system->string "uname -a") #\Newline #\space))
 			 (print "Roadsend PHP: " (string-replace (system->string "pcc --version") #\Newline #\space) " | " *phpoo*)

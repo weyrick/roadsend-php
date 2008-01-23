@@ -78,7 +78,7 @@
 ; a version of php's str_replace
 (define (string-subst::bstring text::bstring old::bstring new::bstring . rest)
    (let ((tbl (kmp-table old))
-	 (result "")
+	 (result (open-output-string))
 	 (text-len (string-length text))
 	 (old-len (string-length old)))
       (let loop ((offset 0))
@@ -86,14 +86,13 @@
 	    (let ((match-i::bint (kmp-string tbl text offset)))
 	       (if (>=fx match-i 0)
 		   (begin
-		      (set! result (string-append result
-						  (substring text offset match-i)
-						  new))
+		      (display (substring text offset match-i) result)
+		      (display new result)
 		      (loop (+fx match-i old-len)))
-		   (set! result (string-append result (substring text offset (string-length text))))))))
+		   (display (substring text offset text-len) result)))))
       (if (null? rest)
-	  result
-	  (apply string-subst result rest))))
+	  (close-output-port result)
+	  (apply string-subst (close-output-port result) rest))))
 
 (define (make-tmpfile-name dir prefix)
    (let* ((alphabet (list->vector '(0 1 2 3 4 5 6 7 8 9
