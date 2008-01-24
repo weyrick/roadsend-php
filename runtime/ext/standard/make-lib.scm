@@ -14,4 +14,5 @@
     (php-session-lib "php-session.scm")
     (php-streams-lib "php-streams.scm")
     (php-image-lib "php-image.scm")
+    (php-var-cache-lib "php-var-cache.scm")
     ))

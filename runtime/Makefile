@@ -8,7 +8,7 @@ CCOMMONFLAGS	=  -I. -I$(BGL_DEFAULT_LIB_DIR)
 
 SOURCE_LIST	= php-runtime php-hash php-object php-ini utils elongs opaque-math-binding \
                   grasstable url-rewriter signatures extended-streams constants finalizers \
-                  php-errors builtin-classes resources blib output-buffering \
+                  php-errors builtin-classes resources blib output-buffering web-var-cache \
 		  php-types containers php-operators environments php-functions
 C_SOURCE_LIST   = c-runtime opaque-math php-hash-helper pcc_snprintf
 

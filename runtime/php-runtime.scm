@@ -31,6 +31,7 @@
    ; from bindings are reexported
    (from (blib "blib.scm")
 	 (extended-streams "extended-streams.scm")
+	 (web-var-cache "web-var-cache.scm")
 	 (constants "constants.scm")
 	 (finalizers "finalizers.scm")
 	 (php-resources "resources.scm")

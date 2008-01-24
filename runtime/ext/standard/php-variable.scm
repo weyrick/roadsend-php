@@ -69,8 +69,8 @@
 (defbuiltin (empty var)
    (cond ((null? var) #t)
 	 ((boolean? var) (not var))
-	 ((string? var) (or (string=? var "") (string=? var "0")))
 	 ((php-number? var) (php-= var 0))
+	 ((string? var) (or (string=? var "") (string=? var "0")))
 	 ((php-hash? var) (= (php-hash-size var) 0)) 
 	 (else FALSE)))
 
