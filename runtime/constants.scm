@@ -19,12 +19,12 @@
 (module constants
    (export
     (reset-constants!)
-    (constant-defined? name::string)
-    (lookup-constant name::string)
+    (constant-defined? name::bstring)
+    (lookup-constant name::bstring)
     (lookup-constant/smash name::pair)
-    (store-constant name::string value case-insensitive?)
-    (store-persistent-constant name::string value)
-    (store-special-constant name::string value)
+    (store-constant name::bstring value case-insensitive?)
+    (store-persistent-constant name::bstring value)
+    (store-special-constant name::bstring value)
     (constants-for-each k)
     (php-constant? value)
     *PHP-LINE*
@@ -49,7 +49,7 @@
 ;(store-special-constant "__FUNCTION__" (lambda () ""))
 
 ; store a magical "dynamic constant"
-(define (store-special-constant name::string value)
+(define (store-special-constant name::bstring value)
    (hashtable-put! *special-constants* name value))
 
 (define %constant-not-defined% (cons '() '()))
@@ -65,12 +65,12 @@
 (define (reset-constants!)
    (set! *constant-table* (make-hashtable)))
 
-(define (constant-defined? name::string)
+(define (constant-defined? name::bstring)
    (if (eq? (%get-constant name) %constant-not-defined%)
        #f
        #t))
 
-(define (lookup-constant name::string)
+(define (lookup-constant name::bstring)
    ;;XXX looks like special constants can't return false!
    (let ((c (%get-constant name)))
       (if (eq? c %constant-not-defined%)
@@ -102,12 +102,12 @@
        (%constant-value (cdr name))))
 
 
-(define (store-constant name::string value case-insensitive?)
+(define (store-constant name::bstring value case-insensitive?)
    ;;store a plain user constant
    ;;does not override existing constants
    (%put-constant name value case-insensitive? #f #f))
 
-(define (store-persistent-constant name::string value)
+(define (store-persistent-constant name::bstring value)
    ;;store a constant that won't be discarded on page reload
    ;;overrides existing constants
    (%put-constant name value #f #t #t))

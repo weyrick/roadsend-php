@@ -30,7 +30,7 @@
     (superglobal? key)
     (env-php-hash-view env)
     (env-new)
-    (env-import env source-hash prefix::string)
+    (env-import env source-hash prefix::bstring)
     (env-extend env name::bstring value)
     (env-lookup env name::bstring)
     (env-lookup-internal-index env name::bstring)
@@ -67,7 +67,7 @@
 
 ; import values from a php hash into the specified environment
 ; see extract and import_request_variables in php-variables
-(define (env-import env source-hash prefix::string)
+(define (env-import env source-hash prefix::bstring)
    (debug-trace 2 "env-import: importing with prefix: " prefix)
    (let ((source (maybe-unbox source-hash)))
       (if (php-hash? source)

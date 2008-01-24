@@ -29,7 +29,7 @@
     (config-ini-entry name value)
     (reset-ini!)
     (generate-config-ini-entries)
-    (ini-file-parse fname::string parse-sections?::bool)))
+    (ini-file-parse fname::bstring parse-sections?::bool)))
 
 
 
@@ -176,7 +176,7 @@
        ))
 
 
-(define (ini-file-parse fname::string parse-sections?::bool)
+(define (ini-file-parse fname::bstring parse-sections?::bool)
    (bind-exit (exit)
       (if (file-exists? fname)
 	  (let ((rhash (make-php-hash))
