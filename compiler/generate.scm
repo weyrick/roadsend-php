@@ -1438,7 +1438,9 @@ onum.  Append the bindings for the new symbols and code."
 ;;;;get-value
 (define-generic (get-value rval)
 ;   (fprint (current-error-port) "get value caught a " rval)
-   `(maybe-unbox ',rval))
+   (if (eqv? rval :next)
+       `:next
+       `(maybe-unbox ',rval)))
 
 (define-method (get-value rval::ast-node)
 ;   (fprint (current-error-port) "other get value caught a " rval)
