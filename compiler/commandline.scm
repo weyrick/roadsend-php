@@ -278,9 +278,7 @@
        
        ((("-d" "--debug-level") ?level (help "Set the debug level (0=None/1=Med/2=High)"))
 	(when (maybe-add-script-argv "-d")
-	   (set! *debug-level* (if *RAVEN-DEVEL-BUILD*
-				   (string->integer level)
-				   (min (string->integer level) 2)))
+	   (set! *debug-level* (string->integer level))
 	   (when (> *debug-level* 0)
 	      (set! *verbosity* 1)
 	      (add-target-option! bigloo-args: "-g")
@@ -343,18 +341,15 @@
        
        (("--dump-pre" (help "Dump the string produced by the preprocessor")
          )
-        (when *RAVEN-DEVEL-BUILD*
-           (widen!::dump-target *current-target* (dump-type 'preprocessor-tokens))))
+	(widen!::dump-target *current-target* (dump-type 'preprocessor-tokens)))
        
        (("--dump-toks" (help "Dump the tokens produced by the main lexer")
          )
-        (when *RAVEN-DEVEL-BUILD*
-           (widen!::dump-target *current-target* (dump-type 'tokens))))
+	(widen!::dump-target *current-target* (dump-type 'tokens)))
        
        (("--dump-ast" (help "Dump the syntax tree produced by the parser")
          )
-        (when *RAVEN-DEVEL-BUILD*
-           (widen!::dump-target *current-target* (dump-type 'ast))))
+	(widen!::dump-target *current-target* (dump-type 'ast)))
        
 ;        (("--dump-containers" (help "Dump the syntax tree produced by the parser, after container analysis")
 ;          )
@@ -363,16 +358,14 @@
        
        (("--dump-types" (help "Dump the syntax tree produced by the parser, after type inference")
          )
-        (when *RAVEN-DEVEL-BUILD*
-           (widen!::dump-target *current-target* (dump-type 'types))))
+	(widen!::dump-target *current-target* (dump-type 'types)))
        
        ; 	 (("--show-copies" ;(help "Dump the syntax tree produced by the parser, after type inference")
        ; 			  )
        ;	  (set! show-copies? #t))
         (("--dump-flow" (help "Dump the flow graph of the program")
           )
-         (when *RAVEN-DEVEL-BUILD*
-            (widen!::dump-target *current-target* (dump-type 'flow-graph))))
+	 (widen!::dump-target *current-target* (dump-type 'flow-graph)))
 
 ;        (("--dump-times" (help "Compile, printing the times required for each stage")
 ;          )
