@@ -241,6 +241,7 @@
 
 	 ((uncase "unset") (stok 'unset))
 	 ((uncase "isset") (stok 'isset))
+	 ((uncase "empty") (stok 'empty))
 
 	 ;; here we're returning a *current-lineno* as the value, any other
 	 ;; value would be pointless, and this location is more

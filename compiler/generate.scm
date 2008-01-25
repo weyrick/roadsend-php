@@ -767,6 +767,10 @@ onum.  Append the bindings for the new symbols and code."
    (with-access::isset-stmt node (rvals)
       `(and ,@(map isset rvals))))
 
+(define-method (generate-code node::empty-stmt)
+   (with-access::empty-stmt node (rval)
+	 `(php-empty? ,(get-value rval))))
+
 (define-method (generate-code node::switch-stmt)
    (with-access::switch-stmt/gen node (rval cases needs-continue? needs-break?)
       (if (null? cases)

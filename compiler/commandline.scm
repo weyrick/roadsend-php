@@ -337,10 +337,9 @@
        ((("-rm" "--no-clean") (help "Don't cleanup temporary files")
 	 )
 	(when (maybe-add-script-argv "-rm")
-	   (when *RAVEN-DEVEL-BUILD*
-	      (set-target-option! no-cleanup?: #t)
-	      (set-target-option! pretty?: #t)
-	      (add-target-option! bigloo-args: "-rm"))))
+	   (set-target-option! no-cleanup?: #t)
+	   (set-target-option! pretty?: #t)
+	   (add-target-option! bigloo-args: "-rm")))
        
        (("--dump-pre" (help "Dump the string produced by the preprocessor")
          )

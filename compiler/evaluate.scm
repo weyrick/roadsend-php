@@ -760,6 +760,12 @@ gives the debugger a chance to run."
 		 #f))
 	  #f)))
 
+(define-method (evaluate node::empty-stmt)
+   (set! *PHP-LINE* (car (ast-node-location node)))
+   (with-access::empty-stmt node (rval)
+      (let ((r (maybe-unbox (d/evaluate rval))))
+	 (php-empty? r))))
+
 (define-generic (isset rval)
    (not (null? (maybe-unbox (d/evaluate rval)))))
 

@@ -23,7 +23,7 @@
    (export
     ;doubleval (alias of floatval)
     (floatval var)
-    (empty var)
+;    (empty var)
     (gettype var)
     ;(get_defined_vars) ;won't work without happy cheese
     (get_resource_type resource)
@@ -66,13 +66,14 @@
 (defalias doubleval floatval)
 
 ; empty -- Determine whether a variable is set
-(defbuiltin (empty var)
-   (cond ((null? var) #t)
-	 ((boolean? var) (not var))
-	 ((php-number? var) (php-= var 0))
-	 ((string? var) (or (string=? var "") (string=? var "0")))
-	 ((php-hash? var) (= (php-hash-size var) 0)) 
-	 (else FALSE)))
+; now a language construct -- weyrick 01/08
+; (defbuiltin (empty var)
+;    (cond ((null? var) #t)
+; 	 ((boolean? var) (not var))
+; 	 ((php-number? var) (php-= var 0))
+; 	 ((string? var) (or (string=? var "") (string=? var "0")))
+; 	 ((php-hash? var) (= (php-hash-size var) 0)) 
+; 	 (else FALSE)))
 
 ; gettype -- Get the type of a variable
 (defbuiltin (gettype var)

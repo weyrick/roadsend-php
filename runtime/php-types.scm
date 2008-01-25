@@ -23,6 +23,7 @@
     (php-object "php-object.scm")
     (php-errors "php-errors.scm")
     (php-resources "resources.scm")
+    (php-operators "php-operators.scm")
     (constants "constants.scm")
     (rt-containers "containers.scm"))
    (from (opaque-math "opaque-math-binding.scm"))
@@ -44,6 +45,7 @@
     (mkstr::bstring a . args)
     (get-php-datatype::bstring rval)
     (valid-php-type? value)
+    (php-empty? a)
     (php-null? a)
     (php-resource? a)
     (php-number? rval)
@@ -231,6 +233,14 @@
 
 (define (php-null? a)
    (eqv? a NULL))
+
+(define (php-empty? a)
+   (cond ((null? a) TRUE)
+ 	 ((boolean? a) (not a))
+ 	 ((php-number? a) (php-= a 0))
+ 	 ((string? a) (or (=fx (string-length a) 0) (string=? a "0")))
+ 	 ((php-hash? a) (= (php-hash-size a) 0)) 
+ 	 (else FALSE)))
 
 (define (php-resource? a)
    ;;;XXX fixme this doesn't have a good definition!

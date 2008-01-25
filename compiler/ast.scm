@@ -58,6 +58,8 @@
        lvals)
     (final-class isset-stmt::ast-node
        rvals)
+    (final-class empty-stmt::ast-node
+       rval)
     (final-class if-stmt::ast-node
        condition
        then
