@@ -136,11 +136,6 @@ check: dotest #all
 	-mkdir testoutput
 	./dotest tests/ testoutput/
 
-check5: dotest
-	-rm -rf testoutput
-	-mkdir testoutput
-	PHP=$(PHP5) PCC_OPTS=-5 ./dotest tests5/ testoutput/
-
 check-all: all check
 	(cd runtime/ext && $(MAKE) check)
 
