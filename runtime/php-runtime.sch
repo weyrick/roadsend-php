@@ -142,7 +142,7 @@
 	  ,val)))
 
 (define-macro (with-unique-names variables . forms)
-  `(let (,@(mapcar (lambda (v) (list v `(gensym ,(string v)))) variables))
+  `(let (,@(map (lambda (v) (list v `(gensym ,(symbol->string v)))) variables))
     ,@forms))
 
 (define-macro (awhen test . rest)
