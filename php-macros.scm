@@ -27,9 +27,11 @@
    (let ((retvalname (gensym 'retval)))
       `(begin
 	  (define (,name ,@(param-names params))
-	     ,@(profile-wrap name
-			     (trace-wrap 'unset name (param-names params)
-					 (add-function-name-to-warnings name code))))
+	     ,@(if *fast-build*
+		  (add-function-name-to-warnings name code)
+		  (profile-wrap name
+				(trace-wrap 'unset name (param-names params)
+					    (add-function-name-to-warnings name code)))))
 	  ,(generate-store-signature 'fixed name params))))
 
 ;;XXX maybe save up until the last form in the file, and then dump all of the signatures into it as a function, and then call that function, to cut down on global relocs.
@@ -41,13 +43,17 @@
       `(begin
 	  ,(if (> (length param-names-reversed) 1)
 	       `(define (,name ,@(reverse (cdr param-names-reversed)) . ,(car param-names-reversed))
-		   ,@(profile-wrap name
-				   (trace-wrap 'unset name (param-names params)
-					       (add-function-name-to-warnings name code))))
+		   ,@(if *fast-build*
+			 (add-function-name-to-warnings name code)
+			 (profile-wrap name
+				       (trace-wrap 'unset name (param-names params)
+						   (add-function-name-to-warnings name code)))))
 	       `(define (,name . ,(car param-names-reversed))
-		   ,@(profile-wrap name
-				   (trace-wrap 'unset name (param-names params)
-					       (add-function-name-to-warnings name code)))))
+		   ,@(if *fast-build*
+			 (add-function-name-to-warnings name code)		   
+			 (profile-wrap name
+				       (trace-wrap 'unset name (param-names params)
+						   (add-function-name-to-warnings name code))))))
 	  ,(generate-store-signature 'variable name params))))
 
 (define *fast-build* (member "-unsafe" (command-line)))
