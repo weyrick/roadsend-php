@@ -145,10 +145,6 @@
 					   pt))))
                    (content ""))
 	       
-               (when (and *fastcgi-webapp*
-                          (not *static-webapp?*))
-                  (load-runtime-libs (list *fastcgi-webapp*)))
-
 	       (unless force-doc-root
 		  (set! req-doc-root (php-hash-lookup server-vars "DOCUMENT_ROOT"))		      
 		  (when (string? req-doc-root)
@@ -250,7 +246,12 @@
    (setup-web-target)
    
    ; read settings
-   (read-config-file))
+   (read-config-file)
+
+   ; load app lib if dynamic
+   (when (and *fastcgi-webapp*
+	      (not *static-webapp?*))
+      (load-runtime-libs (list *fastcgi-webapp*))))
 
 ; per request init
 (define (fastcgi-request-init)
