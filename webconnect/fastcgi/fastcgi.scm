@@ -60,9 +60,8 @@
       (set! *last-working-dir* dir)))
 
 (define (fastcgi-main argv)
-   (let ((web-doc-root (mkstr (getenv "WEB_DOC_ROOT")))
-	 (req-doc-root #f)
-	 (force-doc-root #f)
+   (let ((req-doc-root #f)
+	 (force-doc-root (getenv "WEB_DOC_ROOT"))
 	 (max-requests (if (getenv "PHP_FCGI_MAX_REQUESTS")
 			   (mkfixnum (getenv "PHP_FCGI_MAX_REQUESTS"))
 			   0))
@@ -113,6 +112,9 @@
          (set! *webapp-404-page* (mkstr (getenv "PCC_NOTFOUND_PAGE"))))
 
       (fastcgi-init)
+
+      (if force-doc-root
+	  (chdir force-doc-root))
       
       ; shall we have children?
       (when (>fx num-children 0)
@@ -147,13 +149,10 @@
                           (not *static-webapp?*))
                   (load-runtime-libs (list *fastcgi-webapp*)))
 
-	       (if force-doc-root
-		   (maybe-chdir force-doc-root)
-		   (begin
-		      (set! req-doc-root (php-hash-lookup server-vars "DOCUMENT_ROOT"))		      
-		      (if (string? req-doc-root)
-			  (maybe-chdir req-doc-root)
-			  (maybe-chdir web-doc-root))))
+	       (unless force-doc-root
+		  (set! req-doc-root (php-hash-lookup server-vars "DOCUMENT_ROOT"))		      
+		  (when (string? req-doc-root)
+		     (maybe-chdir req-doc-root)))
 	       
 	       ; if no script is passed, default to index page in root
 	       (when (or (=fx (string-length script-path) 0)
