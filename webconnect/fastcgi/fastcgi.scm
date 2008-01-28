@@ -1,6 +1,6 @@
 ;; ***** BEGIN LICENSE BLOCK *****
 ;; Roadsend PHP Compiler Runtime Libraries
-;; Copyright (C) 2007 Roadsend, Inc.
+;; Copyright (C) 2008 Roadsend, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -53,15 +53,24 @@
 ; note this depends on *current-uploads* not already having been cleaned
 (add-end-page-reset-func clean-upload-tmps)
 
+(define *last-working-dir* "")
+(define (maybe-chdir dir::bstring)
+   (unless (string=? dir *last-working-dir*)
+      (chdir dir)
+      (set! *last-working-dir* dir)))
+
 (define (fastcgi-main argv)
    (let ((web-doc-root (mkstr (getenv "WEB_DOC_ROOT")))
+	 (req-doc-root #f)
+	 (force-doc-root #f)
 	 (max-requests (if (getenv "PHP_FCGI_MAX_REQUESTS")
 			   (mkfixnum (getenv "PHP_FCGI_MAX_REQUESTS"))
 			   0))
 	 (num-children (if (getenv "PHP_FCGI_CHILDREN")
 			   (mkfixnum (getenv "PHP_FCGI_CHILDREN"))
 			   0))
-	 (parent? #t))
+	 (parent? #t)
+	 (app-name (car (command-line))))
 
       (when (<fx max-requests 0)
 	 (print "invalid PHP_FCGI_MAX_REQUESTS")
@@ -89,8 +98,8 @@
 	  (set! *webapp-index-page* name))
          ((("-n" "--not-found") ?name (help (mkstr "Set the default not found page [default: " *webapp-404-page* "]")))
           (set! *webapp-404-page* name))
-         ((("-r" "--web-doc-root") ?root (help "Set the web document root"))
-          (set! web-doc-root (mkstr root)))
+         ((("-r" "--web-doc-root") ?root (help "Force web document root"))
+          (set! force-doc-root (mkstr root)))
          (else
           (when (char=? (string-ref else 0) #\-)
              (print "Illegal argument `" else "'. ")
@@ -103,6 +112,8 @@
       (when (getenv "PCC_NOTFOUND_PAGE")
          (set! *webapp-404-page* (mkstr (getenv "PCC_NOTFOUND_PAGE"))))
 
+      (fastcgi-init)
+      
       ; shall we have children?
       (when (>fx num-children 0)
 	 ;
@@ -114,9 +125,11 @@
       
       ; if we get here, either we're a spawned child, or we're running in a single proc
       (let loop ((serve-cnt::bint 0))	 
-         (when (>= (FCGI_Accept) 0)
-            (fastcgi-init)
-            (let* ((server-vars (container-value $HTTP_SERVER_VARS))
+         (when (and (or (=fx max-requests 0)
+			(<fx serve-cnt max-requests))
+		    (=fx (FCGI_Accept) 0))
+            (fastcgi-request-init)
+            (let* ((server-vars (container-value $_SERVER))
                    (script-path (if *fastcgi-webapp*
                                     (let ((path (mkstr (php-hash-lookup server-vars "PHP_SELF"))))
 				       (if (> (string-length path) 1)
@@ -124,49 +137,42 @@
 					   ""))
 				    ; apache 1/mod_fastcgi use PATH_TRANSLATED,
 				    ; while apache 2/mod_fcgid and lighttpd use SCRIPT_FILENAME
-				    (let ((pt (php-hash-lookup server-vars "PATH_TRANSLATED")))
-				       (if (string=? (mkstr pt) "")
-					   (php-hash-lookup server-vars "SCRIPT_FILENAME")
+				    (let ((pt (mkstr (php-hash-lookup server-vars "PATH_TRANSLATED"))))
+				       (if (string=? pt "")
+					   (mkstr (php-hash-lookup server-vars "SCRIPT_FILENAME"))
 					   pt))))
                    (content ""))
-	       
-;                (FCGX_FPrintF err "PATH_INFO %s\nPATH_TRANSLATED %s\nchdir retval %d\n"
-;                              (mkstr (php-hash-lookup server-vars "WEB_DOC_ROOT"))
-;                              (append-paths (mkstr (php-hash-lookup server-vars "WEB_DOC_ROOT"))
-	       ; (php-hash-lookup server-vars "PATH_INFO"))
 	       
                (when (and *fastcgi-webapp*
                           (not *static-webapp?*))
                   (load-runtime-libs (list *fastcgi-webapp*)))
-               
-	       (if (string=? (mkstr web-doc-root) "")
-	         (set! web-doc-root (mkstr (php-hash-lookup server-vars "DOCUMENT_ROOT"))))
 
-               (chdir web-doc-root)
-	       ; (FCGX_FPrintF err "webdocroot is now %s\n" (mkstr (php-hash-lookup server-vars "WEB_DOC_ROOT")))
-;                (FCGX_FPrintF err "other webdocroot is now %s\n" (mkstr (getenv "WEB_DOC_ROOT")))
-;                (FCGX_FPrintF err "pwd is now %s\n" (pwd))
-;                (FCGX_FFlush err)
+	       (if force-doc-root
+		   (maybe-chdir force-doc-root)
+		   (begin
+		      (set! req-doc-root (php-hash-lookup server-vars "DOCUMENT_ROOT"))		      
+		      (if (string? req-doc-root)
+			  (maybe-chdir req-doc-root)
+			  (maybe-chdir web-doc-root))))
 	       
 	       ; if no script is passed, default to index page in root
-	       (when (or (eqv? script-path '())
-			 (string=? script-path "")
-			 (string=? script-path (car (command-line))))
-		  (set! script-path (file-name-canonicalize (mkstr "/" *webapp-index-page*))))
-	       
+	       (when (or (=fx (string-length script-path) 0)
+			 (string=? script-path app-name))
+		  (set! script-path (file-name-canonicalize (string-append "/" *webapp-index-page*))))
+
 	       (try (set! content (run-url script-path *fastcgi-webapp* *webapp-index-page*))
 		    (lambda (e p m o)
 		       (if (eq? o 'file-not-found)
 			   (set! content (404-handler script-path))
 			   (set! content (runtime-error-handler p m o)))
 		       (e #t)))
+	       
 	       (let ((headers (fastcgi-get-headers)))
 		  (FCGI_fwrite headers 1 (string-length headers) FCGI_stdout))
 	       (FCGI_fwrite content 1 (string-length content) FCGI_stdout)
-	       (FCGI_fflush FCGI_stdout)
-	       (when (or (=fx max-requests 0)
-			 (<fx serve-cnt max-requests))
-		  (loop (+fx serve-cnt 1))))))))
+	       ; NOTE: docs say do NOT fflush, as it reduces performance and is done in FCGI_Accept
+
+	       (loop (+fx serve-cnt 1)))))))
    
 
 ; show the runtime error in a nice page, with backtrace
@@ -229,31 +235,37 @@
    (lambda (msg)
       (fprint (current-error-port) (format "Error: ~a " msg))))
 
+; one time init
 (define (fastcgi-init)
-   (let ((server-vars (container-value $HTTP_SERVER_VARS)))
+   (set! *backend-type* "FASTCGI")
+   (set! *commandline?* #f)
+   
+   (set! log-message fastcgi-log-message)
+   (set! log-warning fastcgi-log-warning)
+   (set! log-error fastcgi-log-error)
+
+   ; init runtime
+   (init-php-runtime)
       
-      (set! *backend-type* "FASTCGI")
+   ; define our target   
+   (setup-web-target)
+   
+   ; read settings
+   (read-config-file))
+
+; per request init
+(define (fastcgi-request-init)
+   (let ((server-vars (make-php-hash))
+	 (request-method '()))
+      
       (set! *headers* (make-hashtable))
       (set! *response-code* HTTP-OK)
-      (set! *commandline?* #f)
-      
-      (set! log-message fastcgi-log-message)
-      (set! log-warning fastcgi-log-warning)
-      (set! log-error fastcgi-log-error)
-      
-      ; startup runtime
-      (init-php-runtime)
-      
-      ; define our target   
-      (setup-web-target)
-      
-      ; read settings
-      (read-config-file)
       
       ; add default headers
       (header "Content-type: text/html" #t) 
       
       ; $_SERVER vars
+      (container-value-set! $_SERVER server-vars)
       (for-each (lambda (a)
 		   (php-hash-insert! server-vars (car a) (cdr a)))
 		(environ))
@@ -261,8 +273,8 @@
       ;; PHP_SELF is not set by fastcgi, for obvious reasons, but it
       ;; seems to be the same as PATH_INFO (apache1/mod_fastcgi) or SCRIPT_NAME
       (php-hash-insert! server-vars "PHP_SELF"
-			(let ((pi (php-hash-lookup server-vars "PATH_INFO")))
-			   (if (string=? (mkstr pi) "")
+			(let ((pi (mkstr (php-hash-lookup server-vars "PATH_INFO"))))
+			   (if (string=? pi "")
 			       (mkstr (php-hash-lookup server-vars "SCRIPT_NAME"))
 			       pi)))
       
@@ -270,8 +282,9 @@
       (parse-cookies (mkstr (php-hash-lookup server-vars "HTTP_COOKIE")))
 	    
       ; $_GET and $_POST
-      (when (convert-to-boolean (php-hash-lookup server-vars "REQUEST_METHOD"))
-         (string-case (php-hash-lookup server-vars "REQUEST_METHOD")
+      (set! request-method (mkstr (php-hash-lookup server-vars "REQUEST_METHOD")))
+      (when request-method
+         (string-case request-method
             ("GET" (parse-get-args (mkstr (php-hash-lookup server-vars "QUERY_STRING")))
                    ;; "when the script is valled via the GET method,
                    ;; this will contain the query string", from php.net
@@ -281,10 +294,10 @@
 	     ; always handle GET if there (rare)
              (parse-get-args (mkstr (php-hash-lookup server-vars "QUERY_STRING")))
 	     ; handle POST, possibly multipart
-	     (let* ((ctype (php-hash-lookup server-vars "CONTENT_TYPE"))
+	     (let* ((ctype (mkstr (php-hash-lookup server-vars "CONTENT_TYPE")))
 		    (content-length (mkfixnum (php-hash-lookup server-vars "CONTENT_LENGTH")))
 		    (boundary (if ctype
-				  (pregexp-match "^multipart/form-data; boundary=\"*(.+)\"*$" (mkstr ctype))
+				  (pregexp-match "^multipart/form-data; boundary=\"*(.+)\"*$" ctype)
 				  #f))
 		    (post-data (if (> content-length 0)
 				   (read-post content-length)
@@ -349,11 +362,8 @@
 			    (e #t)))
 		    ;
 		    ; normal post
-		    (parse-post-args post-data))))))
+		    (parse-post-args post-data))))))))
 
-
-      ;; finally, copy the server vars into $_SERVER. 
-      (container-value-set! $_SERVER (copy-php-data (container-value $HTTP_SERVER_VARS)))))
 
 (define (read-post content-length)
    (let ((buffer (make-string content-length)))
@@ -381,16 +391,16 @@
          (display "\r\n"))))
 
 
-(define (split-on-first char str)
-   "Split a string on the first occurrence of char and return the left
-   part and right parts as multiple values.  The char is omitted.  If
-   the string is empty, both values will be empty.  If the char sign
-   is not present, the entire string is returned as the first value."
-   (let ((len (string-length str)))
-      (do ((i 0 (+ i 1)))
-          ((or (>= i len)
-               (char=? char (string-ref str i)))
-           (values (substring str 0 i)
-                   (substring str (min (+ i 1) len)
-                              len))))))
+; (define (split-on-first char str)
+;    "Split a string on the first occurrence of char and return the left
+;    part and right parts as multiple values.  The char is omitted.  If
+;    the string is empty, both values will be empty.  If the char sign
+;    is not present, the entire string is returned as the first value."
+;    (let ((len (string-length str)))
+;       (do ((i 0 (+ i 1)))
+;           ((or (>= i len)
+;                (char=? char (string-ref str i)))
+;            (values (substring str 0 i)
+;                    (substring str (min (+ i 1) len)
+;                               len))))))
 
