@@ -69,6 +69,10 @@
       (when (<fx num-children 0)
 	 (print "invalid PHP_FCGI_CHILDREN")
 	 (exit 1))
+
+      ; ignore max requests if we have no children
+      (when (=fx num-children 0)
+	 (set! max-requests 0))
       
       (args-parse (cdr argv)
          ((("-h" "--help") (help "This help message"))
