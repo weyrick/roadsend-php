@@ -45,6 +45,9 @@ APIDOCFILE	= $(TOPLEVEL)doc/api/ext-$(LIBNAME).texi
 
 all: libs
 
+unsafe: 
+	UNSAFE=t $(MAKE) all
+
 # this is an interesting idea
 # $(C_POPULATION) : %.o : %.c
 # 	$(CC) $(CSAFEFLAGS) -c $< -o $@

@@ -24,6 +24,9 @@ CLEFTOVERS	 := $(patsubst %.o,%.c,$(POPULATION)) $(patsubst %.o,%.c,$(STATIC_POP
 
 all: runtime-libs extensions
 
+unsafe: 
+	UNSAFE=t $(MAKE) all
+
 tags: 
 	cd ext && $(MAKE) tags
 
