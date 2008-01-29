@@ -179,6 +179,7 @@
    (match-case value
       (*zero* *zero*)
       (*one* *one*)
+      (empty-hash (make-php-hash))
       ((quote ?FOO) FOO)
       ((lookup-constant ?CONST) (lookup-constant (mkstr CONST)))
       ((lookup-class-constant ?CLASS ?CONST) (lookup-class-constant (mkstr CLASS) (mkstr CONST)))

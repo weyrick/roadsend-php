@@ -2092,7 +2092,10 @@ onum.  Append the bindings for the new symbols and code."
 		  (with-access::optional-formal-param a (name default-value ref?)
 		     (set! brief-params
 			   (cons* (if ref? t-optional-reference t-optional)
-				  `',name (get-value default-value) brief-params)))))
+				  `',name (if (and (literal-array? default-value)
+						    (null? (literal-array-array-contents default-value)))
+					       `'empty-hash
+					       (get-value default-value)) brief-params)))))
 	   (reverse params))
       (if toplevel?
 	  `(,store-routine ,name ,ft-user ',location ',name ,minimum-arity ,maximum-arity ,@brief-params)
