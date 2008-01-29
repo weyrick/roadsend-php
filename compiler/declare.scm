@@ -134,6 +134,7 @@
        index)
 
     (wide-class function-invoke/gen::function-invoke
+       (return-used? (default #t))
        (dastardly? (default #f)))))
 
 ; ;; extensions that must be loaded.  driver.scm will use this to ensure
@@ -435,9 +436,14 @@
 
 (define-method (declare node::function-invoke parent k)   
    (widen!::function-invoke/gen node)
-   (with-access::function-invoke/gen node (name dastardly?)      
+   (with-access::function-invoke/gen node (name return-used? dastardly?)
       (when (symbol? name)
-	 (let ((canon-name (function-name-canonicalize name)))            
+	 (let ((canon-name (function-name-canonicalize name)))
+	    ; XXX conservative here. other cases?
+	    (when (or (function-decl? parent)
+		      (method-decl? parent)
+		      (php-ast? parent))
+	       (set! return-used? #f))
             (ensure-extension-will-load (get-php-function-sig canon-name))
 	    (when (memv canon-name *builtins-implying-variable-arity*)
 	       (cond

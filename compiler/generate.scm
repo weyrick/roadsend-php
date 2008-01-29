@@ -157,8 +157,47 @@ onum.  Append the bindings for the new symbols and code."
 	 ;e.g. static variables in php functions.
 	 (cons (car new-code) (append onums (cdr new-code))))))
 
+(define (generate-function-invoke-common node::function-invoke/gen)
+   (with-access::function-invoke/gen node (location name arglist return-used? dastardly?)   
+      (if (ast-node? name)
+	  `(php-funcall ,(get-value name)
+			,@(map get-location arglist))
+	  (let* ((canonical-name (function-name-canonicalize name))
+		 (sig (or (get-php-function-sig canonical-name)
+			  (get-library-include canonical-name #f)))
+		 (arglist-len (length arglist)))
+	     (if sig
+		 (try
+		  (begin
+		     (php-check-arity sig name arglist-len)
+		     (let ((function-ast (hashtable-get *function->ast-table* canonical-name)))
+			(when function-ast
+			   (pushf function-ast *required-asts*)))
+		     `(,@(if (function-available-at-link-time? sig)
+			     `(,canonical-name)
+			     `(php-funcall ',canonical-name))
+			 ,@(let ((total-args (if (sig-var-arity? sig)
+						 arglist-len
+						 (sig-length sig))))
+			      (let loop ((i 0)
+					 (args '()))
+				 (if (< i total-args)
+				     (loop (+ i 1)
+					   (cons (pass-argument (if (< i arglist-len)
+								    (list-ref arglist i)
+								    #f)
+								(sig-ref sig i))
+						 args))
+				     (reverse args))))))
+		  (lambda (e p m o)
+		     (php-error/loc node m)
+		     (e #t)))
+		 (begin
+		    `(php-funcall ',name
+				  ,@(map get-location arglist))))))))
+
 (define-method (generate-code node::function-invoke/gen)
-    (with-access::function-invoke/gen node (location name arglist dastardly?)
+    (with-access::function-invoke/gen node (location name arglist return-used? dastardly?)
        `(begin
 	   ;;The *PHP-FILE* sets around function-invoke have to be there,
 	   ;;because *PHP-FILE* is used to resolve include file paths, and
@@ -166,51 +205,20 @@ onum.  Append the bindings for the new symbols and code."
 	   ;;(They're builtins).
 	   (set! *PHP-FILE* ,*file-were-compiling*)
 	   (set! *PHP-LINE* ,(car location))
-	   ,(let ((retval (gensym 'retval)))
-	       `(let ((,retval 
-		       ,(if (ast-node? name)
-			    `(php-funcall ,(get-value name)
-					  ,@(map get-location arglist))
-			    (let* ((canonical-name (function-name-canonicalize name))
-				   (sig (or (get-php-function-sig canonical-name)
-					    (get-library-include canonical-name #f)))
-				   (arglist-len (length arglist)))
-;			       (fprint (current-error-port) "looked up: " canonical-name)
-			       ;(fprint (current-error-port) "canon name is " canonical-name " from name " name)
-			       (if sig
-				   (try
-				    (begin
-				       (php-check-arity sig name arglist-len)
-				       (let ((function-ast (hashtable-get *function->ast-table* canonical-name)))
-					  (when function-ast
-					     (pushf function-ast *required-asts*)))
-				       `(,@(if (function-available-at-link-time? sig)
-                                               `(,canonical-name)
-                                               `(php-funcall ',canonical-name))
-					 ,@(let ((total-args (if (sig-var-arity? sig)
-								 arglist-len
-								 (sig-length sig))))
-					      (let loop ((i 0)
-							 (args '()))
-						 (if (< i total-args)
-						     (loop (+ i 1)
-							   (cons (pass-argument (if (< i arglist-len)
-										    (list-ref arglist i)
-										    #f)
-										(sig-ref sig i))
-								 args))
-						     (reverse args))))))
-				    (lambda (e p m o)
-				       (php-error/loc node m)
-				       (e #t)))
-				    (begin
-				      `(php-funcall ',name
-						    ,@(map get-location arglist))))))))
-		   (set! *PHP-FILE* ,*file-were-compiling*)
-		   (set! *PHP-LINE* ,(car location))
-		   ,@(if (and dastardly? (not (global-scope?)))
-			 (refresh-local-variables) '())
-		   ,retval)))))
+	   ,(if return-used?
+		(let ((retval (gensym 'retval)))
+		   `(let ((,retval ,(generate-function-invoke-common node)))
+		       (set! *PHP-FILE* ,*file-were-compiling*)
+		       (set! *PHP-LINE* ,(car location))
+		       ,@(if (and dastardly? (not (global-scope?)))
+			     (refresh-local-variables) '())
+		       ,retval))
+		`(begin
+		    ,(generate-function-invoke-common node)
+		    (set! *PHP-FILE* ,*file-were-compiling*)
+		    (set! *PHP-LINE* ,(car location))
+		    ,@(if (and dastardly? (not (global-scope?)))
+			  (refresh-local-variables) '()))))))
 
 (define (refresh-local-variables)
    ;; update the value of variables from the variable env
