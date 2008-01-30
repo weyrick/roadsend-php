@@ -773,7 +773,9 @@ onum.  Append the bindings for the new symbols and code."
 
 (define-method (generate-code node::isset-stmt)
    (with-access::isset-stmt node (rvals)
-      `(and ,@(map isset rvals))))
+      (if (>fx (length rvals) 1)
+	  `(and ,@(map isset rvals))
+	  (isset (car rvals)))))
 
 (define-method (generate-code node::empty-stmt)
    (with-access::empty-stmt node (rval)
