@@ -284,7 +284,7 @@
 		       (set! port (mkfixnum (cadr vals)))
 		       (set! socket (cadr vals)))))
 	     ;
-	     (debug-trace 3 "Mysql: Opening fresh connection to " real-server "/" username "/" password
+	     (debug-trace 3 "Mysql: Opening fresh connection to " real-server "/" username
 			  " - new-link: " new-link ", link: " link)
 	     (set! link (mysql-real-connect mysql real-server (or username *null-string*) (or password *null-string*)
 					    *null-string* port socket 0))
