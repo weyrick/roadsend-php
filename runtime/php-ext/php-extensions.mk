@@ -21,7 +21,7 @@ DOTEST		= ./dotest
 MY_TESTDIR	= $(MY_DIR)tests/
 MY_TESTOUTDIR	= $(MY_TESTDIR)testoutput/
 
-PCC_COMMON	= -v
+PCC_COMMON	= -v -L $(PCC_ROOT)/libs
 
 TAGFILE		= $(LIBNAME).tags
 APIDOCFILE	= $(TOPLEVEL)doc/api/ext-$(LIBNAME).texi
