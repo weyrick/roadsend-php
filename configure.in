@@ -423,7 +423,7 @@ echo "
         cflags:                   ${CFLAGS}
 
         bigloo version:           ${BIGLOO_VERSION}
-	bigloo libs:              ${BIGLOO_LIB_PATH}
+        bigloo libs:              ${BIGLOO_LIB_PATH}
         readline:                 ${with_readline}
 
         = Web Backends =
