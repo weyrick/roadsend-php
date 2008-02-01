@@ -50,9 +50,11 @@ AC_CHECK_PROG_VER([HAVE_BIGLOO],
 		  -revision,
 		  [\([2-9].[0-9][a-z]\)],
 		  [3.0b | 3.0c | 3.0d],
-		  AC_MSG_FAILURE([Bigloo version $want_bigloo required]))
+		  AC_MSG_FAILURE([Bigloo version $want_bigloo required in the system path]))
 
 BIGLOO_VERSION=$ac_prog_version
+
+BIGLOO_LIB_PATH=`bigloo -eval "(display *default-lib-dir*)(exit 0)"`
 
 # XXX for now we require PCC_HOME variable
 #AC_MSG_CHECKING([for existence of PCC_HOME variable])
@@ -361,6 +363,7 @@ AC_SUBST(BE_LIST, $BE_LIST)
 #AC_SUBST(SHARED_FLAG, $SHARED_FLAG)
 AC_SUBST(SO_EXT, $SO_EXT)
 AC_SUBST(BIGLOO_VERSION, $BIGLOO_VERSION)
+AC_SUBST(BIGLOO_LIB_PATH, $BIGLOO_LIB_PATH)
 AC_SUBST(MYSQL_CFLAGS, $MYSQL_CFLAGS)
 AC_SUBST(MYSQL_LIBS, $MYSQL_LIBS)
 AC_SUBST(ODBC_CFLAGS, $ODBC_CFLAGS)
@@ -420,6 +423,7 @@ echo "
         cflags:                   ${CFLAGS}
 
         bigloo version:           ${BIGLOO_VERSION}
+	bigloo libs:              ${BIGLOO_LIB_PATH}
         readline:                 ${with_readline}
 
         = Web Backends =

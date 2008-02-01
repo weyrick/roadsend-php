@@ -706,6 +706,7 @@ PHP_EXT_LIST
 BE_LIST
 SO_EXT
 BIGLOO_VERSION
+BIGLOO_LIB_PATH
 MYSQL_CFLAGS
 MYSQL_LIBS
 ODBC_CFLAGS
@@ -3195,15 +3196,17 @@ echo $ECHO_N "checking version of $HAVE_BIGLOO... $ECHO_C" >&6; }
 echo "${ECHO_T}$ac_prog_version_m" >&6; }
 fi
 if test $ac_verc_fail = yes; then
-  { { echo "$as_me:$LINENO: error: Bigloo version $want_bigloo required
+  { { echo "$as_me:$LINENO: error: Bigloo version $want_bigloo required in the system path
 See \`config.log' for more details." >&5
-echo "$as_me: error: Bigloo version $want_bigloo required
+echo "$as_me: error: Bigloo version $want_bigloo required in the system path
 See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }
 fi
 
 
 BIGLOO_VERSION=$ac_prog_version
+
+BIGLOO_LIB_PATH=`bigloo -eval "(display *default-lib-dir*)(exit 0)"`
 
 # XXX for now we require PCC_HOME variable
 #AC_MSG_CHECKING([for existence of PCC_HOME variable])
@@ -5487,6 +5490,8 @@ SO_EXT=$SO_EXT
 
 BIGLOO_VERSION=$BIGLOO_VERSION
 
+BIGLOO_LIB_PATH=$BIGLOO_LIB_PATH
+
 MYSQL_CFLAGS=$MYSQL_CFLAGS
 
 MYSQL_LIBS=$MYSQL_LIBS
@@ -6280,11 +6285,11 @@ PHP_EXT_LIST!$PHP_EXT_LIST$ac_delim
 BE_LIST!$BE_LIST$ac_delim
 SO_EXT!$SO_EXT$ac_delim
 BIGLOO_VERSION!$BIGLOO_VERSION$ac_delim
+BIGLOO_LIB_PATH!$BIGLOO_LIB_PATH$ac_delim
 MYSQL_CFLAGS!$MYSQL_CFLAGS$ac_delim
 MYSQL_LIBS!$MYSQL_LIBS$ac_delim
 ODBC_CFLAGS!$ODBC_CFLAGS$ac_delim
 ODBC_LIBS!$ODBC_LIBS$ac_delim
-SQLITE_CFLAGS!$SQLITE_CFLAGS$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -6326,6 +6331,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+SQLITE_CFLAGS!$SQLITE_CFLAGS$ac_delim
 SQLITE_LIBS!$SQLITE_LIBS$ac_delim
 CURL_STATIC_CFLAGS!$CURL_STATIC_CFLAGS$ac_delim
 XML_CFLAGS!$XML_CFLAGS$ac_delim
@@ -6343,7 +6349,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 15; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 16; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -6786,6 +6792,7 @@ echo "
         cflags:                   ${CFLAGS}
 
         bigloo version:           ${BIGLOO_VERSION}
+	bigloo libs:              ${BIGLOO_LIB_PATH}
         readline:                 ${with_readline}
 
         = Web Backends =

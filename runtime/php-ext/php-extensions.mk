@@ -21,7 +21,7 @@ DOTEST		= ./dotest
 MY_TESTDIR	= $(MY_DIR)tests/
 MY_TESTOUTDIR	= $(MY_TESTDIR)testoutput/
 
-PCC_COMMON	= -v -L $(PCC_ROOT)/libs
+PCC_COMMON	= -v -L $(PCC_ROOT)/libs -L $(BIGLOO_LIB_PATH)
 
 TAGFILE		= $(LIBNAME).tags
 APIDOCFILE	= $(TOPLEVEL)doc/api/ext-$(LIBNAME).texi
@@ -33,7 +33,7 @@ all: build-lib $(LIB)/lib$(LIBNAME)_$(SUV).a $(LIB)/$(LIBNAME).sch  $(LIB)/lib$(
 build-lib: lib$(LIBNAME)_$(SUV).$(SOEXT)
 
 lib$(LIBNAME)_$(SUV).$(SOEXT): $(SOURCE_FILES) $(LIB_INIT_FILE)
-	$(PCC_ROOT)/compiler/pcc $(PCC_COMMON) -l $(LIBNAME) --lib-init-file $(LIB_INIT_FILE) $(SOURCE_FILES)
+	LD_LIBRARY_PATH="$(LD_LIBRARY_PATH):$(PCC_ROOT)/libs:$(BIGLOO_LIB_PATH)" $(PCC_ROOT)/compiler/pcc $(PCC_COMMON) -l $(LIBNAME) --lib-init-file $(LIB_INIT_FILE) $(SOURCE_FILES)
 
 tags: $(TAGFILE)
 
