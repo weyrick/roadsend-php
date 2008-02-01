@@ -36,8 +36,8 @@ bindir  	= @bindir@
 libdir		= @libdir@
 sysconfdir	= @sysconfdir@
 
-all: Makefile.config libs libs/libwebserver.$(SOEXT) tools runtime webconnect \
-     compiler extensions php-extensions web-backends debugger shortpath dotest 
+all: Makefile.config libs tools runtime webconnect \
+     compiler extensions php-extensions web-backends debugger dotest 
 
 Makefile.config:
 	touch $(PCC_ROOT)/Makefile.config
@@ -47,16 +47,6 @@ unsafe:
 
 tags: unsafe
 	cd runtime && $(MAKE) tags
-
-libs/libwebserver.$(SOEXT):
-	(cd tools/libwebserver && \
-         ./configure > configure.out && \
-         rm configure.out && \
-         $(MAKE) all && \
-         $(MAKE) install)
-
-shortpath:
-	(cd tools/shortpath && $(MAKE) shortpath)
 
 #runtime
 runtime: 
@@ -92,32 +82,22 @@ web-backends: webconnect compiler runtime
 
 #tools: profiler, readline
 tools: libs
-	@for d in $(TOOLS_LIST); do \
-           if [ -d tools/$$d ]; then \
-             echo "making runtime tool: $$d ..."; \
-             (cd tools/$$d && $(MAKE) all); \
-           fi \
-        done
+	(cd tools && $(MAKE) all)
 
 libs: 
 	-mkdir libs
-#	-mkdir libs/dlls
 
 clean: 
 	-rm -rf testoutput
 	-rm -f *.c *.o *.so libs/*.so libs/*.dylib libs/*.heap libs/*.a libs/*.dll libs/*.init libs/*.sch libs/*.h
 	(cd runtime && $(MAKE) clean && UNSAFE=t $(MAKE) clean)
+	(cd tools && $(MAKE) clean && UNSAFE=t $(MAKE) clean)
 	(cd compiler && $(MAKE) clean && UNSAFE=t $(MAKE) clean)
 	(cd webconnect && $(MAKE) clean && UNSAFE=t $(MAKE) clean)
 	(cd bugs && $(MAKE) clean && UNSAFE=t $(MAKE) clean)
+	(cd sa-tests && $(MAKE) clean)
 #	(cd doc && $(MAKE) clean && UNSAFE=t $(MAKE) clean)
-	@for d in $(TOOLS_LIST); do \
-           if [ -d $$d ]; then \
-             (cd $$d && $(MAKE) clean && UNSAFE=t $(MAKE) clean); \
-           fi \
-        done
-	-(cd tools/libwebserver && $(MAKE) clean)
-	-(cd sa-tests && $(MAKE) clean)
+
 
 clean-all: Makefile.config clean
 	-rm config.log config.status Makefile.config
