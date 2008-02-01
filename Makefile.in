@@ -81,8 +81,9 @@ web-backends: webconnect compiler runtime
 	(cd webconnect && $(MAKE) web-backends)
 
 #tools: profiler, readline
-tools: libs
+tools:
 	(cd tools && $(MAKE) all)
+.PHONY: tools
 
 libs: 
 	-mkdir libs
