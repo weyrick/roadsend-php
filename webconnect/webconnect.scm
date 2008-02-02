@@ -154,7 +154,7 @@
 (define *response-code* 'unset)
 
 (define (set-header header-type header-key header-value replace)
-   (debug-trace 2 (mkstr "set header ===> " header-type " / " header-key " / " header-value))
+;   (debug-trace 2 (mkstr "set header ===> " header-type " / " header-key " / " header-value))
    (unless (eqv? *headers* 'unset)
       (set! header-key (string-downcase header-key))
       (if replace
@@ -285,25 +285,29 @@
    ;(debug-trace 2 (mkstr "header: " str))
    (if (hashtable? *headers*)
        ; check for HTTP status special case
-       (let ((special-parts (pregexp-match  "^HTTP/1.\\d (\\d+)" str)))
-	  (if special-parts
+       (let* ((codeparse (and (string-prefix? "HTTP/1." str) (>=fx (string-length str) 12)))
+	      (http-status (if codeparse
+			       (mkfixnum (substring str 9 12)) ; RFC specifies the code should always be here, 3 digits
+			       #f)))
+	  (if http-status
 	      (begin
 		 ; set reponse code
-		 (debug-trace 2 (mkstr "header: setting response code to " (cadr special-parts)))
-		 (set! *response-code* (mkfixnum (cadr special-parts))))
+;		 (debug-trace 2 (mkstr "header: setting response code to " (cadr special-parts)))
+		 (set! *response-code* http-status))
 	      ; go for normal header. the other special case (location) is below
-	      (let ((header-parts
-		     ;split on the first colon, skip whitespace immediately after the colon.
-		     (pregexp-match "(^.*?):\\s*(.*)" str)))
-		 (if (or (eqv? header-parts #f)
-			 (not (= 3 (length header-parts))))
-		     (php-warning (format "unable to handle header [~A] correctly" str))
-		     (let* ((header-type (cadr header-parts))
-			    (header-value (caddr header-parts))
-			    (header-key (string-downcase (cadr header-parts))))
-			(string-case header-key
-			   ("location" (set! *response-code* HTTP-MOVED-TEMPORARILY)))
-			(set-header header-type header-key header-value replace)))))
+	      (let* ((col (string-index str ":"))
+		     (slen (string-length str))
+		     (header-type (if col (substring str 0 col) #f))
+		     (header-value (if (and header-type (>fx slen col))
+				       (substring str (+fx 1 col) slen)
+				       #f))
+		     (header-key (if header-type (string-downcase header-type) #f)))
+		 (if (and header-type header-value)
+		     (begin
+			(when (string=? header-key "location")
+			   (set! *response-code* HTTP-MOVED-TEMPORARILY))
+			(set-header header-type header-key header-value replace))
+		     (php-warning (format "unable to handle header [~A] correctly" str)))))
 	      ; silently ignore as per php
 	      #f)))
        ;(php-warning "Unable to set header -- not running in the belly of a webserver.")))
