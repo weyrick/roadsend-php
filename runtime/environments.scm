@@ -22,16 +22,29 @@
     (utils "utils.scm")
     (php-hash "php-hash.scm")
     (rt-containers "containers.scm")    
-    (php-errors "php-errors.scm"))
+    (php-errors "php-errors.scm")
+    (blib "blib.scm"))
    (export
     *superglobals*
     *global-env*
     *current-variable-environment*
+    $_ENV
+    $_SERVER
+    $_GET
+    $_POST
+    $_COOKIE
+    $_REQUEST
+    $_SESSION
+    $_FILES
     (superglobal? key)
+    (init-superglobals)
+    (init-env-superglobal)
+    (reset-superglobals!)
     (env-php-hash-view env)
     (env-new)
     (env-import env source-hash prefix::bstring)
     (env-extend env name::bstring value)
+    (env-extend/pre env name::bstring hashnumber value)
     (env-lookup env name::bstring)
     (env-lookup-internal-index env name::bstring)
     (inline env-internal-index-value index)
@@ -50,19 +63,92 @@
 
 ;a table of all the variables considered superglobal, that is,
 ;implicitly declared global in every function
-(define *superglobals* 'unset)
+(define *superglobals* (make-hashtable))
+
+(define $_GET 'unset)
+(define $_POST 'unset)
+(define $_COOKIE 'unset)
+(define $_REQUEST 'unset)
+(define $_SERVER 'unset)
+(define $_SESSION 'unset)
+(define $_FILES 'unset)
+(define $_ENV 'unset)
 
 (define (superglobal? key)
    (let ((name (undollar key)))
       (hashtable-get *superglobals* name)))
 
+(define (init-superglobals)
+   (hashtable-put! *superglobals* "GLOBALS" #t)
+   (hashtable-put! *superglobals* "_GET" #t)
+   (hashtable-put! *superglobals* "_POST" #t)
+   (hashtable-put! *superglobals* "_COOKIE" #t)
+   (hashtable-put! *superglobals* "_FILES" #t)
+   (hashtable-put! *superglobals* "_ENV" #t)
+   (hashtable-put! *superglobals* "_SERVER" #t)
+   (hashtable-put! *superglobals* "_SESSION" #t)
+   (hashtable-put! *superglobals* "_REQUEST" #t)
+   ; this only happens once, unlike the others
+   ; which get reset each page load
+   (set! $_ENV (make-container (make-php-hash))))   
+
+;
+; we precalculate these because they never change and
+; are recreated on every page load
+;
+(define GLOBALS-key (precalculate-string-hashnumber "GLOBALS"))
+(define _SERVER-key (precalculate-string-hashnumber "_SERVER"))
+(define _FILES-key (precalculate-string-hashnumber "_FILES"))
+(define _GET-key (precalculate-string-hashnumber "_GET"))
+(define _POST-key (precalculate-string-hashnumber "_POST"))
+(define _REQUEST-key (precalculate-string-hashnumber "_REQUEST"))
+(define _COOKIE-key (precalculate-string-hashnumber "_COOKIE"))
+(define _SESSION-key (precalculate-string-hashnumber "_SESSION"))
+(define _ENV-key (precalculate-string-hashnumber "_ENV"))
+
+(define (reset-superglobals!)
+   (let ((new-global-env (make-env))
+	 (new-global-bindings (make-php-hash)))
+      (env-bindings-set! new-global-env new-global-bindings)
+      (set! *global-env* new-global-env)
+      (set! $_SERVER (make-container (make-php-hash)))
+      (set! $_FILES (make-container (make-php-hash)))
+      (set! $_GET (make-container (make-php-hash)))
+      (set! $_POST (make-container (make-php-hash)))
+      (set! $_REQUEST (make-container (make-php-hash)))
+      (set! $_COOKIE (make-container (make-php-hash)))
+      (set! $_SESSION (make-container (make-php-hash)))
+      (env-extend/pre *global-env* "_SERVER" _SERVER-key $_SERVER)
+      (env-extend/pre *global-env* "_FILES" _FILES-key $_FILES)
+      (env-extend/pre *global-env* "_GET" _GET-key $_GET)
+      (env-extend/pre *global-env* "_POST" _POST-key $_POST)
+      (env-extend/pre *global-env* "_REQUEST" _REQUEST-key $_REQUEST)
+      (env-extend/pre *global-env* "_COOKIE" _COOKIE-key $_COOKIE)
+      (env-extend/pre *global-env* "_SESSION" _SESSION-key $_SESSION)
+      (env-extend/pre *global-env* "GLOBALS" GLOBALS-key new-global-bindings)))
+
+; this sets up the $_ENV superglobal
+; which is a list of current environment variables
+(define (init-env-superglobal)
+   (env-extend *global-env* "_ENV" $_ENV)
+   (for-each (lambda (a)
+		(php-hash-insert! (container-value $_ENV) (car a) (cdr a)))
+	     (environ)))
+
 (define (env-new)
    (let ((env (make-env))
 	 (bindings (make-php-hash)))
       (env-bindings-set! env bindings)
-      (hashtable-for-each *superglobals*
-	 (lambda (k v)
-	    (php-hash-insert! bindings k (env-lookup *global-env* k))))
+      ; superglobals
+      (php-hash-insert!/pre bindings "GLOBALS" GLOBALS-key (env-bindings *global-env*))
+      (php-hash-insert!/pre bindings "_SERVER" _SERVER-key (container-value $_SERVER))
+      (php-hash-insert!/pre bindings "_FILES" _FILES-key (container-value $_FILES))
+      (php-hash-insert!/pre bindings "_GET" _GET-key (container-value $_GET))
+      (php-hash-insert!/pre bindings "_POST" _POST-key (container-value $_POST))
+      (php-hash-insert!/pre bindings "_REQUEST" _REQUEST-key (container-value $_REQUEST))
+      (php-hash-insert!/pre bindings "_COOKIE" _COOKIE-key (container-value $_COOKIE))
+      (php-hash-insert!/pre bindings "_SESSION" _SESSION-key (container-value $_SESSION))
+      (php-hash-insert!/pre bindings "_ENV" _ENV-key (container-value $_ENV))
       env))
 
 ; import values from a php hash into the specified environment
@@ -81,20 +167,10 @@
 	  (debug-trace 2 "env-import: Not a hashtable: " source-hash))))
 
 (define (env-extend env name::bstring value)
-   ;   (let ((name (symbol->string name)))
-;   (let ((env (if (hashtable-get *superglobals* name) *global-env* env)))
-      ;      (set! name (substring name 1 (string-length name)))
-      ;       (when (and (string= name "SM_siteManager")
-      ; 		 (eqv? env *global-env*))
-      ; 	 (fprint (current-error-port)
-      ; 		 (with-output-to-string
-      ; 		    (lambda ()
-      ; 		       (print-stack-trace))))
-      ; 	 (fprint (current-error-port) "Env-extend name " name " value " (mkstr value)
-      ; 		 " file: " *PHP-FILE* " line: " *PHP-LINE*))
-;       (fprint (current-error-port)
-; 	   "storing up: " name)
       (php-hash-insert! (env-bindings env) name value))
+
+(define (env-extend/pre env name::bstring hashnumber value)
+      (php-hash-insert!/pre (env-bindings env) name hashnumber value))
 
 (define (env-php-hash-view env)
    "return a view of an env as a php-hash"

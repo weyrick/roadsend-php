@@ -44,14 +44,6 @@
    
    (export
     ; vars
-    $_ENV
-    $_SERVER
-    $_GET
-    $_POST
-    $_COOKIE
-    $_REQUEST
-    $_SESSION
-    $_FILES
     SID
     DIRECTORY_SEPARATOR
     $argv
@@ -312,42 +304,31 @@
 ; run at both initialize (per runtime load) and reset (per page)
 (define (common-reset)
 
-   ; new environments
-   (set! *superglobals* (make-hashtable))
-   (set! *global-env* (env-new))
+   ; environments
+   (reset-superglobals!)
    (set! *current-variable-environment* *global-env*)
-   (env-extend *global-env* "GLOBALS" (env-bindings *global-env*))
-   
-   (hashtable-put! *superglobals* "GLOBALS" #t)
-   (hashtable-put! *superglobals* "_GET" #t)
-   (hashtable-put! *superglobals* "_POST" #t)
-   (hashtable-put! *superglobals* "_COOKIE" #t)
-   (hashtable-put! *superglobals* "_FILES" #t)
-   (hashtable-put! *superglobals* "_ENV" #t)
-   (hashtable-put! *superglobals* "_SERVER" #t)
-   (hashtable-put! *superglobals* "_SESSION" #t)
-   (hashtable-put! *superglobals* "_REQUEST" #t)
 
-   ; reset server superglobals, ready for web backend to fill again
-   (init-server-superglobal)
-   
+   ; output buffers
    (set! *output-buffer-stack* '())
    (set! *output-callback-stack* '())
    (set! *output-rewrite-vars* (make-hashtable))
+
+   ; 
    (set! *delayed-errors* '())
    (set! *shutdown-functions* '())
-   (reset-constants!)
    (set! *function-table* (make-hashtable))
-   (reset-signatures!)
    (set! *interpreted-function-table* (make-hashtable))
+   
+   (reset-constants!)
+   (reset-signatures!)
    (reset-php-object-lib)
    (reset-ini!)   
-   ; this doesn't change?
-   ;(set! $argv 'unset)
-   ;(set! $argc 'unset)
-   (reset-errors!)   
+   (reset-errors!)
+   
    (set! *PHP-LINE* 0)
-   (set! *PHP-FILE* "unknown"))
+   (set! *PHP-FILE* "unknown")
+
+   )
    
 
 ; called only once per runtime load
@@ -364,19 +345,22 @@
       ; object system
       (init-php-object-lib)
       (init-builtin-classes)      
-                  
+
+      ; initial superglobal def
+      (init-superglobals)
+            
       ; base reset
       (common-reset)
 
-      ; ini entries
-      (set-ini-entry "register_globals" #f) ; always false right now
       ; if we have a date.timezone, set TZ
       (if (get-ini-entry "date.timezone")
 	  (putenv "TZ" (mkstr (get-ini-entry "date.timezone"))))
       
       ; setup _ENV variable
-      ; doesn't change per runtime load and so not reset
-      (init-env-superglobal)      
+      ; we don't change per runtime load. fastcgi parses environ each request
+      ; into _SERVER instead
+      (when *commandline?*
+	 (init-env-superglobal))
       
       ; all better
       (set! *runtime-uninitialized?* #f)
@@ -385,43 +369,11 @@
    
    )
 
-; this sets up the $_ENV superglobal
-; which is a list of current environment variables
-(define $_ENV 'unset)
-(define $_GET 'unset)
-(define $_POST 'unset)
-(define $_COOKIE 'unset)
-(define $_REQUEST 'unset)
-(define $_SERVER 'unset)
-(define $_SESSION 'unset)
-(define $_FILES 'unset)
-
-(define (init-server-superglobal)
-   (set! $_SERVER (make-container (make-php-hash)))
-   (env-extend *global-env* "_SERVER" $_SERVER)
-   (set! $_FILES (make-container (make-php-hash)))
-   (env-extend *global-env* "_FILES" $_FILES)
-   (set! $_GET (make-container (make-php-hash)))
-   (env-extend *global-env* "_GET" $_GET)
-   (set! $_POST (make-container (make-php-hash)))
-   (env-extend *global-env* "_POST" $_POST)
-   (set! $_REQUEST (make-container (make-php-hash)))
-   (env-extend *global-env* "_REQUEST" $_REQUEST)
-   (set! $_COOKIE (make-container (make-php-hash)))
-   (env-extend *global-env* "_COOKIE" $_COOKIE)
-   (set! $_SESSION (make-container (make-php-hash)))
-   (env-extend *global-env* "_SESSION" $_SESSION)
-   )
-
-(define (init-env-superglobal)
-   (set! $_ENV (make-container (make-php-hash)))
-   (env-extend *global-env* "_ENV" $_ENV)
-   (for-each (lambda (a)
-		(php-hash-insert! (container-value $_ENV) (car a) (cdr a)))
-	     (environ)))
-
 (define $argv 'unset)
 (define $argc 'unset)
+;
+; note this is called in generated stubs, not on reset
+;
 (define (init-php-argv argv)   
    (set! $argv (make-container (list->php-hash argv)))
    (env-extend *global-env* "argv" $argv)
