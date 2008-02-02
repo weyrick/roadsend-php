@@ -371,13 +371,13 @@
 			      ; cleanup. we add the .c file because if the user ctrl-c, it might be left around
                               (pushf (append-paths filedir c-file) *files-to-clean*)
                               (verbose-trace 1 "compiling " file)
-                              (apply run-command #t BIGLOO "-c" scheme-file "-o" o-file "-saw" "-mkaddlib" 
+                              (apply run-command #t BIGLOO "-c" scheme-file "-o" o-file "-mkaddlib" 
                                      (or (target-option bigloo-optimization:) "-O3")
                                      `(,@(cond-expand
                                           (PCC_MINGW '())
                                           (else '("-copt" "-fPIC")))
                                        ,@(cond-expand 
-                                          (unsafe '("-unsafe"))
+                                          (unsafe '("-unsafe" "-saw"))
                                           (else '()))
 				       ,@(or (target-option bigloo-args:) '())
 				       ; XXX this is relavent for microweb apps, but not for
