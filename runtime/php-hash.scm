@@ -145,7 +145,7 @@
 (define (%php-hash-shared? hash)
    (> (container-value (%php-hash-refcount hash)) 0))
 
-(define *default-size* 8);4);16)
+(define *default-size* 16)
 
 (define-inline (expand-threshold size)
    (+fx (bit-rsh size 1) (bit-rsh size 2))) 
