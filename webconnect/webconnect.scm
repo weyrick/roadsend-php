@@ -166,7 +166,7 @@
 				 (list (cons header-type header-value))))))))
 
 (define (store-cookie-val key val)
-   (php-hash-insert! (container-value $HTTP_COOKIE_VARS) key val)
+   (php-hash-insert! (container-value $_COOKIE) key val)
    (php-hash-insert! (container-value $_REQUEST) key val))
 
 ; convert "foo[val1][val2][val3]...[valN]" given in GET/POST to
@@ -257,24 +257,21 @@
 (define (parse-get-args args)
    (when args
       (store-request-args-in-php-hash
-       (container-value $HTTP_GET_VARS) args 'normal)
-      (container-value-set! $_GET (copy-php-data (container-value $HTTP_GET_VARS)))
+       (container-value $_GET) args 'normal)
       (store-request-args-in-php-hash
        (container-value $_REQUEST) args 'normal)))
 
 (define (parse-post-args args)
    (when args
       (store-request-args-in-php-hash
-       (container-value $HTTP_POST_VARS) args 'normal)
-      (container-value-set! $_POST (copy-php-data (container-value $HTTP_POST_VARS)))
+       (container-value $_POST) args 'normal)
       (store-request-args-in-php-hash
        (container-value $_REQUEST) args 'normal)))
 
 (define (parse-cookies args)
    (when args
       (store-request-args-in-php-hash
-       (container-value $HTTP_COOKIE_VARS) args 'cookie)
-      (container-value-set! $_COOKIE (copy-php-data (container-value $HTTP_COOKIE_VARS)))
+       (container-value $_COOKIE) args 'cookie)
       (store-request-args-in-php-hash
        (container-value $_REQUEST) args 'cookie)))
 
@@ -323,9 +320,9 @@
 	 (let loop ((i 0))
 	    (when (< i (string-length stypes))
 	       (let ((c (string-ref stypes i)))
-		  (cond ((char-ci=? c #\g) (env-import *global-env* $HTTP_GET_VARS sprefix))
-			((char-ci=? c #\p) (env-import *global-env* $HTTP_POST_VARS sprefix))
-			((char-ci=? c #\c) (env-import *global-env* $HTTP_COOKIE_VARS sprefix))))
+		  (cond ((char-ci=? c #\g) (env-import *global-env* $_GET sprefix))
+			((char-ci=? c #\p) (env-import *global-env* $_POST sprefix))
+			((char-ci=? c #\c) (env-import *global-env* $_COOKIE sprefix))))
 	       (loop (+ i 1)))))))
 
 

@@ -257,31 +257,28 @@
       ;(log-debug (mkstr "headers: " header))
       
       ; servervars
-      (php-hash-insert! (container-value $HTTP_SERVER_VARS) "REQUEST_URI" request)
-      (php-hash-insert! (container-value $HTTP_SERVER_VARS) "REQUEST_METHOD" method)
-      (php-hash-insert! (container-value $HTTP_SERVER_VARS) "QUERY_STRING" query)
-      (php-hash-insert! (container-value $HTTP_SERVER_VARS) "SERVER_PORT" (convert-to-integer *micro-web-port*))
-      (php-hash-insert! (container-value $HTTP_SERVER_VARS) "SERVER_SOFTWARE" (mkstr *micro-web-version*))
-      (php-hash-insert! (container-value $HTTP_SERVER_VARS) "REMOTE_ADDR" inetname)
+      (php-hash-insert! (container-value $_SERVER) "REQUEST_URI" request)
+      (php-hash-insert! (container-value $_SERVER) "REQUEST_METHOD" method)
+      (php-hash-insert! (container-value $_SERVER) "QUERY_STRING" query)
+      (php-hash-insert! (container-value $_SERVER) "SERVER_PORT" (convert-to-integer *micro-web-port*))
+      (php-hash-insert! (container-value $_SERVER) "SERVER_SOFTWARE" (mkstr *micro-web-version*))
+      (php-hash-insert! (container-value $_SERVER) "REMOTE_ADDR" inetname)
 
       (unless (string=? user "")
-	 (php-hash-insert! (container-value $HTTP_SERVER_VARS) "PHP_AUTH_USER" user))
+	 (php-hash-insert! (container-value $_SERVER) "PHP_AUTH_USER" user))
       (unless (string=? pass "")
-	 (php-hash-insert! (container-value $HTTP_SERVER_VARS) "PHP_AUTH_PW" pass))
+	 (php-hash-insert! (container-value $_SERVER) "PHP_AUTH_PW" pass))
 
       ; if a directory is requested, try the index page
       (when (char=? (string-ref request (- (string-length request) 1)) #\/)
 	 (set! request (mkstr request *webapp-index-page*)))
 
-      (php-hash-insert! (container-value $HTTP_SERVER_VARS) "PHP_SELF" request)
-      (php-hash-insert! (container-value $HTTP_SERVER_VARS) "SCRIPT_NAME" request)
-      (php-hash-insert! (container-value $HTTP_SERVER_VARS) "DOCUMENT_ROOT" (pwd))
-      (php-hash-insert! (container-value $HTTP_SERVER_VARS) "SCRIPT_FILENAME" (normalize-path (mkstr (pwd) request)))
-      (php-hash-insert! (container-value $HTTP_SERVER_VARS) "PATH_TRANSLATED" (normalize-path (mkstr (pwd) request)))
+      (php-hash-insert! (container-value $_SERVER) "PHP_SELF" request)
+      (php-hash-insert! (container-value $_SERVER) "SCRIPT_NAME" request)
+      (php-hash-insert! (container-value $_SERVER) "DOCUMENT_ROOT" (pwd))
+      (php-hash-insert! (container-value $_SERVER) "SCRIPT_FILENAME" (normalize-path (mkstr (pwd) request)))
+      (php-hash-insert! (container-value $_SERVER) "PATH_TRANSLATED" (normalize-path (mkstr (pwd) request)))
       
-      ;; finally, copy the server vars into $_SERVER. 
-      (container-value-set! $_SERVER (copy-php-data (container-value $HTTP_SERVER_VARS)))
-
       ; cookies
       (parse-cookies cookie)
 
@@ -348,12 +345,9 @@
 			    ; we call store-request-args-in-php-hash so
 			    ; it can handle $array_vars[]
 			    (store-request-args-in-php-hash
-			     (container-value $HTTP_POST_VARS)
+			     (container-value $_POST)
 			     (mkstr id "=" data)
 			     "&")
-			    (container-value-set! $_POST
-						  (copy-php-data
-						   (container-value $HTTP_POST_VARS)))
 			    (store-request-args-in-php-hash
 			     (container-value $_REQUEST)
 			     (mkstr id "=" data)

@@ -45,17 +45,11 @@
    (export
     ; vars
     $_ENV
-    $HTTP_ENV_VARS
     $_SERVER
-    $HTTP_SERVER_VARS
-    $HTTP_GET_VARS
     $_GET
-    $HTTP_POST_VARS
     $_POST
-    $HTTP_COOKIE_VARS
     $_COOKIE
     $_REQUEST
-    $HTTP_SESSION_VARS
     $_SESSION
     $_FILES
     SID
@@ -394,63 +388,37 @@
 ; this sets up the $_ENV superglobal
 ; which is a list of current environment variables
 (define $_ENV 'unset)
-(define $HTTP_ENV_VARS 'unset)
-
-(define $HTTP_GET_VARS 'unset)
 (define $_GET 'unset)
-(define $HTTP_POST_VARS 'unset)
 (define $_POST 'unset)
-(define $HTTP_COOKIE_VARS 'unset)
 (define $_COOKIE 'unset)
-
 (define $_REQUEST 'unset)
-
-(define $HTTP_SERVER_VARS 'unset)
 (define $_SERVER 'unset)
-
-(define $HTTP_SESSION_VARS 'unset)
 (define $_SESSION 'unset)
-
-(define $HTTP_POST_FILES 'unset)
 (define $_FILES 'unset)
 
 (define (init-server-superglobal)
-   (set! $HTTP_SERVER_VARS (make-container (make-php-hash)))
-   (env-extend *global-env* "HTTP_SERVER_VARS" $HTTP_SERVER_VARS)
-   (set! $_SERVER (make-container (make-php-hash)))   
+   (set! $_SERVER (make-container (make-php-hash)))
    (env-extend *global-env* "_SERVER" $_SERVER)
-   (set! $HTTP_POST_FILES (make-container (make-php-hash)))
-   (env-extend *global-env* "HTTP_POST_FILES" $HTTP_POST_FILES)
    (set! $_FILES (make-container (make-php-hash)))
    (env-extend *global-env* "_FILES" $_FILES)
-   (set! $HTTP_GET_VARS (make-container (make-php-hash)))
-   (env-extend *global-env* "HTTP_GET_VARS" $HTTP_GET_VARS)
    (set! $_GET (make-container (make-php-hash)))
    (env-extend *global-env* "_GET" $_GET)
-   (set! $HTTP_POST_VARS (make-container (make-php-hash)))
-   (env-extend *global-env* "HTTP_POST_VARS" $HTTP_POST_VARS)
    (set! $_POST (make-container (make-php-hash)))
    (env-extend *global-env* "_POST" $_POST)
    (set! $_REQUEST (make-container (make-php-hash)))
    (env-extend *global-env* "_REQUEST" $_REQUEST)
-   (set! $HTTP_COOKIE_VARS (make-container (make-php-hash)))
-   (env-extend *global-env* "HTTP_COOKIE_VARS" $HTTP_COOKIE_VARS)
    (set! $_COOKIE (make-container (make-php-hash)))
    (env-extend *global-env* "_COOKIE" $_COOKIE)
-   (set! $HTTP_SESSION_VARS (make-container (make-php-hash)))   
-   (env-extend *global-env* "HTTP_SESSION_VARS" $HTTP_SESSION_VARS)
    (set! $_SESSION (make-container (make-php-hash)))
    (env-extend *global-env* "_SESSION" $_SESSION)
    )
 
 (define (init-env-superglobal)
-   (set! $HTTP_ENV_VARS (make-container (make-php-hash)))
-   (env-extend *global-env* "HTTP_ENV_VARS" $HTTP_ENV_VARS)
+   (set! $_ENV (make-container (make-php-hash)))
+   (env-extend *global-env* "_ENV" $_ENV)
    (for-each (lambda (a)
-		(php-hash-insert! (container-value $HTTP_ENV_VARS) (car a) (cdr a)))
-	     (environ))
-   (set! $_ENV (copy-php-data $HTTP_ENV_VARS))
-   (env-extend *global-env* "_ENV" $_ENV))
+		(php-hash-insert! (container-value $_ENV) (car a) (cdr a)))
+	     (environ)))
 
 (define $argv 'unset)
 (define $argc 'unset)
@@ -463,18 +431,16 @@
    (when *commandline?*
       ; copy variables from env as per php
       (for-each (lambda (a)
-		   (php-hash-insert! (container-value $HTTP_SERVER_VARS) (car a) (cdr a)))
+		   (php-hash-insert! (container-value $_SERVER) (car a) (cdr a)))
 		(environ))
       (unless (null? argv)
-	 (php-hash-insert! (container-value $HTTP_SERVER_VARS) "PHP_SELF" (car argv))
-	 (php-hash-insert! (container-value $HTTP_SERVER_VARS) "SCRIPT_NAME" (car argv))
-	 (php-hash-insert! (container-value $HTTP_SERVER_VARS) "SCRIPT_FILENAME" (car argv))
-	 (php-hash-insert! (container-value $HTTP_SERVER_VARS) "PATH_TRANSLATED" (car argv))
-	 (php-hash-insert! (container-value $HTTP_SERVER_VARS) "DOCUMENT_ROOT" "")
-	 (php-hash-insert! (container-value $HTTP_SERVER_VARS) "argv" (container-value $argv))
-	 (php-hash-insert! (container-value $HTTP_SERVER_VARS) "argc" (container-value $argc)))
-      ;; finally, copy the server vars into $_SERVER. 
-      (container-value-set! $_SERVER (copy-php-data (container-value $HTTP_SERVER_VARS)))))
+	 (php-hash-insert! (container-value $_SERVER) "PHP_SELF" (car argv))
+	 (php-hash-insert! (container-value $_SERVER) "SCRIPT_NAME" (car argv))
+	 (php-hash-insert! (container-value $_SERVER) "SCRIPT_FILENAME" (car argv))
+	 (php-hash-insert! (container-value $_SERVER) "PATH_TRANSLATED" (car argv))
+	 (php-hash-insert! (container-value $_SERVER) "DOCUMENT_ROOT" "")
+	 (php-hash-insert! (container-value $_SERVER) "argv" (container-value $argv))
+	 (php-hash-insert! (container-value $_SERVER) "argc" (container-value $argc)))))
 
 
 ;; include files

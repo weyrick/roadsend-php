@@ -344,12 +344,9 @@
 				       ; we call store-request-args-in-php-hash so
 				       ; it can handle $array_vars[]
 				       (store-request-args-in-php-hash
-					(container-value $HTTP_POST_VARS)
+					(container-value $_POST)
 					(mkstr (car v) "=" (caddr v))
 					'normal)
-				       (container-value-set! $_POST
-							     (copy-php-data
-							      (container-value $HTTP_POST_VARS)))
 				       (store-request-args-in-php-hash
 					(container-value $_REQUEST)
 					(mkstr (car v) "=" (caddr v))
