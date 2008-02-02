@@ -244,3 +244,4 @@
 (default-ini-entry "url_rewriter.tags" "a=href,area=href,frame=src,input=src,form=fakeentry")
 (default-ini-entry "arg_separator.input" "&")
 (default-ini-entry "precision" "12")
+(default-ini-entry "register_globals" #f)

@@ -36,7 +36,7 @@
 	   (php-hash-internal-index-value::pair index)
 	   (php-hash-internal-index-value-set!::pair index value)
 	   (php-hash?::bool hash)
-	   (php-hash-size::int hash)
+	   (php-hash-size::bint hash)
 	   (php-hash-insert! hash key value)
            (php-hash-insert!/pre hash key hashnumber value)
 	   (php-hash-lookup hash key)
@@ -694,7 +694,7 @@ for all variables, and by compiled code to implement globals.  Returns
 	      (%entry-chained-entry bucket)))))))
 
 
-(define (php-hash-size::int hash)
+(define (php-hash-size::bint hash)
    (%php-hash-size hash))
 
 (define (php-hash-valid?::bool hash)   
