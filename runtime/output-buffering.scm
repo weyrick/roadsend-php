@@ -139,8 +139,7 @@
    "flush output from buffer from into buffer to, if to is #f, display
    the output"
    (let* ((len (length *output-buffer-stack*))
-	  ; XXX bigloo currently has a bug with flush-output-port, stick to close here
-	  (output (flush-output-port from))
+	  (output (get-output-string from))
 	  ; XXX this isn't right yet see #1156
 	  (mode (cond ((= len 1) PHP_OUTPUT_HANDLER_START)
 		      ((eqv? to #f) PHP_OUTPUT_HANDLER_END)
@@ -160,7 +159,6 @@
 	  (display output to)
 	  (begin
 	     (display output)
-	     ;(flush-output-port (current-output-port))
 	     ))
       #t))
 

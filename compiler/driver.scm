@@ -60,7 +60,7 @@
     (fastcgi-stub filename)
     (setup-web-target)
     (compile program-name input-files #!optional library? auto-run-list)    
-    (run-url::string filename::string webapp-lib index-file)
+    (run-url::bstring filename::bstring webapp-lib index-file)
     (input-file->ast input-file strip-shebang?)
     (evaluate-from-file file name-to-use)))
 
@@ -154,7 +154,7 @@
    (set! *current-target* (instantiate::interpret-target)))
 
 ;;;main entry point when running from the web (including mhttpd) 
-(define (run-url::string filename::string webapp-lib index-file)
+(define (run-url::bstring filename::bstring webapp-lib index-file)
    (do-include-paths)
    (debug-trace 1 "Running file: " filename
 		", webapp-lib: " (if webapp-lib webapp-lib "(none)")
