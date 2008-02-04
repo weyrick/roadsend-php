@@ -77,41 +77,50 @@
 
 ; a version of php's str_replace
 (define (string-subst::bstring text::bstring old::bstring new::bstring . rest)
-   (multiple-value-bind (num-matches matches) (find-idxs text old)
-      (if (=fx num-matches 0)
-	  (if (null? rest)
-	      text
-	      (apply string-subst text rest))
-	  (let* ((text-len (string-length text))
-		 (new-len (string-length new))
-		 (old-len (string-length old))
-		 (new-buf-size (cond ((=fx new-len old-len) text-len)
-				     ((<fx new-len old-len) (-fx text-len
-								 (*fx (-fx old-len new-len) num-matches)))
-				     ((>fx new-len old-len) (+fx text-len
-								 (*fx (-fx new-len old-len) num-matches)))))
-		 (result (make-string new-buf-size)))
-	     (let loop ((o-text 0)
-			(o-result 0)
-			(i 0))
-		(if (=fx i num-matches)
-		    ; no more matches, copy ending if we have it
-		    (when (<fx o-text text-len)
-		       (blit-string! text o-text result o-result (-fx text-len o-text)))
-		    ; copy match
-		    (let ((copy-len (-fx (vector-ref matches i) o-text)))
-		       ; fill before match
-		       (when (>fx copy-len 0)
-			  (blit-string! text o-text result o-result copy-len))
-		       ; fill replacement
-		       (blit-string! new 0 result (+fx o-result copy-len) new-len)
-		       ; next match
-		       (loop (+fx (vector-ref matches i) old-len)
-			     (+fx o-result (+fx new-len copy-len))
-			     (+fx i 1)))))
+   (let ((new-len (string-length new))
+	 (old-len (string-length old)))
+      (if (and (=fx 1 new-len) (=fx 1 old-len))
+	  ; one character replacements
+	  (let ((result (string-replace text
+					(string-ref old 0)
+					(string-ref new 0))))
 	     (if (null? rest)
 		 result
-		 (apply string-subst result rest))))))
+		 (apply string-subst result rest)))
+	  ; string replacements
+	  (multiple-value-bind (num-matches matches) (find-idxs text old)
+	    (if (=fx num-matches 0)
+		(if (null? rest)
+		    text
+		    (apply string-subst text rest))
+		(let* ((text-len (string-length text))
+		       (new-buf-size (cond ((=fx new-len old-len) text-len)
+					   ((<fx new-len old-len) (-fx text-len
+								       (*fx (-fx old-len new-len) num-matches)))
+					   ((>fx new-len old-len) (+fx text-len
+								       (*fx (-fx new-len old-len) num-matches)))))
+		       (result (make-string new-buf-size)))
+		   (let loop ((o-text 0)
+			      (o-result 0)
+			      (i 0))
+		      (if (=fx i num-matches)
+			  ; no more matches, copy ending if we have it
+			  (when (<fx o-text text-len)
+			     (blit-string! text o-text result o-result (-fx text-len o-text)))
+			  ; copy match
+			  (let ((copy-len (-fx (vector-ref matches i) o-text)))
+			     ; fill before match
+			     (when (>fx copy-len 0)
+				(blit-string! text o-text result o-result copy-len))
+			     ; fill replacement
+			     (blit-string! new 0 result (+fx o-result copy-len) new-len)
+			     ; next match
+			     (loop (+fx (vector-ref matches i) old-len)
+				   (+fx o-result (+fx new-len copy-len))
+				   (+fx i 1)))))
+		   (if (null? rest)
+		       result
+		       (apply string-subst result rest))))))))
 
 (define (find-idxs haystack::bstring needle::bstring)
    (let ((tbl (kmp-table needle))
