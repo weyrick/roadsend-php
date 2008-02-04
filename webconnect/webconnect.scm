@@ -43,7 +43,9 @@
     headers_sent
     import_request_variables
     setcookie
-    (set-header header-type header-key header-value replace)
+    (header-exists? header-type)
+    (set-header header-type header-value replace)
+    (set-header-if-empty header-type header-value)
     (is_uploaded_file filename)
     (move_uploaded_file filename dest)
     *current-uploads*
@@ -153,17 +155,30 @@
 
 (define *response-code* 'unset)
 
-(define (set-header header-type header-key header-value replace)
-;   (debug-trace 2 (mkstr "set header ===> " header-type " / " header-key " / " header-value))
+;
+; XXX note "replace" here is a bit misleading -- if replace is false,
+; then we're not not adding the header, we're tacking this value
+; on to the header that already exists, and we'll show that header
+; twice with two values
+;
+(define (set-header header-type header-value replace)
+   (debug-trace 2 (mkstr "set header ===> [" header-type "] / [" header-value "]"))
    (unless (eqv? *headers* 'unset)
-      (set! header-key (string-downcase header-key))
-      (if replace
-	  (hashtable-put! *headers* header-key (list (cons header-type header-value)))
-	  (hashtable-put! *headers* header-key
-			  (let ((similar-header (hashtable-get *headers* header-key)))
-			     (if similar-header
-				 (cons (cons header-type header-value) similar-header)
-				 (list (cons header-type header-value))))))))
+      (let ((header-key (string-downcase header-type)))
+	 (if replace
+	     (hashtable-put! *headers* header-key (list (cons header-type header-value)))
+	     (hashtable-put! *headers* header-key
+			     (let ((similar-header (hashtable-get *headers* header-key)))
+				(if similar-header
+				    (cons (cons header-type header-value) similar-header)
+				    (list (cons header-type header-value)))))))))
+
+(define (set-header-if-empty header-type header-value)
+   (unless (hashtable-contains? *headers* (string-downcase header-type))
+      (set-header header-type header-value #t)))
+
+(define (header-exists? header-type)
+   (hashtable-contains? *headers* (string-downcase header-type)))
 
 (define (store-cookie-val key val)
    (php-hash-insert! (container-value $_COOKIE) key val)
@@ -276,6 +291,12 @@
        (container-value $_REQUEST) args 'cookie)))
 
 ;header -- Send a raw HTTP header
+;
+; XXX note "replace" here is a bit misleading -- if replace is false,
+; then we're not not adding the header, we're tacking this value
+; on to the header that already exists, and we'll show that header
+; twice with two values
+;
 (defbuiltin (header str (replace #t))
    (set! str (mkstr str))
    (set! replace (convert-to-boolean replace))
@@ -295,15 +316,15 @@
 	      (let* ((col (string-index str ":"))
 		     (slen (string-length str))
 		     (header-type (if col (substring str 0 col) #f))
-		     (header-value (if (and header-type (>fx slen col))
-				       (substring str (+fx 1 col) slen)
+		     (header-value (if (and header-type (>fx slen (+fx 1 col)))
+				       (substring str (+fx 2 col) slen)
 				       #f))
 		     (header-key (if header-type (string-downcase header-type) #f)))
 		 (if (and header-type header-value)
 		     (begin
 			(when (string=? header-key "location")
 			   (set! *response-code* HTTP-MOVED-TEMPORARILY))
-			(set-header header-type header-key header-value replace))
+			(set-header header-type header-value replace))
 		     (php-warning (format "unable to handle header [~A] correctly" str)))))
 	      ; silently ignore as per php
 	      #f)))
@@ -396,7 +417,7 @@
 	 (when (convert-to-boolean secure)
 	    (set! cook (string-append cook "; secure")))
 	 ; go
-	 (set-header "Set-Cookie" "Set-Cookie" cook #f)
+	 (set-header "Set-Cookie" cook #f)
 	 ; currently always succedes
 	 #t)))
 

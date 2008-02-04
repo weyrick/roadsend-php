@@ -59,6 +59,8 @@
       (chdir dir)
       (set! *last-working-dir* dir)))
 
+(define *console-error-port* (current-error-port))
+
 (define (fastcgi-main argv)
    (let ((req-doc-root #f)
 	 (force-doc-root (getenv "WEB_DOC_ROOT"))
@@ -78,6 +80,8 @@
 	 (print "invalid PHP_FCGI_CHILDREN")
 	 (exit 1))
 
+      (set! *console-error-port* (current-error-port))
+      
       ; ignore max requests if we have no children
       (when (=fx num-children 0)
 	 (set! max-requests 0))
@@ -161,11 +165,14 @@
 			   (set! content (404-handler script-path))
 			   (set! content (runtime-error-handler p m o)))
 		       (e #t)))
+
+	       (set-header-if-empty "Content-Type" "text/html")
+	       (set-header-if-empty "Content-Length" (string-length content))
 	       
 	       (let ((headers (fastcgi-get-headers)))
 		  (FCGI_fwrite headers 1 (string-length headers) FCGI_stdout))
 	       (FCGI_fwrite content 1 (string-length content) FCGI_stdout)
-	       ; NOTE: docs say do NOT fflush, as it reduces performance and is done in FCGI_Accept
+	       ; NOTE: docs say do NOT fflush FCGI_stdout, as it reduces performance and is done implicitly in FCGI_Accept
 
 	       (loop (+fx serve-cnt 1)))))))
    
@@ -173,7 +180,7 @@
 ; show the runtime error in a nice page, with backtrace
 (define (runtime-error-handler p m o)
    (let ((content ""))
-      (set-header "Status" "Status" HTTP-INTERNAL-SERVER-ERROR #t)
+      (set-header "Status" HTTP-INTERNAL-SERVER-ERROR #t)
       ;; using out or err in this error handler seems to screw something up,
       ;; giving us segfaults when we print on them (even outside the error
       ;; handler -- bigloo's boxing it or something)
@@ -196,7 +203,7 @@
 	   (lambda (e p m o)
 	      (if (eq? o 'file-not-found)
 		  (begin
-		     (set-header "Status" "Status" HTTP-NOT-FOUND #t)
+		     (set-header "Status" HTTP-NOT-FOUND #t)
 		     (set! content (format "
 <!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">
 <html><head>
@@ -220,15 +227,15 @@
 
 (define fastcgi-log-message
    (lambda (msg)
-      (fprint (current-error-port) msg)))
+      (fprint *console-error-port* msg)))
 
 (define fastcgi-log-warning
    (lambda (msg)
-      (fprint (current-error-port) (format "Warning: ~a " msg))))
+      (fprint *console-error-port* (format "Warning: ~a " msg))))
 
 (define fastcgi-log-error
    (lambda (msg)
-      (fprint (current-error-port) (format "Error: ~a " msg))))
+      (fprint *console-error-port* (format "Error: ~a " msg))))
 
 ; one time init
 (define (fastcgi-init)
@@ -260,9 +267,6 @@
       
       (set! *headers* (make-hashtable))
       (set! *response-code* HTTP-OK)
-      
-      ; add default headers
-      (header "Content-type: text/html" #t) 
       
       ; $_SERVER vars
       (container-value-set! $_SERVER server-vars)

@@ -416,10 +416,10 @@
       (else
        (web-client-h-ttpdirective (mkstr "HTTP/1.1 " *response-code* " OK"))
 
-       (set-header "Content-Type" "Content-Type" (get-mime-type bin-file) #t)
-       (set-header "X-Powered-By" "X-Powered-By" *RAVEN-VERSION-TAG* #f)
-       (set-header "Content-Length"  "Content-Length" file-length #t)
-       (set-header "Connection" "Connection" "close" #t)
+       (set-header "Content-Type" (get-mime-type bin-file) #t)
+       (set-header "X-Powered-By" *RAVEN-VERSION-TAG* #f)
+       (set-header "Content-Length" file-length #t)
+       (set-header "Connection" "close" #t)
        (do-headers)
        
        (display "\r\n" *micro-web-output-port*)
@@ -452,11 +452,11 @@
 (define (http-reply str)
 
    (web-client-h-ttpdirective (mkstr "HTTP/1.1 " *response-code* " OK"))
-   
-   (set-header "Content-Type" "Content-Type" "text/html" #f)
-   (set-header "X-Powered-By" "X-Powered-By" *RAVEN-VERSION-TAG* #f)
-   (set-header "Content-Length"  "Content-Length" (string-length str) #t)
-   (set-header "Connection" "Connection" "close" #t)
+
+   (set-header-if-empty "Content-Type" "text/html")
+   (set-header-if-empty "X-Powered-By" *RAVEN-VERSION-TAG*)
+   (set-header-if-empty "Content-Length" (string-length str))
+   (set-header-if-empty "Connection" "close")
    (do-headers)
    
    (display "\r\n" *micro-web-output-port*)
