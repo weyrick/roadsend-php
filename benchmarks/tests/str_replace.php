@@ -2,15 +2,15 @@
 
 $small = "ABCDEFGHIJKLMNOPQRSTUVQXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}";
 for ($i=65; $i<126; $i++) {
-  echo str_replace($small, chr($i),'1');
+  echo str_replace(chr($i),'1',$small);
 }
 
 for ($i=65; $i<126; $i++) {
-  echo str_replace($small, chr($i),'foo');
+  echo str_replace(chr($i),'foo',$small);
 }
 
 for ($i=65; $i<126; $i++) {
-  echo str_replace($small, chr($i),'fooooooooooooooooooooooooooooooooooooooooooooooooooooo');
+  echo str_replace(chr($i),'fooooooooooooooooooooooooooooooooooooooooooooooooooooo',$small);
 }
 
 $big =<<<FOO
@@ -35,9 +35,10 @@ Aenean pellentesque, metus a condimentum feugiat, nibh arcu tristique risus, sed
 FOO;
 
 for ($i=0; $i<1000; $i++) {
-  $a = str_replace($big, 'sit', 'a');
-  $a = str_replace($big, 'sit', 'foo');
-  $a = str_replace($big, 'sit', 'fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo');
+  $a = str_replace('sit', 'a', $big);
+  echo $a;
+  $a = str_replace('sit', 'foo', $big);
+  $a = str_replace('sit', 'fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',$big);
 }
 
 ?>
