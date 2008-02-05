@@ -20,9 +20,9 @@
    (export
     (inline make-container::pair value)
     (inline container->reference!::pair value)
-    (inline container-reference? value)
+    (inline container-reference?::bbool value)
     (inline container-value container::pair)
-    (inline container? container)
+    (inline container?::bbool container)
     (inline container-value-set! container::pair value)
     (inline maybe-unbox thupet)
     (inline maybe-box thupet)))
@@ -38,19 +38,16 @@
    (set-cdr! value 3)
    value)
 
-(define-inline (container-reference? value)
-   (= 3 (cdr value)))
+(define-inline (container-reference?::bbool value)
+   (=fx 3 (cdr value)))
 
 (define-inline (container-value-set! container::pair value)
-   ;; XXX without this when, and the unless in container-value,
-   ;; several tests fail, including zthis.php and ref1.php.  The
-   ;; problem showed up when we upgraded to bigloo 2.8b.
    (set-car! container value))
 
 (define-inline (container-value container::pair)
    (car container))
 
-(define-inline (container? container)
+(define-inline (container?::bbool container)
    (and (pair? container)
 	;	(not (null? (cdr container))) ; XXX why does this happen?? weyrick 10/15/04
 	;;
