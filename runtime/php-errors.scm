@@ -377,6 +377,7 @@
 (define (reset-errors!)
    (set! *errors-disabled* #f)
    (set! *error-handler* "_default_error_handler")
+   (set! *default-exception-handler* "_default_exception_handler")   
    (set! *error-level* E_ALL)
    (set! *stack-trace* '())
    (set! *saved-stack-trace* '()))
