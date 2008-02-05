@@ -1697,14 +1697,17 @@
 
 ; strpos --  Find position of first occurrence of a string
 (defbuiltin (strpos haystack needle (offset 'unpassed))
-   (let* ((kmpt (kmp-table (mkstr needle)))
-	  (off (if (eqv? 'unpassed offset)
-		   0
-		   (mkfixnum offset)))
-	  (res (kmp-string kmpt (mkstr haystack) off)))
-      (if (=fx res -1)
+   (let ((sneedle (mkstr needle)))
+      (if (string=? "" sneedle)
 	  FALSE
-	  (convert-to-number res))))
+	  (let* ((kmpt (kmp-table sneedle))
+		 (off (if (eqv? 'unpassed offset)
+			  0
+			  (mkfixnum offset)))
+		 (res (kmp-string kmpt (mkstr haystack) off)))
+	     (if (=fx res -1)
+		 FALSE
+		 (convert-to-number res))))))
 
 ; stripos
 (defbuiltin (stripos haystack needle (offset 'unpassed))
