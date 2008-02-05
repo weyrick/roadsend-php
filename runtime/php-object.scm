@@ -796,7 +796,7 @@ values the values."
    (set! *highest-instantiation* 0)
    (unless (=fx (hashtable-size %php-autoload-registry) 0)
       (set! %php-autoload-registry (make-hashtable)))
-   (unless (=fx (php-hash-size %php-builtin-class-registry) (php-hash-size %php-class-registry))
+   (unless (=fx (hashtable-size %php-builtin-class-registry) (hashtable-size %php-class-registry))
       (set! %php-class-registry (copy-hashtable %php-builtin-class-registry))))
 
 ; called once on load
