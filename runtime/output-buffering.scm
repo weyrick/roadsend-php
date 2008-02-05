@@ -36,6 +36,7 @@
     *output-callback-stack*
     *output-rewrite-vars*
     (maybe-init-url-rewriter)
+    (ob-reset!)
     (ob-start callback)
     (ob-pop-stacks)
     (ob-verify-stacks)
@@ -61,6 +62,13 @@
 
 ; for url rewriter
 (define *output-rewrite-vars* (make-hashtable))
+
+; called each page view
+(define (ob-reset!)
+   (set! *output-buffer-stack* '())
+   (set! *output-callback-stack* '())
+   (unless (=fx (hashtable-size *output-rewrite-vars*) 0)
+      (set! *output-rewrite-vars* (make-hashtable))))
 
 (define (maybe-init-url-rewriter)
    (when (convert-to-boolean (get-ini-entry "session.use_trans_id"))
@@ -139,7 +147,7 @@
    "flush output from buffer from into buffer to, if to is #f, display
    the output"
    (let* ((len (length *output-buffer-stack*))
-	  (output (get-output-string from))
+	  (output (close-output-port from))
 	  ; XXX this isn't right yet see #1156
 	  (mode (cond ((= len 1) PHP_OUTPUT_HANDLER_START)
 		      ((eqv? to #f) PHP_OUTPUT_HANDLER_END)

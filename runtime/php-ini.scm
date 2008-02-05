@@ -40,10 +40,12 @@
 
 (define (reset-ini!)
    ;; reset ini settings to config file state
-   (set! *ini-table* (make-hashtable))
-   (hashtable-for-each *config-ini-table*
-		       (lambda (k v)
-			  (hashtable-put! *ini-table* k v))))
+   (unless (or (=fx (hashtable-size *ini-table*) 0)
+	       (=fx (hashtable-size *ini-table*) (hashtable-size *config-ini-table*)))
+      (set! *ini-table* (make-hashtable))
+      (hashtable-for-each *config-ini-table*
+			  (lambda (k v)
+			     (hashtable-put! *ini-table* k v)))))
 
 ; return current value, attemping a default if current doesn't exist
 (define (get-ini-entry name)

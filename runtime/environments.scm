@@ -88,9 +88,14 @@
    (hashtable-put! *superglobals* "_SERVER" #t)
    (hashtable-put! *superglobals* "_SESSION" #t)
    (hashtable-put! *superglobals* "_REQUEST" #t)
-   ; this only happens once, unlike the others
-   ; which get reset each page load
-   (set! $_ENV (make-container (make-php-hash))))   
+   (set! $_SERVER (make-container (make-php-hash)))
+   (set! $_FILES (make-container (make-php-hash)))
+   (set! $_GET (make-container (make-php-hash)))
+   (set! $_POST (make-container (make-php-hash)))
+   (set! $_ENV (make-container (make-php-hash)))
+   (set! $_REQUEST (make-container (make-php-hash)))
+   (set! $_COOKIE (make-container (make-php-hash)))
+   (set! $_SESSION (make-container (make-php-hash))))
 
 ;
 ; we precalculate these because they never change and
@@ -109,15 +114,25 @@
 (define (reset-superglobals!)
    (let ((new-global-env (make-env))
 	 (new-global-bindings (make-php-hash)))
+      ; always a new global environment
       (env-bindings-set! new-global-env new-global-bindings)
       (set! *global-env* new-global-env)
-      (set! $_SERVER (make-container (make-php-hash)))
-      (set! $_FILES (make-container (make-php-hash)))
-      (set! $_GET (make-container (make-php-hash)))
-      (set! $_POST (make-container (make-php-hash)))
-      (set! $_REQUEST (make-container (make-php-hash)))
-      (set! $_COOKIE (make-container (make-php-hash)))
-      (set! $_SESSION (make-container (make-php-hash)))
+      ; reset each superglobal, unless it wasn't used last hit
+      (unless (=fx 0 (php-hash-size (container-value $_SERVER)))
+	 (set! $_SERVER (make-container (make-php-hash))))
+      (unless (=fx 0 (php-hash-size (container-value $_FILES)))      
+	 (set! $_FILES (make-container (make-php-hash))))
+      (unless (=fx 0 (php-hash-size (container-value $_GET)))
+	 (set! $_GET (make-container (make-php-hash))))
+      (unless (=fx 0 (php-hash-size (container-value $_POST)))
+	 (set! $_POST (make-container (make-php-hash))))
+      (unless (=fx 0 (php-hash-size (container-value $_REQUEST)))
+	 (set! $_REQUEST (make-container (make-php-hash))))
+      (unless (=fx 0 (php-hash-size (container-value $_COOKIE)))      
+	 (set! $_COOKIE (make-container (make-php-hash))))
+      (unless (=fx 0 (php-hash-size (container-value $_SESSION)))
+	 (set! $_SESSION (make-container (make-php-hash))))
+      ; always extend global with superglobals
       (env-extend/pre *global-env* "_SERVER" _SERVER-key $_SERVER)
       (env-extend/pre *global-env* "_FILES" _FILES-key $_FILES)
       (env-extend/pre *global-env* "_GET" _GET-key $_GET)
@@ -139,7 +154,7 @@
    (let ((env (make-env))
 	 (bindings (make-php-hash)))
       (env-bindings-set! env bindings)
-      ; superglobals
+      ; always extend new environments with superglobals
       (php-hash-insert!/pre bindings "GLOBALS" GLOBALS-key (env-bindings *global-env*))
       (php-hash-insert!/pre bindings "_SERVER" _SERVER-key (container-value $_SERVER))
       (php-hash-insert!/pre bindings "_FILES" _FILES-key (container-value $_FILES))

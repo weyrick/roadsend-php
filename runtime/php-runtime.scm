@@ -308,20 +308,17 @@
    (reset-superglobals!)
    (set! *current-variable-environment* *global-env*)
 
-   ; output buffers
-   (set! *output-buffer-stack* '())
-   (set! *output-callback-stack* '())
-   (set! *output-rewrite-vars* (make-hashtable))
-
-   ; 
    (set! *delayed-errors* '())
    (set! *shutdown-functions* '())
    (set! *function-table* (make-hashtable))
    (set! *interpreted-function-table* (make-hashtable))
-   
+
+   ; output buffering
+   (ob-reset!)
+   ; various parts of the runtime
    (reset-constants!)
    (reset-signatures!)
-   (reset-php-object-lib)
+   (reset-php-object-lib!)
    (reset-ini!)   
    (reset-errors!)
    

@@ -100,7 +100,7 @@
     (php-object-custom-properties-set! obj props)
     ; misc
     (init-php-object-lib)
-    (reset-php-object-lib)    
+    (reset-php-object-lib!)    
     (pretty-print-php-object obj)
     (php-object-for-each-with-ref-status obj::struct thunk::procedure)
     ;
@@ -792,10 +792,12 @@ values the values."
       clist))
 
 ; called between page views
-(define (reset-php-object-lib)
+(define (reset-php-object-lib!)
    (set! *highest-instantiation* 0)
-   (set! %php-autoload-registry (make-hashtable))
-   (set! %php-class-registry (copy-hashtable %php-builtin-class-registry)))
+   (unless (=fx (hashtable-size %php-autoload-registry) 0)
+      (set! %php-autoload-registry (make-hashtable)))
+   (unless (=fx (php-hash-size %php-builtin-class-registry) (php-hash-size %php-class-registry))
+      (set! %php-class-registry (copy-hashtable %php-builtin-class-registry))))
 
 ; called once on load
 (define (init-php-object-lib)
