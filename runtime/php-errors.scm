@@ -267,7 +267,7 @@
 			(print-stack-trace-html)
 			(when (or (> *debug-level* 1) (getenv "BIGLOOSTACKDEPTH"))
 			   (print "<pre>--- Bigloo Stack:\n")
-			   (dump-bigloo-stack (current-output-port) (or (mkfixnum (getenv "BIGLOOSTACKDEPTH")) 10))
+			   (dump-bigloo-stack (current-output-port) 10)
 			   (print "</pre>\n"))))
 		 (escape #t))))))
 
