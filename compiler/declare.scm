@@ -32,7 +32,7 @@
     (generic declare node parent k)
     (generic parameter-default-value-value node)
     (compile-time-subclass? sub super)    
-    (store-ast-signature aliased-name variable-arity? location decl-args)
+    (store-ast-signature fun-type aliased-name variable-arity? location decl-args)
     (ensure-extension-will-load sig)
     (wide-class function-decl/gen::function-decl
        (variable-arity? (default #f))
@@ -431,7 +431,7 @@
 	    (let ((aliased-name (autoalias canonical-name)))
 	       (when (needs-alias? canonical-name)
 		  (store-alias canonical-name aliased-name))
-	       (store-ast-signature aliased-name variable-arity? location decl-arglist)
+	       (store-ast-signature ft-user-compiled aliased-name variable-arity? location decl-arglist)
 	       (hashtable-put! *function->ast-table* aliased-name *current-ast*)) )) ))
 
 (define-method (declare node::function-invoke parent k)   
@@ -539,7 +539,7 @@
 	     ,new-hash))))
 
 
-(define (store-ast-signature aliased-name variable-arity? location decl-args)
+(define (store-ast-signature fun-type aliased-name variable-arity? location decl-args)
    (let ((maximum-arity (length decl-args))
 	 (minimum-arity 0)
 	 (brief-params '()))
@@ -558,7 +558,7 @@
 				  brief-params)))))
 	   (reverse decl-args))
       ;      (fprint (current-error-port) "jjj: stored " aliased-name)
-      (apply store-signature #f ft-user location aliased-name minimum-arity
+      (apply store-signature #f fun-type location aliased-name minimum-arity
 	     (if variable-arity? -1 maximum-arity) brief-params)))
 
 

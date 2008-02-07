@@ -3,6 +3,7 @@
    ; main runtime
    (import (php-runtime "php-runtime.scm")
 	   (php-hash "php-hash.scm")
+	   (dynarray "dynarray.scm")
 	   (php-object "php-object.scm")
 	   (grass "grasstable.scm")
 	   (elong-lib "elongs.scm")

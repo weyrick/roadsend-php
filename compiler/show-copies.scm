@@ -1591,8 +1591,8 @@ onum.  Append the bindings for the new symbols and code."
 				  `',name (get-value default-value) brief-params)))))
 	   (reverse params))
       (if toplevel?
-	  `(,store-routine ,name ,ft-user ',location ',name ,minimum-arity ,maximum-arity ,@brief-params)
-	  `(let ((sig (store-signature ,name ,ft-user ',location ',name ,minimum-arity ,maximum-arity ,@brief-params)))
+	  `(,store-routine ,name ,ft-user-compiled ',location ',name ,minimum-arity ,maximum-arity ,@brief-params)
+	  `(let ((sig (store-signature ,name ,ft-user-compiled ',location ',name ,minimum-arity ,maximum-arity ,@brief-params)))
 	      (sig-function-set! sig ,name)))))
 
 

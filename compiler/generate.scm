@@ -116,7 +116,8 @@
                                             `(let ,(global-bindings)
                                                 #t ;so it's never empty
 						,@class-decls
-                                                ,@*runtime-function-sigs*
+						(unless (try-import-cached-sigs ,(php-ast-real-filename node))
+						   ,@*runtime-function-sigs*)
                                                 ,@global-code)))) )
 		  ;the other functions (class definition is in here too, and is dependent on order)
 		  (reverse *functions*)))
@@ -2100,8 +2101,8 @@ onum.  Append the bindings for the new symbols and code."
 					       (get-value default-value)) brief-params)))))
 	   (reverse params))
       (if toplevel?
-	  `(,store-routine ,name ,ft-user ',location ',name ,minimum-arity ,maximum-arity ,@brief-params)
-	  `(let ((sig (store-signature ,name ,ft-user ',location ',name ,minimum-arity ,maximum-arity ,@brief-params)))
+	  `(,store-routine ,name ,ft-user-compiled ',location ',name ,minimum-arity ,maximum-arity ,@brief-params)
+	  `(let ((sig (store-signature ,name ,ft-user-compiled ',location ',name ,minimum-arity ,maximum-arity ,@brief-params)))
 	      (sig-function-set! sig ,name)))))
 
 

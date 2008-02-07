@@ -20,15 +20,18 @@
 (module grass
    (extern
     ;the one is because bigloo bites
-    (get-grassnumber::int (obj::obj) "whoop_obj_hash_number")
+    (c-get-grassnumber::int (obj::obj) "whoop_obj_hash_number")
     (phpstring-hashnumber1::int (str::string) "php_string_hash_number"))
    (export  (make-grasstable::struct)
-	    (make-grasstable/size::struct size::int)
+	    (make-grasstable/size::struct size::bint)
 	    (clear-grasstable! table::struct)
+	    (inline get-grassnumber::bint ::obj)
 	    (grasstable?::bool ::obj)
-	    (grasstable-size::int ::struct)
+	    (grasstable-size::bint ::struct)
 	    (grasstable-get::obj ::struct ::obj)
+	    (grasstable-get/pre::obj ::struct ::bint ::obj)	    
 	    (grasstable-put! ::struct ::obj ::obj)
+	    (grasstable-put!/pre ::struct ::obj ::bint ::obj)	    
 	    (grasstable-update! ::struct ::obj ::procedure ::obj)
 	    (grasstable-remove!::bool ::struct ::obj)
 	    (grasstable->vector::vector ::struct)
@@ -42,11 +45,16 @@
 
 (define-struct %grasstable size max-bucket-len buckets)
 
+(define-inline (get-grassnumber::bint key::obj)
+   (if (string? key)
+       (phpstring-hashnumber1 key)
+       (c-get-grassnumber key)))
+
 (define (make-grasstable::struct)
    (%grasstable 0 default-max-bucket-length
 		(make-vector default-grasstable-size '())))
 
-(define (make-grasstable/size::struct size::int)
+(define (make-grasstable/size::struct size::bint)
    (let ((size (least-power-of-2-greater-than (max 1 size))))
       (%grasstable 0 default-max-bucket-length
 		   (make-vector size '()))))
@@ -62,7 +70,7 @@
 (define (grasstable?::bool obj::obj)
    (%grasstable? obj))
 
-(define (grasstable-size::int table::struct)
+(define (grasstable-size::bint table::struct)
    (%grasstable-size table))
 
 (define (grasstable->vector table::struct)
@@ -121,10 +129,14 @@
 		(loop (+fx i 1)))))))
 
 (define (grasstable-get table::struct key::obj)
+   (let ((grassnumber (get-grassnumber key)))
+      (grasstable-get/pre table grassnumber key)))
+
+(define (grasstable-get/pre table::struct grassnumber::bint key::obj)   
 ;   (print "grasstable-get key is :" key)
    (let* ((buckets (%grasstable-buckets table))
 	  (bucket-len (vector-length buckets))
-	  (bucket-num (bit-and (get-grassnumber key) (-fx bucket-len 1)))
+	  (bucket-num (bit-and grassnumber (-fx bucket-len 1)))
 	  (bucket (vector-ref-ur buckets bucket-num)))
       (let loop ((bucket bucket))
 	 (cond
@@ -134,10 +146,15 @@
 	    (else
 	     (loop (cdr bucket)))))))
 
+   
 (define (grasstable-put! table::struct key::obj obj::obj)
+   (let ((grassnumber (get-grassnumber key)))
+      (grasstable-put!/pre table key grassnumber obj)))
+   
+(define (grasstable-put!/pre table::struct key::obj grassnumber::bint obj::obj)
    (let* ((buckets (%grasstable-buckets table))
 	  (bucket-len (vector-length buckets))
-	  (bucket-num (bit-and (get-grassnumber key) (-fx bucket-len 1)))
+	  (bucket-num (bit-and grassnumber (-fx bucket-len 1)))
 	  (bucket (vector-ref-ur buckets bucket-num))
 	  (max-bucket-len (%grasstable-max-bucket-len table)))
       (if (null? bucket)

@@ -29,8 +29,8 @@
     (rt-containers "containers.scm")    
     (php-errors "php-errors.scm"))
    (export
-    *function-table*
-    *interpreted-function-table*
+    *interpreted-function-table*    
+    (reset-functions!)
     (php-funcall call-name . call-args)
     (php-callback-call callback . arglist)
     (php-get-funcall-handle call-name call-arity)
@@ -39,11 +39,12 @@
     (push-func-args list-of-arguments)
     (pop-func-args)))
 
-;the table containing whole function structs
-(define *function-table* (make-hashtable))
-
 ;this table contains the closures for interpreted functions 
 (define *interpreted-function-table* (make-hashtable))
+
+(define (reset-functions!)
+   (unless (=fx (hashtable-size *interpreted-function-table*) 0)
+      (set! *interpreted-function-table* (make-hashtable))))
 
 ;; like php-funcall except the callback call also be a two-entry hash
 ;; where the first entry is the object or class and the second is the

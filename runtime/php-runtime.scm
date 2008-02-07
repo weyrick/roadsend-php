@@ -310,12 +310,10 @@
 
    (set! *delayed-errors* '())
    (set! *shutdown-functions* '())
-   (set! *function-table* (make-hashtable))
-   (set! *interpreted-function-table* (make-hashtable))
 
-   ; output buffering
-   (ob-reset!)
    ; various parts of the runtime
+   (ob-reset!)
+   (reset-functions!)
    (reset-constants!)
    (reset-signatures!)
    (reset-php-object-lib!)

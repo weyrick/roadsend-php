@@ -1257,7 +1257,7 @@ returning the value of the last. "
 	 (when (get-php-function-sig canonical-name)
 	    (php-error/loc node (format "declare-function-decl: Illegal redefinition of function ~A" name)))
 	 ;;store signature as a variable arity signature, for func_get_args and friends
-	 (store-ast-signature canonical-name #t location decl-arglist)
+	 (store-ast-signature ft-user-interpreted canonical-name #t location decl-arglist)
 	 (pushf canonical-name *remove-from-fun-sig-table*)
 	 (hashtable-put! *interpreted-function-table* canonical-name
 			 (let ((static-env (env-new)))
