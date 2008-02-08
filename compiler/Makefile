@@ -29,13 +29,19 @@ CLEFTOVERS	 := $(patsubst %.o,%.c,$(POPULATION)) $(patsubst %.o,%.c,$(STATIC_POP
 
 PHPEVAL_LIBS	= ../libs/libphpeval_$(SUV).a ../libs/libphpeval_$(SUV).$(SOEXT) 
 
-all: $(PHPEVAL_LIBS) pcc pcctags
+all: $(PHPEVAL_LIBS) clean-bin pcc pcctags
+
+clean-bin:
+	-rm pcc pcctags pdb
 
 debugger: $(PHPEVAL_LIBS) pdb 
 
 #-L/usr/local/lib is necessary for mingw and shouldn't hurt on unix
-pcc: $(PHPEVAL_LIBS) $(C_POPULATION)  commandline_$(SU).o
-	bigloo $(SAFETY) $(PCC_LINK_OPTIONS) $(BCOMMONFLAGS) -ldopt -L/usr/local/lib -o pcc commandline_$(SU).o -library php-runtime -library profiler -library webconnect -library phpeval 
+pcc_$(SU): $(PHPEVAL_LIBS) $(C_POPULATION)  commandline_$(SU).o
+	bigloo $(SAFETY) $(PCC_LINK_OPTIONS) $(BCOMMONFLAGS) -ldopt -L/usr/local/lib -o pcc_$(SU) commandline_$(SU).o -library php-runtime -library profiler -library webconnect -library phpeval 
+
+pcc: pcc_$(SU)
+	cp pcc_$(SU) pcc
 
 ../libs/libphpeval_$(SUV).$(SOEXT) : ../libs/phpeval.heap $(EVAL_POPULATION) $(C_POPULATION) 
 	$(call dllcmd,../libs/libphpeval_$(SUV).$(SOEXT)) $(EVAL_POPULATION) $(C_POPULATION) $(COMPILER_DLL_LIBS)
@@ -79,15 +85,21 @@ signatures_$(SU).o: php-hash_$(SU).o
 
 signatures.o: php-hash.o
 
-clean : 
-	-rm -rf pcc.cgi pcc pcctags pcc.exe pcc_u.exe pcc_p.exe testoutput $(CLEFTOVERS)
-	-rm -f *_$(SU).o *.so
+clean: 
+	-rm -rf pcc.cgi pcc pcctags pdb pcc_[us] pdb_[us] pcctags_[us] testoutput $(CLEFTOVERS)
+	-rm -f *_[us].o *.so
 
-pcctags: tags_$(SU).o $(PHPEVAL_LIBS)
-	bigloo -ldopt -L/usr/local/lib $(SAFETY) $(BCOMMONFLAGS) -O6 -o pcctags tags_$(SU).o -library phpeval -library php-runtime -library profiler -library webconnect
+pcctags_$(SU): tags_$(SU).o $(PHPEVAL_LIBS)
+	bigloo -ldopt -L/usr/local/lib $(SAFETY) $(BCOMMONFLAGS) -O6 -o pcctags_$(SU) tags_$(SU).o -library phpeval -library php-runtime -library profiler -library webconnect
 
-pdb: pdb_$(SU).o $(PHPEVAL_LIBS)
-	bigloo -ldopt -L/usr/local/lib $(SAFETY) $(BCOMMONFLAGS) -O6 -o pdb pdb_$(SU).o -library phpeval -library php-runtime -library profiler -library webconnect -library mhttpd -lwebserver $(READLINE_BL_LIB)
+pcctags: pcctags_$(SU)
+	cp pcctags_$(SU) pcctags
+
+pdb_$(SU): pdb_$(SU).o $(PHPEVAL_LIBS)
+	bigloo -ldopt -L/usr/local/lib $(SAFETY) $(BCOMMONFLAGS) -O6 -o pdb_$(SU) pdb_$(SU).o -library phpeval -library php-runtime -library profiler -library webconnect -library mhttpd -lwebserver $(READLINE_BL_LIB)
+
+pdb: pdb_$(SU)
+	cp pdb_$(SU) pdb
 
 # we have to override these to add in READLINE_BL_LIB if it's available, since we can't do it
 # conditionally in the module clause
