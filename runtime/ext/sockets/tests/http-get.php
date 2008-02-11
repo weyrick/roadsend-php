@@ -29,7 +29,7 @@ $in .= "Host: www.roadsend.com\r\n";
 $in .= "Connection: Close\r\n\r\n";
 $out = '';
 
-echo "Sending HTTP HEAD request...";
+echo "Sending HTTP request...";
 socket_write($socket, $in, strlen($in));
 echo "OK.\n";
 

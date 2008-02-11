@@ -1323,6 +1323,7 @@ Optional Packages:
   --with-odbc             support ODBC extension [default=check]
   --with-gtk              support PHP-GTK extension [default=no]
   --with-gtk2             support PHP-GTK 2 extension [default=no]
+  --with-sockets          support sockets extension [default=yes]
 
 Some influential environment variables:
   CC          C compiler command
@@ -4479,6 +4480,21 @@ fi
 fi
 
 
+# sockets
+
+# Check whether --with-sockets was given.
+if test "${with_sockets+set}" = set; then
+  withval=$with_sockets;
+else
+  with_sockets=yes
+fi
+
+
+  if test "x$with_socket" != xno; then
+  EXT_LIST="$EXT_LIST sockets"
+fi
+
+
 
 # target OS
 case "$target_os" in
@@ -6803,6 +6819,7 @@ echo "
         = Native Extensions =
 
         Standard:                 always enabled
+        Sockets:                  ${with_sockets}
         PCRE:                     ${with_pcre}
         MySQL:                    ${with_mysql}
         XML:                      ${with_xml}

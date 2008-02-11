@@ -63,7 +63,9 @@
     (socket_close sock)
     (socket_connect sock address cport)    
     (socket_create domain type protocol)
+    (socket_last_error sock)    
     (socket_read sock len readtype)
+    (socket_strerror code)    
     (socket_write sock buffer len)
     ;
     ))
@@ -105,7 +107,7 @@
 		    (socket-down? (php-socket-bsocket sock))))
 	   #f
 	   (begin
-	      (socket-shutdown (php-socket-bsocket sock))
+	      (socket-close (php-socket-bsocket sock))
 	      #t))
        #f))
 
@@ -144,7 +146,13 @@
 ; socket_get_option - Gets socket options for the socket
 ; socket_getpeername - Queries the remote side of the given socket which may either result in host/port or in a Unix filesystem path, dependent on its type
 ; socket_getsockname - Queries the local side of the given socket which may either result in host/port or in a Unix filesystem path, dependent on its type
+
 ; socket_last_error - Returns the last error on the socket
+(defbuiltin (socket_last_error (sock 'unset))
+   (if (php-socket? sock)
+       (php-socket-last-error-str sock)
+       #f))
+   
 ; socket_listen - Listens for a connection on a socket
 
 ; socket_read - Reads a maximum of length bytes from a socket
@@ -171,7 +179,12 @@
 ; socket_set_nonblock - Sets nonblocking mode for file descriptor fd
 ; socket_set_option - Sets socket options for the socket
 ; socket_shutdown - Shuts down a socket for receiving, sending, or both
+
 ; socket_strerror - Return a string describing a socket error
+(defbuiltin (socket_strerror code)
+   ; XXX we don't have codes, just pass through now.
+   ; last_error returns the string
+   code)
 
 ; socket_write - Write to a socket
 (defbuiltin (socket_write sock buffer (len 'unset))

@@ -282,6 +282,16 @@ AC_ARG_WITH([gtk2],
   AS_IF([test "x$with_gtk2" != xno],
 	EXT_LIST="$EXT_LIST gtk2")
 
+# sockets
+AC_ARG_WITH([sockets],
+  [AS_HELP_STRING([--with-sockets],
+     [support sockets extension @<:@default=yes@:>@])],
+  [],
+  [with_sockets=yes])
+
+  AS_IF([test "x$with_socket" != xno],
+	EXT_LIST="$EXT_LIST sockets")
+
 
 # target OS
 case "$target_os" in 
@@ -434,6 +444,7 @@ echo "
         = Native Extensions =
 
         Standard:                 always enabled
+        Sockets:                  ${with_sockets}
         PCRE:                     ${with_pcre}
         MySQL:                    ${with_mysql}
         XML:                      ${with_xml}
