@@ -31,7 +31,7 @@ want_curl=7.15.1
 
 # defaults
 with_pccwin=no
-with_pdo=no
+#with_pdo=check
 with_pdo_mysql=no
 with_pdo_sqlite=no
 
@@ -67,6 +67,15 @@ AC_CHECK_CURL([$want_curl],
 	      AC_DEFINE([HAVE_CURL], [1],[Define if you have curl]),
 	      AC_MSG_FAILURE([libcurl version $want_curl required]))
 with_curl=yes
+
+# pdo
+AC_ARG_WITH([pdo],
+  [AS_HELP_STRING([--with-pdo],
+     [support PDO database abstraction extension @<:@default=check@:>@])],
+  ,
+  [with_pdo=check])
+
+
 
 # readline
 AC_ARG_WITH([readline],
@@ -189,17 +198,14 @@ AS_IF([test "x$with_mysql" != xno],
 	   EXT_LIST="$EXT_LIST mysql"
 	   PCC_EXT_LIST="$PCC_EXT_LIST php-mysql"
 
-	   # pdo
-	   AS_IF([test "x$have_pdo" != xyes],
+	   # pdo-mysql
+	   AS_IF([test "x$with_pdo" != xno],
 	    [
-		   # XXX this should be its own option
 		   with_pdo=yes
-		   have_pdo=yes
-	           PHP_EXT_LIST="$PHP_EXT_LIST pdo"
+	           with_pdo_mysql=yes
+        	   PDO_DRIVER_LIST="$PDO_DRIVER_LIST pdo_mysql"
+	           PDO_DRIVER_ARRAY="$PDO_DRIVER_ARRAY 'pdo_mysql',"
             ])
-           with_pdo_mysql=yes
-           PDO_DRIVER_LIST="$PDO_DRIVER_LIST pdo_mysql"
-           PDO_DRIVER_ARRAY="$PDO_DRIVER_ARRAY 'pdo_mysql',"
          fi
 	 ])
 
@@ -208,17 +214,14 @@ AX_LIB_SQLITE3
 if test "x$with_sqlite3" == xyes; then
    EXT_LIST="$EXT_LIST sqlite"
    PCC_EXT_LIST="$PCC_EXT_LIST php-sqlite"
-   # pdo
-   AS_IF([test "x$have_pdo" != xyes],
+   # pdo-sqlite
+   AS_IF([test "x$with_pdo" != xno],
     [
-	   # XXX this should be its own option
 	   with_pdo=yes
-	   have_pdo=yes
-           PHP_EXT_LIST="$PHP_EXT_LIST pdo"
+	   with_pdo_sqlite=yes
+	   PDO_DRIVER_LIST="$PDO_DRIVER_LIST pdo_sqlite"
+	   PDO_DRIVER_ARRAY="$PDO_DRIVER_ARRAY 'pdo_sqlite',"
     ])
-   with_pdo_sqlite=yes
-   PDO_DRIVER_LIST="$PDO_DRIVER_LIST pdo_sqlite"
-   PDO_DRIVER_ARRAY="$PDO_DRIVER_ARRAY 'pdo_sqlite',"
 fi
 
 # ODBC
@@ -335,6 +338,13 @@ darwin*)
 *)
 	AC_MSG_NOTICE([unknown/unsupported target operating system: $target_os])
 esac
+
+# final pdo check
+AS_IF([test "x$with_pdo" == xyes],
+    [
+          PHP_EXT_LIST="$PHP_EXT_LIST pdo"		
+    ])
+
 
 # Checks for header files.
 AC_HEADER_RESOLV

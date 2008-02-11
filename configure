@@ -1313,6 +1313,8 @@ if test -n "$ac_init_help"; then
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-pdo              support PDO database abstraction extension
+                          [default=check]
   --with-readline         support fancy command line editing [default=check]
   --with-pcre             support pcre extension [default=check]
   --with-fcgi             support FastCGI web backend [default=check]
@@ -3123,7 +3125,7 @@ want_curl=7.15.1
 
 # defaults
 with_pccwin=no
-with_pdo=no
+#with_pdo=check
 with_pdo_mysql=no
 with_pdo_sqlite=no
 
@@ -3315,6 +3317,18 @@ See \`config.log' for more details." >&2;}
   fi
 
 with_curl=yes
+
+# pdo
+
+# Check whether --with-pdo was given.
+if test "${with_pdo+set}" = set; then
+  withval=$with_pdo;
+else
+  with_pdo=check
+fi
+
+
+
 
 # readline
 
@@ -3739,19 +3753,16 @@ _ACEOF
 	   EXT_LIST="$EXT_LIST mysql"
 	   PCC_EXT_LIST="$PCC_EXT_LIST php-mysql"
 
-	   # pdo
-	   if test "x$have_pdo" != xyes; then
+	   # pdo-mysql
+	   if test "x$with_pdo" != xno; then
 
-		   # XXX this should be its own option
 		   with_pdo=yes
-		   have_pdo=yes
-	           PHP_EXT_LIST="$PHP_EXT_LIST pdo"
+	           with_pdo_mysql=yes
+        	   PDO_DRIVER_LIST="$PDO_DRIVER_LIST pdo_mysql"
+	           PDO_DRIVER_ARRAY="$PDO_DRIVER_ARRAY 'pdo_mysql',"
 
 fi
 
-           with_pdo_mysql=yes
-           PDO_DRIVER_LIST="$PDO_DRIVER_LIST pdo_mysql"
-           PDO_DRIVER_ARRAY="$PDO_DRIVER_ARRAY 'pdo_mysql',"
          fi
 
 fi
@@ -4295,19 +4306,16 @@ _ACEOF
 if test "x$with_sqlite3" == xyes; then
    EXT_LIST="$EXT_LIST sqlite"
    PCC_EXT_LIST="$PCC_EXT_LIST php-sqlite"
-   # pdo
-   if test "x$have_pdo" != xyes; then
+   # pdo-sqlite
+   if test "x$with_pdo" != xno; then
 
-	   # XXX this should be its own option
 	   with_pdo=yes
-	   have_pdo=yes
-           PHP_EXT_LIST="$PHP_EXT_LIST pdo"
+	   with_pdo_sqlite=yes
+	   PDO_DRIVER_LIST="$PDO_DRIVER_LIST pdo_sqlite"
+	   PDO_DRIVER_ARRAY="$PDO_DRIVER_ARRAY 'pdo_sqlite',"
 
 fi
 
-   with_pdo_sqlite=yes
-   PDO_DRIVER_LIST="$PDO_DRIVER_LIST pdo_sqlite"
-   PDO_DRIVER_ARRAY="$PDO_DRIVER_ARRAY 'pdo_sqlite',"
 fi
 
 # ODBC
@@ -4555,6 +4563,15 @@ _ACEOF
 	{ echo "$as_me:$LINENO: unknown/unsupported target operating system: $target_os" >&5
 echo "$as_me: unknown/unsupported target operating system: $target_os" >&6;}
 esac
+
+# final pdo check
+if test "x$with_pdo" == xyes; then
+
+          PHP_EXT_LIST="$PHP_EXT_LIST pdo"
+
+fi
+
+
 
 # Checks for header files.
 
