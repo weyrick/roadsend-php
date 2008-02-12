@@ -24,6 +24,11 @@ if ($result === false) {
     echo "OK.\n";
 }
 
+socket_getpeername($socket, $addr, $port);
+echo "peer address: [{$addr}:{$port}]\n";
+socket_getsockname($socket, $addr, $port);
+echo "local address: [{$addr}:{$port}]\n";
+
 $in = "GET /test.txt HTTP/1.1\r\n";
 $in .= "Host: www.roadsend.com\r\n";
 $in .= "Connection: Close\r\n\r\n";

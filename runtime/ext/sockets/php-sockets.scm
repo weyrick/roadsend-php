@@ -59,12 +59,15 @@
     SOL_UDP
     SOL_SOCKET
     ;
-;    (socket_bind sock address port)
+    (socket_bind sock address port)
     (socket_close sock)
     (socket_connect sock address cport)    
     (socket_create domain type protocol)
+    (socket_getpeername sock address port)
+    (socket_getsockname sock address port)
     (socket_last_error sock)    
     (socket_read sock len readtype)
+    (socket_shutdown sock how)
     (socket_strerror code)    
     (socket_write sock buffer len)
     ;
@@ -76,13 +79,15 @@
    bsocket
    connected?
    last-error-code
-   last-error-str)
+   last-error-str
+   bind-addr
+   bind-port)
 
 (define *socket-counter* 0)
 (define (make-finalized-socket)
    (when (> *socket-counter* 255) ; ARB
       (gc-force-finalization (lambda () (<= *socket-counter* 255))))
-   (let ((new-sock (php-socket-resource #f #f 0 "")))
+   (let ((new-sock (php-socket-resource #f #f 0 "" "" #f)))
       (set! *socket-counter* (+fx *socket-counter* 1))
       (register-finalizer! new-sock (lambda (sock)
 				       (unless (socket-down? sock)
@@ -90,25 +95,44 @@
 					  (set! *socket-counter* (- *socket-counter* 1)))))
       new-sock))
 
+(define (proper-sock? sock)
+   (and (php-socket? sock)
+	(socket? (php-socket-bsocket sock))
+	(not (socket-down? (php-socket-bsocket sock)))))
+
+(define (proper-connected-sock? sock)
+   (and (proper-sock? sock)
+	(php-socket-connected? sock)))
+
+(define (proper-server-sock? sock)
+   (and (proper-sock? sock)
+	(socket-server? (php-socket-bsocket sock))))
+
+(define *last-socket-error* "")
+
 ; register the extension
 (register-extension "sockets" "1.0.0" "php-sockets")
 
 ; socket_accept - Accepts a connection on a socket
+
 ; socket_bind - Binds a name to a socket
-;(defbuiltin (socket_bind sock address (port 'unset))
-;   (echo "in socket_bind"))
+(defbuiltin (socket_bind sock address (port 'unset))
+   (if (php-socket? sock)
+       (begin
+	  (php-socket-bind-addr-set! sock (mkstr address))
+	  (php-socket-bind-port-set! sock (if (eqv? port 'unset) #f (mkfixnum port)))
+	  #t)
+       #f))       
 
 ; socket_clear_error - Clears the error on the socket or the last error code
+
 ; socket_close - Closes a socket resource
 (defbuiltin (socket_close sock)
-   (if (php-socket? sock)
-       (if (or (not (php-socket-connected? sock))
-	       (and (socket? (php-socket-bsocket sock))
-		    (socket-down? (php-socket-bsocket sock))))
-	   #f
-	   (begin
-	      (socket-close (php-socket-bsocket sock))
-	      #t))
+   (if (proper-connected-sock? sock)
+       (begin
+	  (socket-close (php-socket-bsocket sock))
+	  (php-socket-connected?-set! sock #f)
+	  #t)
        #f))
 
 ; socket_connect - Initiates a connection on a socket
@@ -123,7 +147,8 @@
 			    #f)
 			 (begin
 			    (php-socket-bsocket-set! sock (make-client-socket (mkstr address)
-									      (mkfixnum cport)))
+									      (mkfixnum cport)
+									      :buffer #f))
 			    (php-socket-connected?-set! sock #t)
 			    #t)))
        #f))
@@ -144,8 +169,34 @@
    (make-finalized-socket))
    
 ; socket_get_option - Gets socket options for the socket
+
 ; socket_getpeername - Queries the remote side of the given socket which may either result in host/port or in a Unix filesystem path, dependent on its type
+(defbuiltin (socket_getpeername sock (ref . address)  ((ref . port) #f))
+   (if (proper-connected-sock? sock)
+       (begin
+	  (container-value-set! address (coerce-to-php-type
+					 (socket-host-address
+					  (php-socket-bsocket sock))))
+	  (if (container? port)
+	      (container-value-set! port (coerce-to-php-type
+					 (socket-port-number
+					  (php-socket-bsocket sock)))))
+	  #t)
+       #f))
+
 ; socket_getsockname - Queries the local side of the given socket which may either result in host/port or in a Unix filesystem path, dependent on its type
+(defbuiltin (socket_getsockname sock (ref . address)  ((ref . port) #f))   
+   (if (proper-connected-sock? sock)
+       (begin
+	  (container-value-set! address (coerce-to-php-type
+					 (socket-local-address
+					  (php-socket-bsocket sock))))
+	  (if (container? port)
+	      (container-value-set! port (coerce-to-php-type
+					 (socket-port-number
+					  (php-socket-bsocket sock)))))
+	  #t)
+       #f))
 
 ; socket_last_error - Returns the last error on the socket
 (defbuiltin (socket_last_error (sock 'unset))
@@ -154,12 +205,26 @@
        #f))
    
 ; socket_listen - Listens for a connection on a socket
+(defbuiltin (socket_listen sock (backlog 'unset))
+   (if (php-socket? sock)
+       (if (php-socket-connected? sock)
+	   #f
+	   (with-handler (lambda (e)
+			    ; XXX no error codes? non 0 for now
+			    (php-socket-last-error-code-set! sock 1)
+			    (php-socket-last-error-str-set! sock (&io-error-msg e))	
+			    #f)
+			 (begin
+			    (php-socket-bsocket-set! sock (make-server-socket (php-socket-bind-port sock)))
+			    (php-socket-connected?-set! sock #t)
+			    #t)))
+       #f))
 
 ; socket_read - Reads a maximum of length bytes from a socket
-(defbuiltin (socket_read sock len (readtype PHP_NORMAL_READ))
-   (if (and (php-socket? sock) (php-socket-connected? sock))
-       (let* ((read-proc (cond ((php-= readtype PHP_NORMAL_READ) 'binary)
-			       ((php-= readtype PHP_BINARY_READ) 'text)
+(defbuiltin (socket_read sock len (readtype PHP_BINARY_READ))
+   (if (proper-connected-sock? sock)
+       (let* ((read-proc (cond ((php-= readtype PHP_NORMAL_READ) 'text)
+			       ((php-= readtype PHP_BINARY_READ) 'binary)
 			       (else 'binary)))
 	      (read-len (maxfx 1 (mkfixnum len)))
 	      (inbuf  (if (eqv? read-proc 'binary)
@@ -178,7 +243,18 @@
 ; socket_set_block - Sets blocking mode on a socket resource
 ; socket_set_nonblock - Sets nonblocking mode for file descriptor fd
 ; socket_set_option - Sets socket options for the socket
+
 ; socket_shutdown - Shuts down a socket for receiving, sending, or both
+(defbuiltin (socket_shutdown sock (how 'unset))
+   (if (proper-connected-sock? sock)
+       (begin
+	  ;
+	  ; XXX ignoring how
+	  ;
+	  (socket-shutdown (php-socket-bsocket sock))
+	  (php-socket-connected?-set! sock #f)
+	  #t)
+       #f))
 
 ; socket_strerror - Return a string describing a socket error
 (defbuiltin (socket_strerror code)
@@ -188,7 +264,7 @@
 
 ; socket_write - Write to a socket
 (defbuiltin (socket_write sock buffer (len 'unset))
-   (if (and (php-socket? sock) (php-socket-connected? sock))
+   (if (proper-connected-sock? sock)
        (let* ((buf (mkstr buffer))
 	      (buf-size (if (eqv? len 'unset)
 			    (string-length buf)
