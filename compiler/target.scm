@@ -799,7 +799,7 @@
 ;;; Error handlers
 (define (target-fatal . msg)
    (lambda (e p m o)
-      (apply bomb (append msg (list " -- " m)))))
+      (apply bomb (append msg (list " -- " m o)))))
 
 (define (target-warn . msg)
    (lambda (e p m o)
@@ -810,7 +810,7 @@
    (apply fprint (current-error-port) "Error: " msg)
    (when (< *debug-level* 2)
       (fprint (current-error-port) "Rerunning with debug level 2 may provide more information."))
-   (when (and *RAVEN-DEVEL-BUILD* (getenv "BIGLOOSTACKDEPTH"))
+   (when (getenv "BIGLOOSTACKDEPTH")
       (dump-bigloo-stack (current-error-port)
                         (max 1 (string->integer (getenv "BIGLOOSTACKDEPTH")))))
    (when *commandline?*

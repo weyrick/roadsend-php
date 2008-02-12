@@ -424,7 +424,8 @@ gives the debugger a chance to run."
 				 (d/evaluate try-body)
 				 (pop-try-stack))))
 	       (when (pair? try-result)
-		  ; we excepted: run the correct catch block
+		  ; we excepted: pop the try stack and run the correct catch block
+		  (pop-try-stack)
 		  (let loop ((clist catches))
 		     (when (pair? clist)
 			(let ((current-catch (car clist)))

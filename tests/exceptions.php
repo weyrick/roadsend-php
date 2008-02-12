@@ -41,4 +41,22 @@ try {
 }
 
 
+// nested, rethrows
+try {
+        funcfunc();
+} catch (Exception $ex) {
+        print "caught an exception\n";
+}
+
+function funcfunc() {
+        try {
+                func();
+        } catch (Exception $ex) {
+                throw $ex;
+        }
+}
+function func() {
+        throw new Exception('blah', 101);
+}
+
 ?>

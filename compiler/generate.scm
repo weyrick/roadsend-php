@@ -554,9 +554,9 @@ onum.  Append the bindings for the new symbols and code."
 (define-method (generate-code node::throw)
    (with-access::throw node (rval)
       `(let ((except-obj ,(generate-code rval)))
-	  (if (php-object? except-obj)
-	      (if (php-object-is-a except-obj "Exception")
-		  (php-exception (make-container except-obj))
+	  (if (php-object? (maybe-unbox except-obj))
+	      (if (php-object-is-a (maybe-unbox except-obj) "Exception")
+		  (php-exception (maybe-box except-obj))
 		  (php-error "thrown exceptions must be derived from Exception base class"))
 	      (php-error "can only throw objects")))))
 
@@ -595,6 +595,7 @@ onum.  Append the bindings for the new symbols and code."
 				     ,(generate-code try-body)
 				     (pop-try-stack))))
 		   (when (pair? try-result)
+		      (pop-try-stack) ; pop here because we exited before the pop in the try block
 		      ; we excepted: run the correct catch block
 		      (let ((except-proc (mkstr (car try-result)))
 			    (except-obj (cdr try-result)))

@@ -255,6 +255,12 @@
 	 (containerize arg)))
    (k))
 
+(define-method (find-containers node::try-catch k)
+   (with-access::try-catch node (catches)
+      (dolist (citem catches)	 
+	 (containerize (catch-catch-var citem))))
+   (k))
+
 (define-method (find-containers node::return-stmt k)
    (when (current-block-returns-reference?)
       (return-stmt/gen-cont?-set! node #t)
