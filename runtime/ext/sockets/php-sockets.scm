@@ -59,13 +59,16 @@
     SOL_UDP
     SOL_SOCKET
     ;
+    (socket_accept sock)    
     (socket_bind sock address port)
+    (socket_clear_error sock)
     (socket_close sock)
     (socket_connect sock address cport)    
     (socket_create domain type protocol)
     (socket_getpeername sock address port)
     (socket_getsockname sock address port)
-    (socket_last_error sock)    
+    (socket_last_error sock)
+    (socket_listen sock backlog)
     (socket_read sock len readtype)
     (socket_shutdown sock how)
     (socket_strerror code)    
@@ -90,7 +93,7 @@
    (let ((new-sock (php-socket-resource #f #f 0 "" "" #f)))
       (set! *socket-counter* (+fx *socket-counter* 1))
       (register-finalizer! new-sock (lambda (sock)
-				       (unless (socket-down? sock)
+				       (unless (socket-down? (php-socket-bsocket sock))
 					  (socket-shutdown (php-socket-bsocket sock))
 					  (set! *socket-counter* (- *socket-counter* 1)))))
       new-sock))
@@ -114,6 +117,21 @@
 (register-extension "sockets" "1.0.0" "php-sockets")
 
 ; socket_accept - Accepts a connection on a socket
+(defbuiltin (socket_accept sock)
+   (if (proper-server-sock? sock)
+       (with-handler (lambda (e)
+			; XXX no error codes? non 0 for now
+			(php-socket-last-error-code-set! sock 1)
+			(php-socket-last-error-str-set! sock (&io-error-msg e))
+			(set! *last-socket-error* (&io-error-msg e))
+			#f)
+		     (let* ((new-bsocket (socket-accept (php-socket-bsocket sock)))
+			    (new-php-socket (make-finalized-socket)))
+			(php-socket-bsocket-set! new-php-socket new-bsocket)
+			(php-socket-connected?-set! new-php-socket #t)
+			new-php-socket))
+       #f))
+	  
 
 ; socket_bind - Binds a name to a socket
 (defbuiltin (socket_bind sock address (port 'unset))
@@ -125,6 +143,13 @@
        #f))       
 
 ; socket_clear_error - Clears the error on the socket or the last error code
+(defbuiltin (socket_clear_error (sock 'unset))
+   (if (php-socket? sock)
+       (begin
+	  (php-socket-last-error-str-set! sock "")
+	  (php-socket-last-error-code-set! sock 0))
+       (set! *last-socket-error* ""))
+   #t)
 
 ; socket_close - Closes a socket resource
 (defbuiltin (socket_close sock)
@@ -143,7 +168,8 @@
 	   (with-handler (lambda (e)
 			    ; XXX no error codes? non 0 for now
 			    (php-socket-last-error-code-set! sock 1)
-			    (php-socket-last-error-str-set! sock (&io-error-msg e))	
+			    (php-socket-last-error-str-set! sock (&io-error-msg e))
+			    (set! *last-socket-error* (&io-error-msg e))			    
 			    #f)
 			 (begin
 			    (php-socket-bsocket-set! sock (make-client-socket (mkstr address)
@@ -164,7 +190,8 @@
    (unless (and (php-= domain AF_INET)
 		(php-= type SOCK_STREAM)
 		(php-= protocol SOL_TCP))
-      (php-error "socket_create currently only supports AF_INET, SOCK_STREAM, SOL_TCP"))
+      (set! *last-socket-error* "socket_create currently only supports AF_INET, SOCK_STREAM, SOL_TCP")
+      #f)
    ; ok
    (make-finalized-socket))
    
@@ -202,7 +229,7 @@
 (defbuiltin (socket_last_error (sock 'unset))
    (if (php-socket? sock)
        (php-socket-last-error-str sock)
-       #f))
+       *last-socket-error*))
    
 ; socket_listen - Listens for a connection on a socket
 (defbuiltin (socket_listen sock (backlog 'unset))
@@ -212,10 +239,11 @@
 	   (with-handler (lambda (e)
 			    ; XXX no error codes? non 0 for now
 			    (php-socket-last-error-code-set! sock 1)
-			    (php-socket-last-error-str-set! sock (&io-error-msg e))	
+			    (php-socket-last-error-str-set! sock (&io-error-msg e))
+			    (set! *last-socket-error* (&io-error-msg e))			    
 			    #f)
 			 (begin
-			    (php-socket-bsocket-set! sock (make-server-socket (php-socket-bind-port sock)))
+			    (php-socket-bsocket-set! sock (make-server-socket (php-socket-bind-port sock) :buffer #f))
 			    (php-socket-connected?-set! sock #t)
 			    #t)))
        #f))
