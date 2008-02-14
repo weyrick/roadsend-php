@@ -19,7 +19,17 @@ STATIC_POPULATION       := $(patsubst %,%_$(SU)$(STATIC_SUFFIX).o,$(SOURCE_LIST)
 CLEFTOVERS	 := $(patsubst %.o,%.c,$(POPULATION)) $(patsubst %.o,%.c,$(STATIC_POPULATION))
 
 
-all: profiler-libs
+all: unsafe
+
+all-run: profiler-libs
+
+unsafe:
+	UNSAFE=t make all-run
+
+safe:
+	UNSAFE=f make all-run
+
+debug: safe
 
 profiler-libs: ../../libs/libprofiler_$(SUV).$(SOEXT) ../../libs/libprofiler_$(SUV).a
 

@@ -5,12 +5,22 @@
 PCC_ROOT = ..
 include $(PCC_ROOT)/bigloo-rules.mk
 
+all: unsafe
 
-all: $(PCC_ROOT)/libs/libwebserver.$(SOEXT)
+unsafe:
+	UNSAFE=t make all-run
+
+safe:
+	UNSAFE=f make all-run
+
+debug: safe
+
+all-run: $(PCC_ROOT)/libs/libwebserver.$(SOEXT)
 	@for d in $(TOOLS_LIST); do \
            if [ -d $$d ]; then \
+             export UNSAFE \
              echo "making runtime tool: $$d ..."; \
-             (cd $$d && $(MAKE) all); \
+             (cd $$d && $(MAKE) all-run); \
            fi \
         done
 

@@ -21,11 +21,20 @@ STATIC_POPULATION       := $(patsubst %,%_$(SU)$(STATIC_SUFFIX).o,$(SOURCE_LIST)
 
 CLEFTOVERS	 := $(patsubst %.o,%.c,$(POPULATION)) $(patsubst %.o,%.c,$(STATIC_POPULATION))
 
+all: unsafe
 
-all: runtime-libs extensions
+all-run: runtime-libs extensions
+
+debug: safe
+
+safe:
+	UNSAFE=f $(MAKE) all-run
 
 unsafe: 
-	UNSAFE=t $(MAKE) all
+	UNSAFE=t $(MAKE) all-run
+
+profile:
+	PROFILE=t $(MAKE) debug
 
 tags: 
 	cd ext && $(MAKE) tags
@@ -33,10 +42,12 @@ tags:
 runtime-libs: ../libs/libphp-runtime_$(SUV).a ../libs/php-runtime.sch ../libs/libphp-runtime_$(SUV).$(SOEXT) 
 
 extensions:
-	@(cd ext && $(MAKE) all)
+	export UNSAFE
+	@(cd ext && $(MAKE) all-run)
 
 php-extensions:
-	@(cd php-ext && $(MAKE) all)
+	export UNSAFE
+	@(cd php-ext && $(MAKE) all-run)
 
 #
 ../libs/libphp-runtime_$(SUV).$(SOEXT): ../libs/php-runtime.heap $(POPULATION) $(C_POPULATION) 

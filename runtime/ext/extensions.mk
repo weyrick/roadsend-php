@@ -43,10 +43,17 @@ APIDOCFILE	= $(TOPLEVEL)doc/api/ext-$(LIBNAME).texi
 
 #
 
-all: libs
+all: unsafe
+
+all-run: libs
+
+debug: safe
+
+safe:
+	UNSAFE=f $(MAKE) all-run
 
 unsafe: 
-	UNSAFE=t $(MAKE) all
+	UNSAFE=t $(MAKE) all-run
 
 # this is an interesting idea
 # $(C_POPULATION) : %.o : %.c

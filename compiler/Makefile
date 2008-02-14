@@ -29,7 +29,20 @@ CLEFTOVERS	 := $(patsubst %.o,%.c,$(POPULATION)) $(patsubst %.o,%.c,$(STATIC_POP
 
 PHPEVAL_LIBS	= ../libs/libphpeval_$(SUV).a ../libs/libphpeval_$(SUV).$(SOEXT) 
 
-all: $(PHPEVAL_LIBS) clean-bin pcc pcctags
+all: unsafe
+
+all-run: $(PHPEVAL_LIBS) clean-bin pcc pcctags
+
+debug: safe
+
+safe:
+	UNSAFE=f $(MAKE) all-run
+
+unsafe: 
+	UNSAFE=t $(MAKE) all-run
+
+profile:
+	PROFILE=t $(MAKE) debug
 
 clean-bin:
 	-rm pcc pcctags pdb

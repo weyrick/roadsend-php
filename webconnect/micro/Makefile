@@ -12,7 +12,17 @@ M_SOURCE_LIST	= libws-c-bindings microhttpd make-mhttpd-lib
 M_POPULATION	:= $(patsubst %,%_$(SU).o,$(M_SOURCE_LIST))
 M_STATIC_POPULATION	:= $(patsubst %,%_$(SU)$(STATIC_SUFFIX).o,$(M_SOURCE_LIST))
 
-all: mhttpd-libs
+all: unsafe
+
+all-run: mhttpd-libs
+
+unsafe:
+	UNSAFE=t make all-run
+
+safe: 
+	UNSAFE=f make all-run
+
+debug: safe
 
 # mhttpd
 

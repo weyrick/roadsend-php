@@ -17,7 +17,17 @@ STATIC_POPULATION       := $(patsubst %,%_$(SU)$(STATIC_SUFFIX).o,$(SOURCE_LIST)
 
 CLEFTOVERS	 := $(patsubst %.o,%.c,$(POPULATION)) $(patsubst %.o,%.c,$(STATIC_POPULATION))
 
-all: readline-libs
+all: unsafe
+
+all-run: readline-libs
+
+unsafe:
+	UNSAFE=t make all-run
+
+safe:
+	UNSAFE=f make all-run
+
+debug: safe
 
 readline-libs: ../../libs/libpcc-rl_$(SUV).$(SOEXT) ../../libs/libpcc-rl_$(SUV).a
 

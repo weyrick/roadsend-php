@@ -7,18 +7,30 @@ include $(PCC_ROOT)/bigloo-rules.mk
 
 WIN_EXT_LIST	= pcc-win
 
-all:
+all: unsafe
+
+unsafe:
+	UNSAFE=t make all-run
+
+safe:
+	UNSAFE=f make all-run
+
+debug: safe
+
+all-run:
 	@for d in $(EXT_LIST); do \
            if [ -d $$d ]; then \
+	     export UNSAFE; \
              echo "making extension $$d ..."; \
-             (cd $$d && $(MAKE) all); \
+             (cd $$d && $(MAKE) all-run); \
            fi \
         done
 ifeq ($(PCC_OS),PCC_MINGW)
 	@for d in $(WIN_EXT_LIST); do \
            if [ -d $$d ]; then \
+             export UNSAFE; \
              echo "making windows only extension $$d ..."; \
-             (cd $$d && $(MAKE) all); \
+             (cd $$d && $(MAKE) all-run); \
            fi \
         done
 endif

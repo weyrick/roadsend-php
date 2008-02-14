@@ -20,16 +20,26 @@ C_STATIC_POPULATION     := $(patsubst %,%_$(SU)$(STATIC_SUFFIX).o,$(C_SOURCE_LIS
 
 CLEFTOVERS	 := $(patsubst %.o,%.c,$(POPULATION)) $(patsubst %.o,%.c,$(STATIC_POPULATION))
 
-all: pcc.fcgi
+all: unsafe
 
-# This target is for use when developing -- it makes it easy for ld.so to find pcc.fcgi's libs
-devel: $(POPULATION) fastcgi-main_$(SU).o
-	bigloo $(SAFETY) $(PCC_LINK_OPTIONS) $(BCOMMONFLAGS) fastcgi-main_$(SU).o -ldopt -L/usr/local/lib -o pcc.fcgi \
-		-library php-runtime -library profiler -library webconnect -library phpeval -library fastcgi -lfcgi \
-	  	-ldopt -Wl,-rpath,$(PCC_HOME)/libs -ldopt -Wl,-rpath,$(BGL_DEFAULT_LIB_DIR)
+all-run: clean-bin pcc.fcgi
 
-pcc.fcgi: $(POPULATION) ../../libs/libfastcgi_$(SUV).$(SOEXT) ../../libs/libfastcgi_$(SUV).a fastcgi-main_$(SU).o
-	bigloo $(SAFETY) $(PCC_LINK_OPTIONS) $(BCOMMONFLAGS) fastcgi-main_$(SU).o -ldopt -L/usr/local/lib -o pcc.fcgi \
+unsafe: 
+	UNSAFE=t make all-run
+
+debug: safe
+
+safe:
+	UNSAFE=f make all-run
+
+clean-bin:
+	-rm pcc.fcgi
+
+pcc.fcgi: pcc_$(SU).fcgi
+	cp pcc_$(SU).fcgi pcc.fcgi
+
+pcc_$(SU).fcgi: $(POPULATION) ../../libs/libfastcgi_$(SUV).$(SOEXT) ../../libs/libfastcgi_$(SUV).a fastcgi-main_$(SU).o
+	bigloo $(SAFETY) $(PCC_LINK_OPTIONS) $(BCOMMONFLAGS) fastcgi-main_$(SU).o -ldopt -L/usr/local/lib -o pcc_$(SU).fcgi \
 		-library php-runtime -library profiler -library webconnect -library phpeval -library fastcgi -lfcgi 
 
 # fastcgi libs
@@ -53,4 +63,4 @@ fastcgi_$(SU).o: fcgi-binding_$(SU).o
 #####
 
 clean:
-	-rm -f *.a *.o *.heap *.so pcc.fcgi fastcgi*.c make-lib*.c $(CLEFTOVERS)
+	-rm -f *.a *.o *.heap *.so pcc.fcgi pcc_[us].fcgi fastcgi*.c make-lib*.c $(CLEFTOVERS)

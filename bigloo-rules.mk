@@ -30,7 +30,7 @@ BHEAPFLAGS	= -unsafe -mkaddheap -mkaddlib
 
 # -fsharing? 
 # -mkaddlib shortens our startup time because it changes bigloo's constant allocation mode
-BSAFEFLAGS	= -mkaddlib -unsafev -copt -D$(PCC_OS) -srfi $(PCC_OS) -O3 -g -cg $(PROFILEFLAGS) $(BCOMMONFLAGS)
+BSAFEFLAGS	= -mkaddlib -unsafev -copt -D$(PCC_OS) -srfi $(PCC_OS) -O3 -g -cg +rm $(PROFILEFLAGS) $(BCOMMONFLAGS)
 BUNSAFEFLAGS	= -mkaddlib -copt -D$(PCC_OS) -srfi $(PCC_OS) -srfi unsafe -O6 -unsafe $(BCOMMONFLAGS) 
 
 # the -srfi bit makes cond-expand work in scheme code
