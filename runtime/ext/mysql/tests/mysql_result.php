@@ -6,12 +6,12 @@ $result = mysql_unbuffered_query("USE bork");
 var_dump($result);
 
 print("is resource: " . is_resource($result) . "\n");
-var_dump(mysql_fetch_array($result));
+var_dump(@mysql_fetch_array($result));
 
 $result = mysql_unbuffered_query("SELECT User FROM mysql.user") or die("Could not query: ". mysql_error());            
 
 print("is resource: " . is_resource($result) . "\n");
-echo "\nresult is: ".mysql_result($result,3); 
+echo "\nresult is: ".@mysql_result($result,3);  // this is purposely invalid: can't mysql_result on unbuffered query
 
 echo "BOTH\n";
 var_dump(mysql_fetch_array($result));
@@ -20,7 +20,7 @@ var_dump(mysql_fetch_array($result, MYSQL_ASSOC));
 echo "NUM\n";
 var_dump(mysql_fetch_array($result, MYSQL_NUM));
 
-$result = mysql_query("SELECT * FROM mysql.user") or die("Could not query: ". mysql_error());
+$result = @mysql_query("SELECT * FROM mysql.user") or die("Could not query: ". mysql_error());
 echo "\n1result is: ".mysql_result($result,4,'password');
 echo "\n2result is: ".mysql_result($result,4,'user.password');
 

@@ -112,9 +112,10 @@
       (set! *mysql-result-counter* (+ *mysql-result-counter* 1))
       (register-finalizer! result (lambda (result)
                                      (unless (mysql-result-freed? result)
-                                        (mysql-free-result (mysql-result-result result))
-                                        ;(php-funcall 'mysql_free_result result)
-                                        (set! *mysql-result-counter* (- *mysql-result-counter* 1)))))
+                                        (php-mysql-free-result result)
+					; the counter and freed? are set by mysql-free-result
+					)))
+
       result))
 
 ;;;;Utilities
@@ -894,12 +895,12 @@
                 (let loop ()
                    (unless (null-row? (mysql-fetch-row r))
                       (loop)))
-                (mysql-free-result r))
+		(php-mysql-free-result result))
              (mysql-link-active-result-set! link #f)))))
 
 (define (bad-mysql-result-resource)
    (php-warning "supplied argument is not a valid MySQL result resource")
-   NULL)
+   FALSE)
 
 ;;;deprecated names
 (defalias mysql                 mysql_db_query)
