@@ -29,7 +29,7 @@
     (include "strnatcmp.h")
     (include "string.h")
     (include "locale.h")
-    (macro c-crypt::string (::string ::string) "crypt")
+;    (macro c-crypt::string (::string ::string) "crypt")
     (macro strcmp::int (s1::string s2::string) "strcmp")
     ;(macro strrchr::string (s1::string s2::int) "strrchr")
     (macro strncmp::int (s1::string s2::string len::int) "strncmp")
@@ -269,16 +269,16 @@
    (let ((stock "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/."))
       (string (string-ref stock (random 64)) (string-ref stock (random 64)))))
 
-;(define(c-crypt::bstring passwd::bstring salt::bstring)   
-;  (pragma "char* crypt(const char*, const char*)")
-;  (pragma::string "crypt($1, $2)"
-;                  ($bstring->string passwd)
-;                  ($bstring->string salt)))
+(define(c-crypt::bstring passwd::bstring salt::bstring)   
+  (pragma "char* crypt(const char*, const char*)")
+  (pragma::string "crypt($1, $2)"
+                  ($bstring->string passwd)
+                  ($bstring->string salt)))
 
 (defalias crypt php-crypt)
 (defbuiltin (php-crypt str (salt 'unpassed))
    (when (eqv? salt 'unpassed) (set! salt (rand-salt)))
-   (c-crypt str salt))
+   ($string->bstring (c-crypt (mkstr str) (mkstr salt))))
 
 ; md5
 (defbuiltin (md5 str)
