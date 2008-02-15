@@ -18,7 +18,7 @@ debug: safe
 all-run: $(PCC_ROOT)/libs/libwebserver.$(SOEXT)
 	@for d in $(TOOLS_LIST); do \
            if [ -d $$d ]; then \
-             export UNSAFE \
+             export UNSAFE; \
              echo "making runtime tool: $$d ..."; \
              (cd $$d && $(MAKE) all-run); \
            fi \
