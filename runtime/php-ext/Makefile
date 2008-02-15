@@ -18,7 +18,7 @@ debug: safe
 all-run:
 	@for d in $(PHP_EXT_LIST); do \
            if [ -d $$d ]; then \
-	     export UNSAFE \
+	     export UNSAFE; \
              echo "making extension $$d ..."; \
              (cd $$d && $(MAKE) all-run); \
            fi \
@@ -26,7 +26,7 @@ all-run:
 ifeq ($(PCC_OS),PCC_MINGW)
 	@for d in $(WIN_PHP_EXT_LIST); do \
            if [ -d $$d ]; then \
-             export UNSAFE \
+             export UNSAFE; \
              echo "making windows only extension $$d ..."; \
              (cd $$d && $(MAKE) all-run); \
            fi \
