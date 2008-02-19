@@ -49,9 +49,8 @@ clean-bin:
 
 debugger: $(PHPEVAL_LIBS) pdb 
 
-#-L/usr/local/lib is necessary for mingw and shouldn't hurt on unix
 pcc_$(SU): $(PHPEVAL_LIBS) $(C_POPULATION)  commandline_$(SU).o
-	bigloo $(SAFETY) $(PCC_LINK_OPTIONS) $(BCOMMONFLAGS) -ldopt -L/usr/local/lib -o pcc_$(SU) commandline_$(SU).o -library php-runtime -library profiler -library webconnect -library phpeval 
+	bigloo $(SAFETY) $(PCC_LINK_OPTIONS) $(BCOMMONFLAGS) -o pcc_$(SU) commandline_$(SU).o -library php-runtime -library profiler -library webconnect -library phpeval 
 
 pcc: pcc_$(SU)
 	cp pcc_$(SU) pcc
@@ -103,13 +102,13 @@ clean:
 	-rm -f *_[us].o *.so
 
 pcctags_$(SU): tags_$(SU).o $(PHPEVAL_LIBS)
-	bigloo -ldopt -L/usr/local/lib $(SAFETY) $(BCOMMONFLAGS) -O6 -o pcctags_$(SU) tags_$(SU).o -library phpeval -library php-runtime -library profiler -library webconnect
+	bigloo $(SAFETY) $(BCOMMONFLAGS) -O6 -o pcctags_$(SU) tags_$(SU).o -library phpeval -library php-runtime -library profiler -library webconnect
 
 pcctags: pcctags_$(SU)
 	cp pcctags_$(SU) pcctags
 
 pdb_$(SU): pdb_$(SU).o $(PHPEVAL_LIBS)
-	bigloo -ldopt -L/usr/local/lib $(SAFETY) $(BCOMMONFLAGS) -O6 -o pdb_$(SU) pdb_$(SU).o -library phpeval -library php-runtime -library profiler -library webconnect -library mhttpd -lwebserver $(READLINE_BL_LIB)
+	bigloo $(SAFETY) $(BCOMMONFLAGS) -O6 -o pdb_$(SU) pdb_$(SU).o -library phpeval -library php-runtime -library profiler -library webconnect -library mhttpd -lwebserver $(READLINE_BL_LIB)
 
 pdb: pdb_$(SU)
 	cp pdb_$(SU) pdb

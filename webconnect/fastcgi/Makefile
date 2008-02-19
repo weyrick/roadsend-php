@@ -5,7 +5,7 @@ OS 		= $(shell uname -s)
 
 BIGLOO_VERSION  = `bigloo -eval '(begin (print *bigloo-version*) (exit 0))'`     
 PHPOO_INC	= -I ../.. -library profiler
-BCOMMONFLAGS	= -L ../../libs -copt -I/usr/local/include -copt -I$(PCC_ROOT)/../include  -copt -L$(PCC_ROOT)/../lib
+BCOMMONFLAGS	= -L ../../libs -copt -I$(PCC_ROOT)/../include  -copt -L$(PCC_ROOT)/../lib
 
 SOURCE_LIST	= fastcgi fcgi-binding c-fcgi-bindings
 C_SOURCE_LIST	= c-fcgi
@@ -39,7 +39,7 @@ pcc.fcgi: pcc_$(SU).fcgi
 	cp pcc_$(SU).fcgi pcc.fcgi
 
 pcc_$(SU).fcgi: $(POPULATION) ../../libs/libfastcgi_$(SUV).$(SOEXT) ../../libs/libfastcgi_$(SUV).a fastcgi-main_$(SU).o
-	bigloo $(SAFETY) $(PCC_LINK_OPTIONS) $(BCOMMONFLAGS) fastcgi-main_$(SU).o -ldopt -L/usr/local/lib -o pcc_$(SU).fcgi \
+	bigloo $(SAFETY) $(PCC_LINK_OPTIONS) $(BCOMMONFLAGS) fastcgi-main_$(SU).o -o pcc_$(SU).fcgi \
 		-library php-runtime -library profiler -library webconnect -library phpeval -library fastcgi -lfcgi 
 
 # fastcgi libs
