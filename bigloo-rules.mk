@@ -37,6 +37,9 @@ BUNSAFEFLAGS	= -mkaddlib -copt -D$(PCC_OS) -srfi $(PCC_OS) -srfi unsafe -O6 -uns
 CSAFEFLAGS    = -D$(PCC_OS) -O -g $(PROFILEFLAGS) $(CCOMMONFLAGS)
 CUNSAFEFLAGS  = -D$(PCC_OS) -O4 $(CCOMMONFLAGS)
 
+CPPSAFEFLAGS  = $(CSAFEFLAGS)
+CPPUNSAFEFLAGS  = $(CUNSAFEFLAGS)
+
 BIGLOO_LIBS	= -L$(BGL_DEFAULT_LIB_DIR) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloogc-$(BIGLOOVERSION)
 
 # we could put non-pic code in the static libraries without too much
@@ -70,9 +73,18 @@ BIGLOO_LIBS	= -L$(BGL_DEFAULT_LIB_DIR) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloog
 %_ut.o : %.c
 	$(CC) $(C_STATICFLAGS) -DSTATIC_BIGLOO $(CUNSAFEFLAGS) -c $< -o $@
 
+# .cpp
+
+%_s.o : %.cpp
+	$(CXX) $(CPPSAFEFLAGS) -c $< -o $@
+
+%_st.o : %.cpp
+	$(CXX) $(CPP_STATICFLAGS) -DSTATIC_BIGLOO -c $< -o $@
+
 %_u.o : %.cpp
-	$(CXX) -c $< -o $@
+	$(CXX) $(CPPUNSAFEFLAGS) -c $< -o $@
 
 %_ut.o : %.cpp
 	$(CXX) $(CPP_STATICFLAGS) -DSTATIC_BIGLOO -c $< -o $@
+
 
