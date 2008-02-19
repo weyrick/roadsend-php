@@ -15,6 +15,10 @@ C_SOURCE_FILES   := $(patsubst %,%.c,$(C_SOURCE_LIST))
 C_POPULATION     := $(patsubst %,%_$(SU).o,$(C_SOURCE_LIST))
 C_STATIC_POPULATION     := $(patsubst %,%_$(SU)$(STATIC_SUFFIX).o,$(C_SOURCE_LIST))
 
+CPP_SOURCE_FILES := $(patsubst %,%.cpp,$(CPP_SOURCE_LIST))
+CPP_POPULATION   := $(patsubst %,%_$(SU).o,$(CPP_SOURCE_LIST))
+CPP_STATIC_POPULATION := $(patsubst %,%_$(SU)$(STATIC_SUFFIX).o,$(CPP_SOURCE_LIST))
+
 CLEFTOVERS	 := $(patsubst %.o,%.c,$(POPULATION)) $(patsubst %.o,%.c,$(STATIC_POPULATION))
 
 # cgen binary
@@ -81,11 +85,11 @@ $(APIDOCFILE): $(SOURCE_FILES)
 #and only gcc knows where that is.
 #,--disable-auto-import
 #  make-lib.o is included because it has the dynamic-load entry point
-$(LIB)/lib$(LIBNAME)_$(SUV).$(SOEXT): $(LIB)/$(LIBNAME).heap $(POPULATION) $(C_POPULATION) make-lib.o
-	$(call dllcmd,$(LIB)/lib$(LIBNAME)_$(SUV).$(SOEXT)) $(POPULATION) $(C_POPULATION) $(OTHERLIBS) make-lib.o $(EXTENSION_DLL_LIBS)
+$(LIB)/lib$(LIBNAME)_$(SUV).$(SOEXT): $(LIB)/$(LIBNAME).heap $(POPULATION) $(C_POPULATION) $(CPP_POPULATION) make-lib.o
+	$(call dllcmd,$(LIB)/lib$(LIBNAME)_$(SUV).$(SOEXT)) $(POPULATION) $(C_POPULATION) $(CPP_POPULATION) $(OTHERLIBS) make-lib.o $(EXTENSION_DLL_LIBS)
 
-$(LIB)/lib$(LIBNAME)_$(SUV).a: $(LIB)/$(LIBNAME).heap $(STATIC_POPULATION) $(C_STATIC_POPULATION)
-	ar ruv $(LIB)/lib$(LIBNAME)_$(SUV).a $(STATIC_POPULATION) $(C_STATIC_POPULATION)
+$(LIB)/lib$(LIBNAME)_$(SUV).a: $(LIB)/$(LIBNAME).heap $(STATIC_POPULATION) $(C_STATIC_POPULATION) $(CPP_STATIC_POPULATION)
+	ar ruv $(LIB)/lib$(LIBNAME)_$(SUV).a $(STATIC_POPULATION) $(C_STATIC_POPULATION) $(CPP_STATIC_POPULATION)
 
 $(LIB)/$(LIBNAME).heap: $(SOURCE_FILES) make-lib.scm
 	$(BIGLOO) $(BHEAPFLAGS) make-lib.scm -heap-library $(LIBNAME) -addheap $(LIB)/$(LIBNAME).heap

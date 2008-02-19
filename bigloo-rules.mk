@@ -70,4 +70,9 @@ BIGLOO_LIBS	= -L$(BGL_DEFAULT_LIB_DIR) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloog
 %_ut.o : %.c
 	$(CC) $(C_STATICFLAGS) -DSTATIC_BIGLOO $(CUNSAFEFLAGS) -c $< -o $@
 
+%_u.o : %.cpp
+	$(CXX) -c $< -o $@
+
+%_ut.o : %.cpp
+	$(CXX) $(CPP_STATICFLAGS) -DSTATIC_BIGLOO -c $< -o $@
 
