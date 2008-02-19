@@ -43,9 +43,10 @@ all: unsafe
 all-run: Makefile.config libs tools runtime webconnect \
          compiler extensions php-extensions web-backends debugger dotest 
 
-debug: all-run
+debug: safe
 
-safe: all-run
+safe:
+	UNSAFE=f $(MAKE) all-run
 
 unsafe: 
 	UNSAFE=t $(MAKE) all-run
@@ -57,43 +58,52 @@ Makefile.config:
 	touch $(PCC_ROOT)/Makefile.config
 
 tags: unsafe
+	export UNSAFE
 	cd runtime && $(MAKE) tags
 
 #runtime
 runtime: 
+	export UNSAFE
 	(cd runtime && $(MAKE) runtime-libs)
 .PHONY: runtime
 
 #extensions
 extensions: 
+	export UNSAFE
 	(cd runtime && $(MAKE) extensions)
 
 #php-extensions
 php-extensions: 
+	export UNSAFE
 	(cd runtime && $(MAKE) php-extensions)
 
 #compiler
 compiler: webconnect
-	(cd compiler && $(MAKE) all)
+	export UNSAFE
+	(cd compiler && $(MAKE) all-run)
 .PHONY: compiler
 
 #debugger
 debugger: web-backends
+	export UNSAFE
 	(cd compiler && $(MAKE) debugger)
 .PHONY: debugger
 
 #webconnect
 webconnect: 
-	(cd webconnect && $(MAKE) all)
+	export UNSAFE
+	(cd webconnect && $(MAKE) all-run)
 .PHONY: webconnect
 
 #web backends
 web-backends: webconnect compiler runtime
+	export UNSAFE
 	(cd webconnect && $(MAKE) web-backends)
 
 #tools: profiler, readline
 tools:
-	(cd tools && $(MAKE) all)
+	export UNSAFE
+	(cd tools && $(MAKE) all-run)
 .PHONY: tools
 
 libs: 

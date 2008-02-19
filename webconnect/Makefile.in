@@ -26,13 +26,24 @@ BE_LIST	= @BE_LIST@
 #	  apache1 \
 #	  apache2
 
-all: webconnect-libs 
+all: unsafe
+
+all-run: webconnect-libs 
+
+debug: safe
+
+safe:
+	UNSAFE=f $(MAKE) all-run
+
+unsafe:
+	UNSAFE=t $(MAKE) all-run
 
 web-backends:
 	@for d in $(BE_LIST); do \
            if [ -d $$d ]; then \
+	     export UNSAFE; \
              echo "making web backend $$d ..."; \
-             (cd $$d && $(MAKE) all); \
+             (cd $$d && $(MAKE) all-run); \
            fi \
         done	
 
