@@ -17,7 +17,7 @@
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 ;; ***** END LICENSE BLOCK *****
 
-(module php-extension-lib
+(module php-skeleton-lib
    ; required
    (include "../phpoo-extension.sch")
    (library profiler)
@@ -92,8 +92,8 @@
 ; and int to be a number
 (defbuiltin (skel_hash str int)
    (let ((result (make-php-hash)))
-      (php-hash-insert! :next (mkstr str))
-      (php-hash-insert! :next (convert-to-number str))
+      (php-hash-insert! result :next (mkstr str))
+      (php-hash-insert! result :next (convert-to-number str))
       result))
 
 ;
