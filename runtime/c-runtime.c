@@ -19,10 +19,7 @@
 
 #include <stdio.h>
 #include <bigloo.h>
-/* #include "c-runtime.h" */
-
-/* #define FLONUM_LEN  32 */
-/* #define PRECISION   14 /\* in php this is an ini settings *\/ */
+#include <string.h>
 
 #define MIN(a, b)  (((a)<(b))?(a):(b))
 
@@ -38,13 +35,32 @@ int binary_strcmp(char *s1, int len1, char *s2, int len2)
 	}
 }
 
+// this assume various string/length checks have been done
+// before the call on the scheme side (see utils.scm)
+int pcc_strpos(const char *haystack, const char* needle, unsigned int offset, int cs) {
 
-/*---------------------------------------------------------------------*/
-/*    obj_t                                                            */
-/*    strport_flush ...                                                */
-/*    -------------------------------------------------------------    */
-/*    On flush un string port binary safe mon cherie.                  */
-/*---------------------------------------------------------------------*/
+  char *result, *h;
+
+  if (offset) {
+    h = haystack + offset;
+  }
+  else {
+    h = haystack;
+  }
+
+  result = (cs) ? strstr(h, needle) : strcasestr(h, needle);
+
+  if (result) {
+    return (int)(result-h) + offset;
+  }
+  else {
+    return -1;
+  }
+
+}
+
+/* this is a workaround for a bigloo problem. manuel has been notified, get
+   rid of this when we require the next release with a fix (3.0d?) */
 BGL_RUNTIME_DEF
 obj_t
 strport_bin_flush( obj_t port ) {
@@ -64,50 +80,3 @@ strport_bin_flush( obj_t port ) {
 }
 
 
-/* //least power of two greater than x */
-/* unsigned clp2(unsigned x) { */
-/*    x = x - 1; */
-/*    x = x | (x >> 1); */
-/*    x = x | (x >> 2); */
-/*    x = x | (x >> 4); */
-/*    x = x | (x >> 8); */
-/*    x = x | (x >>16); */
-/*    return x + 1; */
-/* }  */
-
-
-/* obj_t php_string_reappend( obj_t s1, obj_t s2, int allocated_size_of_s1 ) //XXX allocated_size_of_s1 is too small because of STRING_SIZE */
-/*      //XXX the hashtable scheme side should really be weak, to prevent memory leaks */
-/* { */
-/*    int l1 = STRING( s1 ).length; */
-/*    int l2 = STRING( s2 ).length; */
-/*    int l12 = l1 + l2; */
-/*    int to_be_allocated_size = clp2 ( STRING_SIZE + l12 ); */
-
-/*    if (to_be_allocated_size  <= allocated_size_of_s1 ) { */
-/*      obj_t string = s1; */
-/* #if( !defined( TAG_STRING ) ) */
-/*      string->string_t.header = MAKE_HEADER( STRING_TYPE, 0 ); */
-/* #endif	 */
-/*      string->string_t.length = l12; */
-
-/* /\*      memcpy( &(string->string_t.char0), &STRING_REF( s1, 0 ), l1 ); *\/ */
-/*      memcpy( &((char *)(&(string->string_t.char0)))[ l1 ], &STRING_REF( s2, 0 ), l2 ); */
-/*      ((char *)(&(string->string_t.char0)))[ l12 ] = '\0'; */
-	
-/*      return  BSTRING( string ); */
-/*    } else { */
-/*      obj_t string = GC_MALLOC_ATOMIC( to_be_allocated_size ); */
-/* #if( !defined( TAG_STRING ) ) */
-/*      string->string_t.header = MAKE_HEADER( STRING_TYPE, 0 ); */
-/* #endif	 */
-/*      string->string_t.length = l12; */
-
-/*      memcpy( &(string->string_t.char0), &STRING_REF( s1, 0 ), l1 ); */
-/*      memcpy( &((char *)(&(string->string_t.char0)))[ l1 ], &STRING_REF( s2, 0 ), l2 ); */
-/*      ((char *)(&(string->string_t.char0)))[ l12 ] = '\0'; */
-	
-/*      return  BSTRING( string ); */
-/*    } */
-
-/* } */

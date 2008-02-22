@@ -1697,23 +1697,25 @@
 
 ; strpos --  Find position of first occurrence of a string
 (defbuiltin (strpos haystack needle (offset 'unpassed))
-   (let ((sneedle (mkstr needle)))
+   (do-strpos haystack needle offset #t))
+   
+; stripos
+(defbuiltin (stripos haystack needle (offset 'unpassed))
+   (do-strpos haystack needle offset #f))
+
+(define (do-strpos haystack needle offset cs)
+   (let ((sneedle (mkstr needle))
+	 (shaystack (mkstr haystack)))
       (if (string=? "" sneedle)
 	  FALSE
-	  (let* ((kmpt (kmp-table sneedle))
-		 (off (if (eqv? 'unpassed offset)
+	  (let* ((off (if (eqv? 'unpassed offset)
 			  0
 			  (mkfixnum offset)))
-		 (res (kmp-string kmpt (mkstr haystack) off)))
+		 ; NOTE: pcc-strpos does bounds checks
+		 (res (pcc-strpos shaystack sneedle off cs)))
 	     (if (=fx res -1)
 		 FALSE
 		 (convert-to-number res))))))
-
-; stripos
-(defbuiltin (stripos haystack needle (offset 'unpassed))
-   (let ((h (string-downcase haystack))
-	 (n (string-downcase needle)))
-      (strpos h n offset)))
 
 ; str_repeat -- Repeat a string
 (defbuiltin (str_repeat str iter)
@@ -1880,6 +1882,11 @@
 	     (loop a-list s-hash r-hash))
 	  a-list)))
 
+(defbuiltin (str_replace search replace subj)
+   (if (php-hash? search)
+       (apply string-subst (append (list (mkstr subj)) (get-sr-list search replace)))
+       (string-subst (mkstr subj) (mkstr search) (mkstr replace))))
+
 (defbuiltin (str_shuffle str)
    (let* ((sstr (mkstr str))
 	  (vsize (string-length sstr))
@@ -1890,11 +1897,6 @@
 	       (vector-swap! vec i j)
 	       (loop (+ i 1)))))
       (list->string (vector->list vec))))
-
-(defbuiltin (str_replace search replace subj)
-   (if (php-hash? search)
-       (apply string-subst (append (list (mkstr subj)) (get-sr-list search replace)))
-       (string-subst (mkstr subj) (mkstr search) (mkstr replace))))
 
 ;; two variables that we'll lazily initialize and reuse to make things
 ;; go a little faster.

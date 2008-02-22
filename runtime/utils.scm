@@ -29,9 +29,12 @@
    (extern
     ;; bigloo's flush-output-port is not binary safe on string ports,
     ;; and in recent versions it no longer resets the position to 0
-    (flush-string-port/bin::bstring (::output-port) "strport_bin_flush"))
+    (flush-string-port/bin::bstring (::output-port) "strport_bin_flush")
+    (c-strpos::int (::string ::string ::int ::int) "pcc_strpos"))
    (export
     (string-subst::bstring text::bstring old::bstring new::bstring . rest)
+    (strstr-idxs haystack::bstring needle::bstring case-sensitive::bbool)
+    (pcc-strpos::bint haystack::bstring needle::bstring offset::bint case-sensitive::bbool)    
     (hashtable-copy hash)
     (undollar str)    
     (vector-swap! v a b)
@@ -88,7 +91,7 @@
 		 result
 		 (apply string-subst result rest)))
 	  ; string replacements
-	  (multiple-value-bind (num-matches matches) (find-idxs text old)
+	  (multiple-value-bind (num-matches matches) (strstr-idxs text old #t)
 	    (if (=fx num-matches 0)
 		(if (null? rest)
 		    text
@@ -122,17 +125,27 @@
 		       result
 		       (apply string-subst result rest))))))))
 
-(define (find-idxs haystack::bstring needle::bstring)
-   (let ((tbl (kmp-table needle))
-	 (matches (make-vector 10))
+(define (pcc-strpos::bint haystack::bstring needle::bstring offset::bint case-sensitive::bbool)
+   (if (and (<fx offset (string-length haystack))
+	    (>=fx offset 0)
+	    (>fx (string-length needle) 0)
+	    (>fx (string-length haystack) 0))
+       (c-strpos haystack needle offset (if case-sensitive 1 0))
+       -1))
+
+(define (strstr-idxs haystack::bstring needle::bstring case-sensitive::bbool)
+   (let ((matches (make-vector 10))
 	 (vsize 10)
 	 (pages 1)
 	 (num-matches 0)
+	 (c-cs (if case-sensitive 1 0))
+	 (c-haystack ($bstring->string haystack))
+	 (c-needle ($bstring->string needle))
 	 (text-len (string-length haystack))
 	 (old-len (string-length needle)))
       (let loop ((offset 0))
 	 (when (<fx offset text-len)
-	    (let ((match-i (kmp-string tbl haystack offset)))
+	    (let ((match-i (c-strpos c-haystack c-needle offset c-cs)))
 	       (when (>=fx match-i 0)
 		  ; do we need to expand our vector?
 		  (when (=fx num-matches vsize)
@@ -143,7 +156,7 @@
 		  (set! num-matches (+fx num-matches 1))
 		  (loop (+fx match-i old-len))))))
       (values num-matches matches)))
-
+   
 (define (make-tmpfile-name dir prefix)
    (let* ((alphabet (list->vector '(0 1 2 3 4 5 6 7 8 9
 					A B C D E F G H I

@@ -28,14 +28,12 @@ echo "\n";
 
 
 // no support in php?
-/*
 echo "[";
 echo "1: ".stripos('blah-7-MEEP','MEEP',5);
 echo "\n";
 echo "2: ".stripos('bLaH-7-meep','bLaH');
 echo "\n";
 echo "]";
-*/
 
 /*
 echo strrpos('bffflah-7-meep','-7-');
