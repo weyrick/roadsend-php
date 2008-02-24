@@ -45,7 +45,7 @@
 (define (init-php-skeleton-lib) 1)
 
 ; register the extension. required. note: version is not checked anywhere right now
-(register-extension "skeleton extension" ; extension title, shown in e.g. phpinfo()
+(register-extension "skeleton" ; extension title, shown in e.g. phpinfo()
 		    "1.0.0"              ; version
 		    "skeleton")          ; library name. make sure this matches LIBNAME in Makefile
 
