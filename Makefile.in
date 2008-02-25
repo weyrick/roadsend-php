@@ -165,6 +165,25 @@ install:
 	install -m 644 ./libs/*.heap $(DESTDIR)/$(libdir)
 	-install -m 644 ./libs/*.init $(DESTDIR)/$(libdir)
 
+uninstall:
+#libraries
+	for file in ./libs/*.init; do if [ -e $(DESTDIR)/$(libdir)/$${file##*/} ]; then rm $(DESTDIR)/$(libdir)/$${file##*/}; fi; done
+	for file in ./libs/*.heap; do if [ -e $(DESTDIR)/$(libdir)/$${file##*/} ]; then rm $(DESTDIR)/$(libdir)/$${file##*/}; fi; done
+	for file in ./libs/*.h; do if [ -e $(DESTDIR)/$(libdir)/$${file##*/} ]; then rm $(DESTDIR)/$(libdir)/$${file##*/}; fi; done
+	for file in ./libs/*.sch; do if [ -e $(DESTDIR)/$(libdir)/$${file##*/} ]; then rm $(DESTDIR)/$(libdir)/$${file##*/}; fi; done
+	for file in ./libs/*_[su]*.a; do if [ -e $(DESTDIR)/$(libdir)/$${file##*/} ]; then rm $(DESTDIR)/$(libdir)/$${file##*/}; fi; done
+	for file in ./libs/*_[su]*.so; do if [ -e $(DESTDIR)/$(libdir)/$${file##*/} ]; then rm $(DESTDIR)/$(libdir)/$${file##*/}; fi; done
+	-rm $(DESTDIR)/$(libdir)/libwebserver.a;
+	-rm $(DESTDIR)/$(libdir)/libwebserver.so;
+#binaries
+	-rm $(DESTDIR)/$(bindir)/pcc.fcgi
+	-rm $(DESTDIR)/$(bindir)/pcctags
+	-rm $(DESTDIR)/$(bindir)/pdb
+	-rm $(DESTDIR)/$(bindir)/pcc
+#config
+	-rm $(DESTDIR)/$(sysconfdir)/pcc.conf
+
+
 # used by the self installing package maker
 package-install: unsafe
 	./install.sh $(INSTALL_ROOT) $(INSTALL_PREFIX)
