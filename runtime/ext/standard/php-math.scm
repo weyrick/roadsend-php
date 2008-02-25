@@ -227,15 +227,14 @@
 
 ; base_convert -- Convert a number between arbitrary bases
 (defbuiltin (base_convert num-str frombase tobase)
-   (let ((res (integer->string/base (garbage->number/base (mkstr num-str) (mkfixnum frombase))
-				    (mkfixnum tobase))))
+   (let ((res (integer->string (garbage->number/base (mkstr num-str) (mkfixnum frombase))
+				(mkfixnum tobase))))
       res))
    
 
 ; bindec -- Binary to decimal
 (defbuiltin (bindec num-str)
    (garbage->number/base (mkstr num-str) 2))
-
 
 ; ceil -- Round fractions up
 (defbuiltin (ceil num)
@@ -252,15 +251,15 @@
 
 ; decbin -- Decimal to binary
 (defbuiltin (decbin num)
-   (integer->string/base (mkfixnum num) 2))
+   (unsigned->string (convert-to-integer num) 2))
 
 ; dechex -- Decimal to hexadecimal
 (defbuiltin (dechex num)
-   (integer->string/base (mkfixnum num) 16))
+   (unsigned->string (convert-to-integer num) 16))
 
 ; decoct -- Decimal to octal
 (defbuiltin (decoct num)
-   (integer->string/base (mkfixnum num) 8))
+   (unsigned->string (convert-to-integer num) 8))
 
 ; deg2rad --  Converts the number in degrees to the radian equivalent
 (defbuiltin (deg2rad num)

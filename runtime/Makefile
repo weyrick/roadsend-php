@@ -6,7 +6,7 @@ include $(PCC_ROOT)/bigloo-rules.mk
 BCOMMONFLAGS	=  -copt -D_GNU_SOURCE # -D_ISOC99_SOURCE
 CCOMMONFLAGS	=  -I. -I$(BGL_DEFAULT_LIB_DIR)
 
-SOURCE_LIST	= php-runtime php-hash php-object php-ini utils elongs opaque-math-binding \
+SOURCE_LIST	= php-runtime php-hash php-object php-ini utils opaque-math-binding \
                   grasstable url-rewriter signatures extended-streams constants finalizers \
                   php-errors builtin-classes resources blib output-buffering web-var-cache \
 		  php-types containers php-operators environments php-functions dynarray
@@ -80,12 +80,12 @@ opaque-math-binding_$(SU).o: opaque-math_$(SU).o
 
 opaque-math_$(SU).o: opaque-math.h opaque-piddle.h
 
-php-runtime_$(SU).o: ../php-macros.scm elongs_$(SU).o opaque-math-binding_$(SU).o \
+php-runtime_$(SU).o: ../php-macros.scm opaque-math-binding_$(SU).o \
       php-object_$(SU).o php-hash_$(SU).o utils_$(SU).o php-runtime.sch url-rewriter_$(SU).o signatures_$(SU).o \
       constants_$(SU).o php-ini_$(SU).o extended-streams_$(SU).o finalizers_$(SU).o resources_$(SU).o output-buffering_$(SU).o \
       php-types_$(SU).o containers_$(SU).o php-operators_$(SU).o environments_$(SU).o php-functions_$(SU).o
 
-#make-lib_$(SU).o: utils_$(SU).o elongs_$(SU).o php-object_$(SU).o           \
+#make-lib_$(SU).o: utils_$(SU).o php-object_$(SU).o           \
 #      php-hash_$(SU).o php-runtime_$(SU).o php-runtime.sch 
 
 php-object_$(SU).o: utils_$(SU).o php-hash_$(SU).o grasstable_$(SU).o    \

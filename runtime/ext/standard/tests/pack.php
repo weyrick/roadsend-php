@@ -20,6 +20,7 @@ function tp($fmt, $val) {
     $index++;
 }
 
+tp("N", -1);
 tp("N", 65534);
 tp("N", 0);
 tp("N", 2147483650);

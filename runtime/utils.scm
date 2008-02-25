@@ -25,6 +25,7 @@
     (macro c-path-max::int "PATH_MAX") )
    (import
     (grass "grasstable.scm")
+    (opaque-math "opaque-math-binding.scm")
     (php-types "php-types.scm"))
    (extern
     ;; bigloo's flush-output-port is not binary safe on string ports,
@@ -46,7 +47,6 @@
     (util-realpath path::bstring) 
     (re-string-split split-on str)
     (char-position char str)
-    (integer->string/digits int base digits . chop)
     (get-tokens-from-string regular-grammar astring)
     (get-tokens regular-grammar input-port)
     (inline gcar arg)
@@ -54,9 +54,7 @@
     (append-strings strings)
     (string->integer/base str base)
     (garbage->number/base str base)
-    (string->number/base str base floatify? stop-at-garbage?)
-    (integer->string/base num base)
-    (number->string/base num base)
+    (string->number/base str::bstring base floatify?::bbool stop-at-garbage?::bbool)    
     (fill-indexed-prop obj settor list-of-values)
     (symbol-downcase sym)
     (numeric-string? str)
@@ -286,29 +284,6 @@
 		 c
 		 (loop (+ c 1)))))))
 
-(define (integer->string/digits int base digits . chop)
-   "Print a fixed-width integer. If chop is non-null, chop numbers
-   from the left."
-   (let* ((num (integer->string int base))
-	  (len (string-length num)))
-      (cond
-	 ;pad with leading zeros
-	 ((> digits len)
-	  (let ((nstr (make-string digits #\0)))
-	     (blit-string! num 0 nstr (- digits len) len)
-	     nstr))
-	 ;already the right width
-	 ((= digits len) num)
-	 ;user wants the number to be shorter than it is
-	 ((< digits len)
-	  (if (null? chop)
-	      ;either don't chop
-	      num
-	      ;or return just the rightmost digits
-	      (if (= digits 0)
-		  ""
-		  (substring num (- len digits) len)))))))
-
 (define *append-strings-port* (open-output-string))
 (define (append-strings strings)
    "return a new string that is the concatenation of strings"
@@ -357,49 +332,25 @@
    (string->number/base str base #t #f))
 
 
-(define *max-int* (expt 2.0 31))
-(define (string->number/base str base floatify? stop-at-garbage?)
+(define (string->number/base str::bstring base floatify?::bbool stop-at-garbage?::bbool)
    "read a whole number from a string in any base, approximating with
    a float if an integer would overflow"
-   (let ((cutoff (floor (- (/ *max-int* base) base))))
+   (let ((cutoff (floor (-elong (/elong *MAX-INT-SIZE-L* (fixnum->elong base)) (fixnum->elong base)))))
       (let loop ((i 0)
 		 (num 0))
-	 (if (= i (string-length str))
+	 (if (=fx i (string-length str))
 	     num
 	     (let ((digit (char->digit (string-ref str i))))
-		(if (or (< digit 0) (>= digit base))
+		(if (or (<fx digit 0) (>=fx digit base))
 		    (if stop-at-garbage?
 			;invalid digit: end of number.
 			num
-			(loop (+ i 1) num))
+			(loop (+fx i 1) num))
 		    (if (and floatify? (fixnum? num) (> num cutoff))
 			(loop i (fixnum->flonum num))
-			(loop (+ i 1)
-			      (+ (* num base) digit)))))))))
+			(loop (+fx i 1)
+			      (+fx (*fx num base) digit)))))))))
 
-
-
-(define (integer->string/base num base)
-   "write a whole number to a string in any base"
-   (let loop ((x (abs (if (flonum? num)
-			  (flonum->fixnum num)
-			  num)))
-	      (chars '()))
-      (if (>= (abs x) 1)
-	  (loop (/fx x base)
-		(cons (digit->char (modulo x base)) chars))
-	  (if (null? chars)
-	      "0"
-	      (list->string (if (< num 0)
-				(cons #\- chars)
-				chars))))))
-		      
-
-
-(define (number->string/base num base)
-   "??? maybe handle floats? this one needs work."
-   (error 'number->string/base "This function is not yet implemented."
-	  (cons num base)) )
 
 
 (define (fill-indexed-prop obj settor list-of-values)

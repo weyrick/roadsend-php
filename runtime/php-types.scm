@@ -53,7 +53,7 @@
     (float-is-nan? a)
     (coerce-to-php-type orig)
     ; these are for converting to functions for bigloo procedures
-    (mkfixnum::int rval)
+    (mkfixnum::bint rval)
     (mkfix-or-flonum rval)))
 
 
@@ -162,9 +162,9 @@
            (e *zero*))))
 
 ; should only be used for functions that require a fixnum
-; and can't handle an elong (e.g. bigloo procedures)
+; and can't handle an elong (e.g. some bigloo procedures)
 ; this returns a fixnum
-(define (mkfixnum rval)
+(define (mkfixnum::bint rval)
    (if (fixnum? rval)
        rval
        (onum->int (convert-to-number rval))))

@@ -6,7 +6,6 @@
 	   (dynarray "dynarray.scm")
 	   (php-object "php-object.scm")
 	   (grass "grasstable.scm")
-	   (elong-lib "elongs.scm")
 	   (utils "utils.scm")
 	   (php-ini "php-ini.scm")
 	   (signatures "signatures.scm")

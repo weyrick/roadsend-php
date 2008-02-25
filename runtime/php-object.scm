@@ -20,7 +20,6 @@
 (module php-object
    (include "php-runtime.sch")
    (import (php-runtime "php-runtime.scm")
-	   (elong-lib "elongs.scm")
 	   (grass "grasstable.scm")
 	   (php-hash "php-hash.scm")
 	   (utils "utils.scm")

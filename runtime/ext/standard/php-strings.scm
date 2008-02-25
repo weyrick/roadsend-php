@@ -1258,12 +1258,12 @@
 				  (pad-string (elong->string (consume-int pos))
 					      width padding alignment)))
 	      (convert-binary (lambda (pos width padding alignment)
-				 (pad-string (elong->string (consume-int pos) 2)
+				 (pad-string (unsigned->string (consume-int pos) 2)
 					     width padding alignment)))
 	      (convert-ascii (lambda (pos)
 				(integer->char (mkfixnum (consume-int pos)))))
 	      (convert-unsigned (lambda (pos)
-				   (elong->ustring (consume-int pos))))
+				   (unsigned->string (consume-int pos))))
 	      (convert-float (lambda (form pos width precision padding alignment)
 				(let* ((prec (mkfixnum (if (> precision 0)
 							   (if (string=? form "f")
@@ -1284,7 +1284,7 @@
 							       (pad-string (cadr parts) prec "0" STR_PAD_RIGHT))
 					       width padding alignment))))
 	      (convert-octal (lambda (pos)
-				(elong->string (consume-int pos) 8)))
+				(unsigned->string (consume-int pos) 8)))
 	      (convert-string (lambda (pos width precision padding alignment)
 				 ; precision can trim a string from the left if set
 				 (let ((ps (pad-string (mkstr (consume pos)) width padding alignment)))
@@ -1294,11 +1294,11 @@
 					ps))))				 
 	      (convert-hex-lower (lambda (pos width padding alignment)
 				    (pad-string (string-downcase
-						 (elong->string (consume-int pos) 16))
+						 (unsigned->string (consume-int pos) 16))
 						width padding alignment)))
 	      (convert-hex-upper (lambda (pos width padding alignment)
 				    (pad-string (string-upcase
-						 (elong->string (consume-int pos) 16))
+						 (unsigned->string (consume-int pos) 16))
 						width padding alignment)))
 	      ;call the appropriate conversion based on the letter after the %
 	      (conversion-dispatch
