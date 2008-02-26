@@ -167,6 +167,7 @@
     (macro c-GLOB_BRACE::int "GLOB_BRACE")
     (macro c-GLOB_ONLYDIR::int "GLOB_ONLYDIR")
     (macro c-GLOB_ERR::int "GLOB_ERR")
+    (macro c-GLOB_NOMATCH::int "GLOB_NOMATCH")    
     ;; openlog "options" constants
 ;mingw    (macro net-LOG_CONS::int   "LOG_CONS")
 ;mingw    (macro net-LOG_NDELAY::int "LOG_NDELAY")

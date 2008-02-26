@@ -1233,17 +1233,20 @@
       ;
       ; XXX this may need work to be more portable
       ;
-      (if (and (= g-retval 0)
-	       (>fx (pragma::int "$1->gl_pathc" globbuf) 0))
+      (if (or (=fx g-retval 0)
+	      (=fx g-retval c-GLOB_NOMATCH))
 	  (let ((rethash (make-php-hash)))
-	     (dotimes (i (pragma::int "$1->gl_pathc" globbuf))
-	       (php-hash-insert! rethash
-				 :next
-				 ($string->bstring (pragma::string "$1->gl_pathv[$2]"
-								   globbuf
-								   i))))
-	     (c-globfree globbuf)
+	     (when (>fx (pragma::int "$1->gl_pathc" globbuf) 0)
+		(begin
+		   (dotimes (i (pragma::int "$1->gl_pathc" globbuf))
+		      (php-hash-insert! rethash
+					:next
+					($string->bstring (pragma::string "$1->gl_pathv[$2]"
+									  globbuf
+									  i))))
+		   (c-globfree globbuf)))
 	     rethash)
+	  ; glob error condition
 	  FALSE)))
       
 
