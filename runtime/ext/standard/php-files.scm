@@ -68,7 +68,7 @@
     (ftell handle)
     (ftruncate handle size)
     (fwrite handle string length) ; length is optional
-    ;(glob pattern flags) ; flags is optional
+    (glob pattern flags) ; flags is optional
     (is_dir filename)
     (is_executable filename)
     (is_file filename)
@@ -141,6 +141,14 @@
 (defconstant LOCK_EX  2)
 (defconstant LOCK_UN  8)
 (defconstant LOCK_NB  4)
+
+(defconstant GLOB_MARK (int->onum c-GLOB_MARK))
+(defconstant GLOB_NOSORT (int->onum c-GLOB_NOSORT))
+(defconstant GLOB_NOCHECK (int->onum c-GLOB_NOCHECK))
+(defconstant GLOB_NOESCAPE (int->onum c-GLOB_NOESCAPE))
+(defconstant GLOB_BRACE (int->onum c-GLOB_BRACE))
+(defconstant GLOB_ONLYDIR (int->onum c-GLOB_ONLYDIR))
+(defconstant GLOB_ERR (int->onum c-GLOB_ERR))
 
 ;;;
 ;;; Resources
@@ -1214,8 +1222,30 @@
 	  FALSE)))
 
 ;; glob -- Find pathnames matching a pattern
-;(defbuiltin (glob pattern (flags 'unpassed))
-;   (error "glob" "function not yet implemented" "glob"))
+(defbuiltin (glob pattern (flags 'unpassed))
+   (let* ((pattern (mkstr pattern))
+	  (flags (if (php-number? flags) (onum->int flags) 0))
+	  (globbuf (pragma::c-glob-t* "(glob_t*)GC_malloc(sizeof(glob_t))"))
+	  (g-retval (c-glob pattern
+			    flags
+			    0
+			    globbuf)))
+      ;
+      ; XXX this may need work to be more portable
+      ;
+      (if (and (= g-retval 0)
+	       (>fx (pragma::int "$1->gl_pathc" globbuf) 0))
+	  (let ((rethash (make-php-hash)))
+	     (dotimes (i (pragma::int "$1->gl_pathc" globbuf))
+	       (php-hash-insert! rethash
+				 :next
+				 ($string->bstring (pragma::string "$1->gl_pathv[$2]"
+								   globbuf
+								   i))))
+	     (c-globfree globbuf)
+	     rethash)
+	  FALSE)))
+      
 
 ;; is_dir -- Tells whether the filename is a directory
 ; XXX bigloo 2.6e (which we use on mingw) segfaults when
