@@ -7,6 +7,7 @@ function first_digit($number) {
 }
 
 $testfile = 'file-test.txt';
+$testfile2 = 'file-test2.txt';
 
 $string = "this is some text
 
@@ -80,13 +81,23 @@ $fp = fopen($testfile, 'a');
 echo "append fputs: ".fputs($fp, "appended-text-blahblah")."\n";
 fclose($fp);
 
+// put file contents
+echo file_put_contents($testfile2, $string);
+
 // get file contents
-$newc = file_get_contents($testfile);
+$newc = file_get_contents($testfile2);
+echo "new contents: ($newc)\n";
+
+// put file contents
+echo file_put_contents($testfile2, array("line1\n","line2\n","line3","line4"), FILE_APPEND);
+
+// get file contents
+$newc = file_get_contents($testfile2);
 echo "new contents: ($newc)\n";
 
 // remove file
 unlink($testfile);
-
+unlink($testfile2);
 
 // basename
 $f = '/var/www/test/man/mack/the/knife/myfile.txt';

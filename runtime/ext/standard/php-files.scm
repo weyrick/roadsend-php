@@ -47,7 +47,7 @@
     (fgetss handle length allowable_tags) ; allowable_tags is optional
     (file_exists filename)
     (file_get_contents filename use_include_path context) ; use_include_path, context are optional
-;    (file_put_contents filename data flags context) ; flags, context are optional
+    (file_put_contents filename data flags context) ; flags, context are optional
     (file filename use_include_path context) ; use_include_path, context are optional
     (fileatime filename)
     (filectime filename)
@@ -149,6 +149,11 @@
 (defconstant GLOB_BRACE (int->onum c-GLOB_BRACE))
 (defconstant GLOB_ONLYDIR (int->onum c-GLOB_ONLYDIR))
 (defconstant GLOB_ERR (int->onum c-GLOB_ERR))
+
+(defconstant FILE_APPEND  1)
+(defconstant FILE_TEXT    2)
+(defconstant FILE_BINARU  4)
+(defconstant FILE_USE_INCLUDE_PATH 8)
 
 ;;;
 ;;; Resources
@@ -824,9 +829,33 @@
 
 
 ;; file_put_contents -- Write a string to a file
-;; XXX context ignored for now because stream contexts are not yet implemented -nd
-; (defbuiltin (file_put_contents filename data (flags 'unpassed) (context 'unpassed))
-;    FALSE)
+(defbuiltin (file_put_contents filename data (flags 'unpassed) (context 'unpassed))
+   (let* ((data (if (php-hash? data)
+		    (with-output-to-string
+		       (lambda ()
+			  (php-hash-for-each data
+					    (lambda (k v)
+					       (display v)))))
+		    (mkstr data)))
+	  (mode (if (php-number? flags)
+		    (if (php-> (bitwise-and FILE_APPEND flags) 0) "a" "w")
+		    "w"))
+	  (mode (if (php-number? flags)
+		    (if (php-> (bitwise-and FILE_TEXT flags) 0) mode (mkstr mode "b"))
+		    (mkstr mode "b")))
+	  (use_include_path (if (php-number? flags)
+				(if (php-> (bitwise-and FILE_USE_INCLUDE_PATH flags) 0) #t #f)
+				#f)))
+      (let ((s (php-fopen filename mode use_include_path context)))
+	 (cond
+	    ((stream? s)
+	     (begin0
+	      (fwrite s data (string-length data))
+	      (fclose s)))
+	    (else
+	     (php-warning "failed to open stream for " filename)
+	     FALSE)))))
+      
 
 ;; file -- Reads entire file into an array
 (defbuiltin (file filename (use_include_path 'unpassed) (context 'unpassed))
