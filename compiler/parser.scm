@@ -665,6 +665,9 @@
 	; = new $this->a(arg1,arg2) where a is a class property containing a class name
 	((newkey class-prop-fetch lpar arglist rpar)
          (make-constructor-invoke *parse-loc* class-prop-fetch arglist))
+	; = new $this->a where a is a class property containing a class name
+	((newkey class-prop-fetch)
+         (make-constructor-invoke *parse-loc* class-prop-fetch '()))
         ((newkey function-call);id-or-var constructor-arglist)
          (function-call->constructor function-call))
         ((newkey id-or-var)

@@ -80,7 +80,7 @@ $bpa = new $c(12);
 
 class bar {
   var $baz;
-  function bar($a) { $this->baz = $a; }
+  function bar($a='noarg') { $this->baz = $a; }
 }
 
 class foo {
@@ -88,7 +88,10 @@ class foo {
   var $a ='bar';
 
   function assign() {
-    $zap =& new $this->a('setbaz');
+    $zap = new $this->a('setbaz');
+    print_r($zap);
+    $zap2 = new $this->a;
+    print_r($zap);
   }
 
 }
