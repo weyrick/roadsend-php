@@ -1386,6 +1386,8 @@ argument, before the continuation: (obj prop ref? value k)."
 				 (and context-class
 				      (or (eqv? context-class
 						the-class)
+					  (eqv? context-class
+						(%php-method-origin-class the-method))
 					  (%subclass? context-class
 						      the-class))))
 			     (return accessible)
