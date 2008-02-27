@@ -63,6 +63,8 @@
 
 (define (fastcgi-main argv)
    (let ((req-doc-root #f)
+         (external-port #f)
+         (external-addr "")
 	 (force-doc-root (getenv "WEB_DOC_ROOT"))
 	 (max-requests (if (getenv "PHP_FCGI_MAX_REQUESTS")
 			   (mkfixnum (getenv "PHP_FCGI_MAX_REQUESTS"))
@@ -92,12 +94,11 @@
           (exit 0))
 	 ((("-d") ?level (help "Debug level"))
 	  (set! *debug-level* (string->integer level)))
+	 ((("-a" "--address") ?address (help "Set the address for starting an external server"))
+	  (set! external-addr (mkstr address)))
          ((("-e" "--external") ?port (help "Start an external server on port"))
-          (pragma "close(0)")
-          (unless (zero? (FCGX_OpenSocket (string-append ":" (integer->string (string->integer port))) 100))
-             (php-error "Unable to open socket.")))
-	 ((("-i" "--default-index") ?name (help
-					   (mkstr "Set the default index page name [default: " *webapp-index-page* "]")))
+	  (set! external-port (mkstr port)))
+	 ((("-i" "--default-index") ?name (help (mkstr "Set the default index page name [default: " *webapp-index-page* "]")))
 	  (set! *webapp-index-page* name))
          ((("-n" "--not-found") ?name (help (mkstr "Set the default not found page [default: " *webapp-404-page* "]")))
           (set! *webapp-404-page* name))
@@ -108,6 +109,11 @@
              (print "Illegal argument `" else "'. ")
              (args-parse-usage #f)
              (exit 1))))
+
+      (when external-port
+          (pragma "close(0)")
+          (unless (zero? (FCGX_OpenSocket (string-append external-addr ":" (integer->string (string->integer external-port))) 100))
+             (php-error "Unable to open socket.")))
 
       (when (getenv "PCC_INDEX_PAGE")
 	 (set! *webapp-index-page* (mkstr (getenv "PCC_INDEX_PAGE"))))
