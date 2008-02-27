@@ -682,28 +682,37 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
       ((#\X) -1)
       (else 0)))
 
-(define (get-byte n byte-num)
+(define (get-byte n::bint byte-num::bint)
    "excise the nth order byte from an integer"
-   (bit-and (bit-rsh n (* byte-num 8)) 255))
+   (bit-and (bit-rsh n (*fx byte-num 8)) 255))
 
-(define (pack-unsigned-long-big-endian n)
+(define (pack-unsigned-long-big-endian n::bint)
    "convert a number to a string packed as an unsigned long in big endian byte order"
    (string (integer->char (get-byte n 3))
 	   (integer->char (get-byte n 2))
 	   (integer->char (get-byte n 1))
 	   (integer->char (get-byte n 0))))
 
-(define (pack-unsigned-long-little-endian n)
+(define (pack-unsigned-long-little-endian n::bint)
    "convert a number to a string packed as an unsigned long in little endian byte order"
    (string (integer->char (get-byte n 0))
 	   (integer->char (get-byte n 1))
 	   (integer->char (get-byte n 2))
 	   (integer->char (get-byte n 3))))
 
-(define (pack-unsigned-short-little-endian n)
+(define (pack-unsigned-short-little-endian n::bint)
    "convert a number to a string packed as an unsigned short in little endian byte order"
    (string (integer->char (get-byte n 0))
 	   (integer->char (get-byte n 1))))
+
+(define (pack-unsigned-short-big-endian n::bint)
+   "convert a number to a string packed as an unsigned short in big endian byte order"
+   (string (integer->char (get-byte n 1))
+	   (integer->char (get-byte n 0))))
+
+(define (pack-unsigned-char n::bint)
+   "convert a number to a string packed as an unsigned char"
+   (string (integer->char (get-byte n 0))))
 
 ;;; XXXXXX Beware! Do not touch with a ten-foot pole. Do not sit in a box with this fox.
 ;;; I will fix this later. --Nate 2004-07-05
@@ -716,7 +725,7 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
  	  (format-error? #f)
   	  (args-and-space-counting-grammar
 	   (regular-grammar ()
-	      ((in #\N #\V #\v)
+	      ((in #\N #\n #\V #\v #\C)
 	       (set! args-consumed (+ args-consumed 1))
 	       (set! bytes-used (+ bytes-used (format-char->bytes-used (the-character))))
 	       (set! current-format-char (the-character))
@@ -775,12 +784,14 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 						 (set! local-args-list (cdr local-args-list))
 						 next)))))
 			  (pack-grammar (regular-grammar ()
-					   ((in #\N #\V #\v)
+					   ((in #\C #\N #\n #\V #\v)
 					    ;; set current format character
 					    (set! current-format-char (the-character))
 					    ;; pack the next argument according to the format character
 					    (case current-format-char
+					       ((#\C) (display (pack-unsigned-char (mkfixnum (next-arg)))))
 					       ((#\N) (display (pack-unsigned-long-big-endian (mkfixnum (next-arg)))))
+					       ((#\n) (display (pack-unsigned-short-big-endian (mkfixnum (next-arg)))))					       
 					       ((#\V) (display (pack-unsigned-long-little-endian (mkfixnum (next-arg)))))
 					       ((#\v) (display (pack-unsigned-short-little-endian (mkfixnum (next-arg))))))
 					    ;; increment the offset
@@ -822,7 +833,7 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
    (list-ref directive-triplet 2))
 
 (define (split-directive-string dstring)
-   (let ((parts (pregexp-match "^([NC])([0-9]+|\*)?(.+)?$" dstring)))
+   (let ((parts (pregexp-match "^([NVCv])([0-9]+|\*)?(.+)?$" dstring)))
       (if (not parts)
 	  #f ;; invalid directive string
 	  (let* ((parts-vector (list->vector (cdr parts)))
@@ -847,9 +858,23 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 			  (bit-lsh (char->integer (string-ref binstr 1)) 16)
 			  (bit-lsh (char->integer (string-ref binstr 2)) 8)
 			  (char->integer (string-ref binstr 3)))))
+
+(define (unpack-unsigned-long-little-endian binstr)
+   (convert-to-integer (+ (bit-lsh (char->integer (string-ref binstr 3)) 24)
+			  (bit-lsh (char->integer (string-ref binstr 2)) 16)
+			  (bit-lsh (char->integer (string-ref binstr 1)) 8)
+			  (char->integer (string-ref binstr 0)))))
+
+(define (unpack-unsigned-short-little-endian binstr)
+   (convert-to-integer (+ (bit-lsh (char->integer (string-ref binstr 1)) 8)
+			  (char->integer (string-ref binstr 0)))))
+
+(define (unpack-unsigned-short-big-endian binstr)
+   (convert-to-integer (+ (bit-lsh (char->integer (string-ref binstr 0)) 8)
+			  (char->integer (string-ref binstr 1)))))
    
 (define (unpack-unsigned-char binstr)
-   (string-ref binstr 0))
+   (char->integer (string-ref binstr 0)))
 
 ;; Unpack data from binary string
 (defbuiltin (unpack format data)
@@ -885,6 +910,9 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 		       (if (< i repeater)
 			   (let ((val (case char
 					 ((#\N) (unpack-unsigned-long-big-endian binstr))
+					 ((#\n) (unpack-unsigned-short-big-endian binstr))					 
+					 ((#\V) (unpack-unsigned-long-little-endian binstr))
+					 ((#\v) (unpack-unsigned-short-little-endian binstr))
 					 ((#\C) (unpack-unsigned-char binstr))
 					 (else ""))))
 			      (php-hash-insert! h (label-n i) val)

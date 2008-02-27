@@ -10,7 +10,7 @@ function hexdump($a) {
 
 
 function tp($fmt, $val) {
-    static $index=0;
+    static $index=1;
     echo "[$index]: orig  : ".sprintf("%d | 0x%02x\n",$val,$val);
     $v = pack($fmt, $val);
     echo "[$index]: pack  : ".hexdump($v);
@@ -34,17 +34,24 @@ tp("V", 2147483650);
 tp("V", 4294967296);
 tp("V", -2147483648);
 
+tp("v", 65534);
+tp("v", 65537);
+tp("v", 0);
+tp("v", -1000);
+tp("v", -64434);
+tp("v", -65535);
+
+tp("C", -127);
+tp("C", 127);
+tp("C", 255);
+tp("C", -129);
+
 
 /*
 print_r(unpack("A", pack("A", "hello world")));
 print_r(unpack("A*", pack("A*", "hello world")));
 echo '"'.pack("A9", "hello").'"';
 echo "\n";
-
-print_r(unpack("C", pack("C", -127)));
-print_r(unpack("C", pack("C", 127)));
-print_r(unpack("C", pack("C", 255)));
-print_r(unpack("C", pack("C", -129)));
 
 print_r(unpack("H", pack("H", 0x04)));
 
@@ -105,12 +112,6 @@ print_r(unpack("s", pack("s", -1000)));
 print_r(unpack("s", pack("s", -64434)));
 print_r(unpack("s", pack("s", -65535)));
 
-print_r(unpack("v", pack("v", 65534)));
-print_r(unpack("v", pack("v", 65537)));
-print_r(unpack("v", pack("v", 0)));
-print_r(unpack("v", pack("v", -1000)));
-print_r(unpack("v", pack("v", -64434)));
-print_r(unpack("v", pack("v", -65535)));
   */
 
 ?>
