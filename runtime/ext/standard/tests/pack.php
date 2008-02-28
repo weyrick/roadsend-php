@@ -46,6 +46,50 @@ tp("C", 127);
 tp("C", 255);
 tp("C", -129);
 
+tp("c", -127);
+tp("c", 127);
+tp("c", 255);
+tp("c", -129);
+
+tp("L", 65534);
+tp("L", 0);
+tp("L", 2147483650);
+tp("L", 4294967295);
+tp("L", -2147483648);
+
+tp("l", 65534);
+tp("l", 0);
+tp("l", 2147483650);
+tp("l", 4294967295);
+tp("l", -2147483648);
+
+tp("I", 65534);
+tp("I", 0);
+tp("I", -1000);
+tp("I", -64434);
+tp("I", 4294967296);
+tp("I", -4294967296);
+
+tp("i", 65534);
+tp("i", 0);
+tp("i", -1000);
+tp("i", -64434);
+tp("i", 4294967296);
+tp("i", -4294967296);
+
+tp("S", 65534);
+tp("S", 65537);
+tp("S", 0);
+tp("S", -1000);
+tp("S", -64434);
+tp("S", -65535);
+
+tp("s", 65534);
+tp("s", 65537);
+tp("s", 0);
+tp("s", -1000);
+tp("s", -64434);
+tp("s", -65535);
 
 /*
 print_r(unpack("A", pack("A", "hello world")));
@@ -55,48 +99,10 @@ echo "\n";
 
 print_r(unpack("H", pack("H", 0x04)));
 
-print_r(unpack("I", pack("I", 65534)));
-print_r(unpack("I", pack("I", 0)));
-print_r(unpack("I", pack("I", -1000)));
-print_r(unpack("I", pack("I", -64434)));
-print_r(unpack("I", pack("I", 4294967296)));
-print_r(unpack("I", pack("I", -4294967296)));
-
-print_r(unpack("L", pack("L", 65534)));
-print_r(unpack("L", pack("L", 0)));
-print_r(unpack("L", pack("L", 2147483650)));
-print_r(unpack("L", pack("L", 4294967295)));
-print_r(unpack("L", pack("L", -2147483648)));
-
-print_r(unpack("S", pack("S", 65534)));
-print_r(unpack("S", pack("S", 65537)));
-print_r(unpack("S", pack("S", 0)));
-print_r(unpack("S", pack("S", -1000)));
-print_r(unpack("S", pack("S", -64434)));
-print_r(unpack("S", pack("S", -65535)));
-
 print_r(unpack("a", pack("a", "hello world")));
 print_r(unpack("a*", pack("a*", "hello world")));
 
-print_r(unpack("c", pack("c", -127)));
-print_r(unpack("c", pack("c", 127)));
-print_r(unpack("c", pack("c", 255)));
-print_r(unpack("c", pack("c", -129)));
-
 print_r(unpack("h", pack("h", 3000000)));
-
-print_r(unpack("i", pack("i", 65534)));
-print_r(unpack("i", pack("i", 0)));
-print_r(unpack("i", pack("i", -1000)));
-print_r(unpack("i", pack("i", -64434)));
-print_r(unpack("i", pack("i", -65535)));
-print_r(unpack("i", pack("i", -2147483647)));
-
-print_r(unpack("l", pack("l", 65534)));
-print_r(unpack("l", pack("l", 0)));
-print_r(unpack("l", pack("l", 2147483650)));
-print_r(unpack("l", pack("l", 4294967296)));
-print_r(unpack("l", pack("l", -2147483648)));
 
 print_r(unpack("n", pack("n", 65534)));
 print_r(unpack("n", pack("n", 65537)));
@@ -104,13 +110,6 @@ print_r(unpack("n", pack("n", 0)));
 print_r(unpack("n", pack("n", -1000)));
 print_r(unpack("n", pack("n", -64434)));
 print_r(unpack("n", pack("n", -65535)));
-
-print_r(unpack("s", pack("s", 32767)));
-print_r(unpack("s", pack("s", 65535)));
-print_r(unpack("s", pack("s", 0)));
-print_r(unpack("s", pack("s", -1000)));
-print_r(unpack("s", pack("s", -64434)));
-print_r(unpack("s", pack("s", -65535)));
 
   */
 
