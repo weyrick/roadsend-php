@@ -847,7 +847,7 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
    (list-ref directive-triplet 2))
 
 (define (split-directive-string dstring)
-   (let ((parts (pregexp-match "^([NVCv])([0-9]+|\*)?(.+)?$" dstring)))
+   (let ((parts (pregexp-match "^([NVLlCcv])([0-9]+|\*)?(.+)?$" dstring)))
       (if (not parts)
 	  #f ;; invalid directive string
 	  (let* ((parts-vector (list->vector (cdr parts)))
@@ -867,28 +867,63 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 	  (reverse triplets)
 	  (loop (cons (split-directive-string (car directive-strings)) triplets) (cdr directive-strings)))))
 
+(define (unpack-unsigned-long-machine binstr)
+   (if *little-endian?*
+       (unpack-unsigned-long-little-endian binstr)
+       (unpack-unsigned-long-big-endian binstr)))
+
+(define (unpack-signed-long-machine binstr)
+   (if *little-endian?*
+       (unpack-signed-long-little-endian binstr)
+       (unpack-signed-long-big-endian binstr)))
+
+(define (unpack-signed-long-big-endian binstr)
+   (elong->onum (pragma::elong "($1 << 24) | ($2 << 16) | ($3 << 8) | $4"
+			       (string-ref binstr 0)
+			       (string-ref binstr 1)
+			       (string-ref binstr 2)
+			       (string-ref binstr 3)
+			       )))
+
+(define (unpack-signed-long-little-endian binstr)
+   (elong->onum (pragma::elong "($1 << 24) | ($2 << 16) | ($3 << 8) | $4"
+			       (string-ref binstr 3)
+			       (string-ref binstr 2)
+			       (string-ref binstr 1)
+			       (string-ref binstr 0)
+			       )))
+
 (define (unpack-unsigned-long-big-endian binstr)
-   (convert-to-integer (+ (bit-lsh (char->integer (string-ref binstr 0)) 24)
-			  (bit-lsh (char->integer (string-ref binstr 1)) 16)
-			  (bit-lsh (char->integer (string-ref binstr 2)) 8)
-			  (char->integer (string-ref binstr 3)))))
+   (elong->onum (pragma::elong "($1 << 24) + ($2 << 16) + ($3 << 8) + $4"
+			       (string-ref binstr 0)
+			       (string-ref binstr 1)
+			       (string-ref binstr 2)
+			       (string-ref binstr 3)
+			       )))
 
 (define (unpack-unsigned-long-little-endian binstr)
-   (convert-to-integer (+ (bit-lsh (char->integer (string-ref binstr 3)) 24)
-			  (bit-lsh (char->integer (string-ref binstr 2)) 16)
-			  (bit-lsh (char->integer (string-ref binstr 1)) 8)
-			  (char->integer (string-ref binstr 0)))))
+   (elong->onum (pragma::elong "($1 << 24) + ($2 << 16) + ($3 << 8) + $4"
+			       (string-ref binstr 3)
+			       (string-ref binstr 2)
+			       (string-ref binstr 1)
+			       (string-ref binstr 0)
+			       )))
 
 (define (unpack-unsigned-short-little-endian binstr)
-   (convert-to-integer (+ (bit-lsh (char->integer (string-ref binstr 1)) 8)
-			  (char->integer (string-ref binstr 0)))))
+   (int->onum (pragma::int "($1 << 8) + $2"
+			   (string-ref binstr 1)
+			   (string-ref binstr 0))))
 
 (define (unpack-unsigned-short-big-endian binstr)
-   (convert-to-integer (+ (bit-lsh (char->integer (string-ref binstr 0)) 8)
-			  (char->integer (string-ref binstr 1)))))
+   (int->onum (pragma::int "($1 << 8) + $2"
+			   (string-ref binstr 0)
+			   (string-ref binstr 1))))   
    
 (define (unpack-unsigned-char binstr)
-   (char->integer (string-ref binstr 0)))
+   (int->onum (char->integer (string-ref binstr 0))))
+
+(define (unpack-signed-char binstr)
+   (int->onum (pragma::int "(signed char)$1" (string-ref binstr 0))))
 
 ;; Unpack data from binary string
 (defbuiltin (unpack format data)
@@ -923,11 +958,14 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 		    (let repeat ((i 0) (binstr binstr))
 		       (if (< i repeater)
 			   (let ((val (case char
+					 ((#\L) (unpack-unsigned-long-machine binstr))
+					 ((#\l) (unpack-signed-long-machine binstr))
 					 ((#\N) (unpack-unsigned-long-big-endian binstr))
 					 ((#\n) (unpack-unsigned-short-big-endian binstr))					 
 					 ((#\V) (unpack-unsigned-long-little-endian binstr))
 					 ((#\v) (unpack-unsigned-short-little-endian binstr))
 					 ((#\C) (unpack-unsigned-char binstr))
+					 ((#\c) (unpack-signed-char binstr))
 					 (else ""))))
 			      (php-hash-insert! h (label-n i) val)
 			      (repeat (+ i 1) (substring binstr bytes-used (string-length binstr))))
