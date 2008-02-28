@@ -53,7 +53,6 @@ C_SOURCE_LIST   = strnatcmp \
 		  c-files \
 		  streams \
 		  php-system \
-		  pack \
 		  $(WINDOWS_C_SUPPORT)
 
 C_SOURCE_FLAGS = 
