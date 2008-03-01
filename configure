@@ -3120,7 +3120,7 @@ test -n "$target_alias" &&
 
 # can't figure out how to get this into AC_CHECK_PROG_VER below?
 # have to change it there too
-want_bigloo="3.0b, 3.0c, 3.0d"
+want_bigloo="3.0c, 3.0d"
 want_curl=7.15.1
 
 # defaults
@@ -3190,7 +3190,7 @@ echo $ECHO_N "checking version of $HAVE_BIGLOO... $ECHO_C" >&6; }
   ac_prog_version=`$HAVE_BIGLOO -revision 2>&1 | sed -n 's/^.*\([2-9].[0-9][a-z]\).*$/\1/p'`
   case $ac_prog_version in
     '') ac_prog_version_m="v. ?.??, bad"; ac_verc_fail=yes;;
-    3.0b | 3.0c | 3.0d)
+    3.0c | 3.0d)
        ac_prog_version_m="$ac_prog_version, ok"; ac_verc_fail=no;;
     *) ac_prog_version_m="$ac_prog_version, bad"; ac_verc_fail=yes;;
 
