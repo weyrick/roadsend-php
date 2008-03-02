@@ -646,29 +646,29 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
       ((#\X) -1)
       (else 0)))
 
-(define-inline (get-byte-0 n::bint)
+(define-inline (get-byte-0 n::elong)
    (bit-and n #xFF))
-(define-inline (get-byte-1 n::bint)
+(define-inline (get-byte-1 n::elong)
    (bit-and (bit-rsh n 8) #xFF))
-(define-inline (get-byte-2 n::bint)
+(define-inline (get-byte-2 n::elong)
    (bit-and (bit-rsh n 16) #xFF))
-(define-inline (get-byte-3 n::bint)
+(define-inline (get-byte-3 n::elong)
    (bit-and (bit-rsh n 24) #xFF))
-(define-inline (get-byte-4 n::bint)
+(define-inline (get-byte-4 n::elong)
    (bit-and (bit-rsh n 32) #xFF))
-(define-inline (get-byte-5 n::bint)
+(define-inline (get-byte-5 n::elong)
    (bit-and (bit-rsh n 40) #xFF))
-(define-inline (get-byte-6 n::bint)
+(define-inline (get-byte-6 n::elong)
    (bit-and (bit-rsh n 48) #xFF))
-(define-inline (get-byte-7 n::bint)
+(define-inline (get-byte-7 n::elong)
    (bit-and (bit-rsh n 54) #xFF))
-(define (get-byte-n n::bint bytenum::bint)
+(define (get-byte-n n::elong bytenum::bint)
    (bit-and (bit-rsh n (*fx 8 bytenum)) #xFF))
 
 ; * see the comp.lang.c FAQ at http://www.eskimo.com/~scs/C-faq/q20.9.html
 (define *little-endian?* (let ((x::int 1)) (pragma::bbool "(*(char *)&$1 == 1)" x)))
 
-(define (pack-unsigned-int-machine n::bint)
+(define (pack-unsigned-int-machine n::elong)
    (let* ((intsize (format-char->bytes-used #\i))
 	  (start-byte (if *little-endian?* 0 intsize))
 	  (stop-byte (if *little-endian?* intsize 0))
@@ -682,43 +682,46 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 	    (loop (move byte-i 1) (+fx str-i 1))))
       packed-string))
 
-(define (pack-unsigned-long-machine n::bint)
+(define (pack-unsigned-long-machine n::elong)
    (if *little-endian?*
        (pack-unsigned-long-little-endian n)
        (pack-unsigned-long-big-endian n)))
 
-(define (pack-unsigned-short-machine n::bint)
+(define (pack-unsigned-short-machine n::elong)
    (if *little-endian?*
        (pack-unsigned-short-little-endian n)
        (pack-unsigned-short-big-endian n)))
 
-(define (pack-unsigned-long-big-endian n::bint)
+(define (pack-unsigned-long-big-endian n::elong)
    "convert a number to a string packed as an unsigned long in big endian byte order"
    (string (integer->char (get-byte-3 n))
 	   (integer->char (get-byte-2 n))
 	   (integer->char (get-byte-1 n))
 	   (integer->char (get-byte-0 n))))
 
-(define (pack-unsigned-long-little-endian n::bint)
+(define (pack-unsigned-long-little-endian n::elong)
    "convert a number to a string packed as an unsigned long in little endian byte order"
    (string (integer->char (get-byte-0 n))
 	   (integer->char (get-byte-1 n))
 	   (integer->char (get-byte-2 n))
 	   (integer->char (get-byte-3 n))))
 
-(define (pack-unsigned-short-little-endian n::bint)
+(define (pack-unsigned-short-little-endian n::elong)
    "convert a number to a string packed as an unsigned short in little endian byte order"
    (string (integer->char (get-byte-0 n))
 	   (integer->char (get-byte-1 n))))
 
-(define (pack-unsigned-short-big-endian n::bint)
+(define (pack-unsigned-short-big-endian n::elong)
    "convert a number to a string packed as an unsigned short in big endian byte order"
    (string (integer->char (get-byte-1 n))
 	   (integer->char (get-byte-0 n))))
 
-(define (pack-unsigned-char n::bint)
+(define (pack-unsigned-char n::elong)
    "convert a number to a string packed as an unsigned char"
    (integer->char (get-byte-0 n)))
+
+(define-inline (mkelong::elong thing)
+   (onum->elong (convert-to-number thing)))
 
 ;;; XXXXXX Beware! Do not touch with a ten-foot pole. Do not sit in a box with this fox.
 ;;; I will fix this later. --Nate 2004-07-05
@@ -795,14 +798,14 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 					    (set! current-format-char (the-character))
 					    ;; pack the next argument according to the format character
 					    (case current-format-char
-					       ((#\C #\c) (display (pack-unsigned-char (mkfixnum (next-arg)))))
-					       ((#\L #\l) (display (pack-unsigned-long-machine (mkfixnum (next-arg)))))
-					       ((#\I #\i) (display (pack-unsigned-int-machine (mkfixnum (next-arg)))))
-					       ((#\S #\s) (display (pack-unsigned-short-machine (mkfixnum (next-arg)))))					       
-					       ((#\N) (display (pack-unsigned-long-big-endian (mkfixnum (next-arg)))))
-					       ((#\n) (display (pack-unsigned-short-big-endian (mkfixnum (next-arg)))))
-					       ((#\V) (display (pack-unsigned-long-little-endian (mkfixnum (next-arg)))))
-					       ((#\v) (display (pack-unsigned-short-little-endian (mkfixnum (next-arg))))))
+					       ((#\C #\c) (display (pack-unsigned-char (mkelong (next-arg)))))
+					       ((#\L #\l) (display (pack-unsigned-long-machine (mkelong (next-arg)))))
+					       ((#\I #\i) (display (pack-unsigned-int-machine (mkelong (next-arg)))))
+					       ((#\S #\s) (display (pack-unsigned-short-machine (mkelong (next-arg)))))					       
+					       ((#\N) (display (pack-unsigned-long-big-endian (mkelong (next-arg)))))
+					       ((#\n) (display (pack-unsigned-short-big-endian (mkelong (next-arg)))))
+					       ((#\V) (display (pack-unsigned-long-little-endian (mkelong (next-arg)))))
+					       ((#\v) (display (pack-unsigned-short-little-endian (mkelong (next-arg))))))
 					    ;; increment the offset
 					    (set! offset (+ offset (format-char->bytes-used current-format-char))))
 					   (#\*
@@ -812,14 +815,14 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 						  ;(d "mkfixnum(" next ") ==> " (mkfixnum next))
 						  ;; duplicate some code. very important.
 						  (case current-format-char
-						     ((#\C #\c) (display (pack-unsigned-char (mkfixnum next))))
-						     ((#\L #\l) (display (pack-unsigned-long-machine (mkfixnum next))))
-						     ((#\I #\i) (display (pack-unsigned-int-machine (mkfixnum next))))
-						     ((#\S #\s) (display (pack-unsigned-short-machine (mkfixnum next))))
-						     ((#\N) (display (pack-unsigned-long-big-endian (mkfixnum next))))
-						     ((#\n) (display (pack-unsigned-short-big-endian (mkfixnum next))))
-						     ((#\V) (display (pack-unsigned-long-little-endian (mkfixnum next))))
-						     ((#\v) (display (pack-unsigned-short-little-endian (mkfixnum next)))))
+						     ((#\C #\c) (display (pack-unsigned-char (mkelong next))))
+						     ((#\L #\l) (display (pack-unsigned-long-machine (mkelong next))))
+						     ((#\I #\i) (display (pack-unsigned-int-machine (mkelong next))))
+						     ((#\S #\s) (display (pack-unsigned-short-machine (mkelong next))))
+						     ((#\N) (display (pack-unsigned-long-big-endian (mkelong next))))
+						     ((#\n) (display (pack-unsigned-short-big-endian (mkelong next))))
+						     ((#\V) (display (pack-unsigned-long-little-endian (mkelong next))))
+						     ((#\v) (display (pack-unsigned-short-little-endian (mkelong next)))))
 						  ;; increment the offset
 						  (set! offset (+ offset (format-char->bytes-used current-format-char)))
 						  ;(d "*loop offset: " offset)
