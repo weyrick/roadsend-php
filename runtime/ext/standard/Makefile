@@ -43,7 +43,9 @@ SOURCE_LIST     = php-strings \
 		  php-image \
 		  url \
 		  soundex \
-		  php-var-cache
+		  php-var-cache \
+		  pack \
+		  re-extensions
 
 
 C_SOURCE_LIST   = strnatcmp \

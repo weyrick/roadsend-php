@@ -24,6 +24,8 @@
     (include "php-system.h")
     (macro php-c-system::obj (str1::string) "php_c_system"))
    (import
+    (php-pack "pack.scm")
+    (re-extension-lib "re-extensions.scm")    
     (php-string-lib "php-strings.scm")
     (php-math-lib "php-math.scm")
     (php-files-lib "php-files.scm")
@@ -45,22 +47,12 @@
      E_LOG_FILE
      PHP_SHLIB_SUFFIX
      ;; builtins
-     ;; RAVEN
-     (get_loaded_libs)
-     (roadsend_pcc)
-     (cpy thing)
-     (_default_error_handler errno errstr errfile errline vars)
-     (_default_exception_handler exception_obj)
-     (constant name)
-     (pcc_register_extension php-ext-name ext-lib-name version depends-on)     
-     ;
-     ;
+     (init-php-standard-lib)     
      (getlastmod)
      (getmygid)
      (getmypid)
      (getmyuid)
      (get_current_user)
-     ; options, misc
      (set_include_path path)
      (get_included_files)
      (get_include_dirs)
@@ -86,6 +78,7 @@
      (get_defined_vars)
      (set_time_limit secs)
      (dl module)
+     (constant name)
      (defined var)
      ; php info, versioning, etc
      (phpinfo infotype)
@@ -95,6 +88,8 @@
      (php_uname)
      (php_sapi_name)
      ; error handling
+     (_default_error_handler errno errstr errfile errline vars)
+     (_default_exception_handler exception_obj)
      (error_reporting number)
      (set_error_handler handler-name)
      (restore_error_handler)
@@ -125,18 +120,16 @@
      (function_exists func)
      (shell_exec command)
      (is_callable var syntax-only name)
-     (init-php-standard-lib)
-     
      ;;variable arity user functions
      (func_get_args)
      (func_num_args)
      (func_get_arg arg-num)
-
      (create_function args body)
     ))
 
 ; init the module
 (define (init-php-standard-lib)
+   (init-re-extension-lib)
    (init-php-variable-lib)
    (init-php-string-lib)
    (init-php-math-lib)
@@ -167,6 +160,13 @@
                     required-extensions: '("compiler" "curl"))
  
 ;;;;;;;
+
+
+(defbuiltin-v (pack format args)
+   (do-pack format args))
+
+(defbuiltin (unpack format data)
+   (do-unpack format data))
 
 (defbuiltin (getlastmod)
    (file-modification-time *PHP-FILE*))
@@ -370,17 +370,6 @@
       FALSE))
 
 
-;; RAVEN
-; get a list of PHP libs loaded from pcc.conf
-(defbuiltin (get_loaded_libs)
-   (list->php-hash *user-libs*))
-			 
-
-(defbuiltin (roadsend_pcc)
-   #t)
-
-;;;
-
 ; get a list of functions currently in builtins
 ; will include library functions
 (defbuiltin (get_defined_functions)
@@ -560,7 +549,7 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
        (begin
 	  (echo "== PHP Libraries ==\n")
 	  (if (> (length *user-libs*) 0)
-	      (php-hash-for-each (get_loaded_libs)
+	      (php-hash-for-each (re_get_loaded_libs)
 				 (lambda (k v)
 				    (echo (mkstr v "\n"))))
 	      (echo "none\n")))
@@ -568,7 +557,7 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 	  (echo "<table BORDER=\"0\" width=\"700\" cellpadding=\"3\" bgcolor=\"#EEF6F7\" class=\"h1mainColor\" ALIGN=\"CENTER\">")
 	  (echo "<tr><td class=\"header\">PHP Libraries</td></tr>")
 	  (if (> (length *user-libs*) 0)
-	      (php-hash-for-each (get_loaded_libs)
+	      (php-hash-for-each (re_get_loaded_libs)
 				 (lambda (k v)
 				    (echo (mkstr "<TR><TD class=\"b1lowColor\" valign=\"top\">" v "</TD></TR>"))))
 	      (echo "<TR><TD class=\"b1lowColor\" valign=\"top\">none</TD></TR>"))
@@ -633,346 +622,6 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 	  ;special error that'll be filtered out.
 	  (error 'php-exit "exiting" 'php-exit))))
 
-(define (format-char->bytes-used char)
-   "return the number of bytes consumed by a given format directive"
-   (case char
-      ((#\h #\H) .5)
-      ((#\a #\A #\c #\C #\x) 1)
-      ((#\s #\S #\n #\v) 2)
-      ((#\i #\I) (pragma::int "sizeof(int)"))
-      ((#\l #\L #\N #\V) 4)
-      ((#\f) (pragma::int "sizeof(float)"))
-      ((#\d) (pragma::int "sizeof(double)"))
-      ((#\X) -1)
-      (else 0)))
-
-(define-inline (get-byte-0 n::elong)
-   (bit-and n #xFF))
-(define-inline (get-byte-1 n::elong)
-   (bit-and (bit-rsh n 8) #xFF))
-(define-inline (get-byte-2 n::elong)
-   (bit-and (bit-rsh n 16) #xFF))
-(define-inline (get-byte-3 n::elong)
-   (bit-and (bit-rsh n 24) #xFF))
-(define-inline (get-byte-4 n::elong)
-   (bit-and (bit-rsh n 32) #xFF))
-(define-inline (get-byte-5 n::elong)
-   (bit-and (bit-rsh n 40) #xFF))
-(define-inline (get-byte-6 n::elong)
-   (bit-and (bit-rsh n 48) #xFF))
-(define-inline (get-byte-7 n::elong)
-   (bit-and (bit-rsh n 54) #xFF))
-(define (get-byte-n n::elong bytenum::bint)
-   (bit-and (bit-rsh n (*fx 8 bytenum)) #xFF))
-
-; * see the comp.lang.c FAQ at http://www.eskimo.com/~scs/C-faq/q20.9.html
-(define *little-endian?* (let ((x::int 1)) (pragma::bbool "(*(char *)&$1 == 1)" x)))
-
-(define (pack-unsigned-int-machine n::elong)
-   (let* ((intsize (format-char->bytes-used #\i))
-	  (start-byte (if *little-endian?* 0 intsize))
-	  (stop-byte (if *little-endian?* intsize 0))
-	  (move (if *little-endian?* +fx -fx))
-	  (check (if *little-endian?* <fx >fx))
-	  (packed-string (make-string intsize)))
-      (let loop ((byte-i start-byte)
-		 (str-i 0))
-	 (when (check byte-i stop-byte)
-	    (string-set! packed-string str-i (integer->char (get-byte-n n byte-i)))
-	    (loop (move byte-i 1) (+fx str-i 1))))
-      packed-string))
-
-(define (pack-unsigned-long-machine n::elong)
-   (if *little-endian?*
-       (pack-unsigned-long-little-endian n)
-       (pack-unsigned-long-big-endian n)))
-
-(define (pack-unsigned-short-machine n::elong)
-   (if *little-endian?*
-       (pack-unsigned-short-little-endian n)
-       (pack-unsigned-short-big-endian n)))
-
-(define (pack-unsigned-long-big-endian n::elong)
-   "convert a number to a string packed as an unsigned long in big endian byte order"
-   (string (integer->char (get-byte-3 n))
-	   (integer->char (get-byte-2 n))
-	   (integer->char (get-byte-1 n))
-	   (integer->char (get-byte-0 n))))
-
-(define (pack-unsigned-long-little-endian n::elong)
-   "convert a number to a string packed as an unsigned long in little endian byte order"
-   (string (integer->char (get-byte-0 n))
-	   (integer->char (get-byte-1 n))
-	   (integer->char (get-byte-2 n))
-	   (integer->char (get-byte-3 n))))
-
-(define (pack-unsigned-short-little-endian n::elong)
-   "convert a number to a string packed as an unsigned short in little endian byte order"
-   (string (integer->char (get-byte-0 n))
-	   (integer->char (get-byte-1 n))))
-
-(define (pack-unsigned-short-big-endian n::elong)
-   "convert a number to a string packed as an unsigned short in big endian byte order"
-   (string (integer->char (get-byte-1 n))
-	   (integer->char (get-byte-0 n))))
-
-(define (pack-unsigned-char n::elong)
-   "convert a number to a string packed as an unsigned char"
-   (integer->char (get-byte-0 n)))
-
-(define-inline (mkelong::elong thing)
-   (onum->elong (convert-to-number thing)))
-
-;;; XXXXXX Beware! Do not touch with a ten-foot pole. Do not sit in a box with this fox.
-;;; I will fix this later. --Nate 2004-07-05
-;; Pack data into binary string.
-(defbuiltin-v (pack format args)
-   (let* ((num-of-args (length args))
- 	  (args-consumed 0)
- 	  (bytes-used 0)
- 	  (current-format-char #f)
- 	  (format-error? #f)
-  	  (args-and-space-counting-grammar
-	   (regular-grammar ()
-	      ((in #\N #\n #\V #\v #\C #\c #\L #\l #\I #\i #\S #\s)
-	       (set! args-consumed (+ args-consumed 1))
-	       (set! bytes-used (+ bytes-used (format-char->bytes-used (the-character))))
-	       (set! current-format-char (the-character))
-	       #t)
-	      (#\*
-	       (let ((remaining-args (max 0 (- num-of-args args-consumed))))
-		  (cond ((not current-format-char)
-			 (php-warning "invalid format string: '" format
-				      "' -- '*' not preceeded by a valid format character.")
-			 (set! format-error? #t)
-			 #f)
-			(else
-			 (set! args-consumed (+ args-consumed remaining-args))
-			 (set! bytes-used (+ bytes-used
-					     (* (format-char->bytes-used current-format-char)
-						remaining-args)))
-			 #t))))
-	      ((or all #\Newline)
-	       (php-warning "illegal format character: '" (the-character) "'")
-	       (set! format-error? #t)
-	       #f)
-	      (else #f))))
-      ;; determine number of arguments and bytes of space consumed by format string
-      (with-input-from-string format
- 	 (lambda ()
- 	    (let loop ()
- 	       (when (and (not format-error?)
- 			  (read/rp args-and-space-counting-grammar (current-input-port)))
- 		  (loop)))))
-      ;(d "num-of-args: " num-of-args)
-      ;(d "args-consumed: " args-consumed)
-      ;(d "bytes-used: " bytes-used)
-      ;(d "format-error?: " (if format-error? "yes" "no"))
-      ;; check for some error conditions and then pack baby pack!!
-      (cond (format-error? FALSE)
- 	    ((< num-of-args args-consumed)
- 	     (php-warning "too few arguments. Format string '" format "' requires " args-consumed
- 			  ", but only " num-of-args " were provided.")
- 	     FALSE)
- 	    ((> num-of-args args-consumed)
- 	     (php-warning "too many arguments. Format string '" format "' requires " args-consumed
- 			  ", but " num-of-args " were provided.")
- 	     FALSE)
- 	    (else
-	     (with-output-to-string
-		(lambda ()
-		   (let* ((current-format-char #f)
-			  (offset 0)
-			  (next-arg (let ((local-args-list args))
-				       (lambda ()
-					  ;(d "remaining args: " (length local-args-list))
-					  (if (null? local-args-list)
-					      #f
-					      (let ((next (car local-args-list)))
-						 ;(d "next arg: " next)
-						 (set! local-args-list (cdr local-args-list))
-						 next)))))
-			  (pack-grammar (regular-grammar ()
-					   ((in #\C #\c #\N #\n #\V #\v #\L #\l #\I #\i #\S #\s)
-					    ;; set current format character
-					    (set! current-format-char (the-character))
-					    ;; pack the next argument according to the format character
-					    (case current-format-char
-					       ((#\C #\c) (display (pack-unsigned-char (mkelong (next-arg)))))
-					       ((#\L #\l) (display (pack-unsigned-long-machine (mkelong (next-arg)))))
-					       ((#\I #\i) (display (pack-unsigned-int-machine (mkelong (next-arg)))))
-					       ((#\S #\s) (display (pack-unsigned-short-machine (mkelong (next-arg)))))					       
-					       ((#\N) (display (pack-unsigned-long-big-endian (mkelong (next-arg)))))
-					       ((#\n) (display (pack-unsigned-short-big-endian (mkelong (next-arg)))))
-					       ((#\V) (display (pack-unsigned-long-little-endian (mkelong (next-arg)))))
-					       ((#\v) (display (pack-unsigned-short-little-endian (mkelong (next-arg))))))
-					    ;; increment the offset
-					    (set! offset (+ offset (format-char->bytes-used current-format-char))))
-					   (#\*
-					    (let loop ((next (next-arg)))
-					       (when next
-						  ;; pack the next argument according to the format character
-						  ;(d "mkfixnum(" next ") ==> " (mkfixnum next))
-						  ;; duplicate some code. very important.
-						  (case current-format-char
-						     ((#\C #\c) (display (pack-unsigned-char (mkelong next))))
-						     ((#\L #\l) (display (pack-unsigned-long-machine (mkelong next))))
-						     ((#\I #\i) (display (pack-unsigned-int-machine (mkelong next))))
-						     ((#\S #\s) (display (pack-unsigned-short-machine (mkelong next))))
-						     ((#\N) (display (pack-unsigned-long-big-endian (mkelong next))))
-						     ((#\n) (display (pack-unsigned-short-big-endian (mkelong next))))
-						     ((#\V) (display (pack-unsigned-long-little-endian (mkelong next))))
-						     ((#\v) (display (pack-unsigned-short-little-endian (mkelong next)))))
-						  ;; increment the offset
-						  (set! offset (+ offset (format-char->bytes-used current-format-char)))
-						  ;(d "*loop offset: " offset)
-						  (loop (next-arg)))))
-					   (else #f))))
-		      (with-input-from-string format
-			 (lambda ()
-			    (let loop ()
-			       ;(d "offset: " offset)
-			       (when (read/rp pack-grammar (current-input-port))
-				  (loop))))))))))))
-
-
-; ;Syntax highlighting of a file
-; (defbuiltin (show_source)
-;    )
-
-(define (directive-char directive-triplet)
-   (list-ref directive-triplet 0))
-
-(define (directive-repeater directive-triplet)
-   (list-ref directive-triplet 1))
-
-(define (directive-label directive-triplet)
-   (list-ref directive-triplet 2))
-
-(define (split-directive-string dstring)
-   (let ((parts (pregexp-match "^([NVLlCcv])([0-9]+|\*)?(.+)?$" dstring)))
-      (if (not parts)
-	  #f ;; invalid directive string
-	  (let* ((parts-vector (list->vector (cdr parts)))
-		 (directive-char (string-ref (vector-ref parts-vector 0) 0))
-		 (repeater-arg   (vector-ref parts-vector 1))
-		 (label          (vector-ref parts-vector 2)))
-	     (list directive-char
-		   (if repeater-arg
-		       (or (string->number repeater-arg)
-			   #\*)
-		       1)
-		   label)))))
-			      
-(define (split-unpack-format-string format)
-   (let loop ((triplets '()) (directive-strings (pregexp-split "/" format)))
-      (if (null? directive-strings)
-	  (reverse triplets)
-	  (loop (cons (split-directive-string (car directive-strings)) triplets) (cdr directive-strings)))))
-
-(define (unpack-unsigned-long-machine binstr)
-   (if *little-endian?*
-       (unpack-unsigned-long-little-endian binstr)
-       (unpack-unsigned-long-big-endian binstr)))
-
-(define (unpack-signed-long-machine binstr)
-   (if *little-endian?*
-       (unpack-signed-long-little-endian binstr)
-       (unpack-signed-long-big-endian binstr)))
-
-(define (unpack-signed-long-big-endian binstr)
-   (elong->onum (pragma::elong "($1 << 24) | ($2 << 16) | ($3 << 8) | $4"
-			       (string-ref binstr 0)
-			       (string-ref binstr 1)
-			       (string-ref binstr 2)
-			       (string-ref binstr 3)
-			       )))
-
-(define (unpack-signed-long-little-endian binstr)
-   (elong->onum (pragma::elong "($1 << 24) | ($2 << 16) | ($3 << 8) | $4"
-			       (string-ref binstr 3)
-			       (string-ref binstr 2)
-			       (string-ref binstr 1)
-			       (string-ref binstr 0)
-			       )))
-
-(define (unpack-unsigned-long-big-endian binstr)
-   (elong->onum (pragma::elong "($1 << 24) + ($2 << 16) + ($3 << 8) + $4"
-			       (string-ref binstr 0)
-			       (string-ref binstr 1)
-			       (string-ref binstr 2)
-			       (string-ref binstr 3)
-			       )))
-
-(define (unpack-unsigned-long-little-endian binstr)
-   (elong->onum (pragma::elong "($1 << 24) + ($2 << 16) + ($3 << 8) + $4"
-			       (string-ref binstr 3)
-			       (string-ref binstr 2)
-			       (string-ref binstr 1)
-			       (string-ref binstr 0)
-			       )))
-
-(define (unpack-unsigned-short-little-endian binstr)
-   (int->onum (pragma::int "($1 << 8) + $2"
-			   (string-ref binstr 1)
-			   (string-ref binstr 0))))
-
-(define (unpack-unsigned-short-big-endian binstr)
-   (int->onum (pragma::int "($1 << 8) + $2"
-			   (string-ref binstr 0)
-			   (string-ref binstr 1))))   
-   
-(define (unpack-unsigned-char binstr)
-   (int->onum (char->integer (string-ref binstr 0))))
-
-(define (unpack-signed-char binstr)
-   (int->onum (pragma::int "(signed char)$1" (string-ref binstr 0))))
-
-;; Unpack data from binary string
-(defbuiltin (unpack format data)
-   (set! data (mkstr data))
-   (set! format (mkstr format))
-   (let ((directive-triplets (split-unpack-format-string format))
-	 (h (make-php-hash))
-	 (data-len (string-length data)))
-      (if (or (not (list? directive-triplets))
-	      (member #f directive-triplets))
-	  FALSE ;; XXX error reporting
-	  (let loop ((triplets directive-triplets) (binstr data))
-	     (if (null? triplets)
-		 h
-		 (let* ((next (car triplets))
-			(char (directive-char next))
-			(bytes-used (format-char->bytes-used char))
-			(repeater (let ((r (directive-repeater next)))
-				     (cond ((number? r) r)
-					   ((equal? r #\*)
-					    (inexact->exact (floor (/ (string-length binstr)
-								      bytes-used))))
-					   (else 1))))
-			(label (or (directive-label next) :next))
-			(label-n (lambda (n)
-                                    (cond
-                                       ((and (= n 0) (eqv? label :next))
-                                        ;; force 1-based arrays
-                                        1)
-                                       ((eqv? label :next) label)
-                                       (else (mkstr label n))))))
-		    (let repeat ((i 0) (binstr binstr))
-		       (if (< i repeater)
-			   (let ((val (case char
-					 ((#\L) (unpack-unsigned-long-machine binstr))
-					 ((#\l) (unpack-signed-long-machine binstr))
-					 ((#\N) (unpack-unsigned-long-big-endian binstr))
-					 ((#\n) (unpack-unsigned-short-big-endian binstr))					 
-					 ((#\V) (unpack-unsigned-long-little-endian binstr))
-					 ((#\v) (unpack-unsigned-short-little-endian binstr))
-					 ((#\C) (unpack-unsigned-char binstr))
-					 ((#\c) (unpack-signed-char binstr))
-					 (else ""))))
-			      (php-hash-insert! h (label-n i) val)
-			      (repeat (+ i 1) (substring binstr bytes-used (string-length binstr))))
-			   (loop (cdr triplets) binstr)))))))))
 
 ;;;LXXVI.1 PHP Options&Information
 ; assert -- Checks if assertion is FALSE
@@ -1135,12 +784,6 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 			  (equalp errno E_RECOVERABLE_ERROR)) ;XXX any others?
 		   (php-exit 255)))))))
 	  
-;	  (error 'error-handler (mkstr errstr) 'error-handler))))
-
-; XXX E_ERROR will never show up here
-	     ; if this is an E_ERROR we need to stop execution. this bails out to handle-runtime-error
-	     ;(if (eqv? errno E_ERROR)
-	;	 (error 'error-handler (mkstr errstr) 'error-handler))))))
 
 ; set_error_handler --  Sets a user-defined error handler function.
 (defbuiltin (set_error_handler handler-name)
@@ -1180,14 +823,6 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 	      (set! *catch-error-recurse* (+ *catch-error-recurse* 1))
 	      (php-funcall *error-handler* etype (mkstr msg) *PHP-FILE* *PHP-LINE* (make-php-hash))))))
    
-   ; XXX below is incorrect, trigger error only accepts E_USER_* and never exits itself
-   ;     (though the custom error handler might)
-   ;
-   ; if this is an E_ERROR we need to stop execution, which the custom error handler
-   ; may have done in which case we wouldn't get this far. this bails out to handle-runtime-error
-   ;(if (eqv? etype E_ERROR)
-   ;    (error 'error-handler (mkstr msg) 'error-handler)))
-
 ; user_error --  Generates a user-level error/warning/notice message
 (defalias user_error trigger_error)
 
@@ -1209,19 +844,6 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
       hash))
 
 ;;;IX. Class/Object Functions
-
-;; (define (is-php-obj fun-name obj)
-;;    ;; returns true of obj is a php object, otherwise false.  
-;;    (if (php-object? obj)
-;;        obj
-;;        #f))
-
-;; XXX Zend tends to ignore this silently
-;; We issue a warning on behalf of fun-name unless fun-name is false.
-;       (begin
-;          (when fun-name
-;             (php-warning fun-name ": not a php object: " obj))
-;	  #f)))
 
 ; class_exists -- Checks if the class has been defined
 (defbuiltin (class_exists class-name (autoload TRUE))
@@ -1341,22 +963,6 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 	  valid-syntax
 	  exists)))
 
-;explicitly copy
-(defbuiltin (cpy thing)
-   (copy-php-data thing))
-
-;a way for pcc PHP extensions to register
-(defbuiltin (pcc_register_extension php-ext-name ext-lib-name version (depends-on #f))
-   "PCC only function to register a PHP extension.
-    Used for Roadsend PHP extensions written in PHP and compiled to libraries, e.g. PDO"
-   (register-extension (mkstr php-ext-name)
-		       (mkstr version)
-		       (mkstr ext-lib-name)
-		       required-extensions: (if (php-hash? depends-on)
-						(php-hash->list depends-on)
-						'())))
-
-   
 
 ;;;the *func-args-stack* is maintained in php-runtime.scm, so that
 ;;;evaluate can get to it.

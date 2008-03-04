@@ -25,7 +25,7 @@
    (import (ast "ast.scm")
            (driver "driver.scm"))
    (export
-    (lib_include_exists file)
+    (re_lib_include_exists file) ; builtin, re extension
     (do-include-paths)
     (find-include-file-in-lib file cwd)
     (find-include-files ast)
@@ -83,8 +83,7 @@
    (do-include (mkstr file) #t #t))
 
 ; user access to find out if include file is available from a currently loaded library
-; this is a raven extension
-(defbuiltin (lib_include_exists file)
+(defbuiltin (re_lib_include_exists file)
    (if (find-include-file-in-lib (mkstr file) (or *library-cwd* *PHP-FILE*))
        #t
        #f))

@@ -93,7 +93,7 @@ if (posix_geteuid() == 0) {
 // define_syslog_variables
 necho(410, define_syslog_variables());
 
-} // winnt 
+//} // winnt 
 
 // gethostbynamel
 necho(520, gethostbynamel('www.roadsend.com'));

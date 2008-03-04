@@ -105,7 +105,7 @@ clean:
 	-/bin/rm $(TAGFILE)
 	-/bin/rm -rf $(TOPLEVEL)$(MY_TESTOUTDIR)
 
-check: all-run
+check:
 	mkdir -p $(TOPLEVEL)$(MY_TESTOUTDIR)
 	@(cd $(TOPLEVEL) && $(DOTEST) $(MY_TESTDIR) $(MY_TESTOUTDIR))
 

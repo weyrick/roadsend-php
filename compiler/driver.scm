@@ -42,11 +42,13 @@
     )
 
    (export
+    ; php builtins
+    (re_memo_stats)
+    (php-eval code)
+    ;
     (load-runtime-libs libs)
     load-web-libs
-    (php-eval code)
     (init-eval-lib)
-    (pcc_memo_stats)
     (dump-tokens input-file)
     (dump-ast input-file)
     (dump-containers input-file)
@@ -92,7 +94,7 @@
                   (exit 1)))))
 
 
-(defbuiltin (pcc_memo_stats)
+(defbuiltin (re_memo_stats)
    (let ((retval (make-php-hash)))
       (php-hash-insert! retval "hits" (convert-to-number %%memo-count))
       (php-hash-insert! retval "misses" (convert-to-number %%memo-miss-count))

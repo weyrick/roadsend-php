@@ -2,7 +2,7 @@
 
 // initialize the php-pdo extension by registering it and 
 // running top level definition files
-pcc_register_extension('pdo','php-pdo','1.0.0');
+re_register_extension('pdo','php-pdo','1.0.0');
 
 // PDO, PDOStatement, PDOException
 require('pdo_class.php');
