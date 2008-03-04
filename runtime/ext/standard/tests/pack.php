@@ -103,6 +103,15 @@ tp("s", -64434);
 tp("s", -65535);
 
 // 61
+tp("n", 65534);
+tp("n", 65537);
+tp("n", 0);
+tp("n", -1000);
+tp("n", -64434);
+tp("n", -65535);
+
+// 67
+
 
 /*
 print_r(unpack("A", pack("A", "hello world")));
@@ -117,13 +126,6 @@ print_r(unpack("a*", pack("a*", "hello world")));
 
 print_r(unpack("h", pack("h", 3000000)));
 
-print_r(unpack("n", pack("n", 65534)));
-print_r(unpack("n", pack("n", 65537)));
-print_r(unpack("n", pack("n", 0)));
-print_r(unpack("n", pack("n", -1000)));
-print_r(unpack("n", pack("n", -64434)));
-print_r(unpack("n", pack("n", -65535)));
-
-  */
+*/
 
 ?>

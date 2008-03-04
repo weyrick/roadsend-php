@@ -221,9 +221,8 @@
 				  (loop))))))))))))
 
 
-; ;Syntax highlighting of a file
-; (defbuiltin (show_source)
-;    )
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 (define (directive-char directive-triplet)
    (list-ref directive-triplet 0))
@@ -234,26 +233,25 @@
 (define (directive-label directive-triplet)
    (list-ref directive-triplet 2))
 
-(define (split-directive-string dstring)
-   (let ((parts (pregexp-match "^([NVLlCcv])([0-9]+|\*)?(.+)?$" dstring)))
-      (if (not parts)
-	  #f ;; invalid directive string
-	  (let* ((parts-vector (list->vector (cdr parts)))
-		 (directive-char (string-ref (vector-ref parts-vector 0) 0))
-		 (repeater-arg   (vector-ref parts-vector 1))
-		 (label          (vector-ref parts-vector 2)))
-	     (list directive-char
-		   (if repeater-arg
-		       (or (string->number repeater-arg)
-			   #\*)
-		       1)
-		   label)))))
-			      
-(define (split-unpack-format-string format)
-   (let loop ((triplets '()) (directive-strings (pregexp-split "/" format)))
-      (if (null? directive-strings)
-	  (reverse triplets)
-	  (loop (cons (split-directive-string (car directive-strings)) triplets) (cdr directive-strings)))))
+(define (unpack-unsigned-short-machine binstr)
+   (if *little-endian?*
+       (unpack-unsigned-short-little-endian binstr)
+       (unpack-unsigned-short-big-endian binstr)))
+
+(define (unpack-signed-short-machine binstr)
+   (if *little-endian?*
+       (unpack-signed-short-little-endian binstr)
+       (unpack-signed-short-big-endian binstr)))
+
+(define (unpack-unsigned-int-machine binstr)
+   (if *little-endian?*
+       (unpack-unsigned-int-little-endian binstr)
+       (unpack-unsigned-int-big-endian binstr)))
+
+(define (unpack-signed-int-machine binstr)
+   (if *little-endian?*
+       (unpack-signed-int-little-endian binstr)
+       (unpack-signed-int-big-endian binstr)))
 
 (define (unpack-unsigned-long-machine binstr)
    (if *little-endian?*
@@ -264,6 +262,30 @@
    (if *little-endian?*
        (unpack-signed-long-little-endian binstr)
        (unpack-signed-long-big-endian binstr)))
+
+(define (unpack-unsigned-int-big-endian binstr)
+   (if (= (format-char->bytes-used #\i) 4)
+       (unpack-unsigned-long-big-endian binstr)
+       ; XXX support for non 32 bit ints
+       *zero*))
+	  
+(define (unpack-signed-int-big-endian binstr)
+   (if (= (format-char->bytes-used #\i) 4)
+       (unpack-signed-long-big-endian binstr)
+       ; XXX support for non 32 bit ints
+       *zero*))
+
+(define (unpack-unsigned-int-little-endian binstr)
+   (if (= (format-char->bytes-used #\i) 4)
+       (unpack-unsigned-long-little-endian binstr)
+       ; XXX support for non 32 bit ints
+       *zero*))
+
+(define (unpack-signed-int-little-endian binstr)
+   (if (= (format-char->bytes-used #\i) 4)
+       (unpack-signed-long-little-endian binstr)
+       ; XXX support for non 32 bit ints
+       *zero*))
 
 (define (unpack-signed-long-big-endian binstr)
    (elong->onum (pragma::elong "($1 << 24) | ($2 << 16) | ($3 << 8) | $4"
@@ -297,6 +319,16 @@
 			       (string-ref binstr 0)
 			       )))
 
+(define (unpack-signed-short-little-endian binstr)
+   (int->onum (pragma::short "($1 << 8) | $2"
+			   (string-ref binstr 1)
+			   (string-ref binstr 0))))
+
+(define (unpack-signed-short-big-endian binstr)
+   (int->onum (pragma::short "($1 << 8) | $2"
+			   (string-ref binstr 0)
+			   (string-ref binstr 1))))
+
 (define (unpack-unsigned-short-little-endian binstr)
    (int->onum (pragma::int "($1 << 8) + $2"
 			   (string-ref binstr 1)
@@ -312,6 +344,27 @@
 
 (define (unpack-signed-char binstr)
    (int->onum (pragma::int "(signed char)$1" (string-ref binstr 0))))
+
+(define (split-directive-string dstring)
+   (let ((parts (pregexp-match "^([NnVLlCcIiSsv])([0-9]+|\*)?(.+)?$" dstring)))
+      (if (not parts)
+	  #f ;; invalid directive string
+	  (let* ((parts-vector (list->vector (cdr parts)))
+		 (directive-char (string-ref (vector-ref parts-vector 0) 0))
+		 (repeater-arg   (vector-ref parts-vector 1))
+		 (label          (vector-ref parts-vector 2)))
+	     (list directive-char
+		   (if repeater-arg
+		       (or (string->number repeater-arg)
+			   #\*)
+		       1)
+		   label)))))
+			      
+(define (split-unpack-format-string format)
+   (let loop ((triplets '()) (directive-strings (pregexp-split "/" format)))
+      (if (null? directive-strings)
+	  (reverse triplets)
+	  (loop (cons (split-directive-string (car directive-strings)) triplets) (cdr directive-strings)))))
 
 ;; Unpack data from binary string
 (define (do-unpack format data)
@@ -348,6 +401,10 @@
 			   (let ((val (case char
 					 ((#\L) (unpack-unsigned-long-machine binstr))
 					 ((#\l) (unpack-signed-long-machine binstr))
+					 ((#\I) (unpack-unsigned-int-machine binstr))
+					 ((#\i) (unpack-signed-int-machine binstr))
+					 ((#\S) (unpack-unsigned-short-machine binstr))
+					 ((#\s) (unpack-signed-short-machine binstr))
 					 ((#\N) (unpack-unsigned-long-big-endian binstr))
 					 ((#\n) (unpack-unsigned-short-big-endian binstr))					 
 					 ((#\V) (unpack-unsigned-long-little-endian binstr))
