@@ -128,4 +128,29 @@ print_r(unpack("h", pack("h", 3000000)));
 
 */
 
+
+// see if we can read an ELF header
+if (PHP_OS != 'WINNT') {
+
+    $fp = fopen('/bin/sh', 'r');
+    if ($fp) {
+        $header = fread($fp, 9);
+        $u = unpack('C*', $header);
+        var_dump($u);
+        switch ($u[5]) {
+        case '1':
+            echo "32 bit\n";
+            break;
+        case '2':
+            echo "64 bit\n";
+            break;
+        default:
+            echo "invalid ELF header?\n";
+            break;
+        }
+        fclose($fp);
+    }
+
+}
+
 ?>
