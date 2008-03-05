@@ -912,7 +912,7 @@ the current index if it was this entry."
              ;(debug-trace 0 "setting index in php-hash-advance")
              (%php-hash-current-index-set! hash
                                            (%entry-next index)))))
-   hash)
+   (php-hash-current-value hash))
 
 (define (php-hash-prev hash)
    "Decrement the current index by one"
