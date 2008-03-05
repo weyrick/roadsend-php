@@ -392,25 +392,53 @@ onum.  Append the bindings for the new symbols and code."
 			  (,started? #f))
                        (set! ,arrayname
                              (copy-php-data
-                              (if (php-object? ,arrayname)
+                              (if (and (php-object? ,arrayname) (not (or (php-object-instanceof ,arrayname "Iterator")
+									 (php-object-instanceof ,arrayname "IteratorAggregate"))))
                                   (convert-to-hash ,arrayname)
+				  ; Iterator will pass through
                                   ,arrayname)))
-                       (when (php-object? ,arrayname))
-		       (if (not (php-hash? ,arrayname))
-			   (php-warning "not an array in foreach")
+		       ; handle IteratorAggregate
+		       (when (and (php-object? ,arrayname) (php-object-instanceof ,arrayname "IteratorAggregate"))
+			  (set! ,arrayname (container-value (call-php-method-0 ,arrayname "getIterator")))
+			  (unless (and (php-object? ,arrayname)
+				       (php-object-instanceof ,arrayname "Iterator"))
+			     (php-throw-builtin-exception "Object returned from getIterator() must implement interface Iterator")
+			     (set! ,arrayname #f)))
+		       (if (not (or (php-hash? ,arrayname) (php-object? ,arrayname)))
+			   (php-warning "not an array or iterable object in foreach")
 			   (begin
-			      (php-hash-reset ,arrayname)
-			      (let loop ()
-				 (if ,started?
-				     (php-hash-advance ,arrayname)
-				     (set! ,started? #t))
-				 (when (php-hash-has-current? ,arrayname)
-				    ,(update-value value `(copy-php-data (php-hash-current-value ,arrayname)))
-				    ,(unless (null? key)
-					(update-value key `(php-hash-current-key ,arrayname)))
-				    ,(bind-exit-if needs-continue? continuename
-					(generate-code body))
-				    (loop)))))))))))))
+			      (if (php-object? ,arrayname)
+				  (call-php-method-0 ,arrayname "rewind")
+				  (php-hash-reset ,arrayname))
+			      ; this bloats the generation a bit but avoids conditionals in the inner loop
+			      ; perhaps we could optimize it with some type inference
+			      (if (php-object? ,arrayname)
+				  ; object
+				  (let loop ()
+				     (if ,started?
+					 (call-php-method-0 ,arrayname "next")
+					 (set! ,started? #t))
+				     (when (convert-to-boolean (call-php-method-0 ,arrayname "valid"))
+					,(update-value value `(copy-php-data (call-php-method-0 ,arrayname "current")))
+					,(unless (null? key)
+					    (update-value key `(call-php-method-0 ,arrayname "key")))
+					,(bind-exit-if needs-continue? continuename
+						       (generate-code body))
+					(loop)))
+				  ; hash
+				  (let loop ()
+				     (if ,started?
+					 (php-hash-advance ,arrayname)
+					 (set! ,started? #t))
+				     (when (php-hash-has-current? ,arrayname)
+					,(update-value value `(copy-php-data (php-hash-current-value ,arrayname)))
+					,(unless (null? key)
+					    (update-value key `(php-hash-current-key ,arrayname)))
+					,(bind-exit-if needs-continue? continuename
+						       (generate-code body))
+					(loop))))
+			      ;
+			      ))))))))))
 
 
 
