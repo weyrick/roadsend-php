@@ -130,7 +130,7 @@ print_r(unpack("h", pack("h", 3000000)));
 
 
 // see if we can read an ELF header
-if (PHP_OS != 'WINNT') {
+if (PHP_OS == 'Linux') {
 
     $fp = fopen('/bin/sh', 'r');
     if ($fp) {
