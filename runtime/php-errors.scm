@@ -67,6 +67,7 @@
     delayed-error
     (php-exception except-obj)
     (php-error . msgs)
+    (php-throw-builtin-exception msg)
     (php-recoverable-error . msgs)
     (php-warning . msgs)
     (php-notice . msgs)
@@ -163,6 +164,11 @@
 	   ; if we get here, we had a try stack but didn't catch anything, so go to default handler
 	   (php-funcall *default-exception-handler* except-obj))))
 	   
+
+; the runtime uses this to throw catchable errors
+(define (php-throw-builtin-exception msg)
+   (let ((except-obj (construct-php-object 'Exception msg)))
+      (php-exception except-obj)))
 
 ; ALWAYS FATAL
 (define (php-error . msgs)
