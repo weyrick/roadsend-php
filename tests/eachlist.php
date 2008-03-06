@@ -34,6 +34,17 @@ echo "a :$a: b :$b: c :$c:\n";
 echo "foo $foo\n";
 #yes, folks, it _is_ really that bad.
 
+$foo = array("bob", "fred", "jussi", "jouni", "egon", "marliese");
+
+$key = 1;
+while ($key !== NULL) {
+list($key, $val) = each($foo);
+echo "$key => $val\n";
+next($foo);
+echo "current is:\n";
+var_dump(current($foo));
+}
+
 
 ?>
 

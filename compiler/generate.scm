@@ -779,7 +779,16 @@ onum.  Append the bindings for the new symbols and code."
 					   (update-value var `(php-hash-lookup ,rval-name ,i)))))
 				 (reverse lvals)))
 		    ,rval-name)
-		 #f)))))
+		 ; if rval is empty, set vars in list to NULL
+		 (begin
+		    ,@(remq '()
+			    (map (lambda (var)
+				    (if (null? var)
+					'()
+					;XXX copy?
+					(update-value var `'())))
+				 (reverse lvals)))
+		    #f))))))
 
 (define-method (generate-code node::reference-assignment)
    (with-access::reference-assignment node (lval rval)

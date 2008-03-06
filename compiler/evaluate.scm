@@ -705,7 +705,13 @@ gives the debugger a chance to run."
 		       (set! i (- i 1))))
 		 (reverse lvals))
 		rval)
-	     #f))))
+	     ; if rval was empty, zend will set the items in the list to NULL
+	     (begin
+		(for-each
+		 (lambda (lval)
+		    (eval-assign lval NULL))
+		 (reverse lvals))
+		#f)))))
 
 (define-method (evaluate node::reference-assignment)
    (set! *PHP-LINE* (car (ast-node-location node)))
