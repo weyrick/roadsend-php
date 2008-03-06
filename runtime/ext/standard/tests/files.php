@@ -124,8 +124,14 @@ chdir($here);
 echo "back in in: ".getcwd()."\n";
 chdir($a);
 
+echo "pathinfo1\n";
 $a = pathinfo("/home/php/some/directory/filename.ext");
 var_dump($a);
+echo "pathinfo2\n";
+$c = pathinfo("/home/php/some/directory/filename.ext", PATHINFO_DIRNAME);
+var_dump($c);
+
+
 
 /*
 if (file_exists("/etc/")) {

@@ -81,7 +81,7 @@
     ;(lstat filename)
     (php-mkdir pathname mode) ; mode is optional
     (parse_ini_file filename process_sections) ; process_sections is optional
-    (pathinfo path)
+    (pathinfo path options)
     (pclose handle)
     (popen command mode)
     (readfile filename use_include_path context) ; use_include_path, context are optional
@@ -116,6 +116,21 @@
     LOCK_EX
     LOCK_UN
     LOCK_NB
+    GLOB_MARK
+    GLOB_NOSORT
+    GLOB_NOCHECK
+    GLOB_NOESCAPE
+    GLOB_BRACE
+    GLOB_ONLYDIR
+    GLOB_ERR
+    FILE_APPEND
+    FILE_TEXT
+    FILE_BINARY
+    FILE_USE_INCLUDE_PATH
+    PATHINFO_DIRNAME
+    PATHINFO_BASENAME
+    PATHINFO_EXTENSION
+    PATHINFO_FILENAME
     ))
 
 ;;;
@@ -152,8 +167,14 @@
 
 (defconstant FILE_APPEND  1)
 (defconstant FILE_TEXT    2)
-(defconstant FILE_BINARU  4)
+(defconstant FILE_BINARY  4)
 (defconstant FILE_USE_INCLUDE_PATH 8)
+
+(defconstant PATHINFO_DIRNAME    1)
+(defconstant PATHINFO_BASENAME   2) 
+(defconstant PATHINFO_EXTENSION  3) 
+(defconstant PATHINFO_FILENAME   4)
+
 
 ;;;
 ;;; Resources
@@ -1487,14 +1508,19 @@
 	  (ini-file-parse fname (convert-to-boolean process_sections)))))
 
 ;; pathinfo -- Returns information about a file path
-(defbuiltin (pathinfo path)
-   (let ((spath (mkstr path))
-	 (phash (make-php-hash)))
-      (php-hash-insert! phash "dirname" (dirname spath))
-      (php-hash-insert! phash "basename" (basename spath))
-      (php-hash-insert! phash "extension" (suffix spath))
-      (php-hash-insert! phash "filename" (prefix (basename spath)))
-      phash))
+(defbuiltin (pathinfo path (options 'unset))
+   (let ((spath (mkstr path)))
+      (if (eqv? options 'unset)
+	  (let ((phash (make-php-hash)))
+	     (php-hash-insert! phash "dirname" (dirname spath))
+	     (php-hash-insert! phash "basename" (basename spath))
+	     (php-hash-insert! phash "extension" (suffix spath))
+	     (php-hash-insert! phash "filename" (prefix (basename spath)))
+	     phash)
+	  (cond ((eqv? options PATHINFO_DIRNAME) (dirname spath))
+		((eqv? options PATHINFO_BASENAME) (basename spath))
+		((eqv? options PATHINFO_EXTENSION) (suffix spath))
+		((eqv? options PATHINFO_FILENAME) (prefix (basename spath)))))))
 
 ;; pclose -- Closes process file pointer
 (defbuiltin (pclose handle)
