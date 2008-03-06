@@ -392,8 +392,7 @@ onum.  Append the bindings for the new symbols and code."
 			  (,started? #f))
                        (set! ,arrayname
                              (copy-php-data
-                              (if (and (php-object? ,arrayname) (not (or (php-object-instanceof ,arrayname "Iterator")
-									 (php-object-instanceof ,arrayname "IteratorAggregate"))))
+                              (if (and (php-object? ,arrayname) (not (php-object-instanceof ,arrayname "Traversable")))
                                   (convert-to-hash ,arrayname)
 				  ; Iterator will pass through
                                   ,arrayname)))

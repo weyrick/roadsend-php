@@ -82,7 +82,7 @@
    )
 
 (define (build-IteratorAggregate-class)
-   (define-builtin-php-class 'IteratorAggregate '() '() '(interface abstract))
+   (define-builtin-php-class 'IteratorAggregate '(Traversable) '() '(interface abstract))
    (define-php-method 'IteratorAggregate "getIterator" '(public abstract) 'abstract-no-proc)
    )
 

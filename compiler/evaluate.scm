@@ -322,8 +322,7 @@ gives the debugger a chance to run."
    (with-access::foreach-loop node (array key value body)
       (set! *PHP-LINE* (car (ast-node-location node)))
       (let ((array (copy-php-data (let ((a (maybe-unbox (d/evaluate array))))
-                                     (if (and (php-object? a) (not (or (php-object-instanceof a "Iterator")
-								       (php-object-instanceof a "IteratorAggregate"))))
+                                     (if (and (php-object? a) (not (php-object-instanceof a "Traversable")))
                                          (convert-to-hash a)
 					 ; Iterator/Aggregate will pass through
                                          a)))))
