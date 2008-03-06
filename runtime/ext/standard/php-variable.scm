@@ -43,7 +43,7 @@
     (is_scalar var)
     (is_string var)
 ;    (isset . vars)
-    (print_r var)
+    (print_r var return)
     (serialize var)
     (settype var type)
     (strval var)
@@ -657,19 +657,20 @@
 
 
 ; print_r --  Prints human-readable information about an array
-(defbuiltin (print_r var)
-   (if (not (or (php-hash? var)
+(defbuiltin (print_r var (return #f))
+   (let ((result (with-output-to-string (lambda ()
+     (if (not (or (php-hash? var)
 		(php-object? var)))
-       (echo var)
+       (display (mkstr var))
        (letrec ((recursive-print
 		 (lambda (var seen indent)
 		    (cond
 		       ((php-hash? var)
 			(visit seen var)
-			(echo "Array\n")
+			(display "Array\n")
 			(if (skip? seen var)
 			    (begin
-			       (echo " *RECURSION*"))
+			       (display " *RECURSION*"))
 			    (begin
 			       (print-hash-innards var seen indent) ))
 			(leave seen var))
@@ -677,32 +678,35 @@
 			(visit seen var)
 			(if (skip? seen var)
 			    (begin
-			       (echo (php-object-class var))
-			       (echo " Object\n")			       
-			       (echo " *RECURSION*"))
+			       (display (php-object-class var))
+			       (display " Object\n")			       
+			       (display " *RECURSION*"))
 			    (begin
-			       (echo (php-object-class var))
-			       (echo " Object\n")
+			       (display (php-object-class var))
+			       (display " Object\n")
 			       (print-hash-innards (php-object-props var) seen indent)
 			       ))
 			(leave seen var))
-		       (else (echo var)))))
+		       (else (display (mkstr var))))))
 		(print-hash-innards
 		 (lambda (var seen indent)
-		    (echo indent)
-		    (echo "(\n")
+		    (display indent)
+		    (display "(\n")
 		    (php-hash-for-each var
 		       (lambda (key val)
-			  (echo indent)
-			  (echo "    [")
-			  (echo key)
-			  (echo "] => ")
+			  (display indent)
+			  (display "    [")
+			  (display (mkstr key))
+			  (display "] => ")
 			  (recursive-print val seen (string-append "        " indent))
-			  (echo "\n") ))
-		    (echo indent)
-		    (echo ")\n"))))
-	  
-	  
+			  (display "\n") ))
+		    (display indent)
+		    (display ")\n"))))
 	  (if (php-object? var) (set! var (copy-php-data var)))
-	  (recursive-print var (make-grasstable) ""))))
+	  (recursive-print var (make-grasstable) "")))))))
+      (if (convert-to-boolean return)
+	  result
+	  (begin
+	     (echo result)
+	     #t))))
 
