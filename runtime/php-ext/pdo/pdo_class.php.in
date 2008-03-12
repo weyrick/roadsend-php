@@ -48,7 +48,7 @@
  * @todo Implement additional driver support; currently only supports MySQL,
  * PostgreSQL, and SQLite
  */
-pcc_builtin class PDO {
+re_builtin class PDO {
 
     const PARAM_NULL = 0;
     const PARAM_INT = 1;
@@ -318,7 +318,7 @@ pcc_builtin class PDO {
  * @license http://opensource.org/licenses/gpl-license.php GNU Public License
  * @package xpdo.pdo
  */
-pcc_builtin class PDOStatement {
+re_builtin class PDOStatement {
     /**
      * @var string The SQL query string for the statement to use.
      */

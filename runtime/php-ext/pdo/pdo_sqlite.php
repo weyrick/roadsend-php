@@ -29,7 +29,7 @@
  * 
  * @package xpdo.pdo
  */
-pcc_builtin class PDO_sqlite {
+re_builtin class PDO_sqlite {
     var $_connection;
     var $_dbinfo;
     var $_persistent= false;
@@ -175,7 +175,7 @@ pcc_builtin class PDO_sqlite {
  * 
  * @package xpdo.pdo
  */
-pcc_builtin class PDOStatement_sqlite extends PDOStatement {
+re_builtin class PDOStatement_sqlite extends PDOStatement {
     function PDOStatement_sqlite($queryString, & $connection, & $dbinfo) {
         $this->__construct($queryString, $connection, $dbinfo);
     }

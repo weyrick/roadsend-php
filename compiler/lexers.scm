@@ -262,7 +262,7 @@
 	 ((uncase "abstract") (stok 'abstract))
 	 ((uncase "final") (stok 'final))
 
-	 ((uncase "pcc_builtin") (stok 'pcc-builtin))
+	 ((uncase "re_builtin") (stok 'pcc-builtin))
 	 
 	 ((uncase "extends") (stok 'extends))
 	 ((uncase "implements") (stok 'implements))
