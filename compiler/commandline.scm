@@ -93,7 +93,11 @@
 					#t)))
           (do-library-mode
            (lambda (library-name)
-
+	      ; verify library name. a common mistake is to leave it out entirely,
+	      ; and bigloo parses the next command line option as the library name. that's bad.
+	      (when (char=? (string-ref library-name 0) #\-)
+		 (print "error: you must specify a library name following -s, --microserver, --fastcgi, --cgi, -l, or --library-mode")
+		 (exit 1))
               (when (maybe-add-script-argv "-l")
                  (widen!::library-target *current-target* (name library-name))
                  (set-target-option! compile-includes?: #f)))))
