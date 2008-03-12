@@ -134,12 +134,8 @@ string(3) "3rd"
 object::offsetGet(4th)
 int(4)
 object::offsetGet(5th)
-
-Notice: Undefined index:  5th in %sarray_access_001.php on line %d
 NULL
 object::offsetGet(6)
-
-Notice: Undefined offset:  6 in %sarray_access_001.php on line %d
 NULL
 ===offsetSet===
 WRITE 1
