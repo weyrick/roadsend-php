@@ -428,6 +428,10 @@ in a container."
 			  ;    (php-notice "Undefined index: " key))
 			  val))
       ((string? obj) (php-string-ref obj key))
+      
+      ((and (php-object? obj)
+	    (php-object-instanceof obj "ArrayAccess")) (maybe-unbox (call-php-method-1 obj "offsetGet" key)))
+       
 ;      ((foreign? obj) (%general-lookup 
 ;                       (zval->phpval-coercion-routine obj)
 ;                       key))
@@ -494,6 +498,9 @@ in a container."
 reference insert in the case of a hash."
    (cond
       ((php-hash? obj) (php-hash-insert! obj key val) obj)
+      ((and (php-object? obj)
+	    (php-object-instanceof obj "ArrayAccess"))
+       (maybe-unbox (call-php-method-2 obj "offsetSet" key val)))
       ((string? obj) (php-string-set! obj key val))
 ;      ((foreign? obj) (%general-insert!
 ;                       (zval->phpval-coercion-routine obj)

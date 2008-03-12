@@ -643,12 +643,18 @@ gives the debugger a chance to run."
                                                        ;; ugh
                                                        (map (lambda (a) #f) keys)
 						       rval))))
-	  ;;no nested lookup, just insert the value and assign back the
+	  ;;no nested lookup, just insert the value
+	  ;;assign back the
 	  ;;hash (in case it needed to be coerced) or string (in case
 	  ;;the string was modified)
-	  (eval-assign hash (%general-insert! (%coerce-for-insert (maybe-unbox (d/evaluate hash)))
-					      (d/evaluate key)
-					      rval))))
+	  ;;
+	  ;; BUT don't assign if it was an object, which happens for ArrayAccess implementations
+	  (let ((assign-obj (%coerce-for-insert (maybe-unbox (d/evaluate hash)))))
+	     (if (php-object? assign-obj)
+		 (%general-insert! assign-obj (d/evaluate key) rval)
+		 (eval-assign hash (%general-insert! assign-obj
+						     (d/evaluate key)
+						     rval))))))
    rval)
 
 
@@ -796,12 +802,23 @@ gives the debugger a chance to run."
 (define-method (evaluate node::empty-stmt)
    (set! *PHP-LINE* (car (ast-node-location node)))
    (with-access::empty-stmt node (rval)
-      (let ((r (maybe-unbox (d/evaluate rval))))
-	 (php-empty? r))))
+      (bind-exit (return)
+	 (when (and (hash-lookup? rval) (not (isset rval)))
+	    (return #t))
+	 (let ((r (maybe-unbox (d/evaluate rval))))
+	    (php-empty? r)))))
 
 (define-generic (isset rval)
    (not (null? (maybe-unbox (d/evaluate rval)))))
 
+(define-method (isset rval::hash-lookup)
+   (with-access::hash-lookup rval (hash key)
+      (let ((obj (container-value (d/evaluate hash))))
+	 (if (and (php-object? obj) (php-object-instanceof obj "ArrayAccess"))
+	     (convert-to-boolean (call-php-method-1 obj "offsetExists" (d/evaluate key)))
+	     ; normal
+	     (not (null? (maybe-unbox (d/evaluate rval))))))))
+	     
 (define-method (isset rval::property-fetch)
    (with-access::property-fetch rval (obj prop)
       (let* ((obj-e (maybe-unbox (d/evaluate obj)))
@@ -853,11 +870,13 @@ gives the debugger a chance to run."
       (let ((hash (container-value (d/evaluate hash))))
 	 (when (string? hash)
 	    (php-error "Cannot unset string offsets"))
-	 (when (php-hash? hash)
-	    (if (eqv? key :next)
-		(php-warning "Array unset not supported with empty [], Loc: " (ast-node-location lval) )
-		(php-hash-remove! hash
-				  (d/evaluate key)))))))
+	 (if (and (php-object? hash) (php-object-instanceof hash "ArrayAccess"))
+	     (call-php-method-1 hash "offsetUnset" (d/evaluate key))
+	     (when (php-hash? hash)
+		(if (eqv? key :next)
+		    (php-warning "Array unset not supported with empty [], Loc: " (ast-node-location lval) )
+		    (php-hash-remove! hash
+				      (d/evaluate key))))))))
 
 (define-method (evaluate node::switch-stmt)
    (set! *PHP-LINE* (car (ast-node-location node)))
