@@ -714,7 +714,8 @@ gives the debugger a chance to run."
 	     (begin
 		(for-each
 		 (lambda (lval)
-		    (eval-assign lval NULL))
+		    (unless (null? lval)
+		       (eval-assign lval NULL)))
 		 (reverse lvals))
 		#f)))))
 
