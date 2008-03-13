@@ -47,6 +47,9 @@
     (macro elong->onum::onum (num::elong) "ELONG_TO_BELONG") ;"long_to_phpnum")
     (macro float->onum::onum (num::double) "DOUBLE_TO_REAL") ;"double_to_phpnum")
 
+    ; XXX tmp until manuel adds base 10 to bigloo's version
+    (re-unsigned->string::bstring (::elong ::long) "re_unsigned_to_string")
+    
     (onum->elong::elong (num::onum) "phpnum_to_long")
     (onum->float::double (num::onum) "phpnum_to_double")
     (onum-compare::int (a::onum b::onum) "phpnum_compare")
@@ -71,6 +74,7 @@
     *MAX-INT-SIZE-F*
     *MIN-INT-SIZE-F*
     *SIZEOF-LONG*
+    (elong->ustring::bstring a::elong)
     (onum->string::bstring a::onum precision::int)
     (onum->string/e::bstring a::onum precision::int)
     (onum->string/f::bstring a::onum precision::int)
@@ -167,4 +171,8 @@
 
 (define (onum->string/g-vardump::bstring a::onum precision::int)
    (%onum->string a precision 2 1))
+
+; XXX tmp, should use unsigned->string when base 10 is available
+(define (elong->ustring::bstring a::elong)
+   (re-unsigned->string a 10))
 

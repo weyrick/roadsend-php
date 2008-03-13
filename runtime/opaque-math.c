@@ -386,3 +386,27 @@ obj_t string_to_float_phpnum(char *str) {
   }
 }
 
+
+/*---------------------------------------------------------------------*/
+/*    unsigned_to_string ...                                           */
+/*---------------------------------------------------------------------*/
+obj_t
+re_unsigned_to_string( long x, long radix ) {
+   obj_t aux;
+   char *s;
+   unsigned long ax;
+   int bits = (x == 0 ? 1 : 0);
+   char letters[] = "0123456789abcdef";
+
+   for( ax = x; ax > 0; ax /= radix )
+      bits++;
+   aux = make_string_sans_fill( bits );
+
+   s = BSTRING_TO_STRING( aux ) + bits;
+   *s = '\0';
+
+   for( ax = x, s--; bits > 0; bits--, s--, ax /= radix )
+      *s = letters[ ax % radix ];
+
+   return aux;
+}

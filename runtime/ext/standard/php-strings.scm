@@ -1263,7 +1263,7 @@
 	      (convert-ascii (lambda (pos)
 				(integer->char (mkfixnum (consume-int pos)))))
 	      (convert-unsigned (lambda (pos)
-				   (unsigned->string (consume-int pos))))
+				   (elong->ustring (consume-int pos))))
 	      (convert-float (lambda (form pos width precision padding alignment)
 				(let* ((prec (mkfixnum (if (> precision 0)
 							   (if (string=? form "f")
