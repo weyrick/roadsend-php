@@ -124,8 +124,10 @@
 		       (unless (or (eof-object? input)
 				   (string=? input "quit")
 				   (string=? input "exit"))
-			  (try 
-			   (php-eval input)
+			  (try
+			   (begin
+			      (php-eval input)
+			      (print))
 			   (lambda (e p m o)
 			      (print m)
 			      (e #f)))
