@@ -31,7 +31,7 @@
     ;; bigloo's flush-output-port is not binary safe on string ports,
     ;; and in recent versions it no longer resets the position to 0
     (flush-string-port/bin::bstring (::output-port) "strport_bin_flush")
-    (c-strpos::int (::string ::string ::int ::int) "pcc_strpos"))
+    (c-strpos::int (::bstring ::bstring ::int ::int) "re_strpos"))
    (export
     (string-subst::bstring text::bstring old::bstring new::bstring . rest)
     (strstr-idxs haystack::bstring needle::bstring case-sensitive::bbool)
@@ -137,13 +137,11 @@
 	 (pages 1)
 	 (num-matches 0)
 	 (c-cs (if case-sensitive 1 0))
-	 (c-haystack ($bstring->string haystack))
-	 (c-needle ($bstring->string needle))
 	 (text-len (string-length haystack))
 	 (old-len (string-length needle)))
       (let loop ((offset 0))
 	 (when (<fx offset text-len)
-	    (let ((match-i (c-strpos c-haystack c-needle offset c-cs)))
+	    (let ((match-i (c-strpos haystack needle offset c-cs)))
 	       (when (>=fx match-i 0)
 		  ; do we need to expand our vector?
 		  (when (=fx num-matches vsize)
