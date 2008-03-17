@@ -817,7 +817,13 @@ onum.  Append the bindings for the new symbols and code."
 
 (define-method (generate-code node::empty-stmt)
    (with-access::empty-stmt node (rval)
-	 `(php-empty? ,(get-value rval))))
+      (if (hash-lookup? rval)
+	  ; arrayaccess hook
+	  `(if ,(isset rval)
+	      (php-empty? ,(get-value rval))
+	      #t)
+	  ; normal
+	  `(php-empty? ,(get-value rval)))))
 
 (define-method (generate-code node::switch-stmt)
    (with-access::switch-stmt/gen node (rval cases needs-continue? needs-break?)
@@ -1659,18 +1665,20 @@ onum.  Append the bindings for the new symbols and code."
                                               ,key
                                               ,rval-code))
                        ;hairy version for untyped var
-                       `(let ((,rval-name ,rval-code))
-                           ,(update-value hash
-                                          (if pre
-                                              `(%general-insert!/pre
-                                                (%coerce-for-insert ,(get-value hash))
-                                                ,key
-                                                ,pre
-                                                ,rval-name)
-                                              `(%general-insert!
-                                                (%coerce-for-insert ,(get-value hash))
-                                                ,key
-                                                ,rval-name)))
+                       `(let* ((,rval-name ,rval-code)
+			       (hval (%coerce-for-insert ,(get-value hash)))
+			       (uval ,(if pre
+					  `(%general-insert!/pre
+					    hval
+					    ,key
+					    ,pre
+					    ,rval-name)
+					  `(%general-insert!
+					    hval
+					    ,key
+					    ,rval-name))))
+			   (unless (php-object? hval)
+			      ,(update-value hash `uval))
                            ,rval-name))))))))
 
 (define-method (update-value lval::property-fetch rval-code)
@@ -1727,9 +1735,11 @@ onum.  Append the bindings for the new symbols and code."
 	     `(let ((,hash-name ,(get-value hash)))
 		 (when (string? ,hash-name)
 		    (php-error "Cannot unset string offsets"))
-		 (when (php-hash? ,hash-name)
-		    (php-hash-remove! ,hash-name
-				      ,(get-value key))) ) ))))
+		 (if (and (php-object? ,hash-name) (php-object-instanceof ,hash-name "ArrayAccess"))
+		     (call-php-method-1 ,hash-name "offsetUnset" ,(get-value key))
+		     (when (php-hash? ,hash-name)
+			(php-hash-remove! ,hash-name
+					  ,(get-value key))) ) )))))
 
 (define-method (unset lval::property-fetch)
    (with-access::property-fetch lval (obj prop)
@@ -1757,6 +1767,15 @@ onum.  Append the bindings for the new symbols and code."
 ;;;;isset
 (define-generic (isset rval)
    `(not (null? ,(get-value rval))))
+
+(define-method (isset rval::hash-lookup)
+   (with-access::hash-lookup rval (hash key)
+      `(let ((the-hash ,(get-value hash))
+	     (the-key ,(get-value key)))
+	  (if (and (php-object? the-hash) (php-object-instanceof the-hash "ArrayAccess"))
+	      (convert-to-boolean (call-php-method-1 the-hash "offsetExists" the-key))
+	      ; normal
+	      (not (null? ,(get-value rval)))))))
 
 (define-method (isset rval::property-fetch)
    (with-access::property-fetch rval (obj prop)

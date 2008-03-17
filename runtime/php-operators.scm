@@ -462,7 +462,9 @@ in a container."
 			  ; XXX add this back when we fix isset/empty			     
 			  ;(when (eqv? val NULL)
 			     ; (php-notice "Undefined index: " key))			     
-			  val))			  
+			  val))
+      ((and (php-object? obj)
+	    (php-object-instanceof obj "ArrayAccess")) (maybe-unbox (call-php-method-1 obj "offsetGet" key)))      
       ((string? obj) (php-string-ref obj key))
 ;      ((foreign? obj) (%general-lookup-honestly-just-for-reading
 ;                       (zval->phpval-coercion-routine obj)
@@ -478,7 +480,9 @@ in a container."
 			  ; XXX add this back when we fix isset/empty			     
 			  ;(when (eqv? val NULL)
 			     ; (php-notice "Undefined index: " key))			     
-			  val))			  
+			  val))
+      ((and (php-object? obj)
+	    (php-object-instanceof obj "ArrayAccess")) (maybe-unbox (call-php-method-1 obj "offsetGet" key)))      
       ((string? obj) (php-string-ref obj key))
 ;      ((foreign? obj) (%general-lookup-honestly-just-for-reading
 ;                       (zval->phpval-coercion-routine obj)
@@ -515,6 +519,9 @@ reference insert in the case of a hash."
    (cond
       ((php-hash? obj) (php-hash-insert!/pre obj key pre val) obj)
       ((string? obj) (php-string-set! obj key val))
+      ((and (php-object? obj)
+	    (php-object-instanceof obj "ArrayAccess"))
+       (maybe-unbox (call-php-method-2 obj "offsetSet" key val)))      
 ;      ((foreign? obj) (%general-insert!
 ;                       (zval->phpval-coercion-routine obj)
 ;                       key
