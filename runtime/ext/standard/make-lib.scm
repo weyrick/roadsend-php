@@ -1,6 +1,7 @@
 (module __make-phpstd-lib
    (import
     (re-extension-lib "re-extensions.scm")
+    (php-proc-lib "php-proc.scm")
     (php-string-lib "php-strings.scm")
     (php-math-lib "php-math.scm")
     (php-files-lib "php-files.scm")

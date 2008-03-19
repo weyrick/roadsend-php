@@ -38,6 +38,7 @@
     (php-posix-lib "php-posix.scm")
     (php-session-lib "php-session.scm")
     (php-streams-lib "php-streams.scm")
+    (php-proc-lib "php-proc.scm")
     (php-image-lib "php-image.scm"))
    ; exports
    (export
@@ -142,6 +143,7 @@
    (init-php-session-lib)
    (init-php-streams-lib)
    (init-php-image-lib)
+   (init-php-proc-lib)
    1)
 
 ; register the extension

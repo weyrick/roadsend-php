@@ -507,7 +507,7 @@
    (if (or (readable-stream? handle)
 	   (writeable-stream? handle))
        (case (stream-type handle)
- 	  ((local-file socket)
+ 	  ((local-file socket process)
 	   (and-let* ((file-ptr (stream-file-ptr handle)))
 		     (pfl-fclose file-ptr))
            (stream-file-ptr-set! handle #f)
