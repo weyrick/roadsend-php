@@ -213,15 +213,15 @@
    (for-each (lambda (v)
                 (hashtable-put! *original-foo* v
                                 (copy-php-data (env-lookup *global-env* v))))
-             '("HTTP_GET_VARS" "_GET" "HTTP_POST_VARS" "_POST"
-               "HTTP_COOKIE_VARS" "_COOKIE" "_REQUEST" "argv" "argc")))
+             '("_GET" "_POST"
+               "_COOKIE" "_REQUEST" "argv" "argc")))
    
 ;;; restore the argument environment (program args, GET/POST etc) after an evaluator reset
 (define (restore-arg-env)
    (for-each (lambda (v)
                 (env-extend *global-env* v (hashtable-get *original-foo* v)))
-             '("HTTP_GET_VARS" "_GET" "HTTP_POST_VARS" "_POST"
-               "HTTP_COOKIE_VARS" "_COOKIE" "_REQUEST" "argv" "argc")))
+             '("_GET" "_POST"
+               "_COOKIE" "_REQUEST" "argv" "argc")))
 
 (define *program-restart* #f)
 
