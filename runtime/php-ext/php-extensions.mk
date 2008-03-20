@@ -33,10 +33,10 @@ all: unsafe
 all-run: build-lib $(LIB)/lib$(LIBNAME)_$(SUV).a $(LIB)/$(LIBNAME).sch  $(LIB)/lib$(LIBNAME)_$(SUV).$(SOEXT) $(LIB)/$(LIBNAME).heap
 
 unsafe:
-	UNSAFE=t make all-run
+	UNSAFE=t $(MAKE) all-run
 
 safe: 
-	UNSAFE=f make all-run
+	UNSAFE=f $(MAKE) all-run
 
 debug: safe
 

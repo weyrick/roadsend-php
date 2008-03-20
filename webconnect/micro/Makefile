@@ -17,10 +17,10 @@ all: unsafe
 all-run: mhttpd-libs
 
 unsafe:
-	UNSAFE=t make all-run
+	UNSAFE=t $(MAKE) all-run
 
 safe: 
-	UNSAFE=f make all-run
+	UNSAFE=f $(MAKE) all-run
 
 debug: safe
 
