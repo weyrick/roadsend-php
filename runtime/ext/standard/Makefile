@@ -46,7 +46,8 @@ SOURCE_LIST     = php-strings \
 		  php-var-cache \
 		  pack \
 		  re-extensions \
-		  php-proc
+		  php-proc \
+		  php-sha1
 
 
 C_SOURCE_LIST   = strnatcmp \
@@ -56,6 +57,7 @@ C_SOURCE_LIST   = strnatcmp \
 		  c-files \
 		  streams \
 		  php-system \
+		  sha1 \
 		  $(WINDOWS_C_SUPPORT)
 
 C_SOURCE_FLAGS = 

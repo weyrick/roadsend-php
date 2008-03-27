@@ -19,10 +19,12 @@
 
 (module php-string-lib
    (include "../phpoo-extension.sch")
-   (import (php-variable-lib "php-variable.scm"))
-   (import (php-math-lib "php-math.scm"))
-   (import (pcc-web-url "url.scm"))
-   (import (soundex "soundex.scm"))
+   (import
+    (php-variable-lib "php-variable.scm")
+    (php-math-lib "php-math.scm")
+    (pcc-web-url "url.scm")
+    (soundex "soundex.scm")
+    (php-sha1 "php-sha1.scm"))
    (library profiler)
    (extern
     (include "crc.h")
@@ -92,8 +94,8 @@
     (rawurldecode str)
     (rtrim str to-trim)
     (php-setlocale category . locales)
-    ; sha1_file
-    ; sha1
+    (sha1_file file raw_output)
+    (php-sha1 str raw_output)
     (similar_text first second percent)
     (php-soundex str)
     (sprintf . t-data)
@@ -1137,6 +1139,21 @@
 	    ;; fallthrough return value (keep inside the bind-exit)
 	    FALSE))))
 
+
+(defbuiltin (sha1_file file (raw_output #f))
+   (set! file (mkstr file))
+   (if (file-exists? file)
+       (let* ((in-port (open-input-file file))
+	      (result (sha1 in-port (convert-to-boolean raw_output))))
+	  (close-input-port in-port)
+	  result)))	  
+
+(defalias sha1 php-sha1)
+(defbuiltin (php-sha1 str (raw_output #f))
+   (let* ((in-port (open-input-string (mkstr str)))
+	  (result (sha1 in-port (convert-to-boolean raw_output))))
+      (close-input-port in-port)
+      result))
 
 ; similar_text --  Calculate the similarity between two strings
 (defbuiltin (similar_text first second ((ref . percent) 'unpassed))
