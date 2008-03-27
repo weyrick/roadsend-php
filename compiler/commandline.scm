@@ -154,11 +154,12 @@
            (add-target-option! commandline-libs: "fastcgi")))
 
        ((("-s" "--microserver") ?server-name (help "Generate stand alone MicroServer application"))
-        (do-library-mode server-name)
-        ;(widen!::microserver-target *current-target*)
-	(when (maybe-add-script-argv "-s")
-	   (set-target-option! microserver?: #t)
-	   (add-target-option! bigloo-args: "-lwebserver")))
+	(if (maybe-add-script-argv "-s")
+	    (begin
+	       (do-library-mode server-name)
+	       (set-target-option! microserver?: #t)
+	       (add-target-option! bigloo-args: "-lwebserver"))
+	    (add-script-argv server-name)))
 
        ((("--gui") (help "Generate desktop GUI application (PHP-GTK)"))
 	(when (maybe-add-script-argv "--gui")
@@ -167,12 +168,10 @@
 	      (PCC_MINGW (add-target-option! gui?: #t))
 	      (else '()))))
        
-;        ((("--cgi") (help "Generate stand alone (normal) CGI application"))
-;         (when (maybe-add-script-argv "--cgi")
-; 	   (add-target-option! cgi?: #t)))
-       
        ((("-l" "--library-mode") ?library-name (help "Generate a library"))
-        (do-library-mode library-name))
+	(if (maybe-add-script-argv "-l")
+	    (do-library-mode library-name)
+	    (add-script-argv library-name)))
 
        ((("--lint") ?script (help "Syntax check only"))
 	(widen!::lint-target *current-target*)
@@ -186,7 +185,8 @@
 
 
        ((("-c") ?config-file (help "Use the specified config file"))
-	(maybe-add-script-argv "-c")
+	(unless (maybe-add-script-argv "-c")
+	   (add-script-argv config-file))
 	; this option is actually checked for above because the *config-file* variable needs
 	; to be set before read-config-file is called, so this is just here to swallow the
 	; option and provide commandline help
@@ -204,25 +204,32 @@
 	      (set-target-option! bigloo-optimization: "-O6"))))
        
        ((("-m" "--make-file") ?file (help "Build using specified project make file"))
-	(when (maybe-add-script-argv "-m")
-	   (parse-make-file file)))
+	(if (maybe-add-script-argv "-m")
+	    (parse-make-file file)
+	    (add-script-argv file)))
        
        ((("-u" "--use") ?lib-name (help "Use specified PCC library (created with -l) when compiling and linking"))
-	(when (maybe-add-script-argv "-u")
-	   (add-target-option! commandline-libs: lib-name)))
+	(if (maybe-add-script-argv "-u")
+	    (add-target-option! commandline-libs: lib-name)
+	    (add-script-argv lib-name)))
 
        ((("-o" "--output-file") ?file (help "The output file"))
-	(when (maybe-add-script-argv "-o")
-	   (target-output-path-set! *current-target* file)))
+	(if (maybe-add-script-argv "-o")
+	   (target-output-path-set! *current-target* file)
+	   (add-script-argv file)))
        
        ((("-I" "--include-path") ?dir (help "Add a directory to the include file search path")) ;
         ;; XXX I would love these include-paths globals to go away. --timjr
-        (set! *include-paths* (cons dir *include-paths*))
-        (add-target-option! include-paths: dir))       
+	(if (maybe-add-script-argv "-I")
+	    (begin
+	       (set! *include-paths* (cons dir *include-paths*))
+	       (add-target-option! include-paths: dir))
+	    (add-script-argv dir)))
 
        ((("-L" "--library-path") ?lib-path (help "Add lib-path to library search path"))
-	(when (maybe-add-script-argv "-L")
-	   (add-target-option! library-paths: lib-path)))
+	(if (maybe-add-script-argv "-L")
+	   (add-target-option! library-paths: lib-path)
+	   (add-script-argv lib-path)))
 
        ((("--bopt") ?string (help "Invoke bigloo (scheme compiler) with STRING"))
 	(when (maybe-add-script-argv "--bopt")
@@ -281,12 +288,14 @@
        (section "Debugging")
        
        ((("-d" "--debug-level") ?level (help "Set the debug level (0=None/1=Med/2=High)"))
-	(when (maybe-add-script-argv "-d")
-	   (set! *debug-level* (string->integer level))
-	   (when (> *debug-level* 0)
-	      (set! *verbosity* 1)
-	      (add-target-option! bigloo-args: "-g")
-	      (add-target-option! bigloo-args: "-cg"))))
+	(if (maybe-add-script-argv "-d")
+	    (begin
+	       (set! *debug-level* (string->integer level))
+	       (when (> *debug-level* 0)
+		  (set! *verbosity* 1)
+		  (add-target-option! bigloo-args: "-g")
+		  (add-target-option! bigloo-args: "-cg")))
+	    (add-script-argv level)))
 
 ;        ((("-g" "--debugger") (help "Run file in the PCC step debugger"))
 ; 	(when (maybe-add-script-argv "-g")
