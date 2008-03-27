@@ -204,7 +204,7 @@
       (when esign
 	 (let ((lval (substring val 0 esign))
 	       (rval (substring val (+ esign 1) (string-length val))))
-	    (setenv lval rval)))))
+	    (putenv lval rval)))))
 
 ; getenv
 (defalias getenv php-getenv)

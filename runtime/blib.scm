@@ -221,7 +221,8 @@
     (lset-union!::pair-nil elt=::procedure . lists)
     (char->hex::bstring c::uchar)    
     (environ::pair-nil)
-    (setenv name::string value::string)
+    ; XXX use bigloo putenv instead
+    ;(setenv name::string value::string)
     ))
 
 
@@ -661,9 +662,9 @@
       year)
     tm))
 
-(define (setenv name::string value::string)
-   (when (pragma::bool #"setenv($1, $2, 1)" name value)
-      (cerror #"setenv")))
+;(define (setenv name::string value::string)
+;   (when (pragma::bool #"setenv($1, $2, 1)" name value)
+;      (cerror #"setenv")))
 
 (define (stat?::bool o::obj)
   (and (foreign? o) (eq? (foreign-id o) 'stat)))
