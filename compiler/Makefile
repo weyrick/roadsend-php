@@ -31,7 +31,7 @@ PHPEVAL_LIBS	= ../libs/libphpeval_$(SUV).a ../libs/libphpeval_$(SUV).$(SOEXT)
 
 all: unsafe
 
-all-run: $(PHPEVAL_LIBS) clean-bin pcc pcctags
+all-run: $(PHPEVAL_LIBS) clean-bin pcc pdb pcctags
 
 debug: safe
 
