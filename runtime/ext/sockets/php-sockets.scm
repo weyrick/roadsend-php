@@ -20,7 +20,8 @@
 (module php-sockets-lib
    (include "../phpoo-extension.sch")
    (library profiler)
-   (import (sockets-c-bindings "c-bindings.scm"))
+; not used
+;   (import (sockets-c-bindings "c-bindings.scm"))
    (export
     (init-php-sockets-lib)
     ;
