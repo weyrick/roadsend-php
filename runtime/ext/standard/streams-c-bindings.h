@@ -16,6 +16,7 @@
 #ifndef PCC_MINGW
   #include "syslog.h"
   #include "netdb.h"
+  #include "glob.h"
 
   #include "sys/select.h"
   #include "netinet/in.h"

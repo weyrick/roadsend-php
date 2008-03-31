@@ -21,7 +21,6 @@
    (extern
     (include "streams-c-bindings.h")
     (include "windows-flock.h")
-    (include "glob.h")
     (type FILE* (opaque) "FILE *")
     (type int* (pointer int) "int *")
     (type fd_set* (opaque) "fd_set *")

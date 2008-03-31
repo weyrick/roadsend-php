@@ -1273,7 +1273,10 @@
 
 ;; glob -- Find pathnames matching a pattern
 (defbuiltin (glob pattern (flags 'unpassed))
-   (let* ((pattern (mkstr pattern))
+ (cond-expand
+   (PCC_MINGW (mingw-missing 'glob))
+   (else
+    (let* ((pattern (mkstr pattern))
 	  (flags (if (php-number? flags) (onum->int flags) 0))
 	  (globbuf (pragma::c-glob-t* "(glob_t*)GC_malloc(sizeof(glob_t))"))
 	  (g-retval (c-glob pattern
@@ -1297,7 +1300,7 @@
 		   (c-globfree globbuf)))
 	     rethash)
 	  ; glob error condition
-	  FALSE)))
+	  FALSE)))))
       
 
 ;; is_dir -- Tells whether the filename is a directory
