@@ -157,13 +157,16 @@
 (defconstant LOCK_UN  8)
 (defconstant LOCK_NB  4)
 
-(defconstant GLOB_MARK (int->onum c-GLOB_MARK))
-(defconstant GLOB_NOSORT (int->onum c-GLOB_NOSORT))
-(defconstant GLOB_NOCHECK (int->onum c-GLOB_NOCHECK))
-(defconstant GLOB_NOESCAPE (int->onum c-GLOB_NOESCAPE))
-(defconstant GLOB_BRACE (int->onum c-GLOB_BRACE))
-(defconstant GLOB_ONLYDIR (int->onum c-GLOB_ONLYDIR))
-(defconstant GLOB_ERR (int->onum c-GLOB_ERR))
+(cond-expand
+   (PCC_MINGW #f)
+   (else
+    (defconstant GLOB_MARK (int->onum c-GLOB_MARK))
+    (defconstant GLOB_NOSORT (int->onum c-GLOB_NOSORT))
+    (defconstant GLOB_NOCHECK (int->onum c-GLOB_NOCHECK))
+    (defconstant GLOB_NOESCAPE (int->onum c-GLOB_NOESCAPE))
+    (defconstant GLOB_BRACE (int->onum c-GLOB_BRACE))
+    (defconstant GLOB_ONLYDIR (int->onum c-GLOB_ONLYDIR))
+    (defconstant GLOB_ERR (int->onum c-GLOB_ERR))))
 
 (defconstant FILE_APPEND  1)
 (defconstant FILE_TEXT    2)
