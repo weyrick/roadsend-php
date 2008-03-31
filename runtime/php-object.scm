@@ -1466,7 +1466,7 @@ argument, before the continuation: (obj prop ref? value k)."
       (let ((val (%lookup-static-prop class-name property access-type)))
 	 (if val
 	     val
-	  (php-error "Access to undeclared static property: " class-name "::" property)))))	     
+	  (php-error "Access to undeclared static property: " class-name "::$" property)))))	     
 
 (define (php-class-static-property-location class-name property access-type)
    (let ((the-class (%lookup-class-with-autoload class-name)))
@@ -1476,7 +1476,7 @@ argument, before the continuation: (obj prop ref? value k)."
 	 (if val
 	     val
 	     (begin
-		(php-error "Access to undeclared static property: " class-name "::" property)
+		(php-error "Access to undeclared static property: " class-name "::$" property)
 		(make-container NULL))))))
 
 (define (php-class-static-property-set! class-name property value access-type)
@@ -1608,7 +1608,10 @@ argument, before the continuation: (obj prop ref? value k)."
 	  #f)))
 
 (define (%lookup-static-prop class-name property access-type)
-   (container-value (%lookup-static-prop-location class-name property access-type)))
+   (let ((rval (%lookup-static-prop-location class-name property access-type)))
+      (if (container? rval)
+	  (container-value rval)
+	  #f)))
 
 (define (%php-class-method-reflection klass)
     (list->php-hash
