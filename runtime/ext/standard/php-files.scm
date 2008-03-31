@@ -116,13 +116,15 @@
     LOCK_EX
     LOCK_UN
     LOCK_NB
-    GLOB_MARK
-    GLOB_NOSORT
-    GLOB_NOCHECK
-    GLOB_NOESCAPE
-    GLOB_BRACE
-    GLOB_ONLYDIR
-    GLOB_ERR
+; XXX these aren't defined in mingw. only needed here for scheme code that wants to
+; use these, not php code. is there a cond-expand for exports?
+;    GLOB_MARK
+;    GLOB_NOSORT
+;    GLOB_NOCHECK
+;    GLOB_NOESCAPE
+;    GLOB_BRACE
+;    GLOB_ONLYDIR
+;    GLOB_ERR
     FILE_APPEND
     FILE_TEXT
     FILE_BINARY
