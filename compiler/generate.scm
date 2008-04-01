@@ -1084,7 +1084,7 @@ onum.  Append the bindings for the new symbols and code."
 	  (php-error (format "Cannot access ~a static property ~a::$~a" vis ,(mkstr the-class) ,the-property)))))
 
 (define-method (generate-code node::property-fetch)
-   (with-access::property-fetch node (obj prop)
+   (with-access::property-fetch node (location obj prop)
       (let* ((the-object (get-value obj))
 	     (the-property (if (ast-node? prop)
 			       (get-value prop)
@@ -1094,6 +1094,9 @@ onum.  Append the bindings for the new symbols and code."
 	    (warning/loc node "property name is not a string, but should be."))
 	 `(let* ((obj-evald ,the-object)
 		 (access-type ,(generate-get-prop-access-type 'obj-evald the-property)))
+	     ; XXX LINE/FILE update only neeed while we do visibility checks here: they will be moved to runtime
+	     (set! *PHP-FILE* ,*file-were-compiling*)
+	     (set! *PHP-LINE* ,(car location))	     
 	     ,(generate-prop-visibility-check 'obj-evald the-property)
 	     ,(if *hash-lookup-writable*
 		  (if property-is-constant?
@@ -1106,7 +1109,7 @@ onum.  Append the bindings for the new symbols and code."
 		      `(php-object-property-honestly-just-for-reading obj-evald ,the-property access-type)))))))
 
 (define-method (generate-code node::static-property-fetch)
-   (with-access::static-property-fetch node (class prop)
+   (with-access::static-property-fetch node (location class prop)
       (let ((class-canon (cond ((eqv? class '%self) *current-class-name*)
 			       ((eqv? class '%parent) *current-parent-class-name*)
 			       (else class))))
@@ -1122,6 +1125,9 @@ onum.  Append the bindings for the new symbols and code."
 			(prop-name (undollar (var-name the-property))))
 		    `(let* ((prop-evald ,prop-name)
 			    (access-type ,(generate-get-static-prop-access-type class-canon 'prop-evald)))
+			; XXX LINE/FILE update only neeed while we do visibility checks here: they will be moved to runtime
+			(set! *PHP-FILE* ,*file-were-compiling*)
+			(set! *PHP-LINE* ,(car location))
 			,(generate-static-prop-visibility-check class-canon 'prop-evald)
 			(php-class-static-property ',class-canon ,prop-name access-type))))))))
 
@@ -1554,7 +1560,7 @@ onum.  Append the bindings for the new symbols and code."
 		 (%general-lookup-location ,(get-value hash) ,the-key))))))
 
 (define-method (get-location rval::property-fetch)
-   (with-access::property-fetch rval (obj prop)
+   (with-access::property-fetch rval (location obj prop)
       (let* ((the-object (get-value obj))
 	     (the-property (if (ast-node? prop)
 			       (get-value prop)
@@ -1564,6 +1570,9 @@ onum.  Append the bindings for the new symbols and code."
 	    (warning/loc rval "property name is not a string, but should be."))
 	 `(let* ((obj-evald ,the-object)
 		 (access-type ,(generate-get-prop-access-type 'obj-evald the-property)))
+	     ; XXX LINE/FILE update only neeed while we do visibility checks here: they will be moved to runtime
+	     (set! *PHP-FILE* ,*file-were-compiling*)
+	     (set! *PHP-LINE* ,(car location))	     
 	     ,(generate-prop-visibility-check 'obj-evald the-property)
 	     ,(if property-is-constant?
 		  `(php-object-property-location/string
@@ -1682,7 +1691,7 @@ onum.  Append the bindings for the new symbols and code."
                            ,rval-name))))))))
 
 (define-method (update-value lval::property-fetch rval-code)
-   (with-access::property-fetch lval (obj prop)
+   (with-access::property-fetch lval (location obj prop)
       (let* ((the-object (get-value obj))
             (the-property (if (ast-node? prop)
                               (get-value prop)
@@ -1692,6 +1701,9 @@ onum.  Append the bindings for the new symbols and code."
            (warning/loc lval "property name is not a string, but should be."))
         `(let* ((obj-evald ,the-object)
                 (access-type ,(generate-get-prop-access-type 'obj-evald the-property)))
+	    ; XXX LINE/FILE update only neeed while we do visibility checks here: they will be moved to runtime
+	    (set! *PHP-FILE* ,*file-were-compiling*)
+	    (set! *PHP-LINE* ,(car location))	     	    
             ,(generate-prop-visibility-check 'obj-evald the-property)
             ,(if property-is-constant?
                  `(php-object-property-set!/string
@@ -1702,7 +1714,7 @@ onum.  Append the bindings for the new symbols and code."
                  `(php-object-property-set! obj-evald ,the-property ,rval-code access-type))))))
 
 (define-method (update-value lval::static-property-fetch rval-code)
-   (with-access::static-property-fetch lval (class prop)
+   (with-access::static-property-fetch lval (location class prop)
       (let ((class-canon (cond ((eqv? class '%self) *current-class-name*)
 			       ((eqv? class '%parent) *current-parent-class-name*)
 			       (else class))))
@@ -1718,6 +1730,9 @@ onum.  Append the bindings for the new symbols and code."
 			(prop-name (undollar (var-name the-property))))		 
 		    `(let* ((prop-evald ,prop-name)
 			    (access-type ,(generate-get-static-prop-access-type class-canon 'prop-evald)))
+			; XXX LINE/FILE update only neeed while we do visibility checks here: they will be moved to runtime
+			(set! *PHP-FILE* ,*file-were-compiling*)
+			(set! *PHP-LINE* ,(car location))	     			
 			,(generate-static-prop-visibility-check class-canon 'prop-evald)
 			(php-class-static-property-set! ',class-canon ,prop-name ,rval-code access-type))))))))
 
@@ -1843,7 +1858,7 @@ onum.  Append the bindings for the new symbols and code."
        (error 'update-location-var "tried to update the location of an unboxed variable" lval)))
 
 (define-method (update-location lval::property-fetch rval-code)
-   (with-access::property-fetch lval (obj prop)
+   (with-access::property-fetch lval (location obj prop)
       (let* ((the-object (get-value obj))
 	     (the-property (if (ast-node? prop)
 			       (get-value prop)
@@ -1853,6 +1868,9 @@ onum.  Append the bindings for the new symbols and code."
 	    (warning/loc lval "property name is not a string, but should be."))
 	 `(let* ((obj-evald ,the-object)
 		 (access-type ,(generate-get-prop-access-type 'obj-evald the-property)))
+	     ; XXX LINE/FILE update only neeed while we do visibility checks here: they will be moved to runtime
+	     (set! *PHP-FILE* ,*file-were-compiling*)
+	     (set! *PHP-LINE* ,(car location))	     	     
 	     ,(generate-prop-visibility-check 'obj-evald the-property)	 	 
 	     ,(if property-is-constant?
 		  `(php-object-property-set!/string
