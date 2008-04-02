@@ -161,6 +161,14 @@
 
 (cond-expand
    (PCC_MINGW #f)
+   (PCC_FREEBSD (begin
+		   (defconstant GLOB_MARK (int->onum c-GLOB_MARK))
+		   (defconstant GLOB_NOSORT (int->onum c-GLOB_NOSORT))
+		   (defconstant GLOB_NOCHECK (int->onum c-GLOB_NOCHECK))
+		   (defconstant GLOB_NOESCAPE (int->onum c-GLOB_NOESCAPE))
+		   (defconstant GLOB_BRACE (int->onum c-GLOB_BRACE))
+		   ; no GLOB_ONLYDIR on freebsd
+		   (defconstant GLOB_ERR (int->onum c-GLOB_ERR))))
    (else
     (defconstant GLOB_MARK (int->onum c-GLOB_MARK))
     (defconstant GLOB_NOSORT (int->onum c-GLOB_NOSORT))
