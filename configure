@@ -707,6 +707,7 @@ BE_LIST
 SO_EXT
 BIGLOO_VERSION
 BIGLOO_LIB_PATH
+RESOLVER_LIB
 MYSQL_CFLAGS
 MYSQL_LIBS
 ODBC_CFLAGS
@@ -4515,6 +4516,7 @@ _ACEOF
 
 	PCC_OS="PCC_LINUX"
 #	SHARED_FLAG="-shared"
+	RESOLVER_LIB="-lresolv"
 	SO_EXT="so"
 	STD_LIBS="-lresolv -lm -lcrypt"
 	STD_CFLAGS=""
@@ -4528,6 +4530,7 @@ _ACEOF
 
 	PCC_OS="PCC_FREEBSD"
 #	SHARED_FLAG="-shared"
+	RESOLVER_LIB=""
 	SO_EXT="so"
 	STD_LIBS="-lcrypt"
 	STD_CFLAGS=""
@@ -4542,6 +4545,7 @@ _ACEOF
 	PCC_OS="PCC_MINGW"
 #	SHARED_FLAG="-shared"
 	SO_EXT="dll"
+	RESOLVER_LIB=""
 	STD_LIBS="-lws2_32"
 	STD_CFLAGS=""
 	with_pccwin=yes
@@ -4556,6 +4560,7 @@ _ACEOF
 	PCC_OS="PCC_MACOSX"
 #	SHARED_FLAG="-r -dynamiclib -undefined dynamic_lookup"
 	SO_EXT="dylib"
+	RESOLVER_LIB="-lresolv"
 	STD_LIBS="-lresolv -lm"
 	STD_CFLAGS=""
 	;;
@@ -5525,6 +5530,8 @@ BIGLOO_VERSION=$BIGLOO_VERSION
 
 BIGLOO_LIB_PATH=$BIGLOO_LIB_PATH
 
+RESOLVER_LIB=$RESOLVER_LIB
+
 MYSQL_CFLAGS=$MYSQL_CFLAGS
 
 MYSQL_LIBS=$MYSQL_LIBS
@@ -6319,10 +6326,10 @@ BE_LIST!$BE_LIST$ac_delim
 SO_EXT!$SO_EXT$ac_delim
 BIGLOO_VERSION!$BIGLOO_VERSION$ac_delim
 BIGLOO_LIB_PATH!$BIGLOO_LIB_PATH$ac_delim
+RESOLVER_LIB!$RESOLVER_LIB$ac_delim
 MYSQL_CFLAGS!$MYSQL_CFLAGS$ac_delim
 MYSQL_LIBS!$MYSQL_LIBS$ac_delim
 ODBC_CFLAGS!$ODBC_CFLAGS$ac_delim
-ODBC_LIBS!$ODBC_LIBS$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -6364,6 +6371,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+ODBC_LIBS!$ODBC_LIBS$ac_delim
 SQLITE_CFLAGS!$SQLITE_CFLAGS$ac_delim
 SQLITE_LIBS!$SQLITE_LIBS$ac_delim
 CURL_STATIC_CFLAGS!$CURL_STATIC_CFLAGS$ac_delim
@@ -6382,7 +6390,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 16; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 17; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

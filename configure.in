@@ -303,6 +303,7 @@ linux*)
 	AC_DEFINE(PCC_OS, ["PCC_LINUX"])
 	PCC_OS="PCC_LINUX"
 #	SHARED_FLAG="-shared"
+	RESOLVER_LIB="-lresolv"
 	SO_EXT="so"
 	STD_LIBS="-lresolv -lm -lcrypt"
 	STD_CFLAGS=""
@@ -312,6 +313,7 @@ freebsd*)
 	AC_DEFINE(PCC_OS, ["PCC_FREEBSD"])
 	PCC_OS="PCC_FREEBSD"
 #	SHARED_FLAG="-shared"
+	RESOLVER_LIB=""
 	SO_EXT="so"
 	STD_LIBS="-lcrypt"
 	STD_CFLAGS=""
@@ -322,6 +324,7 @@ mingw*)
 	PCC_OS="PCC_MINGW"
 #	SHARED_FLAG="-shared"
 	SO_EXT="dll"
+	RESOLVER_LIB=""
 	STD_LIBS="-lws2_32"
 	STD_CFLAGS=""
 	with_pccwin=yes
@@ -332,6 +335,7 @@ darwin*)
 	PCC_OS="PCC_MACOSX"
 #	SHARED_FLAG="-r -dynamiclib -undefined dynamic_lookup"
 	SO_EXT="dylib"
+	RESOLVER_LIB="-lresolv"
 	STD_LIBS="-lresolv -lm"
 	STD_CFLAGS=""
 	;;
@@ -384,6 +388,7 @@ AC_SUBST(BE_LIST, $BE_LIST)
 AC_SUBST(SO_EXT, $SO_EXT)
 AC_SUBST(BIGLOO_VERSION, $BIGLOO_VERSION)
 AC_SUBST(BIGLOO_LIB_PATH, $BIGLOO_LIB_PATH)
+AC_SUBST(RESOLVER_LIB, $RESOLVER_LIB)
 AC_SUBST(MYSQL_CFLAGS, $MYSQL_CFLAGS)
 AC_SUBST(MYSQL_LIBS, $MYSQL_LIBS)
 AC_SUBST(ODBC_CFLAGS, $ODBC_CFLAGS)
