@@ -572,11 +572,11 @@
 (define (php-check-arity signature::object call-name::obj call-length::bint)
    "signal a warning if a function call has too few or too many arguments"
    (if (<fx call-length (sig-minimum-arity signature))
-       (php-warning (format "Not enough arguments for function ~a: ~a required, ~a provided."
+       (php-warning (format "Not enough arguments for function ~a: ~a required, ~a provided"
 			    call-name (sig-minimum-arity signature) call-length))
        (if (and (not (=fx (sig-maximum-arity signature) -1))
 		(>fx call-length (sig-maximum-arity signature)))
-	   (php-warning (format "Too many arguments for function ~a: ~a accepted, ~a provided."
+	   (php-warning (format "Too many arguments for function ~a: ~a accepted, ~a provided"
 				call-name (sig-maximum-arity signature) call-length)))))
 
 (define (sig-minimum-arity sig)
