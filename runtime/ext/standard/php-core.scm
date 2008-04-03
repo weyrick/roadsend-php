@@ -969,16 +969,22 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 ;;;the *func-args-stack* is maintained in php-runtime.scm, so that
 ;;;evaluate can get to it.
 (defbuiltin (func_get_args)
-   (assert (not (null? *func-args-stack*)))
-   (unless (php-hash? (car *func-args-stack*))
-      (set-car! *func-args-stack* (list->php-hash (car *func-args-stack*))))
-   (car *func-args-stack*))
+   (if (null? *func-args-stack*)
+       (php-warning "Called from the global scope - no function context")
+       (begin
+	  (unless (php-hash? (car *func-args-stack*))
+	     (set-car! *func-args-stack* (list->php-hash (car *func-args-stack*))))
+	  (car *func-args-stack*))))
 
 (defbuiltin (func_num_args)
-   (assert (not (null? *func-args-stack*)))
-   (if (php-hash? (car *func-args-stack*))
-       (php-hash-size (car *func-args-stack*))
-       (length (car *func-args-stack*))))
+   (if (null? *func-args-stack*)
+       (begin
+	  (php-warning "Called from the global scope - no function context")
+	  (convert-to-number #e-1))
+       (begin   
+	  (if (php-hash? (car *func-args-stack*))
+	      (php-hash-size (car *func-args-stack*))
+	      (convert-to-number (length (car *func-args-stack*)))))))
 
 (defbuiltin (func_get_arg arg-num)
    (php-hash-lookup (func_get_args)
