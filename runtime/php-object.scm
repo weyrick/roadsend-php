@@ -1464,20 +1464,20 @@ argument, before the continuation: (obj prop ref? value k)."
       (unless the-class
 	 (php-error "Getting static property " property ": unknown class " class-name))
       (let ((val (%lookup-static-prop class-name property access-type)))
-	 (if val
-	     val
-	  (php-error "Access to undeclared static property: " class-name "::$" property)))))	     
+	 (if (eqv? val 'not-found)
+	     (php-error "Access to undeclared static property: " class-name "::$" property)
+	     val))))
 
 (define (php-class-static-property-location class-name property access-type)
    (let ((the-class (%lookup-class-with-autoload class-name)))
       (unless the-class
 	 (php-error "Getting static property " property ": unknown class " class-name))
       (let ((val (%lookup-static-prop-location class-name property access-type)))
-	 (if val
-	     val
+	 (if (eqv? val 'not-found)
 	     (begin
 		(php-error "Access to undeclared static property: " class-name "::$" property)
-		(make-container NULL))))))
+		(make-container NULL))
+	     val))))
 
 (define (php-class-static-property-set! class-name property value access-type)
    (let ((the-class (%lookup-class class-name)))
@@ -1604,14 +1604,14 @@ argument, before the continuation: (obj prop ref? value k)."
 		 (offset (%prop-offset the-class canon-name access-type)))
 	     (if offset
 		 (vector-ref (%php-class-properties the-class) offset)
-		 #f))
-	  #f)))
+		 'not-found))
+	  'not-found)))
 
 (define (%lookup-static-prop class-name property access-type)
    (let ((rval (%lookup-static-prop-location class-name property access-type)))
       (if (container? rval)
 	  (container-value rval)
-	  #f)))
+	  'not-found)))
 
 (define (%php-class-method-reflection klass)
     (list->php-hash
