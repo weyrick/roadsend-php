@@ -31,7 +31,9 @@ PHPEVAL_LIBS	= ../libs/libphpeval_$(SUV).a ../libs/libphpeval_$(SUV).$(SOEXT)
 
 all: unsafe
 
-all-run: $(PHPEVAL_LIBS) clean-bin pcc pdb pcctags
+# NOTE: pdb is not in this list because it depends on mhttpd
+#        it gets built from the top level make through "make debugger"
+all-run: $(PHPEVAL_LIBS) clean-bin pcc pcctags
 
 debug: safe
 
