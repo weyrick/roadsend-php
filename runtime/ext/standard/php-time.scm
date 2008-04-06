@@ -486,11 +486,11 @@
    (convert-to-integer (current-seconds)))
 
 ; uniqid -- Generate a unique ID
-; FIXME i daresay this isn't java safe
 (defbuiltin (uniqid (prefix "") (entropy 'unpassed))
    (set! prefix (mkstr prefix)) 
    (let ((prefix (if (> (string-length prefix) 114) (substring prefix 0 114) prefix))
 	 (str (make-string 128)))
+      (sleep 1)
       (pragma "{
 struct timeval tv;
 int sec, usec;
