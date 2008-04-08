@@ -17,27 +17,22 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  * ***** END LICENSE BLOCK ***** */
 
-/*  
-
- Roadsend PHP
- C Runtime Interface
-
- Note this is NOT used to build the Roadsend PHP runtime. It is used
- by programs that wish to link to the PHP runtime system from C.
-
- */
-
-#ifndef RE_C_RUNTIME_H
-#define RE_C_RUNTIME_H
-
 #include "bigloo.h"
 
-// var_dump
-obj_t re_var_dump(obj_t var);
+// exported from c-interface.scm
+obj_t re_runtime_init(void);
 
-// php-hash
-obj_t re_make_php_hash(void);
-int re_php_hash_insert(obj_t hash, char* key, char* val);
+obj_t _re_main(obj_t argv_cons)
+{
+  // these are the mangled initialization functions exported by the compiled c-interface.scm
+  BGl_modulezd2initializa7ationz75zzrezd2czd2interfacez00(0, "c-test");
+  BGl_bigloozd2initializa7edz12z67zz__paramz00();
+}
 
+obj_t re_main(int argc, char *argv[], char *env[]) {
 
-#endif
+  _bigloo_main(argc, argv, env, &_re_main);
+  re_runtime_init();
+
+}
+

@@ -3,13 +3,13 @@ include $(PCC_ROOT)/bigloo-rules.mk
 
 BCOMMONFLAGS	= -I $(PCC_ROOT)/libs -L $(PCC_ROOT)/libs
 SOURCE_LIST	= c-interface
-#C_SOURCE_LIST   =
+C_SOURCE_LIST   = c-glue
 
 CCOMMONFLAGS	=  -I. -I$(BGL_DEFAULT_LIB_DIR) -O -I/usr/local/include -L$(PCC_ROOT)/libs -I$(PCC_ROOT)/runtime
 
-#C_SOURCE_FILES   := $(patsubst %,%.c,$(C_SOURCE_LIST))
-#C_POPULATION     := $(patsubst %,%_$(SU).o,$(C_SOURCE_LIST))
-#C_STATIC_POPULATION     := $(patsubst %,%_$(SU)$(STATIC_SUFFIX).o,$(C_SOURCE_LIST))
+C_SOURCE_FILES   := $(patsubst %,%.c,$(C_SOURCE_LIST))
+C_POPULATION     := $(patsubst %,%_$(SU).o,$(C_SOURCE_LIST))
+C_STATIC_POPULATION     := $(patsubst %,%_$(SU)$(STATIC_SUFFIX).o,$(C_SOURCE_LIST))
 
 SOURCE_FILES     := $(patsubst %,%.scm,$(SOURCE_LIST))
 POPULATION       := $(patsubst %,%_$(SU).o,$(SOURCE_LIST))
