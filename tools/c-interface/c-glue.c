@@ -25,7 +25,7 @@ obj_t re_runtime_init(void);
 obj_t _re_main(obj_t argv_cons)
 {
   // these are the mangled initialization functions exported by the compiled c-interface.scm
-  BGl_modulezd2initializa7ationz75zzrezd2czd2interfacez00(0, "c-test");
+  BGl_modulezd2initializa7ationz75zzrezd2czd2interfacez00(0, "c-interface");
   BGl_bigloozd2initializa7edz12z67zz__paramz00();
 }
 

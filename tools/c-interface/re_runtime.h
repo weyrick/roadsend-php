@@ -32,12 +32,27 @@
 
 #include "bigloo.h"
 
-// var_dump
+#define PHP_TRUE   BTRUE
+#define PHP_FALSE  BFALSE
+#define PHP_BOOL   BBOOL
+
+// debug
 obj_t re_var_dump(obj_t var);
+
+// strings
+obj_t re_string(char* str);
+int re_is_string(obj_t var);
+
+// numbers
+obj_t re_float(double n);
+obj_t re_int(long n);
+int re_is_number(obj_t var);
+int re_is_float(obj_t var);
+int re_is_int(obj_t var);
 
 // php-hash
 obj_t re_make_php_hash(void);
 int re_php_hash_insert(obj_t hash, char* key, char* val);
-
+int re_is_php_hash(obj_t var);
 
 #endif
