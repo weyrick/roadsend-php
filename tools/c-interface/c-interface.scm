@@ -20,14 +20,30 @@
 (module re-c-interface
    (include "php-runtime.sch")
    (library php-runtime)
+   (library phpeval)
+   (library profiler)
+   (library webconnect)
    (export
+    (re-runtime-init::obj)
+    (re-var-dump::obj var::obj)
     (re-make-php-hash::struct)
     (re-php-hash-insert::bool ::struct ::string ::string))
    (extern
+    (export re-runtime-init "re_runtime_init")
+    (export re-var-dump "re_var_dump")
     (export re-make-php-hash "re_make_php_hash")
     (export re-php-hash-insert "re_php_hash_insert")
     ))
 
+
+(define (re-runtime-init::obj)
+   (setup-library-paths)
+   (load-runtime-libs '(php-std))
+;   (init-php-argv ?)
+   (run-startup-functions))
+   
+(define (re-var-dump::obj var::obj)
+   (php-funcall 'var_dump var))
 
 (define (re-make-php-hash::struct)
    (make-php-hash))

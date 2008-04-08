@@ -34,6 +34,10 @@
 
 // initialization
 obj_t BGl_modulezd2initializa7ationz75zzrezd2czd2interfacez00(long, char *);
+obj_t re_runtime_init(void);
+
+// var_dump
+obj_t re_var_dump(obj_t var);
 
 // php-hash
 obj_t re_make_php_hash(void);
