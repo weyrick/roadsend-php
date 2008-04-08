@@ -32,6 +32,9 @@
 
 #include "bigloo.h"
 
+// initialization
+obj_t BGl_modulezd2initializa7ationz75zzrezd2czd2interfacez00(long, char *);
+
 // php-hash
 obj_t re_make_php_hash(void);
 int re_php_hash_insert(obj_t hash, char* key, char* val);

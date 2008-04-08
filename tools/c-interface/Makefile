@@ -33,6 +33,7 @@ debug: safe
 clean:
 	-/bin/rm -f *.a *.o *.heap *.so $(CLEFTOVERS)
 	-/bin/rm c-test c-interface_[su].c
+	-/bin/rm $(PCC_ROOT)/libs/librephpc_$(SUV).a $(PCC_ROOT)/libs/librephpc_$(SUV).$(SOEXT) 
 
 c-interface-libs: $(PCC_ROOT)/libs/librephpc_$(SUV).a $(PCC_ROOT)/libs/librephpc_$(SUV).$(SOEXT) 
 
@@ -43,7 +44,7 @@ $(PCC_ROOT)/libs/librephpc_$(SUV).a: $(STATIC_POPULATION) $(C_STATIC_POPULATION)
 	ar ruv $(PCC_ROOT)/libs/librephpc_$(SUV).a $(STATIC_POPULATION) $(C_STATIC_POPULATION)
 
 c-test: c-test.c
-	$(CC) $(CCOMMONFLAGS) $(CSAFEFLAGS) $(C_PIC) c-test.c -o c-test -lrephpc_$(SUV) -lphp-runtime_$(SUV)
+	$(CC) $(CCOMMONFLAGS) $(CSAFEFLAGS) $(C_PIC) c-test.c -o c-test -lrephpc_$(SUV) -lphp-runtime_$(SUV) -lphpeval_$(SUV) -lwebconnect_$(SUV) -lprofiler_$(SUV)
 
 # override for -rm
 %_s.o : %.scm
