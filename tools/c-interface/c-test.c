@@ -38,22 +38,22 @@ int main(int argc, char *argv[], char *env[])
   obj_t mystr = re_string("this is now a php string");
   re_var_dump(mystr);
 
-  fprintf(stdout, "is mystr a string? %s\n", (re_is_string(mystr) ? "yes" : "no"));
+  printf("is mystr a string? %s\n", (re_is_string(mystr) ? "yes" : "no"));
 
   // numbers
   obj_t myfloat = re_float(1.2345);
   re_var_dump(myfloat);
 
-  fprintf(stdout, "is myfloat a number? %s\n", (re_is_number(myfloat) ? "yes" : "no"));
-  fprintf(stdout, "is myfloat a float? %s\n", (re_is_float(myfloat) ? "yes" : "no"));
-  fprintf(stdout, "is myfloat an int? %s\n", (re_is_int(myfloat) ? "yes" : "no"));
+  printf("is myfloat a number? %s\n", (re_is_number(myfloat) ? "yes" : "no"));
+  printf("is myfloat a float? %s\n", (re_is_float(myfloat) ? "yes" : "no"));
+  printf("is myfloat an int? %s\n", (re_is_int(myfloat) ? "yes" : "no"));
 
   obj_t myint = re_int(-2312);
   re_var_dump(myint);
 
-  fprintf(stdout, "is myint a number? %s\n", (re_is_number(myint) ? "yes" : "no"));
-  fprintf(stdout, "is myint a float? %s\n", (re_is_float(myint) ? "yes" : "no"));
-  fprintf(stdout, "is myint an int? %s\n", (re_is_int(myint) ? "yes" : "no"));
+  printf("is myint a number? %s\n", (re_is_number(myint) ? "yes" : "no"));
+  printf("is myint a float? %s\n", (re_is_float(myint) ? "yes" : "no"));
+  printf("is myint an int? %s\n", (re_is_int(myint) ? "yes" : "no"));
 
   // bool
   obj_t mybool = PHP_TRUE;
@@ -64,11 +64,30 @@ int main(int argc, char *argv[], char *env[])
 
   // php hash
   obj_t myhash = re_make_php_hash();
-  re_php_hash_insert(myhash, "key1", "val1");
-  re_php_hash_insert(myhash, "key2", "val2");
+
+  re_php_hash_insert_cstr(myhash, "key1", "val1");
+  re_php_hash_insert_cstr(myhash, "key2", "val2");
+
+  obj_t myval = re_string("some data");
+  re_php_hash_insert(myhash, re_int(12), myval);
+
+  obj_t nhash = re_make_php_hash();
+  re_php_hash_insert_cstr(nhash, "nested", "data");
+  re_php_hash_insert(myhash, re_string("my nested hash"), nhash);
+
   re_var_dump(myhash);
 
-  fprintf(stdout, "is myhash a hash? %s\n", (re_is_php_hash(myhash) ? "yes" : "no"));
+  printf("is myhash a hash? %s\n", (re_is_php_hash(myhash) ? "yes" : "no"));
+
+  // funcalls
+  obj_t retval = re_funcall("strlen", re_list_1(mystr));
+  re_var_dump(retval);
+  
+  retval = re_funcall("sizeof", re_list_1(myhash));
+  re_var_dump(retval);
+
+  // dump the output of a call to strpos with 2 arguments: mystr and "now"
+  re_var_dump(re_funcall("strpos", re_list_2(mystr, re_string("now"))));
 
 }
 

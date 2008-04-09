@@ -39,8 +39,14 @@
     (re-is-int::bool ::obj)    
     ; hash
     (re-make-php-hash::struct)
-    (re-php-hash-insert::bool ::struct ::string ::string)
+    (re-php-hash-insert-cstr::bool ::struct ::string ::string)
+    (re-php-hash-insert::bool ::struct ::obj ::obj)
     (re-is-php-hash::bool ::obj)
+    ; funcall
+    (re-funcall::obj ::string ::obj)
+    (re-list-1::obj ::obj)
+    (re-list-2::obj ::obj ::obj)
+    (re-list-3::obj ::obj ::obj ::obj)
     )
    (extern
     ; init
@@ -58,8 +64,14 @@
     (export re-is-int "re_is_int")
     ; hash
     (export re-make-php-hash "re_make_php_hash")
+    (export re-php-hash-insert-cstr "re_php_hash_insert_cstr")
     (export re-php-hash-insert "re_php_hash_insert")
     (export re-is-php-hash "re_is_php_hash")
+    ; funcall
+    (export re-funcall "re_funcall")
+    (export re-list-1 "re_list_1")
+    (export re-list-2 "re_list_2")
+    (export re-list-3 "re_list_3")    
     ))
 
 
@@ -109,12 +121,33 @@
 (define (re-make-php-hash::struct)
    (make-php-hash))
 
-(define (re-php-hash-insert::bool hash::struct key::string value::string)
+(define (re-php-hash-insert::bool hash::struct key::obj value::obj)
    (if (php-hash? hash)
        (php-hash-insert! hash key value)
        (php-warning "CFI: invalid hash object")))
 
+(define (re-php-hash-insert-cstr::bool hash::struct key::string value::string)
+   (if (php-hash? hash)
+       (php-hash-insert! hash ($string->bstring key) ($string->bstring value))
+       (php-warning "CFI: invalid hash object")))
 
 (define (re-is-php-hash::bool var::obj)
    (php-hash? var))
+
+;;;;;;;;;;;
+;; FUNCALL
+;;;;;;;;;;;
+(define (re-funcall::obj fun-name::string args::obj)
+   (if (pair? args)
+       (apply php-funcall (cons ($string->bstring fun-name) args))
+       (php-warning "CFI: invalid argument structure (want pair)")))
+
+(define (re-list-1::obj item1::obj)
+   (list item1))
+
+(define (re-list-2::obj item1::obj item2::obj)
+   (list item1 item2))
+
+(define (re-list-3::obj item1::obj item2::obj item3::obj)
+   (list item1 item2 item3))
 
