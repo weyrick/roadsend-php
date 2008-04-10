@@ -154,7 +154,9 @@
       (set! source-files (reverse (validate-files source-files)))
       (when (null? source-files)
 	 (bomb "No files to check"))
-      (syntax-check (car source-files))))
+      (for-each (lambda (f)
+		   (syntax-check f))
+		source-files)))
 
 (define-method (build-target target::interpret-target)
    (with-access::interpret-target target (source-files)

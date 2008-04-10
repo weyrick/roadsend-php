@@ -173,9 +173,8 @@
 	    (do-library-mode library-name)
 	    (add-script-argv library-name)))
 
-       ((("--lint") ?script (help "Syntax check only"))
-	(widen!::lint-target *current-target*)
-	(target-source-files-set! *current-target* (list script)))
+       ((("--lint") (help "Syntax check only"))
+	(widen!::lint-target *current-target*))
        
        (section "Compiler Options")
 
