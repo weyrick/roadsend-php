@@ -480,12 +480,16 @@
    (let* ((handle-char-code
            (lambda (code base)
               (let ((num (string->integer code base)))
-                 (if (zero? num)
-                     ;; this is a workaround for an obscure rgc
-                     ;; bug that keeps our lexer from being able
-                     ;; to match #a000 in a string. --timjr 2006.5.28
-                     "\\0"
-                     (integer->char num)))))
+                 (cond ((zero? num)
+			;; this is a workaround for an obscure rgc
+			;; bug that keeps our lexer from being able
+			;; to match #a000 in a string. --timjr 2006.5.28
+			"\\0")
+		       ((=fx num 34)
+			;; this is a double quote, so we need to escape it
+			"\\\"")
+		       (else
+			(integer->char num))))))
           (lexer (regular-grammar ()
 		   (#\[ (maybe-tok 'lbrak "["))
 		   (#\] (maybe-tok 'rbrak "]"))		   
