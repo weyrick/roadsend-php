@@ -96,7 +96,8 @@
 
 ; proc_open - Execute a command and open file pointers for input/output
 (defbuiltin (proc_open cmd descriptorspec (ref . pipes) (cwd 'unset) (env 'unset) (other_options 'unset))
-   (bind-exit (return)
+   (let ((rp-args '(fork: #t)))
+    (bind-exit (return)
       ; verify format of descriptorspec      
       (unless (php-hash? descriptorspec)
 	 (php-warning "invalid descriptorspec")
@@ -114,15 +115,26 @@
 			    (unless (and (php-hash? v)
 					 ; pipe
 					 (or (and (php-hash-lookup v "pipe")
-						  (= (php-hash-size v) 2))     ))
+						  (= (php-hash-size v) 2))    
 					 ; file
-; 					     (and (php-hash-lookup v "file")
-; 						  (= (php-hash-size v) 3))))
-			       (php-warning "descriptorspec array is invalid: only pipes are supported")
-			       (return #f))))
-      ; 
-      (let ((proc-resource (make-finalized-process))
-	    (proc (run-process (mkstr cmd) output: pipe: input: pipe: error: pipe:)))
+ 					     (and (php-hash-lookup v "file")
+ 						  (= (php-hash-size v) 3))))
+			       (php-warning "descriptorspec array is invalid")
+			       (return #f))
+			    ; build args
+			    (cond ((string=? (mkstr (php-hash-lookup v *zero*)) "pipe")
+				   (cond ((php-= k *zero*) (set! rp-args (append (list input: pipe:) rp-args)))
+					 ((php-= k *one*) (set! rp-args (append (list output: pipe:) rp-args)))
+					 ((php-= k 2) (set! rp-args (append (list error: pipe:) rp-args)))))
+				  ((string=? (mkstr (php-hash-lookup v *zero*)) "file")
+				   (cond ((php-= k *zero*) (set! rp-args (append (list input: (php-hash-lookup v *one*)) rp-args)))
+					 ((php-= k *one*) (set! rp-args (append (list output: (php-hash-lookup v *one*)) rp-args)))
+					 ((php-= k 2) (set! rp-args (append (list error: (php-hash-lookup v *one*)) rp-args))))))
+			    ))
+      (let* ((proc-resource (make-finalized-process))
+	     ; XXX this is naive: it doesn't keep quoted args together
+	     (bcmd (string-split (mkstr cmd) " "))
+	     (proc (apply run-process (append bcmd rp-args))))
 	 (if (process? proc)
 	     (let ((p (make-php-hash)))
 		; setup proc
@@ -139,19 +151,11 @@
 											     ((php-= k 2) (process-error-port proc))))
 									   (string=? (mkstr (php-hash-lookup v *one*)) "w")
 									   (string=? (mkstr (php-hash-lookup v *one*)) "r"))))
-						(php-hash-insert! p k stream)))
-; 					    ((string=? (mkstr (php-hash-lookup descriptorspec 0)) "file")
-; 					     (begin
-; 						(php-hash-insert p k (php-fopen (php-hash-lookup descriptorspec 1)
-; 										(php-hash-lookup descriptorspec 2)
-; 										'unpassed
-; 										'unpassed))))
-					    (else
-					     (php-error "descriptor check didn't do his job: " (mkstr (php-hash-lookup descriptorspec *zero*)))))))
+						(php-hash-insert! p k stream))))))
 		; send back in reference
 		(container-value-set! pipes p)
 		proc-resource)
-	     FALSE))))
+	     FALSE)))))
 
 
 ; proc_terminate - Kills a process opened by proc_open

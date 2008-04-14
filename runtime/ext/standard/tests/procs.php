@@ -1,8 +1,9 @@
 <?php
+
 $descriptorspec = array(
    0 => array("pipe", "r"),  // stdin is a pipe that the child will read from
    1 => array("pipe", "w"),  // stdout is a pipe that the child will write to
-   //   2 => array("file", "/tmp/error-output.txt", "a") // stderr is a file to write to
+   2 => array("file", "/tmp/error-output.txt", "w") // stderr is a file to write to
 );
 
 $cwd = '/tmp';
@@ -34,4 +35,33 @@ if (is_resource($process)) {
 
     echo "command returned $return_value\n";
 }
+
+
+$descriptorspec = array(
+   1 => array("pipe", "w"),  // stdout is a pipe that the child will write to
+   2 => array("pipe", "w") // stderr is a file to write to
+);
+
+$process = proc_open('find /tmp', $descriptorspec, $pipes);
+if (is_resource($process)) {
+
+    while(!feof($pipes[1])) {
+        $line = fgets($pipes[1]);
+        echo "stdout: [$line]\n";
+    }
+    fclose($pipes[1]);
+
+    while(!feof($pipes[2])) {
+        $line = fgets($pipes[2]);
+        echo "stderr: [$line]\n";
+    }
+    fclose($pipes[2]);
+
+    // It is important that you close any pipes before calling
+    // proc_close in order to avoid a deadlock
+    $return_value = proc_close($process);
+
+    echo "command returned $return_value\n";
+}
+
 ?> 
