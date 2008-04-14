@@ -33,20 +33,24 @@
     (walk-flow-segment-backwards segment frobber-to-apply)
     (generic identify-basic-blocks node)
     (class flow-segment
-       node
-       start
-       end
-       node-list
+       node  ; AST node (php-ast, function-decl, or method-decl)
+       start ; starting basic block
+       end   ; ending basic block
+       node-list ; full list of basic blocks in this segment (in reverse order)
        (node-count (default 0)))
     (final-class basic-block
-       place-it-started
+       place-it-started ; int or string descriptor of who started them
        i
-       (symtab-so-far (default (make-hashtable)))
-       (last-defs (default (make-hashtable)))
+       ; these are used during analysis in cfa
+       (symtab-so-far (default (make-hashtable))) ; list of symbols "so far", meaning including predecessors
+       (last-defs (default (make-hashtable))) ; last location var was seen, also including predecessors
        (inside-a-loop? (default #f))
-       (pred (default '()))
-       (succ (default '()))
-       (code (default '())))))
+       ;
+       (pred (default '())) ; predecessor block
+       (succ (default '())) ; successor block
+       (code (default '())) ; list of AST nodes in this block
+       )
+    ))
 
 
 (define *current-block* 'unset)

@@ -640,8 +640,21 @@ GNU C/C++ Development Libraries and Headers
 
 @end itemize
 
-@strong{Windows}: A full C development environment is included in the Windows package.
-No additional software it needed.
+@strong{Windows}: To build the source you will need:
+
+@itemize
+
+@item
+MinGW >= 5.1.3
+
+@item 
+MSYS >= 1.0.10
+
+@item 
+Bash >= 3.1.0
+
+@end itemize
+
 
 @subheading Optional Libraries
 
