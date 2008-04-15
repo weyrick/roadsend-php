@@ -175,6 +175,9 @@
 
        ((("--lint") (help "Syntax check only"))
 	(widen!::lint-target *current-target*))
+
+       ((("--info") (help "Print configuration information"))
+	(widen!::info-target *current-target*))       
        
        (section "Compiler Options")
 

@@ -53,6 +53,7 @@
        (options (default '())))
     (wide-class dump-target::target
        dump-type)
+    (wide-class info-target::target)
     (wide-class php-repl-target::target)
     (wide-class scheme-repl-target::target)    
     (wide-class cleanup-target::target)
@@ -105,6 +106,36 @@
 ;;; the new type.
 (define-generic (build-target target)
    (bomb "Unhandled target of type: " (class-name (object-class target)))) 
+
+(define-method (build-target target::info-target)
+   (fluid-let ((*dynamic-load-path* (append (or (target-option library-paths:) '())
+					    *dynamic-load-path*)))
+	      (setup-library-paths)
+	      ;
+	      (print *RAVEN-VERSION-TAG*)
+	      ;
+	      (print "== CONFIG FILE ==")
+	      (print *config-file*)
+	      ;
+	      (print "== LOAD PATHS ==")
+	      (for-each (lambda (v)
+			   (when (directory? (mkstr v))
+			      (print v)))
+			*dynamic-load-path*)
+	      ;
+	      (load-runtime-libs (or (target-option default-libs:) '()))
+	      (load-runtime-libs (or (target-option commandline-libs:) '()))
+	      ;
+	      (print "== LOADED EXTENSIONS ==")
+	      (if (> (length *user-libs*) 0)
+		  (for-each (lambda (v)
+			       (print v))
+			    *user-libs*)
+		  (print "none"))
+	      ;
+	      )
+   (exit 0))
+
 
 (define-method (build-target target::php-repl-target)
    (with-access::php-repl-target target (options)
