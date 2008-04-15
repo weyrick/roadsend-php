@@ -7,7 +7,7 @@ library verify (interpreted)
 --FILE--
 <?php
 
-if (lib_include_exists('tests/library01.php'))
+if (re_lib_include_exists('tests/library01.php'))
   echo "found\n";
 
 require_once('tests/library01.php');

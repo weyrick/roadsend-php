@@ -7,7 +7,7 @@ library optimized verify (interpreted)
 --FILE--
 <?php
 
-if (lib_include_exists('tests/library02.php'))
+if (re_lib_include_exists('tests/library02.php'))
   echo "found\n";
 
 require_once('tests/library02.php');
