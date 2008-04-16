@@ -18,10 +18,39 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <stdio.h>
+#include <string.h>
+#include <errno.h>
 #include <bigloo.h>
 
 #define BUFFERSIZE 8192
 #define MIN(a, b)  (((a)<(b))?(a):(b))
+
+// http://www.mail-archive.com/debian-glibc@lists.debian.org/msg36705.html
+/* Reads size-1 characters up to \n including any \0 cf. getline */
+int fngets(char *s, int size, FILE *stream)
+{
+	char *p;
+	int c;
+
+	p=s,c=EOF;
+	while(--size>0&&(c=getc_unlocked(stream))!=EOF) {
+		*p++=(char)c;
+		if (c=='\n') { /* Will read '\0'. */
+			break;
+		}
+	}
+	*p='\0'; /* Always mark the end. */
+	if(c==EOF) { /* Expected. */
+		if(feof_unlocked(stream)) {
+			if(p==s) {
+				return -1;
+			}
+		} else {
+			return -1;
+		}
+	}
+	return p-s; /* Return something meaningful. */
+}
 
 obj_t php_fgets(FILE *stream, int limit) {
    /* return a bigloo string no bigger than limit, as read by fgets */  
@@ -43,7 +72,7 @@ obj_t php_fgets(FILE *stream, int limit) {
       /* in this case we can use the statically allocated buffer that
 	 way we can avoid allocating a limit size string for potentially
 	 small line */
-      if (fgets( buffer, limit, stream ) == NULL) {
+      if (fngets( buffer, limit, stream ) == -1) {
 	 return BNIL;
       }
 
@@ -62,8 +91,8 @@ obj_t php_fgets(FILE *stream, int limit) {
 	    /* out of memory */
 	    return BNIL;
 	 }
-	 if (fgets( bigbuf + actually_read, 
-		    MIN(BUFFERSIZE, limit), stream ) == NULL) {
+	 if (fngets( bigbuf + actually_read, 
+		    MIN(BUFFERSIZE, limit), stream ) == -1) {
 	    /* fgets says there's nothing left to read */
 	    if (actually_read > 0) {
 	       /* we have read something in previous iterations */
