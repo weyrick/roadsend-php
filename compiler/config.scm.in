@@ -72,6 +72,7 @@
    ;; fastcgi stubs.
    (set! *dynamic-load-path* (cons* PCC-HOME
 				    "./"
+				    "@PCC_LIBS@"
 				    (append-paths PCC-HOME "/libs")
 				    *dynamic-load-path*))
    ;; scheme include files, heap files
