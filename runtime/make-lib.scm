@@ -2,6 +2,7 @@
    (include "php-runtime.sch")
    ; main runtime
    (import (php-runtime "php-runtime.scm")
+	   (core-builtins "core-builtins.scm")
 	   (php-hash "php-hash.scm")
 	   (dynarray "dynarray.scm")
 	   (php-object "php-object.scm")

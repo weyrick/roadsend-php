@@ -60,7 +60,6 @@
      (get_include_path)
      (php-putenv val)
      (php-getenv key)
-     (php-exit status)
      (pack format . args)
      (unpack format data)
      (ini_get name)
@@ -89,8 +88,6 @@
      (php_uname)
      (php_sapi_name)
      ; error handling
-     (_default_error_handler errno errstr errfile errline vars)
-     (_default_exception_handler exception_obj)
      (error_reporting number)
      (set_error_handler handler-name)
      (restore_error_handler)
@@ -608,22 +605,6 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
        FALSE))
 
 ;Output a message and terminate the current script
-(defalias die php-exit)
-(defalias exit php-exit)
-(defbuiltin (php-exit (status 0))
-   (set! status (maybe-unbox status))
-   (if *commandline?*
-       (if (string? status)
-	   (begin
-	      (echo status)
-	      (exit 0))
-	   (exit (mkfixnum status)))
-       (begin
-	  (when (string? status)
-             (echo status))
-	  ;special error that'll be filtered out.
-	  (error 'php-exit "exiting" 'php-exit))))
-
 
 ;;;LXXVI.1 PHP Options&Information
 ; assert -- Checks if assertion is FALSE
@@ -732,60 +713,6 @@ td { border: 1px solid #9A5C45; vertical-align: baseline;}
 
 (define *old-error-handler* #f)
 (define *old-exception-handler* #f)
-
-; based on current error level return either #f if we shouldn't
-; show this error, or a string detailing the error type
-(define (check-etype errno)
-   ;(print "errno is " errno " and level is " (mkstr *error-level*))
-   (if (or (php-= *error-level* E_ALL) 
-	   (php-> (bitwise-and *error-level* errno) 0))
-       (begin
-	  (cond ((or (php-= errno E_USER_WARNING)
-		     (php-= errno E_WARNING)) "Warning")
-		
-		;((or (php-= errno E_USER_ERROR)
-		;     (php-= errno E_ERROR)) "Fatal error")
-		((php-= errno E_USER_ERROR) "Fatal error")
-
-		((php-= errno E_RECOVERABLE_ERROR) "Catchable fatal error")
-		
-		((or (php-= errno E_USER_NOTICE)
-		     (php-= errno E_NOTICE)) "Notice")
-
-		(else "Unknown error")))
-       ; they don't want to see this error
-       ; based on error-level
-       #f))
-
-(defbuiltin (_default_exception_handler exception_obj)
-   (php-error "Uncaught exception '" (php-object-class exception_obj) "'"))
-
-(defbuiltin (_default_error_handler errno errstr (errfile "unknown file") (errline "unknown line") (vars 'unset))
-   (let ((etype (check-etype (mkfixnum (convert-to-number errno)))))
-      ; if etype wasn't a string, we're not showing the message
-      ; due to error reporting level
-      (when (string? etype)	 
-	 (if *commandline?*
-	     (begin
-;		(when (equalp errno E_USER_ERROR)
-;		   (fprint (current-error-port)
-;			   (with-output-to-string
-;			      (lambda ()
-;				 (print-stack-trace)))))
-;		(fprint (current-error-port) etype ": " errstr " in " errfile " on line " errline)
-;		(flush-output-port (current-error-port))
-		(echo (mkstr "\n" etype ": " errstr " in " errfile " on line " errline "\n"))
-		(when (or (equalp errno E_USER_ERROR)
-			  (equalp errno E_RECOVERABLE_ERROR)) ;XXX any others?
-		   (php-exit 255)))
-	     (begin
-		(when (equalp errno E_USER_ERROR)
-		   (print-stack-trace-html))
-		(echo (mkstr "<br />\n<b>" etype "</b>: " errstr " in <b>" errfile "</b> on line <b>" errline "</b><br />\n"))
-		(when (or (equalp errno E_USER_ERROR)
-			  (equalp errno E_RECOVERABLE_ERROR)) ;XXX any others?
-		   (php-exit 255)))))))
-	  
 
 ; set_error_handler --  Sets a user-defined error handler function.
 (defbuiltin (set_error_handler handler-name)

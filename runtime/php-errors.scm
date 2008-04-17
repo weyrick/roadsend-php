@@ -107,7 +107,7 @@
 (defconstant E_RECOVERABLE_ERROR 4096)
 (defconstant E_ALL 8191)
 
-; implementations found in ext/standard/php-core.scm
+; implementations found in core-builtins.scm
 (define *error-handler* "_default_error_handler")
 (define *default-exception-handler* "_default_exception_handler")
 

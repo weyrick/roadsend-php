@@ -27,6 +27,7 @@
            (php-errors "php-errors.scm")
 	   (builtin-classes "builtin-classes.scm")
 	   (output-buffering "output-buffering.scm")
+	   (core-builtins "core-builtins.scm")
            (php-ini "php-ini.scm"))
    ; from bindings are reexported
    (from (blib "blib.scm")
@@ -340,6 +341,9 @@
       ; object system
       (init-php-object-lib)
       (init-builtin-classes)      
+
+      ; error handling, etc
+      (init-core-builtins)
 
       ; initial superglobal def
       (init-superglobals)
