@@ -334,7 +334,7 @@ gives the debugger a chance to run."
 	       (php-throw-builtin-exception "Object returned from getIterator() must implement interface Iterator")
 	       (set! array #f)))
 	 (if (not (or (php-hash? array) (php-object? array)))
-	     (php-warning "Not an array or iterable object in foreach, variable is " (if (php-null? array) "NULL" array))
+	     (php-warning "Not an array or iterable object in foreach, variable is " (get-php-datatype array))
 	     (bind-exit (break)
 		(dynamically-bind (*break-stack* (cons break *break-stack*))
 		   (if (php-object? array)

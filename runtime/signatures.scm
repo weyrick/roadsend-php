@@ -170,6 +170,7 @@
     (get-user-function-list)
     (reset-signatures!)
     (php-check-arity signature::object call-name::obj call-length::bint)
+    (php-compiletime-check-arity signature::object call-name::obj call-length::bint warning-proc::procedure)    
     (get-user-function-sig name)
     ;;the api for the signatures themselves
     (sig-minimum-arity::bint sig::object)
@@ -577,6 +578,19 @@
        (if (and (not (=fx (sig-maximum-arity signature) -1))
 		(>fx call-length (sig-maximum-arity signature)))
 	   (php-warning (format "Too many arguments for function ~a: ~a accepted, ~a provided"
+				call-name (sig-maximum-arity signature) call-length)))))
+
+; the only difference here is we are given a procedure to use for warning display,
+; which knows the location of the error at compiletime. otherwise we produce a useless
+; runtime type warning message.
+(define (php-compiletime-check-arity signature::object call-name::obj call-length::bint warning-proc::procedure)
+   "signal a warning if a function call has too few or too many arguments"
+   (if (<fx call-length (sig-minimum-arity signature))
+       (warning-proc (format "Not enough arguments for function ~a: ~a required, ~a provided"
+			    call-name (sig-minimum-arity signature) call-length))
+       (if (and (not (=fx (sig-maximum-arity signature) -1))
+		(>fx call-length (sig-maximum-arity signature)))
+	   (warning-proc (format "Too many arguments for function ~a: ~a accepted, ~a provided"
 				call-name (sig-maximum-arity signature) call-length)))))
 
 (define (sig-minimum-arity sig)

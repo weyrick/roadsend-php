@@ -170,7 +170,7 @@ onum.  Append the bindings for the new symbols and code."
 	     (if sig
 		 (try
 		  (begin
-		     (php-check-arity sig name arglist-len)
+		     (php-compiletime-check-arity sig name arglist-len (lambda (msg) (warning/loc node msg)))
 		     (let ((function-ast (hashtable-get *function->ast-table* canonical-name)))
 			(when function-ast
 			   (pushf function-ast *required-asts*)))
@@ -404,7 +404,7 @@ onum.  Append the bindings for the new symbols and code."
 			     (php-throw-builtin-exception "Object returned from getIterator() must implement interface Iterator")
 			     (set! ,arrayname #f)))
 		       (if (not (or (php-hash? ,arrayname) (php-object? ,arrayname)))
-			   (php-warning "not an array or iterable object in foreach")
+			   (php-warning "Not an array or iterable object in foreach, variable is " (get-php-datatype ,arrayname))
 			   (begin
 			      (if (php-object? ,arrayname)
 				  (call-php-method-0 ,arrayname "rewind")
