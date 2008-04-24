@@ -103,7 +103,7 @@
 
 (define *RAVEN-VERSION-MAJOR* 2)
 (define *RAVEN-VERSION-MINOR* 9)
-(define *RAVEN-VERSION-RELEASE* 6)
+(define *RAVEN-VERSION-RELEASE* 7)
 (define *RAVEN-VERSION-STRING* (format "~a.~a.~a~a"
 				       *RAVEN-VERSION-MAJOR*
 				       *RAVEN-VERSION-MINOR*
