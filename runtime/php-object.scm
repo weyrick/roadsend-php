@@ -1389,7 +1389,7 @@ argument, before the continuation: (obj prop ref? value k)."
 					  (eqv? context-class
 						(%php-method-origin-class the-method))
 					  (%subclass? context-class
-						      the-class))))
+						      (%php-method-origin-class the-method)))))
 			     (return accessible)
 			     ; no access
 			     (return no-access))))))))))
