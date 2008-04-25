@@ -1571,7 +1571,7 @@ argument, before the continuation: (obj prop ref? value k)."
 	  ; not declared. maybe use __get
 	  (let ((get-method (%lookup-method (%php-object-class obj) "__get")))
 	     (if get-method
-		 (call-php-method-1 obj "__get" property)	  
+		 (container-value (call-php-method-1 obj "__get" property))
 		 (php-hash-lookup-honestly-just-for-reading
 		  (%php-object-extended-properties obj)
 		  canon-name) )))))
