@@ -355,7 +355,10 @@
 			 ((method-decl? p)
 ;			  (fprint (current-error-port) "Method: " (method-decl-name p))
 			  (%check-typehints p (method-decl-decl-arglist p))
-			  (php-hash-insert! methods (method-decl-name p) p))
+			  (if (php-hash-contains? methods (method-decl-name p))
+			      ; XXX note, this is also checked in the object runtime
+			      (php-error/loc node (format "Cannot redeclare ~a::~a()" name (method-decl-name p)))
+			      (php-hash-insert! methods (method-decl-name p) p)))
 			 ((nop? p) #t)
 			 (else (error 'declare-class "what's this noise doing in my class-decl?" p))))))
 	    (insert-methods-or-properties class-body))

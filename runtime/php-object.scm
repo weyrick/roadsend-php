@@ -1040,6 +1040,11 @@ argument, before the continuation: (obj prop ref? value k)."
       (let* ((canon-method-name (%method-name-canonicalize method-name))
 	     (overridden-method (php-hash-lookup (%php-class-methods the-class) canon-method-name)))
 	 (unless (php-null? overridden-method)
+
+	    ;; can't redeclare a method in the same class
+	    (when (eq? the-class (%php-method-origin-class overridden-method))
+	       (php-error (format "Cannot redeclare ~a::~a()" class-name method-name)))
+	    
 	    ;; can't override a final method
 	    (when (%php-method-final? overridden-method)
 	       (php-error (format "Cannot override final method ~A::~A()"
