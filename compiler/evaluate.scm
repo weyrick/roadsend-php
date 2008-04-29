@@ -1340,12 +1340,18 @@ returning the value of the last. "
 (define-method (declare-for-eval node::class-decl)
    ; essentially, declare all classes whose parent has already been declared (or has none)
    ; the rest we do at runtime
-   (when (or (null? (class-decl-parent-list node))
-	     (and (not (null? (class-decl-parent-list node)))
-		  (php-class-exists? (car (class-decl-parent-list node)))))
+   (letrec ((parents-declared? (lambda (p)
+				  (let loop ((l p))
+				     (unless (null? l)
+					(if (hashtable-get *class-decl-table-for-eval* (car l))
+					    (loop (cdr l))
+					    #f))
+				     #t))))
+      (when (or (null? (class-decl-parent-list node))
+		(parents-declared? (class-decl-parent-list node)))
 	 (%do-class-declare node)
-	 (hashtable-put! *class-decl-table-for-eval* (class-decl-name node) #t)))
-       
+	 (hashtable-put! *class-decl-table-for-eval* (class-decl-name node) #t))))
+   
 (define (%do-class-declare node::class-decl)
    (with-access::class-decl node (name parent-list implements flags class-body)
       (letrec ((declare-class-body
