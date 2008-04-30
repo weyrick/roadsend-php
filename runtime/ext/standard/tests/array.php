@@ -136,7 +136,7 @@ print_r(array_keys($array1, "red"));
 
 print("array_map:\n");
 
-$a = array(1, 2, 3, 4, 5);
+$a = array("one" => 1, "two" => 2, "three" => 3, "four" => 4, "five" => 5);
 $b = array_map("cube", $a);
 print_r($b);
 

@@ -385,17 +385,28 @@
 				     (map php-hash-size (cdr arrays))))
 		   (php-warning "some of the arrays are of different sizes!"))
 		;apply function to each set of arguments, collect the results in a list
-		(let loop ((i 0)
-			   (results '()))
-		   (if (< i size)		   
-		       (loop (+ i 1)
-			     (cons (if (null? callback)
-				       (list->php-hash (map grok-hash arrays))
-				       (apply php-callback-call callback (map grok-hash arrays)))
-				    results))
-			(list->php-hash (reverse results)))))))))
-
-      
+		;
+		; PHP sayz:
+		; "If the array argument contains string keys then the returned array will contain string keys if and only if exactly one array is passed.
+		;  If more than one argument is passed then the returned array always has integer keys."
+		;
+		(if (=fx (length arrays) 1)
+		    ; single array, maintain string keys
+		    (let ((newhash (make-php-hash)))
+		       (php-hash-for-each (car arrays)
+					  (lambda (k v)
+					     (php-hash-insert! newhash k (php-callback-call callback v))))
+		       newhash)
+		    ; multiple arrays, always integer keys
+		    (let loop ((i 0)
+			       (results '()))
+		       (if (< i size)		   
+			   (loop (+ i 1)
+				 (cons (if (null? callback)
+					   (list->php-hash (map grok-hash arrays))
+					   (apply php-callback-call callback (map grok-hash arrays)))
+				       results))
+			   (list->php-hash (reverse results))))))))))
       
 
 ;; array_merge -- Merge two or more arrays
