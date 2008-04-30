@@ -354,7 +354,8 @@
 		 (session-cookie-lifetime *current-session*)
 		 (session-cookie-path *current-session*)
 		 (session-cookie-domain *current-session*)
-		 (session-cookie-secure *current-session*))))
+		 (session-cookie-secure *current-session*)
+		 (session-cookie-httponly *current-session*))))
 
 (define (limit-nocache)
    (header "Expires: Mon, 26 Jul 1997 05:00:00 GMT" #f)

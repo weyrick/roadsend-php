@@ -383,7 +383,7 @@
 
 ;setcookie -- Send a cookie
 ; http://wp.netscape.com/newsref/std/cookie_spec.html
-(defbuiltin (setcookie name (value "") (expire 0) (path "") (domain "") (secure 0))
+(defbuiltin (setcookie name (value "") (expire 0) (path "") (domain "") (secure 0) (httponly 0))
    (letrec ((gmdate
 	     ; XXX this will be off by however much locale is off from GMT
 	     ; should use real gmdate from php-time instead 
@@ -416,6 +416,8 @@
 	    (set! cook (string-append cook (format "; domain=~a" sdomain))))
 	 (when (convert-to-boolean secure)
 	    (set! cook (string-append cook "; secure")))
+	 (when (convert-to-boolean httponly)
+	    (set! cook (string-append cook "; httponly")))
 	 ; go
 	 (set-header "Set-Cookie" cook #f)
 	 ; currently always succedes
