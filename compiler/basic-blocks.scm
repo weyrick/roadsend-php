@@ -1,6 +1,6 @@
 ;; ***** BEGIN LICENSE BLOCK *****
 ;; Roadsend PHP Compiler
-;; Copyright (C) 2007 Roadsend, Inc.
+;; Copyright (C) 2007-2008 Roadsend, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -576,6 +576,7 @@
       (identify-basic-blocks class-body)))
 
 (define-method (identify-basic-blocks node::obj-clone)
+   (identify-basic-blocks (obj-clone-obj node))
    (add-to-current-block node))
 
 (define-method (identify-basic-blocks node::class-constant-decl)
