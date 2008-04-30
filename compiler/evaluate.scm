@@ -1342,11 +1342,11 @@ returning the value of the last. "
    ; the rest we do at runtime
    (letrec ((parents-declared? (lambda (p)
 				  (let loop ((l p))
-				     (unless (null? l)
-					(if (hashtable-get *class-decl-table-for-eval* (car l))
-					    (loop (cdr l))
-					    #f))
-				     #t))))
+				     (if (null? l)
+					 #t
+					 (if (hashtable-get *class-decl-table-for-eval* (car l))
+					     (loop (cdr l))
+					     #f))))))
       (when (or (null? (class-decl-parent-list node))
 		(parents-declared? (class-decl-parent-list node)))
 	 (%do-class-declare node)
