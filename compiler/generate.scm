@@ -80,6 +80,13 @@
                     (print "generate-code: Don't know what to do with node: " node ", see?")))
               #t))))
 
+(define (%generate-early-ast-class-declares ast-class-list)
+   (let ((class-defs '()))
+      (php-hash-for-each ast-class-list
+			 (lambda (k declared-class)
+			    (set! class-defs (cons (generate-class-decl declared-class) class-defs))))
+      (reverse class-defs)))
+
 (define-method (generate-code node::php-ast)
    (set! *functions* '())
    (set! *constant-bindings* '())
@@ -94,11 +101,11 @@
 	 (dynamically-bind (*file-were-compiling*
                             ;(php-ast-real-filename node)
                             (php-ast-project-relative-filename node))
-	    (let ((class-decls (map generate-class-decl (reverse (php-ast/gen-class-decl-list node))))
-		  (global-code (cdr ;strip off the 'begin
-				;remove the nops from function decls et al.
-				(filter (lambda (a) (not (nop? a)))
-					(generate-code (php-ast-nodes node))))))
+	   (let ((class-defs (%generate-early-ast-class-declares (php-ast/gen-class-decl-list node)))
+		 (global-code (cdr ;strip off the 'begin
+			       ;remove the nops from function decls et al.
+			       (filter (lambda (a) (not (nop? a)))
+				       (generate-code (php-ast-nodes node))))))
 	       (values
 		(fixup-onums
 		 (cons
@@ -115,7 +122,11 @@
 				      `(,(bind-exit-if (php-ast/gen-needs-return? node) 'return
                                             `(let ,(global-bindings)
                                                 #t ;so it's never empty
-						,@class-decls
+						;
+						; this is the list of classes we are able to declare early, meaning
+						; they had no parent or their parent was defined in this module
+						;
+						,@class-defs
 						(unless (try-import-cached-sigs ,(php-ast-real-filename node))
 						   ,@*runtime-function-sigs*)
                                                 ,@global-code)))) )
@@ -879,8 +890,8 @@ onum.  Append the bindings for the new symbols and code."
    (error 'generate-code-class-decl "somehow this class didn't get declared" node))
 
 (define-method (generate-code node::class-decl/gen)
-   ; this should already be rendered, unless it wasn't a top level class declaration
-   ; does that ever happen?
+   ; classes whose parents existed (in this module) at compile time should already be declared
+   ; this is for e.g. classes whose base classes exist in another module
    (if (class-decl/gen-rendered? node)
        `'()
        (generate-class-decl node)))

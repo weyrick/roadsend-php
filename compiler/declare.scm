@@ -165,7 +165,7 @@
    (widen!::php-ast/gen node
       (global-symbol-table (make-hashtable))
       (container-table (make-hashtable))
-      (class-decl-list '()))
+      (class-decl-list (make-php-hash)))
    (dynamically-bind (*current-block* node)
       ;   (set! *current-file* (string->symbol (php-ast)))
       ;   (set! *current-module* (string->symbol (php-ast-module node)))
@@ -329,7 +329,7 @@
 
 (define-method (declare node::class-decl parent k)
    ;classes have to be declared so that we can do inheritance
-   (with-access::class-decl node (name class-body)
+   (with-access::class-decl node (name class-body parent-list implements)
       (let ((properties (make-php-hash))
 	    (static-properties (make-php-hash))
             (class-constants (make-php-hash))
@@ -362,17 +362,28 @@
 			 ((nop? p) #t)
 			 (else (error 'declare-class "what's this noise doing in my class-decl?" p))))))
 	    (insert-methods-or-properties class-body))
-	 (let* ((canonical-name (symbol-downcase name))
-		(cdecl-node (widen!::class-decl/gen node
-			       (canonical-name canonical-name)
-			       (properties properties)
-			       (static-properties static-properties)
-                               (class-constants class-constants)
-			       (methods methods))))
-	    (php-hash-insert! *class-decl-table* canonical-name cdecl-node)
-	    ; we save this list so that class declarations can be rendered early in the ast generation
-	    (when (php-ast/gen? parent)
-	       (php-ast/gen-class-decl-list-set! parent (cons cdecl-node (php-ast/gen-class-decl-list parent)))))))
+	 (letrec ((parents-declared?
+		   (lambda (plist)
+		      (let loop ((l plist))
+			 (if (null? l)
+			     #t
+			     (if (php-hash-contains? (php-ast/gen-class-decl-list parent) (car l))
+				 (loop (cdr l))
+				 #f))))))
+	    (let* ((canonical-name (symbol-downcase name))
+		   (cdecl-node (widen!::class-decl/gen node
+				  (canonical-name canonical-name)
+				  (properties properties)
+				  (static-properties static-properties)
+				  (class-constants class-constants)
+				  (methods methods))))
+	       ; note, this table covers classes/interfaces all modules being compiled, not just this ast
+	       (php-hash-insert! *class-decl-table* canonical-name cdecl-node)
+	       ; this table covers classes/interfaces just in this ast, and only the ones we can render early
+	       (when (and (php-ast/gen? parent)
+			  (parents-declared? parent-list)
+			  (parents-declared? implements))
+		  (php-hash-insert! (php-ast/gen-class-decl-list parent) canonical-name cdecl-node))))))
    (k))
 
 (define (compile-time-subclass? sub super)
