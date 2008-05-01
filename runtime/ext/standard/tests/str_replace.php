@@ -29,4 +29,6 @@ echo str_replace($healthy, $yummy, $phrase);
 
 var_dump(str_replace(array(1), array("a"), "1"));
 
+var_dump(str_replace(array(), '', 'foo'));
+
 ?>

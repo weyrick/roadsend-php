@@ -1879,6 +1879,8 @@
 ; str_replace --  Replace all occurrences of the search string with the replacement string
 ; return a list extracted from s/r hashes to hand to string-subst
 (define (get-sr-list s r)
+   (when (= (php-hash-size s) 0)
+      (php-hash-insert! s :next ""))
    (php-hash-reset s)
    (if (php-hash? r)
        (php-hash-reset r))
