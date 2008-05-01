@@ -29,6 +29,7 @@
     (ob_get_clean)
     (ob_get_length)
     (ob_get_level)
+    (ob_get_status full-status)
     (ob_gzhandler buf mode)
     (ob_flush)
     (ob_clean)
@@ -102,6 +103,36 @@
 ; ob_get_level --  Return the nesting level of the output buffering mechanism
 (defbuiltin (ob_get_level)
    (length *output-buffer-stack*))
+
+; returns status information on either the top level output buffer or all active output buffer levels if full_status  is set to TRUE.
+(defbuiltin (ob_get_status (full-status? #f))
+   (set! full-status? (convert-to-boolean full-status?))
+   (if (pair? *output-buffer-stack*)
+       (let ((stack (if full-status?
+			*output-buffer-stack*
+			(list (car *output-buffer-stack*))))
+	     (rhash (make-php-hash))
+	     (level 0))
+	  (for-each (lambda (o)
+		       (set! level (+fx level 1))
+		       (let ((lhash (if full-status? (make-php-hash) rhash)))
+			  (if full-status?
+			      (begin
+				 (php-hash-insert! lhash "chunk_size" *zero*) ; XXX ?
+				 (php-hash-insert! lhash "size" (convert-to-number (string-length (get-output-string o))))
+				 (php-hash-insert! lhash "block_size" #e10240) ; XXX ?
+				 )
+			      (php-hash-insert! lhash "level" (convert-to-number level)))
+			  (php-hash-insert! lhash "type" *one*) ; XXX ?
+			  (php-hash-insert! lhash "status" *zero*) ; XXX ?
+			  (php-hash-insert! lhash "name" "default output handler") ; XXX ?
+			  (php-hash-insert! lhash "del" TRUE) ; XXX ?
+			  (when full-status?
+			     (php-hash-insert! rhash :next lhash))))
+		    stack)
+	  rhash)
+       ; no buffers
+       (make-php-hash)))
 
 ; ob_gzhandler --  ob_start callback function to gzip output buffer
 (defbuiltin (ob_gzhandler buf (mode 'unset))
