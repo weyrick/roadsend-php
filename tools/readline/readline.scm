@@ -22,8 +22,9 @@
 ;************************************************************************/
 (module pcc-readline
   (extern
-    (include #"readline/readline.h")
-    (include #"string.h"))
+   (type FILE* (opaque) "FILE *")  
+   (include #"readline/readline.h")
+   (include #"string.h"))
   (export
     (rl-library-version::string)
     (set-rl-readline-name! name::string)
@@ -181,6 +182,7 @@
     (rl-get-keymap-name::string arg1006::keymap))
   (export (rl-set-keymap arg1007::keymap))
   (export (rl-get-keymap::keymap))
+  (export (set-rl-outstream! file*::FILE*))
   (export (rl-set-keymap-from-edit-mode))
   (export
     (rl-get-keymap-name-from-edit-mode::string))
@@ -360,6 +362,9 @@
   (pragma #"rl_readline_name = $1" name)
   #unspecified)
 
+(define (set-rl-outstream! file*::FILE*)
+   (pragma "rl_outstream = $1" file*)
+   #unspecified)
 
 (define (rl-prompt::string #!optional value)
   (let ((old (pragma::string #"rl_prompt")))
