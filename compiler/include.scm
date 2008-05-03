@@ -155,17 +155,17 @@
 	     ; found in lib
 	     ;
 	     (begin
-		(debug-trace 2 "Include file " lib-inc-name " found in lib.")
+		(debug-trace 3 "Include file " lib-inc-name " found in lib.")
 		(if (not (and once? (hashtable-get *all-files-ever-included* lib-inc-name)))
 		    ;(fprint (current-error-port) "include file found as function: " file)
 		    ;(log-message (format "include file found as function: ~a" inc-name))
 		    (begin
-		       (debug-trace 2 "  Including file " lib-inc-name " from lib.")
+		       (debug-trace 3 "  Including file " lib-inc-name " from lib.")
 		       (hashtable-put! *all-files-ever-included* lib-inc-name #t)
 		       (php-funcall lib-inc-name 'unset))
 		    ;; oh well...
 		    (begin
-		       (debug-trace 2 "  Not including file " lib-inc-name " from lib (already included)")
+		       (debug-trace 3 "  Not including file " lib-inc-name " from lib (already included)")
 		       FALSE)))
 	     ;; II. look on disk
 	     (let ((include-file (try (find-include file *PHP-FILE*)
@@ -175,14 +175,14 @@
 						  file
 						  (string-join *include-paths* (string (path-separator)))))
 					 (e #f)))))
-		(debug-trace 2 "Include file " include-file " NOT found in lib.")
+		(debug-trace 3 "Include file " include-file " NOT found in lib.")
 		(if (and include-file
 			 (not (and once? (hashtable-get *all-files-ever-included* (include-name include-file)))))
 		    ;
 		    ; found on disk
 		    ;
 		    (begin
-		       (debug-trace 2 "  Including file " include-file)
+		       (debug-trace 3 "  Including file " include-file)
 		       (hashtable-put! *all-files-ever-included* (include-name include-file) #t)
 		       (let ((ret (evaluate-from-file include-file (include-name include-file))))
 			  ; XXX note, this is still not semantically correct if the include file exits with "return NULL"
@@ -191,7 +191,7 @@
 			      ret)))
 		    ;; oh well...
 		    (begin
-		       (debug-trace 2 "  Not including file " include-file " (already included)")
+		       (debug-trace 3 "  Not including file " include-file " (already included)")
 		       FALSE)))))))
 
 ;; this does steps II-a and II-b
@@ -206,7 +206,7 @@
           
           ((or (substring-at? include-file "../" 0)  ; note that this is only paths that start with .., not all relative paths.
                (substring-at? include-file "..\\" 0))
-           (debug-trace 2 "Include file starts with ../, so searching only relative to cwd.")
+           (debug-trace 3 "Include file starts with ../, so searching only relative to cwd.")
            (find-file/path include-file (list cwd)))
           
           (else
@@ -218,7 +218,7 @@
                                (merge-pathnames cwd include-path)
                                include-path))
                         *include-paths*)))
-               (debug-trace 2 "Looking for " include-file " relative to cwd " cwd ".")
+               (debug-trace 3 "Looking for " include-file " relative to cwd " cwd ".")
                (find-file/path include-file include-paths-relative-to-cwd))
             ;; II-b
             (let* ((script-directory (string-append (dirname current-file) (string (pcc-file-separator))))
@@ -228,8 +228,8 @@
                                 (merge-pathnames script-directory include-path)
                                 include-path))
                          *include-paths*)))
-               (debug-trace 2 "at this point, php-file is: " current-file)
-               (debug-trace 2 "Looking for " include-file " relative to script directory " script-directory ".")
+               (debug-trace 3 "at this point, php-file is: " current-file)
+               (debug-trace 3 "Looking for " include-file " relative to script directory " script-directory ".")
                (find-file/path include-file include-paths-relative-to-script))))))
     (error 'find-include "couldn't find include file" include-file)))
 
