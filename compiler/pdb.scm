@@ -218,6 +218,9 @@
 	  (build-target *current-target*))
    ;; web app
        (begin
+	  ; put readline on stderr, becuase stdout is web traffic
+	  ; this lets us drop into the command line debugger based on web interaction
+	  (cond-expand (HAVE_LIBREADLINE (set-rl-outstream! (pragma::FILE* "PORT( $1 ).stream" (current-error-port)))))
 	  (chdir *debug-target-webroot*)
 	  (scan-project-root)
 	  (set! *micro-debugger?* #t)
