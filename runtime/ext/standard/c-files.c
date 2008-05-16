@@ -33,7 +33,7 @@ int fngets(char *s, int size, FILE *stream)
 	int c;
 
 	p=s,c=EOF;
-	while(--size>0&&(c=getc_unlocked(stream))!=EOF) {
+	while(--size>0&&(c=getc(stream))!=EOF) {
 		*p++=(char)c;
 		if (c=='\n') { /* Will read '\0'. */
 			break;
@@ -41,7 +41,7 @@ int fngets(char *s, int size, FILE *stream)
 	}
 	*p='\0'; /* Always mark the end. */
 	if(c==EOF) { /* Expected. */
-		if(feof_unlocked(stream)) {
+		if(feof(stream)) {
 			if(p==s) {
 				return -1;
 			}
