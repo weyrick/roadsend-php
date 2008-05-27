@@ -639,7 +639,7 @@
    (evaluate
     (with-input-from-string (string-append "<?php " (mkstr code) " ?>")
        (lambda ()
-          (%memoized-parse (read-string) 'php-lambda "Eval String")
+          (%memoized-parse (read-string) 'php-lambda (format "~a : eval()'d code" *PHP-FILE* (mkstr *PHP-LINE*)))
           ))))
 
 
