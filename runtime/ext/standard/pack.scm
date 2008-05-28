@@ -102,11 +102,6 @@
    "convert a number to a string packed as an unsigned char"
    (integer->char (get-byte-0 n)))
 
-(define-inline (mkelong::elong thing)
-   (if (elong? thing)
-       thing
-       (onum->elong (convert-to-number thing))))
-
 ;;; XXXXXX Beware! Do not touch with a ten-foot pole. Do not sit in a box with this fox.
 ;;; I will fix this later. --Nate 2004-07-05
 ;; Pack data into binary string.

@@ -172,31 +172,24 @@
 	    str))))
 
 
-;bitwise ops.. could probably constructively be rewritten using elongs and the C operators.
+;bitwise ops
 (define (bitwise-or a b)
-   (int->onum
-    (bit-or (mkfixnum a) (mkfixnum b))))
+   (elong->onum (pragma::long "$1 | $2" (mkelong a) (mkelong b))))
 
 (define (bitwise-xor a b)
-   (int->onum
-    (bit-xor (mkfixnum a) (mkfixnum b))))
+   (elong->onum (pragma::long "$1 ^ $2" (mkelong a) (mkelong b))))
 
 (define (bitwise-and a b)
-   (int->onum
-    (bit-and (mkfixnum a) (mkfixnum b))))
+   (elong->onum (pragma::long "$1 & $2" (mkelong a) (mkelong b))))
 
 (define (bitwise-not a)
-   (int->onum
-    (bit-not (mkfixnum a))))
+   (elong->onum (pragma::long "~ $1" (mkelong a))))
 
 (define (bitwise-shift-left a b)
-   (int->onum
-    (bit-lsh (mkfixnum a) (mkfixnum b))))
+   (elong->onum (pragma::long "$1 << $2" (mkelong a) (mkelong b))))
 
 (define (bitwise-shift-right a b)
-   (int->onum
-    (bit-rsh (mkfixnum a) (mkfixnum b))))
-
+   (elong->onum (pragma::long "$1 >> $2" (mkelong a) (mkelong b))))
 
       
 ; !$a TRUE if $a is not TRUE.

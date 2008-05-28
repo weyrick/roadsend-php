@@ -53,6 +53,7 @@
     (float-is-nan? a)
     (coerce-to-php-type orig)
     ; these are for converting to functions for bigloo procedures
+    (inline mkelong::elong rval)
     (mkfixnum::bint rval)
     (mkfix-or-flonum rval)))
 
@@ -169,6 +170,13 @@
        rval
        (onum->int (convert-to-number rval))))
 
+;
+; force an elong, converting from any php type
+;
+(define-inline (mkelong::elong rval)
+   (if (elong? rval)
+       rval
+       (onum->elong (convert-to-number rval))))
 
 ; again, this should only be used for functions that require a fixnum
 ; or flonum (e.g. bigloo procedures). not for php values
