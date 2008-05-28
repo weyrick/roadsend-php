@@ -1753,6 +1753,14 @@ onum.  Append the bindings for the new symbols and code."
 ;   (error 'unset "don't know how to unset lval" lval))
 
 
+(define-method (unset lval::var/gen)
+   (with-access::var/gen lval (cont?)
+      (if cont?
+	  ; container: detach and set NULL
+	  (update-location lval ''())
+	  ; normal, set null
+	  (update-value lval ''()))))
+
 (define-method (unset lval::hash-lookup)
    (with-access::hash-lookup lval (hash key)
       (if (is-hash? hash)

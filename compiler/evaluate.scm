@@ -612,14 +612,14 @@ gives the debugger a chance to run."
 
 (define-generic (eval-assign lval rval)
    (let ((lval (d/evaluate lval)))
-      (if (container? lval)
-	  (begin
+;      (if (container? lval)
+;	  (begin
 	     (container-value-set! lval (maybe-unbox rval))
 	     ;XXX not sure which container I should return -- left or right
-	     lval)
-	  (error 'assign
-		 "I'm not sure what to do when I don't have a container lval"
-		 (mkstr lval)))))
+	     lval))
+;	  (error 'assign
+;		 "I'm not sure what to do when I don't have a container lval"
+;		 (mkstr lval)))))
 
 (define-method (eval-assign lval::hash-lookup rval)
    (do-hash-assign lval (maybe-unbox rval)))
@@ -840,8 +840,17 @@ gives the debugger a chance to run."
 	     ; normal isset
 	     (not (null? (maybe-unbox (d/evaluate rval))))))))	     
 
+(define (%unset-eval-assign orig-lval)
+   (let ((lval (d/evaluate orig-lval)))
+      (if (container-reference? lval)
+	  ; variable was a reference: detach from the reference and set NULL
+	  (update-location orig-lval (make-container NULL))
+	  ; normal eval-assign
+	  (container-value-set! lval NULL))
+      lval))
+
 (define-generic (unset lval)
-   (eval-assign lval NULL))
+   (%unset-eval-assign lval))
 
 (define-method (unset lval::property-fetch)
    (with-access::property-fetch lval (obj prop)
@@ -864,7 +873,7 @@ gives the debugger a chance to run."
 		; always return null
 		NULL)
 	     ; normal unset
-	     (eval-assign lval NULL)))))
+	     (%unset-eval-assign lval)))))
 
 (define-method (unset lval::hash-lookup)
    (with-access::hash-lookup lval (hash key)
