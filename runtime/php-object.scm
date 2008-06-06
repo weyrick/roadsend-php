@@ -63,6 +63,7 @@
     ; properties
     (php-class-props class-name)
     (php-object-has-declared-property? obj::struct property::bstring)
+    (php-object-property-unset obj::struct property::bstring)
     (php-object-property/index obj::struct property::int property-name)
     (php-object-property/string obj property::bstring access-type)
     (php-object-property-location/string obj property::bstring access-type)
@@ -294,7 +295,7 @@ values the values."
 		(let ((prop-value (vector-ref declared-props i))
 		      (prop-key (hashtable-get offsets-table i)))
 		   ; if it's not in offsets table, it's a static and we skip it
-		   (when prop-key
+		   (when (and prop-key (not (eqv? prop-value 'prop-unset)))
 		      (php-hash-insert! property-hash
 					prop-key
 					(if (container-reference? prop-value)
@@ -321,7 +322,7 @@ values the values."
 ;  	       (fprint (current-error-port) "value is " (mkstr prop-value))
 ;  	       (fprint (current-error-port) "ref-status is " (mkstr (container-reference? prop-value)))
 	       ; if we don't have prop key, it's a static and we skip it
-	       (when prop-key
+	       (when (and prop-key (not (eqv? prop-value 'prop-unset)))
 		  (thunk ;note the reverse lookup to get the name
 		   (mkstr prop-key)
 		   ;		(if (container-reference? prop-value)
@@ -348,7 +349,7 @@ values the values."
 		   (let ((prop-value (vector-ref declared-props i))
 			 (prop-key (hashtable-get offsets-table i)))
 		      ; if it's not in offsets table, it's a static and we skip it
-		      (when prop-key
+		      (when (and prop-key (not (eqv? prop-value 'prop-unset)))		      
 			 (php-hash-insert! property-hash
 					   ;note the reverse lookup to get the name
 					   prop-key
@@ -585,6 +586,8 @@ values the values."
    (assert (property property-name) (= (hashtable-get (%php-class-declared-property-offsets (%php-object-class obj))
 						      (%property-name-canonicalize property-name))
 				       property))
+
+   ; XXX check for 'prop-unset ?
    (vector-ref (%php-object-properties obj) property)
    
    )
@@ -1542,6 +1545,21 @@ argument, before the continuation: (obj prop ref? value k)."
 		
 ;;;;the actual property looker-uppers
 
+(define (php-object-property-unset obj::struct property::bstring)
+   "remove the property from the object, only available via unset()"
+   (if (php-object? obj)
+       (let* ((canon-name (%property-name-canonicalize property))
+	      (offset (%prop-offset obj canon-name 'all)))
+	  ; first check declared
+	  (when offset
+	      ; we can't remove it since the classes offset hash will still point
+	      ; here (and needs to for other instances) so we set it to a special value
+	      (vector-set! (%php-object-properties obj) offset 'prop-unset))
+	  ; check extended
+	  (when (php-hash-contains? (%php-object-extended-properties obj) canon-name)
+	     (php-hash-remove! (%php-object-extended-properties obj) canon-name))
+	  NULL)))
+
 (define (php-object-has-declared-property? obj::struct property::bstring)
    "see if the object has the specified declared property, regardless of visibility"
    (if (php-object? obj)
@@ -1555,7 +1573,10 @@ argument, before the continuation: (obj prop ref? value k)."
 	  (offset (%prop-offset obj canon-name access-type)))
       (if offset
 	  ; declared
-	  (vector-ref (%php-object-properties obj) offset)
+	  (let ((val (vector-ref (%php-object-properties obj) offset)))
+	     (if (eqv? val 'prop-unset)
+		 NULL
+		 val))
 	  ; not declared. maybe use __get
 	  (let ((get-method (%lookup-method (%php-object-class obj) "__get")))
 	     (if get-method
@@ -1572,7 +1593,10 @@ argument, before the continuation: (obj prop ref? value k)."
 	  (offset (%prop-offset obj canon-name access-type)))
       (if offset
 	  ; declared
-	  (container-value (vector-ref (%php-object-properties obj) offset))
+	  (let ((val (vector-ref (%php-object-properties obj) offset)))
+	     (if (eqv? val 'prop-unset)
+		 NULL
+		 (container-value val)))
 	  ; not declared. maybe use __get
 	  (let ((get-method (%lookup-method (%php-object-class obj) "__get")))
 	     (if get-method

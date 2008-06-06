@@ -872,8 +872,8 @@ gives the debugger a chance to run."
 		(call-php-method-1 obj-e "__unset" prop-e)
 		; always return null
 		NULL)
-	     ; normal unset
-	     (%unset-eval-assign lval)))))
+	     ; unset (remove) property
+	     (php-object-property-unset obj-e prop-e)))))
 
 (define-method (unset lval::hash-lookup)
    (with-access::hash-lookup lval (hash key)

@@ -1787,7 +1787,7 @@ onum.  Append the bindings for the new symbols and code."
 		      (php-class-method-exists?
 		       (php-object-class obj-evald)
 		       "__unset")
-		      ; we call __isset when the caller doesn't have visibility access
+		      ; we call __unset when the caller doesn't have visibility access
 		      ; (whether it's actually declared for real or not) or when it
 		      ; would have visibility but it's not declared
 		      (or  (pair? access-type) ; if access-type is a pair, it's not visible in this context
@@ -1795,8 +1795,8 @@ onum.  Append the bindings for the new symbols and code."
 				 obj-evald
 				 ,the-property))))
 		 (convert-to-boolean (call-php-method-1 obj-evald "__unset" ,the-property))
-		 ; normal isset
-		 ,(update-value lval ''()))))))
+		 ; unset (remove) property
+		 (php-object-property-unset obj-evald ,the-property))))))
 
 ;;;;isset
 (define-generic (isset rval)
