@@ -1340,7 +1340,7 @@ returning the value of the last. "
 						  NULL))))))))
 				  (pop-func-args)
 				  (pop-stack)
-				  (if ref?
+				  (if (and ref? (not (php-null? retval)))
                                       (container->reference! retval)
 				      (copy-php-data retval)))))))))
 
