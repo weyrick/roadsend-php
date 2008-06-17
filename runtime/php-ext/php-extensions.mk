@@ -69,7 +69,7 @@ clean:
 	-/bin/rm -rf $(TOPLEVEL)$(MY_TESTOUTDIR)
 	-/bin/rm $(LIB)/lib$(LIBNAME)_$(SUV).$(SOEXT) $(LIB)/lib$(LIBNAME)_$(SUV).a $(LIB)/$(LIBNAME).heap $(LIB)/$(LIBNAME).sch
 
-check: all
+check: all-run
 	mkdir -p $(TOPLEVEL)$(MY_TESTOUTDIR)
 	@(cd $(TOPLEVEL) && PCC_OPTS="-u $(LIBNAME) $(OTHER_PCC_LIBS)" $(DOTEST) $(MY_TESTDIR) $(MY_TESTOUTDIR))
 
