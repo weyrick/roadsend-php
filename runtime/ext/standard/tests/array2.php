@@ -27,6 +27,8 @@ $output = array_slice($input, -2, 1);  // returns "d"
 var_dump($output);
 $output = array_slice($input, 0, 3);   // returns "a", "b", and "c"
 var_dump($output);
+$output = array_slice($input, 4);
+var_dump($output);
 
 
 // in_array
