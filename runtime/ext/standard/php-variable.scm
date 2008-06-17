@@ -162,25 +162,27 @@
 (defbuiltin (serialize var)
    (let ((refhash (make-grasstable))
 	 (varcount 0))
-      (letrec ((fork-it   (lambda (v ref? key?)
+      (letrec ((fork-it   (lambda (v key?)
 			     ; handle refs
-			     (let ((ref-loc (grasstable-get refhash v)))
-				(if (and ref-loc ref?)					 
+			     (let* ((c? (container? v))
+				    (ubv (if c? (container-value  v) v))
+				    (ref-loc (grasstable-get refhash v)))
+				(if ref-loc
 				    (format "R:~a;" ref-loc)
 				    (begin
 				       ; increase var count unless array key
 				       (unless key?
 					  (set! varcount (+ varcount 1)))
-				       (if ref?
+				       (when (and c? (container-reference? v))
 					  (grasstable-put! refhash v varcount))
 				       (cond
-					  ((is_bool v) (do-bool v))
-					  ((is_int v) (do-int v))
-					  ((is_float v) (do-float v))
-					  ((is_string v) (do-string v))
-					  ((is_array v) (do-array v))
-					  ((is_object v) (do-object v))
-					  ((is_null v) (do-null v))
+					  ((is_bool ubv) (do-bool ubv))
+					  ((is_int ubv) (do-int ubv))
+					  ((is_float ubv) (do-float ubv))
+					  ((is_string ubv) (do-string ubv))
+					  ((is_array ubv) (do-array ubv))
+					  ((is_object ubv) (do-object ubv))
+					  ((is_null ubv) (do-null ubv))
 					  (else
 					   ;(php-warning "serialize: unknown type for " v)
 					   "i:0;")))))))
@@ -195,11 +197,11 @@
 			     (with-output-to-string
 				(lambda ()
 				   (display (format "a:~a:{" (php-hash-size v)))
-				   (php-hash-for-each-with-ref-status v
-								      (lambda (ak av r?)
-									 ;(fprint (current-error-port) "doing " ak " => " av)
-									 (display (fork-it ak #f #t))
-									 (display (fork-it av r? #f))))
+				   (php-hash-for-each-location v
+							       (lambda (ak av)
+								  ;(fprint (current-error-port) "doing " ak " => " av)
+								  (display (fork-it ak #t))
+								  (display (fork-it av #f))))
 				   (display "}")))))
 	       (do-object (lambda (v)
 			     ;(fprint (current-error-port) "i'm an object")
@@ -217,13 +219,13 @@
 						 (display (format "~a:{" (if (eqv? ser-vars 'all)
 									     (php-hash-size propshash)
 									     (php-hash-size ser-vars))))
-						 (php-hash-for-each-with-ref-status
+						 (php-hash-for-each-location
 						  propshash
-						  (lambda (ak av r?)
+						  (lambda (ak av)
 						     (when (or (eqv? ser-vars 'all)
 							     (php-hash-in-array? ser-vars ak #f))
-							(display (fork-it ak #f #t))
-							(display (fork-it av r? #f)))))
+							(display (fork-it ak #t))
+							(display (fork-it av #f)))))
 						 (display "}")))
 					   )))))
 	       (do-string (lambda (v)
@@ -235,7 +237,7 @@
 	       (do-bool   (lambda (v)
 			     ;(fprint (current-error-port) "i'm a bool")
 			     (if v "b:1;" "b:0;"))))
-	 (fork-it var #f #f))))
+	 (fork-it var #f))))
 
 ; unserialize --  Creates a PHP value from a stored representation
 (defbuiltin (unserialize var)

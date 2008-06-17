@@ -47,7 +47,8 @@
 	   (php-hash-lookup-location hash create?::bool key)
 	   (php-hash-remove! hash key)
 	   (php-hash-for-each hash thunk::procedure)
-	   (php-hash-for-each-with-ref-status hash thunk::procedure)
+	   (php-hash-for-each-with-ref-status hash thunk::procedure)	   
+	   (php-hash-for-each-location hash thunk::procedure)
 	   (php-hash-reverse-for-each hash thunk::procedure)
 	   (php-hash-for-each-ref hash thunk::procedure)
 	   (php-hash-reverse-for-each-ref hash thunk::procedure)	   
@@ -808,13 +809,23 @@ the current index if it was this entry."
          (loop (%entry-next entry)))))
 
 (define (php-hash-for-each-with-ref-status hash thunk::procedure)
-   "Thunk will be called once on each key/value set. ref status is available to thunk"
+   "Thunk will be called once on each key/value set. the value will be the location container"
    (when (custom? hash) (set! hash (custom-read-entire hash)))
    (let loop ((entry (%php-hash-head hash)))
       (unless (sentinel? entry)
          (thunk (get-key-php-type-friendly entry)
                 (container-value (%entry-value entry))
-                (container-reference? (%entry-value entry)))
+		(container-reference? (%entry-value entry)))
+         ;		(%entry-ref? entry))
+         (loop (%entry-next entry)))))
+
+(define (php-hash-for-each-location hash thunk::procedure)
+   "Thunk will be called once on each key/value set. the value will be the location container"
+   (when (custom? hash) (set! hash (custom-read-entire hash)))
+   (let loop ((entry (%php-hash-head hash)))
+      (unless (sentinel? entry)
+         (thunk (get-key-php-type-friendly entry)
+                (%entry-value entry))
          ;		(%entry-ref? entry))
          (loop (%entry-next entry)))))
 
