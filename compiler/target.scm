@@ -148,6 +148,8 @@
 				    (reverse (target-option script-argv:))
 				    '()))
 		 (run-startup-functions)
+		 (set! *PHP-FILE* "Interactive shell")
+		 (set! *PHP-LINE* 0)
 		 (print "Interactive shell")
 		 (let loop ()
 		    (display* "pcc > ")
@@ -746,6 +748,9 @@
                                    (target-libraries *current-target*)
                                    (or (target-option commandline-libs:) '()))))))
 
+(define-macro (bigloo-user-lib)
+   `',*bigloo-user-lib*)
+
 (define (standalone-link-libs)   
    (let ((libs '())
          (lib->extensions (make-hashtable)))
@@ -787,17 +792,26 @@
 
       (cond-expand
 	 (PCC_MINGW
+	  ;
+	  ; XXX can we use bigloo-user-lib here?
+	  ;
 	  ;; these are needed for the profiler, which uses gettimeofday
 	  ;; and ws2_32 is needed by libbigloo.  If the standard extension
 	  ;; gets pulled in, it masks the need for putting these here,
 	  ;; since it uses them too.
 	  (set! libs (cons* "-lws2_32" "-lgw32c" "-lole32" "-luuid" libs)))
-	 (PCC_FREEBSD
-	  ;; FreeBSD doesn't use -ldl
-	  (set! libs (cons* "-lm" libs)))
+	 ;
+	 ; use libs listed in *bigloo-user-lib*
+	 ;
 	 (else
-	  ; Linux
-	  (set! libs (cons* "-lm" "-ldl" libs))))
+	  (append! libs (bigloo-user-lib))))
+      
+; 	 (PCC_FREEBSD
+; 	  ;; FreeBSD doesn't use -ldl
+; 	  (set! libs (cons* "-lm" libs)))
+; 	 (else
+; 	  ; Linux
+; 	  (set! libs (cons* "-lm" "-ldl" libs))))
 
       ;; voodoo.
       (reverse! (append libs libs))))
