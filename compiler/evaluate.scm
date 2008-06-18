@@ -99,6 +99,7 @@
    (cond
       ((list? node) (evaluate-block node))
       ((eqv? node :next) :next)
+      ((eqv? node 'nop) #t) ; bad parse in interactive mode
       (else (error 'evaluate "Don't know what to do with node: "
                    (with-output-to-string
                       (lambda ()

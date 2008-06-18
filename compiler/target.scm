@@ -159,7 +159,7 @@
 				   (string=? input "exit"))
 			  (try
 			   (begin
-			      (php-eval input)
+			      (php-repl-eval input)
 			      (print))
 			   (lambda (e p m o)
 			      (print m)

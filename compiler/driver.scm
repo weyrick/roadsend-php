@@ -55,6 +55,7 @@
     (dump-types input-file)
     (dump-flow input-file)
     (dump-preprocessed input-file)
+    (php-repl-eval code)
     (interpret input-file)
     (debug input-file)
     (syntax-check input-file)
@@ -639,9 +640,20 @@
    (evaluate
     (with-input-from-string (string-append "<?php " (mkstr code) " ?>")
        (lambda ()
-          (%memoized-parse (read-string) 'php-lambda (format "~a : eval()'d code" *PHP-FILE* (mkstr *PHP-LINE*)))
+          (%memoized-parse (read-string) 'php-lambda (format "~a: eval()'d code" *PHP-FILE*))
           ))))
 
+(define (php-repl-token-error escape proc msg token)
+   (let ((outmsg (format "~%~a" msg)))
+      (fprint (current-error-port) outmsg)
+      (escape 'nop)))
+
+(define (php-repl-eval code)
+   (evaluate
+    (with-input-from-string (string-append "<?php " (mkstr code) " ?>")
+       (lambda ()
+          (%do-parse (read-string) 'php-repl "Interactive Shell: " php-repl-token-error)
+          ))))
 
 (define (evaluate-from-file file name-to-use)
    (debug-trace 1 "evaluating from: " file)
@@ -706,16 +718,19 @@
 ;; the table to store memoized parses in
 (define %%memoized-parses #f)
 
+(define (%do-parse input-string main-name filename handler)
+   (with-input-from-string input-string
+      (lambda ()
+	 (try (parse (php-preprocess (current-input-port) filename)
+		     main-name filename)
+	      handler))))
+
 (define (%memoized-parse input-string main-name filename)
    ;; save the result of parsing a file so that we can skip parsing it next time
    (let ((do-parse (lambda ()
                       ;(debug-trace 0 "Parsing " filename " for the first time")
                       (set! %%memo-miss-count (+ %%memo-miss-count 1))
-                      (with-input-from-string input-string
-                         (lambda ()
-                            (try (parse (php-preprocess (current-input-port) filename)
-                                        main-name filename)
-                                 handle-token-error))))))
+		      (%do-parse input-string main-name filename handle-token-error))))
       ;; I think that memoization will only help when running as a web
       ;; server, because it only speeds up the 2nd and subsequent
       ;; include of a file. --timjr 2005.5.6
