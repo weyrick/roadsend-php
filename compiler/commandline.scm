@@ -22,6 +22,8 @@
    (library php-runtime)
    (include "php-runtime.sch")
    (library profiler)
+   (cond-expand
+      (HAVE_LIBREADLINE (library pcc-rl)))
    (import (driver "driver.scm")
            (declare "declare.scm")
 	   (ast "ast.scm")
@@ -136,6 +138,9 @@
        ((("-a") (help "Interactive PHP mode"))
 	(if (maybe-add-script-argv "-a")
 	    (begin
+	       (cond-expand (HAVE_LIBREADLINE (history-init)))
+	       (add-target-option! pcc-prompt-display: pcc-prompt-display)
+	       (add-target-option! pcc-readline: pcc-readline)
 	       (widen!::php-repl-target *current-target*))))
        
        ((("-i" "-f" "--interpret") ?script (help "Execute code immediately, instead of compiling"))
@@ -496,13 +501,28 @@
 	(args-parse-usage #f)
 	(exit 1)))))
 
+; used in interactive mode
+(define (pcc-prompt-display)
+   (cond-expand (HAVE_LIBREADLINE #f)
+		(else
+		 (display "\npcc > "))))
+
+(define (pcc-readline)
+   (let ((cmd (cond-expand (HAVE_LIBREADLINE
+			    (readline "pcc > "))
+			   (else
+			    (read-line)))))
+      (cond-expand (HAVE_LIBREADLINE
+		    (when (string? cmd)
+		       (history-add cmd))))
+      cmd))
+;
 
 (define (usage-header)
    (format "~a\n~a\n~a\n"
 	   *RAVEN-VERSION-TAG*
 	   "Usage: pcc [options] <input-files> [-- script args]"
 	   "see pcc -h for help with command line options"))
-
 
 
 ;; these correspond to the IDE when it saves a makefile

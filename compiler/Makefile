@@ -1,7 +1,7 @@
 PCC_ROOT = ..
 include $(PCC_ROOT)/bigloo-rules.mk
 
-BCOMMONFLAGS	=  -L ../libs -I ../libs 
+BCOMMONFLAGS	= $(READLINE_SRFI) -L ../libs -I ../libs 
 CCOMMONFLAGS	= -I. -I$(BGL_DEFAULT_LIB_DIR) 
 
 # for pcc
@@ -52,7 +52,7 @@ clean-bin:
 debugger: $(PHPEVAL_LIBS) pdb 
 
 pcc_$(SU): $(PHPEVAL_LIBS) $(C_POPULATION)  commandline_$(SU).o
-	bigloo $(SAFETY) $(PCC_LINK_OPTIONS) $(BCOMMONFLAGS) -o pcc_$(SU) commandline_$(SU).o -library php-runtime -library profiler -library webconnect -library phpeval 
+	bigloo $(SAFETY) $(PCC_LINK_OPTIONS) $(BCOMMONFLAGS) -o pcc_$(SU) commandline_$(SU).o -library php-runtime -library profiler -library webconnect -library phpeval $(READLINE_BL_LIB)
 
 pcc: pcc_$(SU)
 	cp pcc_$(SU) pcc
@@ -115,9 +115,3 @@ pdb_$(SU): pdb_$(SU).o $(PHPEVAL_LIBS)
 pdb: pdb_$(SU)
 	cp pdb_$(SU) pdb
 
-# we have to override these to add in READLINE_BL_LIB if it's available, since we can't do it
-# conditionally in the module clause
-pdb_s.o: pdb.scm
-	$(BIGLOO) $(BSAFEFLAGS) $(READLINE_BL_LIB) $(READLINE_SRFI) $(BIGLOO_PIC)  -c pdb.scm -o pdb_s.o
-pdb_u.o: pdb.scm
-	$(BIGLOO) $(BUNSAFEFLAGS) $(READLINE_BL_LIB) $(READLINE_SRFI) $(BIGLOO_PIC)  -c pdb.scm -o pdb_u.o

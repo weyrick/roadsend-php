@@ -21,6 +21,8 @@
 ; Commandline interface to debugger
 (module pcc-debugger
    (library php-runtime)
+   (cond-expand
+      (HAVE_LIBREADLINE (library pcc-rl)))
    (include "php-runtime.sch")
    (library profiler)
    (library mhttpd)
