@@ -1305,12 +1305,23 @@
 	     (when (>fx (pragma::int "$1->gl_pathc" globbuf) 0)
 		(begin
 		   (dotimes (i (pragma::int "$1->gl_pathc" globbuf))
-		      (php-hash-insert! rethash
-					:next
-					($string->bstring (pragma::string "$1->gl_pathv[$2]"
+	             (let ((fname ($string->bstring (pragma::string "$1->gl_pathv[$2]"
 									  globbuf
 									  i))))
-		   (c-globfree globbuf)))
+			; from man page: glob() doesn't actually guarantee only directories are
+			; returned with GLOB_ONLYDIR so we have to check anyway if that's specified
+			(if (>fx (bit-and flags c-GLOB_ONLYDIR) 0)
+			    ; dir check
+			    (when (directory? fname)
+			       (php-hash-insert! rethash
+						 :next
+						 fname))
+			    ; no dir check
+			    (php-hash-insert! rethash
+					      :next
+					      fname))))))
+	     ; leave gc'd?
+	     ;(c-globfree globbuf)
 	     rethash)
 	  ; glob error condition
 	  FALSE)))))
