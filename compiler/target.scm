@@ -291,7 +291,9 @@
    (apply run-command #t BIGLOO scheme-file "-c" "-o" o-file
           (or (target-option bigloo-optimization:) "-O3")
           `(,@(cond-expand 
-                 (unsafe '("-unsafe" "-saw"))
+                 (unsafe '("-unsafe"
+			   ;"-saw"
+			   ))
                  (else '()))
               ,@(if (target-option static?:) '("-static-bigloo") '())
               ,@(reverse (or (target-option bigloo-args:) '()))
@@ -416,7 +418,9 @@
                                           (PCC_MINGW '())
                                           (else '("-copt" "-fPIC")))
                                        ,@(cond-expand 
-                                          (unsafe '("-unsafe" "-saw"))
+                                          (unsafe '("-unsafe"
+						    ;"-saw"
+						    ))
                                           (else '()))
 				       ,@(or (target-option bigloo-args:) '())
 				       ; XXX this is relavent for microweb apps, but not for
