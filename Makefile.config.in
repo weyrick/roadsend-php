@@ -20,11 +20,16 @@ ifeq ($(PCC_OS),PCC_MACOSX)
 dllcmd = gcc -r -dynamiclib -undefined dynamic_lookup -o $(1) -install_name `basename $(1)`
 dllcmd_i = gcc -r -dynamiclib -undefined dynamic_lookup -o $(1) -install_name `basename $(1)`
 else
+ifeq ($(PCC_OS),PCC_MINGW)
+dllcmd = gcc -shared -o $(1) -Wl,--enable-auto-import,--enable-auto-image-base,--out-implib,$(1).a
+dllcmd_i = gcc -shared -o $(1) -Wl,--enable-auto-import,--enable-auto-image-base,--out-implib,$(1).a
+else
 dllcmd = gcc -shared -o $(1)
 dllcmd_i = gcc -shared -o $(1)
 endif
+endif
 
-PCC_LINK_OPTIONS = 
+PCC_LINK_OPTIONS = @PCC_LINK_OPTIONS@
 RUNTIME_DLL_LIBS = $(BIGLOO_LIBS)
 COMPILER_DLL_LIBS = $(BIGLOO_LIBS)
 WEBCONNECT_DLL_LIBS = $(BIGLOO_LIBS)

@@ -701,6 +701,7 @@ CONF_HOME
 PCC_LIBS
 PCC_BIN
 PCC_OS
+PCC_LINK_OPTIONS
 EXT_LIST
 PHP_EXT_LIST
 BE_LIST
@@ -4517,6 +4518,7 @@ echo "$as_me: configuring for linux" >&6;}
 _ACEOF
 
 	PCC_OS="PCC_LINUX"
+	PCC_LINK_OPTIONS=
 #	SHARED_FLAG="-shared"
 	RESOLVER_LIB="-lresolv"
 	SO_EXT="so"
@@ -4531,6 +4533,7 @@ echo "$as_me: configuring for FreeBSD" >&6;}
 _ACEOF
 
 	PCC_OS="PCC_FREEBSD"
+	PCC_LINK_OPTIONS=
 #	SHARED_FLAG="-shared"
 	RESOLVER_LIB=""
 	SO_EXT="so"
@@ -4545,10 +4548,14 @@ echo "$as_me: configuring for windows/mingw" >&6;}
 _ACEOF
 
 	PCC_OS="PCC_MINGW"
+	PCC_LINK_OPTIONS="-ldopt \" -Wl,--enable-auto-import \""
 #	SHARED_FLAG="-shared"
 	SO_EXT="dll"
 	RESOLVER_LIB=""
-	STD_LIBS="-lws2_32"
+#-future version with the car-type selection : variable $SU have to be resolve
+#   STD_LIBS="-lws2_32 -lbigloo_$SU-$BIGLOO_VERSION -lbigloogc-$BIGLOO_VERSION"
+#-ugly-current for testing
+	STD_LIBS="-lws2_32 -lbigloo_u-3.0c -lbigloogc-3.0c"
 	STD_CFLAGS=""
 	with_pccwin=yes
 	;;
@@ -4560,6 +4567,7 @@ echo "$as_me: configuring for Mac OS/X" >&6;}
 _ACEOF
 
 	PCC_OS="PCC_MACOSX"
+	PCC_LINK_OPTIONS=
 #	SHARED_FLAG="-r -dynamiclib -undefined dynamic_lookup"
 	SO_EXT="dylib"
 	RESOLVER_LIB="-lresolv"
@@ -5519,6 +5527,8 @@ _ACEOF
 # Substitutions
 PCC_OS=$PCC_OS
 
+PCC_LINK_OPTIONS=$PCC_LINK_OPTIONS
+
 EXT_LIST=$EXT_LIST
 
 PHP_EXT_LIST=$PHP_EXT_LIST
@@ -6326,6 +6336,7 @@ CONF_HOME!$CONF_HOME$ac_delim
 PCC_LIBS!$PCC_LIBS$ac_delim
 PCC_BIN!$PCC_BIN$ac_delim
 PCC_OS!$PCC_OS$ac_delim
+PCC_LINK_OPTIONS!$PCC_LINK_OPTIONS$ac_delim
 EXT_LIST!$EXT_LIST$ac_delim
 PHP_EXT_LIST!$PHP_EXT_LIST$ac_delim
 BE_LIST!$BE_LIST$ac_delim
@@ -6335,7 +6346,6 @@ BIGLOO_LIB_PATH!$BIGLOO_LIB_PATH$ac_delim
 RESOLVER_LIB!$RESOLVER_LIB$ac_delim
 MYSQL_CFLAGS!$MYSQL_CFLAGS$ac_delim
 MYSQL_LIBS!$MYSQL_LIBS$ac_delim
-ODBC_CFLAGS!$ODBC_CFLAGS$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -6377,6 +6387,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+ODBC_CFLAGS!$ODBC_CFLAGS$ac_delim
 ODBC_LIBS!$ODBC_LIBS$ac_delim
 SQLITE_CFLAGS!$SQLITE_CFLAGS$ac_delim
 SQLITE_LIBS!$SQLITE_LIBS$ac_delim
@@ -6397,7 +6408,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 18; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 19; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

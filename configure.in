@@ -303,6 +303,7 @@ linux*)
 	AC_MSG_NOTICE([configuring for linux]) 
 	AC_DEFINE(PCC_OS, ["PCC_LINUX"])
 	PCC_OS="PCC_LINUX"
+	PCC_LINK_OPTIONS=
 #	SHARED_FLAG="-shared"
 	RESOLVER_LIB="-lresolv"
 	SO_EXT="so"
@@ -313,6 +314,7 @@ freebsd*)
 	AC_MSG_NOTICE([configuring for FreeBSD])
 	AC_DEFINE(PCC_OS, ["PCC_FREEBSD"])
 	PCC_OS="PCC_FREEBSD"
+	PCC_LINK_OPTIONS=
 #	SHARED_FLAG="-shared"
 	RESOLVER_LIB=""
 	SO_EXT="so"
@@ -323,10 +325,14 @@ mingw*)
 	AC_MSG_NOTICE([configuring for windows/mingw])
 	AC_DEFINE(PCC_OS, ["PCC_MINGW"])
 	PCC_OS="PCC_MINGW"
+	PCC_LINK_OPTIONS="-ldopt \" -Wl,--enable-auto-import \""
 #	SHARED_FLAG="-shared"
 	SO_EXT="dll"
 	RESOLVER_LIB=""
-	STD_LIBS="-lws2_32"
+#-future version with the car-type selection : variable $SU have to be resolve
+#   STD_LIBS="-lws2_32 -lbigloo_$SU-$BIGLOO_VERSION -lbigloogc-$BIGLOO_VERSION"
+#-ugly-current for testing
+	STD_LIBS="-lws2_32 -lbigloo_u-3.0c -lbigloogc-3.0c"
 	STD_CFLAGS=""
 	with_pccwin=yes
 	;;
@@ -334,6 +340,7 @@ darwin*)
 	AC_MSG_NOTICE([configuring for Mac OS/X])
 	AC_DEFINE(PCC_OS, ["PCC_MACOSX"])
 	PCC_OS="PCC_MACOSX"
+	PCC_LINK_OPTIONS=
 #	SHARED_FLAG="-r -dynamiclib -undefined dynamic_lookup"
 	SO_EXT="dylib"
 	RESOLVER_LIB="-lresolv"
@@ -382,6 +389,7 @@ AC_DEFINE_DIR(PCC_BIN, bindir, [pcc bin dir])
 
 # Substitutions
 AC_SUBST(PCC_OS, $PCC_OS)
+AC_SUBST(PCC_LINK_OPTIONS, $PCC_LINK_OPTIONS)
 AC_SUBST(EXT_LIST, $EXT_LIST)
 AC_SUBST(PHP_EXT_LIST, $PHP_EXT_LIST)
 AC_SUBST(BE_LIST, $BE_LIST)
