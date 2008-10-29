@@ -725,6 +725,7 @@ FCGI_CFLAGS
 PCC_EXT_LIST
 PDO_DRIVER_LIST
 PDO_DRIVER_ARRAY
+BIGLOO_GC_LIB
 srcdir
 LIBOBJS
 LTLIBOBJS'
@@ -3121,7 +3122,7 @@ test -n "$target_alias" &&
 
 # can't figure out how to get this into AC_CHECK_PROG_VER below?
 # have to change it there too
-want_bigloo="3.0c, 3.0d, 3.1a, 3.1b"
+want_bigloo="3.0c, 3.1a, 3.1b"
 want_curl=7.15.1
 
 # defaults
@@ -3191,7 +3192,7 @@ echo $ECHO_N "checking version of $HAVE_BIGLOO... $ECHO_C" >&6; }
   ac_prog_version=`$HAVE_BIGLOO -revision 2>&1 | sed -n 's/^.*\([2-9].[0-9][a-z]\).*$/\1/p'`
   case $ac_prog_version in
     '') ac_prog_version_m="v. ?.??, bad"; ac_verc_fail=yes;;
-    3.0c | 3.0d | 3.1a | 3.1b)
+    3.0c | 3.1a | 3.1b)
        ac_prog_version_m="$ac_prog_version, ok"; ac_verc_fail=no;;
     *) ac_prog_version_m="$ac_prog_version, bad"; ac_verc_fail=yes;;
 
@@ -3211,6 +3212,7 @@ fi
 BIGLOO_VERSION=$ac_prog_version
 
 BIGLOO_LIB_PATH=`bigloo -eval "(display *default-lib-dir*)(exit 0)"`
+BIGLOO_GC_LIB=`bigloo -eval "(display *gc-lib*)(exit 0)"`
 
 # XXX for now we require PCC_HOME variable
 #AC_MSG_CHECKING([for existence of PCC_HOME variable])
@@ -5576,6 +5578,8 @@ CONF_HOME=$CONF_HOME
 
 PCC_LIBS=$PCC_LIBS
 
+BIGLOO_GC_LIB=$BIGLOO_GC_LIB
+
 
 prefix=$prefix
 
@@ -6387,12 +6391,13 @@ FCGI_CFLAGS!$FCGI_CFLAGS$ac_delim
 PCC_EXT_LIST!$PCC_EXT_LIST$ac_delim
 PDO_DRIVER_LIST!$PDO_DRIVER_LIST$ac_delim
 PDO_DRIVER_ARRAY!$PDO_DRIVER_ARRAY$ac_delim
+BIGLOO_GC_LIB!$BIGLOO_GC_LIB$ac_delim
 srcdir!$srcdir$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 17; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 18; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -6836,6 +6841,7 @@ echo "
 
         bigloo version:           ${BIGLOO_VERSION}
         bigloo libs:              ${BIGLOO_LIB_PATH}
+        bigloo gc:                ${BIGLOO_GC_LIB}
         readline:                 ${with_readline}
 
         = Web Backends =

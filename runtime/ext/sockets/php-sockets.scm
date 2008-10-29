@@ -173,9 +173,15 @@
 			    (set! *last-socket-error* (&io-error-msg e))			    
 			    #f)
 			 (begin
-			    (php-socket-bsocket-set! sock (make-client-socket (mkstr address)
-									      (mkfixnum cport)
-									      :buffer #f))
+			    (cond-expand
+			       (bigloo3.0c
+				(php-socket-bsocket-set! sock (make-client-socket (mkstr address)
+										  (mkfixnum cport)
+										  :buffer #f)))
+			       (else
+				(php-socket-bsocket-set! sock (make-client-socket (mkstr address)
+										  (mkfixnum cport)
+										  :inbuf #f :outbuf #f))))
 			    (php-socket-connected?-set! sock #t)
 			    #t)))
        #f))

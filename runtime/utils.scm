@@ -28,7 +28,7 @@
     (opaque-math "opaque-math-binding.scm")
     (php-types "php-types.scm"))
    (extern
-    ;; bigloo's flush-output-port is not binary safe on string ports,
+    ;; in 3.0c, bigloo's flush-output-port is not binary safe on string ports,
     ;; and in recent versions it no longer resets the position to 0
     (flush-string-port/bin::bstring (::output-port) "strport_bin_flush")
     (c-strpos::int (::bstring ::bstring ::int ::int) "re_strpos"))
@@ -75,6 +75,7 @@
     (make-tmpfile-name dir pref)
     (pcc-file-separator)
     (force-trailing-/ p)))
+
 
 ; a version of php's str_replace
 (define (string-subst::bstring text::bstring old::bstring new::bstring . rest)

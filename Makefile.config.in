@@ -4,9 +4,15 @@ PCC_OS = @PCC_OS@
 SOEXT = @SO_EXT@
 BIGLOOVERSION = @BIGLOO_VERSION@
 BIGLOO_LIB_PATH = @BIGLOO_LIB_PATH@
-STATIC_SUFFIX = 
+BIGLOO_GC_LIB = @BIGLOO_GC_LIB@
+STATIC_SUFFIX =
 BIGLOO_PIC = -copt -fPIC
 C_PIC = -fPIC
+
+# GC_LIB can be gc or bigloogc
+ifeq ($(BIGLOO_GC_LIB),bigloogc)
+ BIGLOO_GC_LIB = bigloogc-$(BIGLOOVERSION)
+endif
 
 # build .so libraries
 # no difference between these commands in linux, only mingw
@@ -106,11 +112,13 @@ GTK_LIBS   = @GTK_LIBS@
 #APR_LINK = $(shell $(APR) --link-ld)
 
 #these are pretty bad
-#LINK_APACHE_MODULE = $(APXS) -I$(BGL_DEFAULT_LIB_DIR) -c mod_pcc.c $(MOD_OBJS) -o mod_pcc_s.so -I/usr/local/include/libxml2  -s  -lcrypt     -L../../libs -L. -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_$(SU)  -lphp-runtime_$(SU) -lphpeval_$(SU) -lwebconnect_$(SU)  -lbigloo_$(SU)-$(BIGLOO_VERSION) -lbigloogc-$(BIGLOO_VERSION) $(OS_LIBS) -lm
+#LINK_APACHE_MODULE = $(APXS) -I$(BGL_DEFAULT_LIB_DIR) -c mod_pcc.c $(MOD_OBJS) -o mod_pcc_s.so -I/usr/local/include/libxml2  -s  -lcrypt     -L../../libs -L. -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_$(SU)  -lphp-runtime_$(SU) -lphpeval_$(SU) -lwebconnect_$(SU)  -lbigloo_$(SU)-$(BIGLOO_VERSION) -l$(BIGLOO_GC_LIB) $(OS_LIBS) -lm -lc
 
-#LINK_APACHE_MODULE_UNSAFE = $(APXS) -I$(BGL_DEFAULT_LIB_DIR) -c mod_pcc.c -o mod_pcc_u.so $(MOD_OBJS) -I/usr/local/include/libxml2  -s  -lcrypt     -L../../libs -L. -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_u  -lphp-runtime_u -lphpeval_u -lwebconnect_u  -lbigloo_u-$(BIGLOO_VERSION) -lbigloogc-$(BIGLOO_VERSION) $(OS_LIBS) -lm
 
-#LINK_APACHE2_MODULE = $(APXS2) -I$(BGL_DEFAULT_LIB_DIR) -c mod_pcc2.c $(MOD2_OBJS) -export-dynamic -I/usr/local/include/libxml2  -s $(APR_LINK) -lcrypt     -L../../libs -L. -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_$(SU)  -lphp-runtime_$(SU) -lphpeval_$(SU) -lwebconnect_$(SU)  -lbigloo_$(SU)-$(BIGLOO_VERSION) -lbigloogc-$(BIGLOO_VERSION) $(OS_LIBS) -lm
+#LINK_APACHE_MODULE_UNSAFE = $(APXS) -I$(BGL_DEFAULT_LIB_DIR) -c mod_pcc.c -o mod_pcc_u.so $(MOD_OBJS) -I/usr/local/include/libxml2  -s  -lcrypt     -L../../libs -L. -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_u  -lphp-runtime_u -lphpeval_u -lwebconnect_u  -lbigloo_u-$(BIGLOO_VERSION) -l$(BIGLOO_GC_LIB) $(OS_LIBS) -lm -lc
 
-#LINK_APACHE2_MODULE_UNSAFE = $(APXS2) -I$(BGL_DEFAULT_LIB_DIR) -c mod_pcc2.c $(MOD2_OBJS) -I/usr/local/include/libxml2  -s $(APR_LINK) -lcrypt     -L../../libs -L. -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_u  -lphp-runtime_u -lphpeval_u -lwebconnect_u  -lbigloo_u-$(BIGLOO_VERSION) -lbigloogc-$(BIGLOO_VERSION) $(OS_LIBS) -lm
+
+#LINK_APACHE2_MODULE = $(APXS2) -I$(BGL_DEFAULT_LIB_DIR) -c mod_pcc2.c $(MOD2_OBJS) -export-dynamic -I/usr/local/include/libxml2  -s $(APR_LINK) -lcrypt     -L../../libs -L. -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_$(SU)  -lphp-runtime_$(SU) -lphpeval_$(SU) -lwebconnect_$(SU)  -lbigloo_$(SU)-$(BIGLOO_VERSION) -l$(BIGLOO_GC_LIB) $(OS_LIBS) -lm -lc
+
+#LINK_APACHE2_MODULE_UNSAFE = $(APXS2) -I$(BGL_DEFAULT_LIB_DIR) -c mod_pcc2.c $(MOD2_OBJS) -I/usr/local/include/libxml2  -s $(APR_LINK) -lcrypt     -L../../libs -L. -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_u  -lphp-runtime_u -lphpeval_u -lwebconnect_u  -lbigloo_u-$(BIGLOO_VERSION) -l$(BIGLOO_GC_LIB) $(OS_LIBS) -lm -lc
 

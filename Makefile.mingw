@@ -17,13 +17,13 @@ dllcmd_i = gcc -shared -o $(1) -Wl,--enable-auto-import,--enable-auto-image-base
 PCC_LINK_OPTIONS =  -ldopt " -Wl,--enable-auto-import "
 
 #on windows, the DLLs cannot have unresolved symbols
-RUNTIME_DLL_LIBS = -L$(BGL_DEFAULT_LIB_DIR) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloogc-$(BIGLOOVERSION) -lws2_32 -liberty
-COMPILER_DLL_LIBS = -L../libs/ -lphp-runtime_$(SU)-$(BIGLOOVERSION) -lprofiler_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -lwebconnect_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloogc-$(BIGLOOVERSION)  -lws2_32 
-WEBCONNECT_DLL_LIBS = -L../libs/ -lphp-runtime_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloogc-$(BIGLOOVERSION)  -lws2_32 
-FASTCGI_DLL_LIBS = -L../../libs/ -lphp-runtime_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -lwebconnect_$(SU)-$(BIGLOOVERSION) -lphpeval_$(SU)-$(BIGLOOVERSION) -lprofiler_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloogc-$(BIGLOOVERSION) -lws2_32 -L/usr/local/lib -lfcgi
-CGI_DLL_LIBS = -L../../libs/ -lphp-runtime_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -lwebconnect_$(SU)-$(BIGLOOVERSION) -lphpeval_$(SU)-$(BIGLOOVERSION) -lprofiler_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloogc-$(BIGLOOVERSION)  -lws2_32 
-MHTTPD_DLL_LIBS = -L../../libs/ -lphp-runtime_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -L/usr/local/lib -lprofiler_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloogc-$(BIGLOOVERSION) -lwebconnect_$(SU)-$(BIGLOOVERSION) -lphpeval_$(SU)-$(BIGLOOVERSION) -lws2_32 -lwebserver -lws2_32
-EXTENSION_DLL_LIBS = -L$(LIB)  -lphpeval_$(SU)-$(BIGLOOVERSION) -lphp-runtime_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloogc-$(BIGLOOVERSION) -lws2_32 -lm
+RUNTIME_DLL_LIBS = -L$(BGL_DEFAULT_LIB_DIR) -lbigloo_$(SU)-$(BIGLOOVERSION) -lws2_32 -liberty
+COMPILER_DLL_LIBS = -L../libs/ -lphp-runtime_$(SU)-$(BIGLOOVERSION) -lprofiler_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -lwebconnect_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION)  -lws2_32
+WEBCONNECT_DLL_LIBS = -L../libs/ -lphp-runtime_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION) -l$(BIGLOO_GC_LIB) -lws2_32
+FASTCGI_DLL_LIBS = -L../../libs/ -lphp-runtime_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -lwebconnect_$(SU)-$(BIGLOOVERSION) -lphpeval_$(SU)-$(BIGLOOVERSION) -lprofiler_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION) -l$(BIGLOO_GC_LIB) -lws2_32 -L/usr/local/lib -lfcgi
+CGI_DLL_LIBS = -L../../libs/ -lphp-runtime_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -lwebconnect_$(SU)-$(BIGLOOVERSION) -lphpeval_$(SU)-$(BIGLOOVERSION) -lprofiler_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION)  -lws2_32
+MHTTPD_DLL_LIBS = -L../../libs/ -lphp-runtime_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -L/usr/local/lib -lprofiler_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION) -lwebconnect_$(SU)-$(BIGLOOVERSION) -lphpeval_$(SU)-$(BIGLOOVERSION) -l$(BIGLOO_GC_LIB) -lws2_32 -lwebserver -lws2_32
+EXTENSION_DLL_LIBS = -L$(LIB)  -lphpeval_$(SU)-$(BIGLOOVERSION) -lphp-runtime_$(SU)-$(BIGLOOVERSION) -L$(BGL_DEFAULT_LIB_DIR) -lprofiler_$(SU)-$(BIGLOOVERSION) -lbigloo_$(SU)-$(BIGLOOVERSION) -l$(BIGLOO_GC_LIB) -lws2_32 -lm
 PROFILER_DLL_LIBS = $(BIGLOO_LIBS) -L/usr/local/lib -lgw32c -lole32 -luuid
 DOTEST_LIBS = -L /usr/local/lib -lgw32c -lws2_32 
 

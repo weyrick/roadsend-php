@@ -603,6 +603,9 @@
 (define-macro (bigloo-version)
    `',*bigloo-version*)
 
+(define-macro (bigloo-gc-lib)
+   `',*gc-lib*)
+
 (define (res-out-file-name file)
    (string-append (prefix file) "-res.o"))
 
@@ -790,7 +793,10 @@
                      (for-each (lambda (l) (pushf l libs)) ext-libs))))
                 (scheme-libraries-and-includes))
       (pushf (string-append "-l" "bigloo" (safety-ext) "-" (bigloo-version)) libs)
-      (pushf (string-append "-l" "bigloogc" "-" (bigloo-version)) libs)
+      (pushf (if (eqv? (bigloo-gc-lib) 'bigloogc)
+			(string-append "-lbigloogc-" (bigloo-version))
+			(string-append "-l" (symbol->string (bigloo-gc-lib)))
+			) libs)
 
       ; verbose if we're really debugging
       (when (> *debug-level* 4)

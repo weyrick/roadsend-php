@@ -26,7 +26,7 @@ AC_CANONICAL_SYSTEM
 
 # can't figure out how to get this into AC_CHECK_PROG_VER below?
 # have to change it there too
-want_bigloo="3.0c, 3.0d, 3.1a, 3.1b"
+want_bigloo="3.0c, 3.1a, 3.1b"
 want_curl=7.15.1
 
 # defaults
@@ -49,12 +49,13 @@ AC_CHECK_PROG_VER([HAVE_BIGLOO],
 		  bigloo, 
 		  -revision,
 		  [\([2-9].[0-9][a-z]\)],
-		  [3.0c | 3.0d | 3.1a | 3.1b],
+		  [3.0c | 3.1a | 3.1b],
 		  AC_MSG_FAILURE([Bigloo version $want_bigloo required in the system path]))
 
 BIGLOO_VERSION=$ac_prog_version
 
 BIGLOO_LIB_PATH=`bigloo -eval "(display *default-lib-dir*)(exit 0)"`
+BIGLOO_GC_LIB=`bigloo -eval "(display *gc-lib*)(exit 0)"`
 
 # XXX for now we require PCC_HOME variable
 #AC_MSG_CHECKING([for existence of PCC_HOME variable])
@@ -411,6 +412,7 @@ AC_SUBST(PDO_DRIVER_LIST, $PDO_DRIVER_LIST)
 AC_SUBST(PDO_DRIVER_ARRAY, $PDO_DRIVER_ARRAY)
 AC_SUBST(CONF_HOME, $CONF_HOME)
 AC_SUBST(PCC_LIBS, $PCC_LIBS)
+AC_SUBST(BIGLOO_GC_LIB, $BIGLOO_GC_LIB)
 
 AC_SUBST(prefix, $prefix)
 AC_SUBST(exec_prefix, $exec_prefix)
@@ -450,6 +452,7 @@ echo "
 
         bigloo version:           ${BIGLOO_VERSION}
         bigloo libs:              ${BIGLOO_LIB_PATH}
+        bigloo gc:                ${BIGLOO_GC_LIB}
         readline:                 ${with_readline}
 
         = Web Backends =

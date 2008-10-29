@@ -40,7 +40,7 @@ CUNSAFEFLAGS  = -D$(PCC_OS) -O4 $(CCOMMONFLAGS)
 CPPSAFEFLAGS  = $(CSAFEFLAGS)
 CPPUNSAFEFLAGS  = $(CUNSAFEFLAGS)
 
-BIGLOO_LIBS	= -L$(BGL_DEFAULT_LIB_DIR) -lbigloo_$(SU)-$(BIGLOOVERSION) -lbigloogc-$(BIGLOOVERSION)
+BIGLOO_LIBS	= -L$(BGL_DEFAULT_LIB_DIR) -lbigloo_$(SU)-$(BIGLOOVERSION) -l$(BIGLOO_GC_LIB)
 
 # we could put non-pic code in the static libraries without too much
 # trouble by adding the t to STATIC_SUFFIX in linux, and not building
