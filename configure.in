@@ -329,8 +329,20 @@ mingw*)
 #	SHARED_FLAG="-shared"
 	SO_EXT="dll"
 	RESOLVER_LIB=""
-#-future version with the car-type selection : variable $SU have to be resolve
-#   STD_LIBS="-lws2_32 -lbigloo_$SU-$BIGLOO_VERSION -lbigloogc-$BIGLOO_VERSION"
+#jfcouic 2008-10-30 begin : report Makefile.mingw
+#on windows, the DLLs cannot have unresolved symbols
+    RUNTIME_DLL_LIBS="-lws2_32 -liberty"
+    COMPILER_DLL_LIBS="-L../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(WEBCONNECT_LIB) -lws2_32"
+    WEBCONNECT_DLL_LIBS="-L../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) -lws2_32"
+    FASTCGI_DLL_LIBS="-L../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -L/usr/local/lib -lfcgi -lws2_32"
+    CGI_DLL_LIBS="-L../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -lws2_32"
+    MHTTPD_DLL_LIBS="-L../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -L/usr/local/lib -lwebserver -lws2_32"
+    EXTENSION_DLL_LIBS="-L\$(LIB) \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) -lws2_32 -lm"
+    PROFILER_DLL_LIBS="-L/usr/local/lib -lgw32c -lole32 -luuid"
+    DOTEST_LIBS="-L/usr/local/lib -lgw32c -lws2_32"
+#jfcouic 2008-10-30 end
+#-future version with the SU SUV selection
+#   STD_LIBS="-lws2_32 \$(BIGLOO_LIBS)"
 #-ugly-current for testing
 	STD_LIBS="-lws2_32 -lbigloo_u-3.0c -lbigloogc-3.0c"
 	STD_CFLAGS=""
@@ -390,6 +402,17 @@ AC_DEFINE_DIR(PCC_BIN, bindir, [pcc bin dir])
 # Substitutions
 AC_SUBST(PCC_OS, $PCC_OS)
 AC_SUBST(PCC_LINK_OPTIONS, $PCC_LINK_OPTIONS)
+#jfcouic 2008-10-30 begin
+AC_SUBST(RUNTIME_DLL_LIBS, $RUNTIME_DLL_LIBS)
+AC_SUBST(COMPILER_DLL_LIBS, $COMPILER_DLL_LIBS)
+AC_SUBST(WEBCONNECT_DLL_LIBS, $WEBCONNECT_DLL_LIBS)
+AC_SUBST(EXTENSION_DLL_LIBS, $EXTENSION_DLL_LIBS)
+AC_SUBST(FASTCGI_DLL_LIBS, $FASTCGI_DLL_LIBS)
+AC_SUBST(CGI_DLL_LIBS, $CGI_DLL_LIBS)
+AC_SUBST(MHTTPD_DLL_LIBS, $MHTTPD_DLL_LIBS)
+AC_SUBST(PROFILER_DLL_LIBS, $PROFILER_DLL_LIBS)
+AC_SUBST(DOTEST_LIBS, $DOTEST_LIBS)
+#jfcouic 2008-10-30 end
 AC_SUBST(EXT_LIST, $EXT_LIST)
 AC_SUBST(PHP_EXT_LIST, $PHP_EXT_LIST)
 AC_SUBST(BE_LIST, $BE_LIST)

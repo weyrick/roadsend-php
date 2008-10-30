@@ -702,6 +702,15 @@ PCC_LIBS
 PCC_BIN
 PCC_OS
 PCC_LINK_OPTIONS
+RUNTIME_DLL_LIBS
+COMPILER_DLL_LIBS
+WEBCONNECT_DLL_LIBS
+EXTENSION_DLL_LIBS
+FASTCGI_DLL_LIBS
+CGI_DLL_LIBS
+MHTTPD_DLL_LIBS
+PROFILER_DLL_LIBS
+DOTEST_LIBS
 EXT_LIST
 PHP_EXT_LIST
 BE_LIST
@@ -4552,8 +4561,20 @@ _ACEOF
 #	SHARED_FLAG="-shared"
 	SO_EXT="dll"
 	RESOLVER_LIB=""
-#-future version with the car-type selection : variable $SU have to be resolve
-#   STD_LIBS="-lws2_32 -lbigloo_$SU-$BIGLOO_VERSION -lbigloogc-$BIGLOO_VERSION"
+#jfcouic 2008-10-30 begin : report Makefile.mingw
+#on windows, the DLLs cannot have unresolved symbols
+    RUNTIME_DLL_LIBS="-lws2_32 -liberty"
+    COMPILER_DLL_LIBS="-L../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(WEBCONNECT_LIB) -lws2_32"
+    WEBCONNECT_DLL_LIBS="-L../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) -lws2_32"
+    FASTCGI_DLL_LIBS="-L../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -L/usr/local/lib -lfcgi -lws2_32"
+    CGI_DLL_LIBS="-L../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -lws2_32"
+    MHTTPD_DLL_LIBS="-L../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -L/usr/local/lib -lwebserver -lws2_32"
+    EXTENSION_DLL_LIBS="-L\$(LIB) \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) -lws2_32 -lm"
+    PROFILER_DLL_LIBS="-L/usr/local/lib -lgw32c -lole32 -luuid"
+    DOTEST_LIBS="-L/usr/local/lib -lgw32c -lws2_32"
+#jfcouic 2008-10-30 end
+#-future version with the SU SUV selection
+#   STD_LIBS="-lws2_32 \$(BIGLOO_LIBS)"
 #-ugly-current for testing
 	STD_LIBS="-lws2_32 -lbigloo_u-3.0c -lbigloogc-3.0c"
 	STD_CFLAGS=""
@@ -5529,6 +5550,26 @@ PCC_OS=$PCC_OS
 
 PCC_LINK_OPTIONS=$PCC_LINK_OPTIONS
 
+#jfcouic 2008-10-30 begin
+RUNTIME_DLL_LIBS=$RUNTIME_DLL_LIBS
+
+COMPILER_DLL_LIBS=$COMPILER_DLL_LIBS
+
+WEBCONNECT_DLL_LIBS=$WEBCONNECT_DLL_LIBS
+
+EXTENSION_DLL_LIBS=$EXTENSION_DLL_LIBS
+
+FASTCGI_DLL_LIBS=$FASTCGI_DLL_LIBS
+
+CGI_DLL_LIBS=$CGI_DLL_LIBS
+
+MHTTPD_DLL_LIBS=$MHTTPD_DLL_LIBS
+
+PROFILER_DLL_LIBS=$PROFILER_DLL_LIBS
+
+DOTEST_LIBS=$DOTEST_LIBS
+
+#jfcouic 2008-10-30 end
 EXT_LIST=$EXT_LIST
 
 PHP_EXT_LIST=$PHP_EXT_LIST
@@ -6337,15 +6378,15 @@ PCC_LIBS!$PCC_LIBS$ac_delim
 PCC_BIN!$PCC_BIN$ac_delim
 PCC_OS!$PCC_OS$ac_delim
 PCC_LINK_OPTIONS!$PCC_LINK_OPTIONS$ac_delim
-EXT_LIST!$EXT_LIST$ac_delim
-PHP_EXT_LIST!$PHP_EXT_LIST$ac_delim
-BE_LIST!$BE_LIST$ac_delim
-SO_EXT!$SO_EXT$ac_delim
-BIGLOO_VERSION!$BIGLOO_VERSION$ac_delim
-BIGLOO_LIB_PATH!$BIGLOO_LIB_PATH$ac_delim
-RESOLVER_LIB!$RESOLVER_LIB$ac_delim
-MYSQL_CFLAGS!$MYSQL_CFLAGS$ac_delim
-MYSQL_LIBS!$MYSQL_LIBS$ac_delim
+RUNTIME_DLL_LIBS!$RUNTIME_DLL_LIBS$ac_delim
+COMPILER_DLL_LIBS!$COMPILER_DLL_LIBS$ac_delim
+WEBCONNECT_DLL_LIBS!$WEBCONNECT_DLL_LIBS$ac_delim
+EXTENSION_DLL_LIBS!$EXTENSION_DLL_LIBS$ac_delim
+FASTCGI_DLL_LIBS!$FASTCGI_DLL_LIBS$ac_delim
+CGI_DLL_LIBS!$CGI_DLL_LIBS$ac_delim
+MHTTPD_DLL_LIBS!$MHTTPD_DLL_LIBS$ac_delim
+PROFILER_DLL_LIBS!$PROFILER_DLL_LIBS$ac_delim
+DOTEST_LIBS!$DOTEST_LIBS$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -6387,6 +6428,15 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+EXT_LIST!$EXT_LIST$ac_delim
+PHP_EXT_LIST!$PHP_EXT_LIST$ac_delim
+BE_LIST!$BE_LIST$ac_delim
+SO_EXT!$SO_EXT$ac_delim
+BIGLOO_VERSION!$BIGLOO_VERSION$ac_delim
+BIGLOO_LIB_PATH!$BIGLOO_LIB_PATH$ac_delim
+RESOLVER_LIB!$RESOLVER_LIB$ac_delim
+MYSQL_CFLAGS!$MYSQL_CFLAGS$ac_delim
+MYSQL_LIBS!$MYSQL_LIBS$ac_delim
 ODBC_CFLAGS!$ODBC_CFLAGS$ac_delim
 ODBC_LIBS!$ODBC_LIBS$ac_delim
 SQLITE_CFLAGS!$SQLITE_CFLAGS$ac_delim
@@ -6408,7 +6458,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 19; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 28; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
