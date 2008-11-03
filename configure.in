@@ -341,6 +341,13 @@ mingw*)
     PROFILER_DLL_LIBS="-L/usr/local/lib -lgw32c -lole32 -luuid"
     DOTEST_LIBS="-L/usr/local/lib -lgw32c -lws2_32"
 #jfcouic 2008-10-30 end
+#jfcouic 2008-11-01 begin
+# report compatibility for time and flock to compile
+#   in the profiler
+    WINDOWS_TIME_SUPPORT = windows-time
+#   in the runtime
+    WINDOWS_C_SUPPORT = windows-time windows-flock
+#jfcouic 2008-11-01 end
 #-future version with the SU SUV selection
 #   STD_LIBS="-lws2_32 \$(BIGLOO_LIBS)"
 #-ugly-current for testing
@@ -413,6 +420,10 @@ AC_SUBST(MHTTPD_DLL_LIBS, $MHTTPD_DLL_LIBS)
 AC_SUBST(PROFILER_DLL_LIBS, $PROFILER_DLL_LIBS)
 AC_SUBST(DOTEST_LIBS, $DOTEST_LIBS)
 #jfcouic 2008-10-30 end
+#jfcouic 2008-11-01 begin
+AC_SUBST(WINDOWS_TIME_SUPPORT, $WINDOWS_TIME_SUPPORT)
+AC_SUBST(WINDOWS_C_SUPPORT, $WINDOWS_C_SUPPORT)
+#jfcouic 2008-11-01 end
 AC_SUBST(EXT_LIST, $EXT_LIST)
 AC_SUBST(PHP_EXT_LIST, $PHP_EXT_LIST)
 AC_SUBST(BE_LIST, $BE_LIST)

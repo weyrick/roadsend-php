@@ -711,6 +711,8 @@ CGI_DLL_LIBS
 MHTTPD_DLL_LIBS
 PROFILER_DLL_LIBS
 DOTEST_LIBS
+WINDOWS_TIME_SUPPORT
+WINDOWS_C_SUPPORT
 EXT_LIST
 PHP_EXT_LIST
 BE_LIST
@@ -4573,6 +4575,13 @@ _ACEOF
     PROFILER_DLL_LIBS="-L/usr/local/lib -lgw32c -lole32 -luuid"
     DOTEST_LIBS="-L/usr/local/lib -lgw32c -lws2_32"
 #jfcouic 2008-10-30 end
+#jfcouic 2008-11-01 begin
+# report compatibility for time and flock to compile
+#   in the profiler
+    WINDOWS_TIME_SUPPORT = windows-time
+#   in the runtime
+    WINDOWS_C_SUPPORT = windows-time windows-flock
+#jfcouic 2008-11-01 end
 #-future version with the SU SUV selection
 #   STD_LIBS="-lws2_32 \$(BIGLOO_LIBS)"
 #-ugly-current for testing
@@ -5570,6 +5579,12 @@ PROFILER_DLL_LIBS=$PROFILER_DLL_LIBS
 DOTEST_LIBS=$DOTEST_LIBS
 
 #jfcouic 2008-10-30 end
+#jfcouic 2008-11-01 begin
+WINDOWS_TIME_SUPPORT=$WINDOWS_TIME_SUPPORT
+
+WINDOWS_C_SUPPORT=$WINDOWS_C_SUPPORT
+
+#jfcouic 2008-11-01 end
 EXT_LIST=$EXT_LIST
 
 PHP_EXT_LIST=$PHP_EXT_LIST
@@ -6428,6 +6443,8 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+WINDOWS_TIME_SUPPORT!$WINDOWS_TIME_SUPPORT$ac_delim
+WINDOWS_C_SUPPORT!$WINDOWS_C_SUPPORT$ac_delim
 EXT_LIST!$EXT_LIST$ac_delim
 PHP_EXT_LIST!$PHP_EXT_LIST$ac_delim
 BE_LIST!$BE_LIST$ac_delim
@@ -6458,7 +6475,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 28; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 30; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
