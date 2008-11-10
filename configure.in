@@ -344,9 +344,9 @@ mingw*)
 #jfcouic 2008-11-01 begin
 # report compatibility for time and flock to compile
 #   in the profiler
-    WINDOWS_TIME_SUPPORT = windows-time
+    WINDOWS_TIME_SUPPORT="windows-time"
 #   in the runtime
-    WINDOWS_C_SUPPORT = windows-time windows-flock
+    WINDOWS_C_SUPPORT="windows-time windows-flock"
 #jfcouic 2008-11-01 end
 #-future version with the SU SUV selection
 #   STD_LIBS="-lws2_32 \$(BIGLOO_LIBS)"
