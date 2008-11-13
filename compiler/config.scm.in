@@ -16,6 +16,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 ;; ***** END LICENSE BLOCK *****
+;jfcouic 2008-11-10: no windows absolute pathnames. just during the ./configure
 
 ; parse configuration files and environment variables
 (module config
@@ -49,7 +50,9 @@
 
 ;; on mingw, / isn't really /...
 (define MINGW-ROOT-DIR (or (get-pcc-home-from-registry) 
-                           "C:/msys/1.0/"))
+                           ;;2008-11-10: keep *nix root first (review in future)
+                           ;;"C:/msys/1.0/"))
+                           "/"))
 
 
 (define *config-file-read* #f)
@@ -60,8 +63,12 @@
       (PCC_MINGW
        (or (get-pcc-conf-from-registry)
 	   ;;the env var is no good for dos, services, etc.
-	   ;;(getenv "PCC_CONF") 
-	   "c:/msys/1.0/etc/pcc.conf"))
+	   ;;(getenv "PCC_CONF")
+	   ;;2008-11-10: It should be ok for services or other...
+	   (getenv "PCC_CONF") 
+       ;;2008-11-10: no need of an absolute path. keep a normal build system
+       ;;"c:/msys/1.0/etc/pcc.conf"))
+	   "@CONF_HOME@/pcc.conf"))
       (else
        (or (getenv "PCC_CONF")
 	   "@CONF_HOME@/pcc.conf"))))

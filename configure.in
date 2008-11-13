@@ -332,14 +332,14 @@ mingw*)
 #jfcouic 2008-10-30 begin : report Makefile.mingw
 #on windows, the DLLs cannot have unresolved symbols
     RUNTIME_DLL_LIBS="-lws2_32 -liberty"
-    COMPILER_DLL_LIBS="-L../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(WEBCONNECT_LIB) -lws2_32"
-    WEBCONNECT_DLL_LIBS="-L../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) -lws2_32"
-    FASTCGI_DLL_LIBS="-L../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -L/usr/local/lib -lfcgi -lws2_32"
-    CGI_DLL_LIBS="-L../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -lws2_32"
-    MHTTPD_DLL_LIBS="-L../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -L/usr/local/lib -lwebserver -lws2_32"
-    EXTENSION_DLL_LIBS="-L\$(LIB) \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) -lws2_32 -lm"
-    PROFILER_DLL_LIBS="-L/usr/local/lib -lgw32c -lole32 -luuid"
-    DOTEST_LIBS="-L/usr/local/lib -lgw32c -lws2_32"
+    COMPILER_DLL_LIBS="-L ../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(WEBCONNECT_LIB) -lws2_32"
+    WEBCONNECT_DLL_LIBS="-L ../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) -lws2_32"
+    FASTCGI_DLL_LIBS="-L ../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -L/usr/local/lib -lfcgi -lws2_32"
+    CGI_DLL_LIBS="-L ../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -lws2_32"
+    MHTTPD_DLL_LIBS="-L ../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -L/usr/local/lib -lwebserver -lws2_32"
+    EXTENSION_DLL_LIBS="-L \$(LIB) \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) -lws2_32 -lm"
+    PROFILER_DLL_LIBS="-L /usr/local/lib -lgw32c -lole32 -luuid"
+    DOTEST_LIBS="-L /usr/local/lib -lgw32c -lws2_32"
 #jfcouic 2008-10-30 end
 #jfcouic 2008-11-01 begin
 # report compatibility for time and flock to compile
