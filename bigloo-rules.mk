@@ -26,12 +26,12 @@ else
 	PROFILEFLAGS =
 endif
 
-BHEAPFLAGS	= -unsafe -mkaddheap -mkaddlib
+BHEAPFLAGS	= -unsafe -mkaddheap -mkaddlib -L $(BGL_DEFAULT_LIB_DIR)
 
 # -fsharing? 
 # -mkaddlib shortens our startup time because it changes bigloo's constant allocation mode
-BSAFEFLAGS	= -mkaddlib -unsafev -copt -D$(PCC_OS) -srfi $(PCC_OS) -O3 -g -cg +rm $(PROFILEFLAGS) $(BCOMMONFLAGS)
-BUNSAFEFLAGS	= -mkaddlib -copt -D$(PCC_OS) -srfi $(PCC_OS) -srfi unsafe -O6 -unsafe $(BCOMMONFLAGS) 
+BSAFEFLAGS	= -mkaddlib -L $(BGL_DEFAULT_LIB_DIR) -unsafev -copt -D$(PCC_OS) -srfi $(PCC_OS) -O3 -g -cg +rm $(PROFILEFLAGS) $(BCOMMONFLAGS)
+BUNSAFEFLAGS	= -mkaddlib -L $(BGL_DEFAULT_LIB_DIR) -copt -D$(PCC_OS) -srfi $(PCC_OS) -srfi unsafe -O6 -unsafe $(BCOMMONFLAGS) 
 
 # the -srfi bit makes cond-expand work in scheme code
 CSAFEFLAGS    = -D$(PCC_OS) -O -g $(PROFILEFLAGS) $(CCOMMONFLAGS)

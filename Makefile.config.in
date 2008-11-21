@@ -8,6 +8,10 @@ BIGLOO_GC_LIB = @BIGLOO_GC_LIB@
 STATIC_SUFFIX =
 BIGLOO_PIC = -copt -fPIC
 C_PIC = -fPIC
+WEXE =
+ifeq ($(PCC_OS),PCC_MINGW)
+ WEXE=.exe
+endif
 
 # GC_LIB can be gc or bigloogc
 ifeq ($(BIGLOO_GC_LIB),bigloogc)
