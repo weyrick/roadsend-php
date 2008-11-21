@@ -38,6 +38,20 @@ bindir  	= @bindir@
 libdir		= @libdir@
 sysconfdir	= @sysconfdir@
 
+ifeq ($(PCC_OS),PCC_MINGW)
+DESTDIR_prefix      = $(DESTDIR)$(prefix)
+DESTDIR_exec_prefix = $(DESTDIR)$(exec_prefix)
+DESTDIR_bindir      = $(DESTDIR)$(bindir)
+DESTDIR_libdir      = $(DESTDIR)$(libdir)
+DESTDIR_sysconfdir  = $(DESTDIR)$(sysconfdir)
+else
+DESTDIR_prefix      = $(DESTDIR)/$(prefix)
+DESTDIR_exec_prefix = $(DESTDIR)/$(exec_prefix)
+DESTDIR_bindir      = $(DESTDIR)/$(bindir)
+DESTDIR_libdir      = $(DESTDIR)/$(libdir)
+DESTDIR_sysconfdir  = $(DESTDIR)/$(sysconfdir)
+endif
+
 all: unsafe
 
 all-run: Makefile.config libs tools runtime webconnect \
@@ -145,43 +159,44 @@ docs:
 	(cd doc && $(MAKE))
 
 install:
+#jfcouic 2008-11-05 : replace .so by $(SOEXT) and $(DESTDIR_dir) by $(DESTDIR)($dir)
 #config
-	install -m 755 -d $(DESTDIR)/$(sysconfdir)
-	install -m 644 -b ./doc/pcc.conf $(DESTDIR)/$(sysconfdir)/pcc.conf	
+	install -m 755 -d $(DESTDIR_sysconfdir)
+	install -m 644 -b ./doc/pcc.conf $(DESTDIR_sysconfdir)/pcc.conf	
 #binaries
-	install -m 755 -d $(DESTDIR)/$(bindir)
-	install -m 755 ./compiler/pcc $(DESTDIR)/$(bindir)/pcc
-	install -m 755 ./compiler/pdb $(DESTDIR)/$(bindir)/pdb
-	install -m 755 ./compiler/pcctags $(DESTDIR)/$(bindir)/pcctags
-	-install -m 755 ./webconnect/fastcgi/pcc.fcgi $(DESTDIR)/$(bindir)/pcc.fcgi
+	install -m 755 -d $(DESTDIR_bindir)
+	install -m 755 ./compiler/pcc $(DESTDIR_bindir)/pcc
+	install -m 755 ./compiler/pdb $(DESTDIR_bindir)/pdb
+	install -m 755 ./compiler/pcctags $(DESTDIR_bindir)/pcctags
+	-install -m 755 ./webconnect/fastcgi/pcc.fcgi $(DESTDIR_bindir)/pcc.fcgi
 #libraries
-	install -m 755 -d $(DESTDIR)/$(libdir)
-	install -m 644 ./libs/libwebserver.so $(DESTDIR)/$(libdir)
-	install -m 644 ./libs/libwebserver.a $(DESTDIR)/$(libdir)
-	install -m 644 ./libs/*_[su]*.so $(DESTDIR)/$(libdir)
-	install -m 644 ./libs/*_[su]*.a $(DESTDIR)/$(libdir)
-	install -m 644 ./libs/*.sch $(DESTDIR)/$(libdir)
-	install -m 644 ./libs/*.h $(DESTDIR)/$(libdir)
-	install -m 644 ./libs/*.heap $(DESTDIR)/$(libdir)
-	-install -m 644 ./libs/*.init $(DESTDIR)/$(libdir)
+	install -m 755 -d $(DESTDIR_libdir)
+	install -m 644 ./libs/libwebserver.$(SOEXT) $(DESTDIR_libdir)
+	install -m 644 ./libs/libwebserver.a $(DESTDIR_libdir)
+	install -m 644 ./libs/*_[su]*.$(SOEXT) $(DESTDIR_libdir)
+	install -m 644 ./libs/*_[su]*.a $(DESTDIR_libdir)
+	install -m 644 ./libs/*.sch $(DESTDIR_libdir)
+	install -m 644 ./libs/*.h $(DESTDIR_libdir)
+	install -m 644 ./libs/*.heap $(DESTDIR_libdir)
+	-install -m 644 ./libs/*.init $(DESTDIR_libdir)
 
 uninstall:
 #libraries
-	for file in ./libs/*.init; do if [ -e $(DESTDIR)/$(libdir)/$${file##*/} ]; then rm $(DESTDIR)/$(libdir)/$${file##*/}; fi; done
-	for file in ./libs/*.heap; do if [ -e $(DESTDIR)/$(libdir)/$${file##*/} ]; then rm $(DESTDIR)/$(libdir)/$${file##*/}; fi; done
-	for file in ./libs/*.h; do if [ -e $(DESTDIR)/$(libdir)/$${file##*/} ]; then rm $(DESTDIR)/$(libdir)/$${file##*/}; fi; done
-	for file in ./libs/*.sch; do if [ -e $(DESTDIR)/$(libdir)/$${file##*/} ]; then rm $(DESTDIR)/$(libdir)/$${file##*/}; fi; done
-	for file in ./libs/*_[su]*.a; do if [ -e $(DESTDIR)/$(libdir)/$${file##*/} ]; then rm $(DESTDIR)/$(libdir)/$${file##*/}; fi; done
-	for file in ./libs/*_[su]*.so; do if [ -e $(DESTDIR)/$(libdir)/$${file##*/} ]; then rm $(DESTDIR)/$(libdir)/$${file##*/}; fi; done
-	-rm $(DESTDIR)/$(libdir)/libwebserver.a;
-	-rm $(DESTDIR)/$(libdir)/libwebserver.so;
+	for file in ./libs/*.init; do if [ -e $(DESTDIR_libdir)/$${file##*/} ]; then rm $(DESTDIR_libdir)/$${file##*/}; fi; done
+	for file in ./libs/*.heap; do if [ -e $(DESTDIR_libdir)/$${file##*/} ]; then rm $(DESTDIR_libdir)/$${file##*/}; fi; done
+	for file in ./libs/*.h; do if [ -e $(DESTDIR_libdir)/$${file##*/} ]; then rm $(DESTDIR_libdir)/$${file##*/}; fi; done
+	for file in ./libs/*.sch; do if [ -e $(DESTDIR_libdir)/$${file##*/} ]; then rm $(DESTDIR_libdir)/$${file##*/}; fi; done
+	for file in ./libs/*_[su]*.a; do if [ -e $(DESTDIR_libdir)/$${file##*/} ]; then rm $(DESTDIR_libdir)/$${file##*/}; fi; done
+	for file in ./libs/*_[su]*.$(SOEXT); do if [ -e $(DESTDIR_libdir)/$${file##*/} ]; then rm $(DESTDIR_libdir)/$${file##*/}; fi; done
+	-rm $(DESTDIR_libdir)/libwebserver.a;
+	-rm $(DESTDIR_libdir)/libwebserver.$(SOEXT);
 #binaries
-	-rm $(DESTDIR)/$(bindir)/pcc.fcgi
-	-rm $(DESTDIR)/$(bindir)/pcctags
-	-rm $(DESTDIR)/$(bindir)/pdb
-	-rm $(DESTDIR)/$(bindir)/pcc
+	-rm $(DESTDIR_bindir)/pcc.fcgi
+	-rm $(DESTDIR_bindir)/pcctags$(WEXE)
+	-rm $(DESTDIR_bindir)/pdb$(WEXE)
+	-rm $(DESTDIR_bindir)/pcc$(WEXE)
 #config
-	-rm $(DESTDIR)/$(sysconfdir)/pcc.conf
+	-rm $(DESTDIR_sysconfdir)/pcc.conf
 
 
 # used by the self installing package maker
