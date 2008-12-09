@@ -1,7 +1,7 @@
 PCC_ROOT = ..
 include $(PCC_ROOT)/bigloo-rules.mk
 
-BCOMMONFLAGS	= $(READLINE_SRFI) -L ../libs -I ../libs 
+BCOMMONFLAGS	= $(READLINE_SRFI) -L $(BGL_DEFAULT_LIB_DIR) -L ../libs -I ../libs 
 CCOMMONFLAGS	= -I. -I$(BGL_DEFAULT_LIB_DIR) 
 
 # for pcc
@@ -47,7 +47,7 @@ profile:
 	PROFILE=t $(MAKE) debug
 
 clean-bin:
-	-rm pcc pcctags pdb
+	-rm pcc$(WEXE) pcctags$(WEXE) pdb$(WEXE)
 
 debugger: $(PHPEVAL_LIBS) pdb 
 
@@ -114,4 +114,3 @@ pdb_$(SU): pdb_$(SU).o $(PHPEVAL_LIBS)
 
 pdb: pdb_$(SU)
 	cp pdb_$(SU) pdb
-

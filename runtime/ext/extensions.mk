@@ -39,7 +39,7 @@ MY_TESTDIR	= $(MY_DIR)tests/
 MY_TESTOUTDIR	= $(MY_TESTDIR)testoutput/
 
 CCOMMONFLAGS	= -I. -I$(BGL_DEFAULT_LIB_DIR) $(C_SOURCE_FLAGS)
-BCOMMONFLAGS	=  $(BCFLAGS) $(PHPOO_INC) $(PHPOO_LIBS)
+BCOMMONFLAGS	=  -L $(BGL_DEFAULT_LIB_DIR) $(BCFLAGS) $(PHPOO_INC) $(PHPOO_LIBS)
 
 
 TAGFILE		= $(LIBNAME).tags
@@ -98,7 +98,7 @@ $(LIB)/$(LIBNAME).sch: $(LIBNAME).sch
 	cp $(LIBNAME).sch $(LIB)/$(LIBNAME).sch
 
 make-lib.o: $(POPULATION)
-	$(BIGLOO) -copt -fPIC -rm  $(BCFLAGS) -mkaddlib -dload-sym -c make-lib.scm
+	$(BIGLOO) -L $(BGL_DEFAULT_LIB_DIR) -copt -fPIC -rm  $(BCFLAGS) -mkaddlib -dload-sym -c make-lib.scm
 
 clean:
 	-/bin/rm -f *.o *.a *.heap *~ *.so $(CLEFTOVERS)
@@ -108,4 +108,3 @@ clean:
 check:
 	mkdir -p $(TOPLEVEL)$(MY_TESTOUTDIR)
 	@(cd $(TOPLEVEL) && $(DOTEST) $(MY_TESTDIR) $(MY_TESTOUTDIR))
-

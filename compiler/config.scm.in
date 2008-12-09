@@ -59,17 +59,14 @@
 
 
 (define *config-file*
-   (cond-expand
-      (PCC_MINGW
-       (or (get-pcc-conf-from-registry)
-	   ;;the env var is no good for dos, services, etc.
-	   ;;(getenv "PCC_CONF")
-	   ;;2008-11-10: It should be ok for services or other...
-	   (getenv "PCC_CONF") 
-       ;;2008-11-10: no need of an absolute path. keep a normal build system
-       ;;"c:/msys/1.0/etc/pcc.conf"))
-	   "@CONF_HOME@/pcc.conf"))
-      (else
+  (cond-expand
+    (PCC_MINGW
+      (or (get-pcc-conf-from-registry)
+          (getenv "PCC_CONF")
+          ;;to test (dirname (executable-name)) (dirname (dirname (executable-name)))+"/conf"
+          (find-file/path "pcc.conf" '("./" (getenv "SYSTEMROOT") "@CONF_HOME@" "/etc"))
+          ))
+    (else
        (or (getenv "PCC_CONF")
 	   "@CONF_HOME@/pcc.conf"))))
 
@@ -258,4 +255,3 @@
 				    "/" )))))
 ;      (print "the pcc-conf found in the registry was: " retval)
       retval))
-

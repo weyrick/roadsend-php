@@ -3134,7 +3134,7 @@ test -n "$target_alias" &&
 
 # can't figure out how to get this into AC_CHECK_PROG_VER below?
 # have to change it there too
-want_bigloo="3.0c, 3.1a, 3.1b"
+want_bigloo="3.0c, 3.1a, 3.1b, 3.2a"
 want_curl=7.15.1
 
 # defaults
@@ -3204,7 +3204,7 @@ echo $ECHO_N "checking version of $HAVE_BIGLOO... $ECHO_C" >&6; }
   ac_prog_version=`$HAVE_BIGLOO -revision 2>&1 | sed -n 's/^.*\([2-9].[0-9][a-z]\).*$/\1/p'`
   case $ac_prog_version in
     '') ac_prog_version_m="v. ?.??, bad"; ac_verc_fail=yes;;
-    3.0c | 3.1a | 3.1b)
+    3.0c | 3.1a | 3.1b | 3.2a)
        ac_prog_version_m="$ac_prog_version, ok"; ac_verc_fail=no;;
     *) ac_prog_version_m="$ac_prog_version, bad"; ac_verc_fail=yes;;
 
@@ -4566,21 +4566,21 @@ _ACEOF
 #jfcouic 2008-10-30 begin : report Makefile.mingw
 #on windows, the DLLs cannot have unresolved symbols
     RUNTIME_DLL_LIBS="-lws2_32 -liberty"
-    COMPILER_DLL_LIBS="-L../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(WEBCONNECT_LIB) -lws2_32"
-    WEBCONNECT_DLL_LIBS="-L../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) -lws2_32"
-    FASTCGI_DLL_LIBS="-L../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -L/usr/local/lib -lfcgi -lws2_32"
-    CGI_DLL_LIBS="-L../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -lws2_32"
-    MHTTPD_DLL_LIBS="-L../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -L/usr/local/lib -lwebserver -lws2_32"
-    EXTENSION_DLL_LIBS="-L\$(LIB) \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) -lws2_32 -lm"
-    PROFILER_DLL_LIBS="-L/usr/local/lib -lgw32c -lole32 -luuid"
-    DOTEST_LIBS="-L/usr/local/lib -lgw32c -lws2_32"
+    COMPILER_DLL_LIBS="-L ../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(WEBCONNECT_LIB) -lws2_32"
+    WEBCONNECT_DLL_LIBS="-L ../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) -lws2_32"
+    FASTCGI_DLL_LIBS="-L ../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -L/usr/local/lib -lfcgi -lws2_32"
+    CGI_DLL_LIBS="-L ../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -lws2_32"
+    MHTTPD_DLL_LIBS="-L ../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -L/usr/local/lib -lwebserver -lws2_32"
+    EXTENSION_DLL_LIBS="-L \$(LIB) \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) -lws2_32 -lm"
+    PROFILER_DLL_LIBS="-L /usr/local/lib -lgw32c -lole32 -luuid"
+    DOTEST_LIBS="-L /usr/local/lib -lgw32c -lws2_32"
 #jfcouic 2008-10-30 end
 #jfcouic 2008-11-01 begin
 # report compatibility for time and flock to compile
 #   in the profiler
-    WINDOWS_TIME_SUPPORT = windows-time
+    WINDOWS_TIME_SUPPORT="windows-time"
 #   in the runtime
-    WINDOWS_C_SUPPORT = windows-time windows-flock
+    WINDOWS_C_SUPPORT="windows-time windows-flock"
 #jfcouic 2008-11-01 end
 #-future version with the SU SUV selection
 #   STD_LIBS="-lws2_32 \$(BIGLOO_LIBS)"

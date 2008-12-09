@@ -3,7 +3,7 @@ include $(PCC_ROOT)/bigloo-rules.mk
 
 #-D_ISOC99_SOURCE is necessary for the isfinite and isnan macros
 #-D_GNU_SOURCE includes _ISOC99_SOURCE and gives us some stuff for fstat
-BCOMMONFLAGS	=  -copt -D_GNU_SOURCE -L ../libs # -D_ISOC99_SOURCE
+BCOMMONFLAGS	=  -L $(BGL_DEFAULT_LIB_DIR) -copt -D_GNU_SOURCE -L ../libs # -D_ISOC99_SOURCE
 CCOMMONFLAGS	=  -I. -I$(BGL_DEFAULT_LIB_DIR)
 
 SOURCE_LIST	= php-runtime php-hash php-object php-ini utils opaque-math-binding \
@@ -96,4 +96,4 @@ php-errors_$(SU).o: php-object_$(SU).o
 
 builtin-interfaces_$(SU).o: php-object_$(SU).o
 
-signatures.o: opaque-math-binding.o
+signatures.o: opaque-math-binding.o
