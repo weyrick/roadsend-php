@@ -27,6 +27,23 @@ Copyright @copyright{} 2007 Roadsend, Inc.
 
 @menu
 * Extensions::                  
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Extensions
+
+* cURL::                        
+* MySQL::                       
+* ODBC::                        
+* PCRE::                        
+* Sockets::                     
+* SQLite::                      
+* Standard::                    
+* Windows::                     
+* XML::                         
+
+@end detailmenu
 @end menu
 
 @node Extensions,  , Top, Top
@@ -37,6 +54,7 @@ Copyright @copyright{} 2007 Roadsend, Inc.
 * MySQL::                       
 * ODBC::                        
 * PCRE::                        
+* Sockets::                     
 * SQLite::                      
 * Standard::                    
 * Windows::                     
@@ -58,12 +76,17 @@ Copyright @copyright{} 2007 Roadsend, Inc.
 
 @include ext-php-odbc.texi
 
-@node PCRE, SQLite, ODBC, Extensions
+@node PCRE, Sockets, ODBC, Extensions
 @section PCRE
 
 @include ext-php-pcre.texi
 
-@node SQLite, Standard, PCRE, Extensions
+@node Sockets, SQLite, PCRE, Extensions
+@section Sockets
+
+@include ext-php-sockets.texi
+
+@node SQLite, Standard, Sockets, Extensions
 @section SQLite
 
 @include ext-php-sqlite.texi
