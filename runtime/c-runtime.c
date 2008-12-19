@@ -295,9 +295,20 @@ int re_strpos(obj_t haystack, obj_t needle, unsigned int offset, int cs) {
 }
 
 
-/* this is a workaround for a bigloo problem in 3.0c */
+/* these are workarounds for bigloo string port issues
+   we always flush and reset the port */
+
+#if !(defined(BGL_3_0c) || defined(BGL_3_1b))
 BGL_RUNTIME_DEF obj_t
-bgl_output_flush( obj_t port, char *str, size_t slen );
+bgl_reset_output_string_port( obj_t port );
+#endif
+
+#ifdef BGL_3_1b
+BGL_RUNTIME_DEF obj_t
+get_output_string( obj_t port );
+BGL_RUNTIME_DEF void
+bgl_output_port_buffer_set( obj_t port, obj_t buf );
+#endif
 
 BGL_RUNTIME_DEF
 obj_t
@@ -318,10 +329,15 @@ strport_bin_flush( obj_t port ) {
       return string_to_bstring( "" );
    }
 #else
-
-   // bigloo >3.0c
-   FLUSH_OUTPUT_PORT(port);
-
+ #ifdef BGL_3_1b
+   // bigloo 3.1b
+   obj_t res = get_output_string( port );
+   bgl_output_port_buffer_set( port, OUTPUT_PORT( port ).buf );
+   return res;
+ #else
+   // bigloo >=3.2a
+   return bgl_reset_output_string_port(port);
+ #endif
 #endif
 
 }
