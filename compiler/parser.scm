@@ -630,6 +630,8 @@
 	(make-parent-method-invoke *parse-loc* method arglist))
        ((id@klass static-classderef id-or-var@method lpar arglist rpar) 
 	(make-static-method-invoke *parse-loc* klass method arglist))
+       ((id@klass static-classderef static-class-lval@method lpar arglist rpar) 
+	(make-static-method-invoke *parse-loc* klass method arglist))       
        ((selfkey id@method lpar arglist rpar)
 	; we make a literal string here because static-method-invoke expects an ast-node there (from non self:: call)
 	(make-static-method-invoke *parse-loc* '%self (make-literal-string *parse-loc* (mkstr method)) arglist)))
@@ -838,6 +840,10 @@
          (make-literal-integer *parse-loc* integer))
         ((float)
          (make-literal-float *parse-loc* float)))
+
+       (static-class-lval
+        ((var)
+         (make-var *parse-loc* var)))
        
        (class-lval 
 	((class-prop-fetch) class-prop-fetch)
