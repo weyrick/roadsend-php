@@ -1327,7 +1327,7 @@ argument, before the continuation: (obj prop ref? value k)."
 
 
 (define (php-class-constructor-accessible class-name context)
-   (let ((the-class (%lookup-class class-name)))
+   (let ((the-class (%lookup-class-with-autoload class-name)))
       (unless the-class
 	 (php-error "Unable to identify class or object: " class-name))
       (let ((cprocname (or (if (%lookup-method the-class "__construct")
