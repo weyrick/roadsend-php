@@ -26,7 +26,7 @@ AC_CANONICAL_SYSTEM
 
 # can't figure out how to get this into AC_CHECK_PROG_VER below?
 # have to change it there too
-want_bigloo="3.0c, 3.1a, 3.1b, 3.2a, 3.2b"
+want_bigloo="3.0c, 3.1a, 3.1b, 3.2a, 3.2b, 3.2c"
 want_curl=7.15.1
 
 # defaults
@@ -49,13 +49,20 @@ AC_CHECK_PROG_VER([HAVE_BIGLOO],
 		  bigloo, 
 		  -revision,
 		  [\([2-9].[0-9][a-z]\)],
-		  [3.0c | 3.1a | 3.1b | 3.2a | 3.2b],
+		  [3.0c | 3.1a | 3.1b | 3.2a | 3.2b | 3.2c],
 		  AC_MSG_FAILURE([Bigloo version $want_bigloo required in the system path]))
 
 BIGLOO_VERSION=$ac_prog_version
 
 BIGLOO_LIB_PATH=`bigloo -eval "(display *default-lib-dir*)(exit 0)"`
 BIGLOO_GC_LIB=`bigloo -eval "(display *gc-lib*)(exit 0)"`
+
+AC_CHECK_PROG([HAVE_ENVSUBST], envsubst, envsubst, false)
+if test "x$HAVE_ENVSUBST" != "xenvsubst" 
+then
+	AC_MSG_FAILURE([envsubst is missing (usually supplied with gettext)])
+fi
+	      
 
 # XXX for now we require PCC_HOME variable
 #AC_MSG_CHECKING([for existence of PCC_HOME variable])
@@ -68,6 +75,16 @@ AC_CHECK_CURL([$want_curl],
 	      AC_DEFINE([HAVE_CURL], [1],[Define if you have curl]),
 	      AC_MSG_FAILURE([libcurl version $want_curl required]))
 with_curl=yes
+AC_PATH_PROG(curlconfig,curl-config)
+if test [ -z "$curlconfig" ] 
+then
+  AC_MSG_FAILURE([curl is required, but test for pkg-config not found])
+else
+  CURL_CFLAGS="`curl-config --cflags` \$(EXTENSION_DLL_CFLAGS) -DCURL_STATICLIB"
+  CURL_STATIC_CFLAGS="\$(CURL_CFLAGS)"
+  CURL_LIBS="`curl-config --libs`"
+fi
+ 
 
 # pdo
 AC_ARG_WITH([pdo],
@@ -117,7 +134,7 @@ AS_IF([test "x$with_pcre" != xno],
 	   with_pcre=yes
            AC_DEFINE([HAVE_PCRE], [1],[Define if you have pcre])
 	   PCRE_LIBS=`${pcreconfig} --libs`
-	   PCRE_CFLAGS=`${pcreconfig} --cflags`
+	   PCRE_CFLAGS="`${pcreconfig} --cflags` \$(EXTENSION_DLL_CFLAGS)"
 	   EXT_LIST="$EXT_LIST pcre"
 	   PCC_EXT_LIST="$PCC_EXT_LIST php-pcre"
          fi
@@ -166,7 +183,7 @@ AS_IF([test "x$with_xml" != xno],
 	   with_xml=yes
            AC_DEFINE([HAVE_XML], [1],[Define if you have libxml2])
 	   XML_LIBS=`${pkgconfig} --libs libxml-2.0`
-	   XML_CFLAGS=`${pkgconfig} --cflags libxml-2.0`
+	   XML_CFLAGS="`${pkgconfig} --cflags libxml-2.0` \$(EXTENSION_DLL_CFLAGS)"
 	   EXT_LIST="$EXT_LIST xml"
 	   PCC_EXT_LIST="$PCC_EXT_LIST php-xml"
          fi
@@ -194,7 +211,7 @@ AS_IF([test "x$with_mysql" != xno],
 	   with_mysql=yes
            AC_DEFINE([HAVE_MYSQL], [1],[Define if you have MySQL])
 	   MYSQL_LIBS=`${mysqlconfig} --libs`
-	   MYSQL_CFLAGS=`${mysqlconfig} --cflags`
+	   MYSQL_CFLAGS="`${mysqlconfig} --cflags` \$(EXTENSION_DLL_CFLAGS)"
            echo "set mysqlcflags to $MYSQL_CFLAGS thanks to ${mysqlconfig} --cflags"
 	   EXT_LIST="$EXT_LIST mysql"
 	   PCC_EXT_LIST="$PCC_EXT_LIST php-mysql"
@@ -222,6 +239,8 @@ if test "x$with_sqlite3" == xyes; then
 	   with_pdo_sqlite=yes
 	   PDO_DRIVER_LIST="$PDO_DRIVER_LIST pdo_sqlite"
 	   PDO_DRIVER_ARRAY="$PDO_DRIVER_ARRAY 'pdo_sqlite',"
+	   SQLITE3_CFLAGS="\$(EXTENSION_DLL_CFLAGS)"
+	   SQLITE3_LDFLAGS="\$(EXTENSION_DLL_LIBS) -L/usr/local/lib -lsqlite3"
     ])
 fi
 
@@ -244,7 +263,7 @@ AC_ARG_WITH([odbc],
 	   with_odbc=yes
            AC_DEFINE([HAVE_ODBC], [1],[Define if you have ODBC])
 	   ODBC_LIBS=`${odbcconfig} --libs`
-	   ODBC_CFLAGS=`${odbcconfig} --cflags`
+	   ODBC_CFLAGS="`${odbcconfig} --cflags` \$(EXTENSION_DLL_CFLAGS)"
 	   EXT_LIST="$EXT_LIST odbc"
 	   PCC_EXT_LIST="$PCC_EXT_LIST php-odbc"
          fi
@@ -309,6 +328,7 @@ linux*)
 	SO_EXT="so"
 	STD_LIBS="-lresolv -lm -lcrypt"
 	STD_CFLAGS=""
+	LD_LIBRARY_PATH_VAR=LD_LIBRARY_PATH
 	;;
 freebsd*)
 	AC_MSG_NOTICE([configuring for FreeBSD])
@@ -320,6 +340,7 @@ freebsd*)
 	SO_EXT="so"
 	STD_LIBS="-lcrypt"
 	STD_CFLAGS=""
+	LD_LIBRARY_PATH_VAR=LD_LIBRARY_PATH
 	;;
 mingw*)
 	AC_MSG_NOTICE([configuring for windows/mingw])
@@ -331,13 +352,14 @@ mingw*)
 	RESOLVER_LIB=""
 #jfcouic 2008-10-30 begin : report Makefile.mingw
 #on windows, the DLLs cannot have unresolved symbols
-    RUNTIME_DLL_LIBS="-lws2_32 -liberty"
+    RUNTIME_DLL_LIBS="-L ../libs/ \$(PROFILER_LIB) -lws2_32 -liberty"
     COMPILER_DLL_LIBS="-L ../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(WEBCONNECT_LIB) -lws2_32"
     WEBCONNECT_DLL_LIBS="-L ../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) -lws2_32"
     FASTCGI_DLL_LIBS="-L ../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -L/usr/local/lib -lfcgi -lws2_32"
     CGI_DLL_LIBS="-L ../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -lws2_32"
     MHTTPD_DLL_LIBS="-L ../../libs/ \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) \$(WEBCONNECT_LIB) -L/usr/local/lib -lwebserver -lws2_32"
-    EXTENSION_DLL_LIBS="-L \$(LIB) \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) -lws2_32 -lm"
+    EXTENSION_DLL_CFLAGS="-DBGL_BUILDING_DLL -IC:/msys/1.0/local/include"
+    EXTENSION_DLL_LIBS="-Wl,--enable-auto-import -L \$(LIB) \$(RUNTIME_LIB) \$(PROFILER_LIB) \$(PHPEVAL_LIB) -lws2_32 -lm"
     PROFILER_DLL_LIBS="-L /usr/local/lib -lgw32c -lole32 -luuid"
     DOTEST_LIBS="-L /usr/local/lib -lgw32c -lws2_32"
 #jfcouic 2008-10-30 end
@@ -351,8 +373,9 @@ mingw*)
 #-future version with the SU SUV selection
 #   STD_LIBS="-lws2_32 \$(BIGLOO_LIBS)"
 #-ugly-current for testing
-	STD_LIBS="-lws2_32 -lbigloo_u-3.0c -lbigloogc-3.0c"
-	STD_CFLAGS=""
+	STD_LIBS="-Wl,--enable-auto-import -LC:/msys/1.0/local/lib -lws2_32 \$(BIGLOO_LIBS)"
+	STD_CFLAGS="\$(EXTENSION_DLL_CFLAGS)"
+	LD_LIBRARY_PATH_VAR=PATH
 	with_pccwin=yes
 	;;
 darwin*)
@@ -413,6 +436,7 @@ AC_SUBST(PCC_LINK_OPTIONS, $PCC_LINK_OPTIONS)
 AC_SUBST(RUNTIME_DLL_LIBS, $RUNTIME_DLL_LIBS)
 AC_SUBST(COMPILER_DLL_LIBS, $COMPILER_DLL_LIBS)
 AC_SUBST(WEBCONNECT_DLL_LIBS, $WEBCONNECT_DLL_LIBS)
+AC_SUBST(EXTENSION_DLL_CFLAGS, $EXTENSION_DLL_CFLAGS)
 AC_SUBST(EXTENSION_DLL_LIBS, $EXTENSION_DLL_LIBS)
 AC_SUBST(FASTCGI_DLL_LIBS, $FASTCGI_DLL_LIBS)
 AC_SUBST(CGI_DLL_LIBS, $CGI_DLL_LIBS)
@@ -455,6 +479,7 @@ AC_SUBST(PDO_DRIVER_ARRAY, $PDO_DRIVER_ARRAY)
 AC_SUBST(CONF_HOME, $CONF_HOME)
 AC_SUBST(PCC_LIBS, $PCC_LIBS)
 AC_SUBST(BIGLOO_GC_LIB, $BIGLOO_GC_LIB)
+AC_SUBST(LD_LIBRARY_PATH_VAR, $LD_LIBRARY_PATH_VAR)
 
 AC_SUBST(prefix, $prefix)
 AC_SUBST(exec_prefix, $exec_prefix)
@@ -469,9 +494,10 @@ AC_SUBST(sysconfdir, $sysconfdir)
 #AC_SUBST(_LIBS, $_LIBS)
 AC_CONFIG_FILES([Makefile.config])
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_FILES([doc/pcc.conf])
+AC_CONFIG_FILES([doc/pcc.conf.var])
 AC_CONFIG_FILES([sa-tests/pcc-test.conf])
 AC_CONFIG_FILES([webconnect/Makefile])
+AC_CONFIG_FILES([runtime/php-ext/php-extensions.mk])
 AC_CONFIG_FILES([runtime/php-ext/pdo/Makefile])
 AC_CONFIG_FILES([runtime/php-ext/pdo/pdo_class.php])
 AC_CONFIG_FILES([compiler/config.scm])

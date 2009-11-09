@@ -17,7 +17,7 @@ safe:
 debug: safe
 
 all-run:
-	@if ["$(PHP_EXT_LIST)" = ""]; then echo "nothing to be done (all-run)."; else for d in "$(PHP_EXT_LIST)"; do \
+	@if [ "$(PHP_EXT_LIST)" = "" ]; then echo "nothing to be done (all-run)."; else for d in "$(PHP_EXT_LIST)"; do \
            if [ -d $$d ]; then \
              export UNSAFE; \
              echo "making extension $$d ..."; \
@@ -37,7 +37,7 @@ all-run:
 #endif
 
 tags:
-	@if ["$(PHP_EXT_LIST)" = ""]; then echo "no tags to be done (tags)."; else for d in "$(PHP_EXT_LIST)"; do \
+	@if [ "$(PHP_EXT_LIST)" = "" ]; then echo "no tags to be done (tags)."; else for d in "$(PHP_EXT_LIST)"; do \
            if [ -d $$d ]; then \
              echo "tagging extension $$d ..."; \
              (cd $$d && $(MAKE) tags); \
@@ -54,7 +54,7 @@ tags:
 #endif
 
 apidocs:
-	@if ["$(PHP_EXT_LIST)" = ""]; then echo "no docs to be done (apidocs)."; else for d in "$(PHP_EXT_LIST)"; do \
+	@if [ "$(PHP_EXT_LIST)" = "" ]; then echo "no docs to be done (apidocs)."; else for d in "$(PHP_EXT_LIST)"; do \
            if [ -d $$d ]; then \
              echo "apidoc'ing extension $$d ..."; \
              (cd $$d && $(MAKE) apidocs); \
@@ -69,7 +69,7 @@ apidocs:
 #        done
 
 clean:
-	@if ["$(PHP_EXT_LIST)" = ""]; then echo "no cleaning to be done (clean)."; else for d in "$(PHP_EXT_LIST)"; do \
+	@if [ "$(PHP_EXT_LIST)" = "" ]; then echo "no cleaning to be done (clean)."; else for d in "$(PHP_EXT_LIST)"; do \
            if [ -d $$d ]; then \
              echo "cleaning extension $$d ..."; \
              (cd $$d && $(MAKE) clean); \
@@ -86,7 +86,7 @@ clean:
 #endif
 
 check:
-	@if ["$(PHP_EXT_LIST)" = ""]; then echo "no checking to be done (check)."; else for d in "$(PHP_EXT_LIST)"; do \
+	@if [ "$(PHP_EXT_LIST)" = "" ]; then echo "no checking to be done (check)."; else for d in "$(PHP_EXT_LIST)"; do \
            if [ -d $$d ]; then \
              echo "checking extension $$d ..."; \
              (cd $$d && $(MAKE) check); \

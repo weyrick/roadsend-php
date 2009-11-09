@@ -61,11 +61,11 @@ int __ILWS_add_handler(struct gethandler *handler, const char *mstr, void (*func
 	
 	temp->next->type=type;
 	switch (temp->next->type) {
-		case 0:
+		case GH_FUNCTION:
 			temp->next->hdl.func=func;         // for function
 			break;
-		case 1: // new on 0.5.2            // directory or cgi
-		case 2:
+		case GH_DIRECTORY: // new on 0.5.2            // directory or cgi
+		case GH_CGI:
 			if(!(temp->next->hdl.path=strdup(path))) {
 				__ILWS_free(temp->next->str);
 				__ILWS_free(temp->next);

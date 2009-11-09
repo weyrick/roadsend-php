@@ -134,7 +134,7 @@ void web_client_gifsetpalette(const char *);
 
 extern unsigned char __ILWS_GLOBALGIFPAL[256][3];
 
-int web_client_gifoutput(char *,int,int,int);
+int web_client_gifoutput(unsigned char *,int,int,int);
 
 void web_client_HTTPdirective(char *);
 

@@ -735,7 +735,7 @@ void web_client_gifsetpalette(const char *fname) {
 	};
 };
 
-int web_client_gifoutput(char *data,int w,int h,int transparencyindex) {
+int web_client_gifoutput(unsigned char *data,int w,int h,int transparencyindex) {
 	int i;
 	unsigned char rm[256],gm[256],bm[256];
 	for(i=0;i<256;i++) {

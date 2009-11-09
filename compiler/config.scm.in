@@ -64,7 +64,7 @@
       (or (get-pcc-conf-from-registry)
           (getenv "PCC_CONF")
           ;;to test (dirname (executable-name)) (dirname (dirname (executable-name)))+"/conf"
-          (find-file/path "pcc.conf" '("./" (getenv "SYSTEMROOT") "@CONF_HOME@" "/etc"))
+          (find-file/path "pcc.conf" (list "." (getenv "SYSTEMROOT") "@CONF_HOME@" "/etc"))
           ))
     (else
        (or (getenv "PCC_CONF")

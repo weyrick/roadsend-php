@@ -54,7 +54,7 @@ endif
 
 all: unsafe
 
-all-run: Makefile.config libs tools runtime webconnect \
+all-run: Makefile.config doc/pcc.conf libs tools runtime webconnect \
          compiler extensions php-extensions web-backends debugger dotest 
 
 debug: safe
@@ -74,6 +74,18 @@ Makefile.config:
 tags: unsafe
 	export UNSAFE
 	cd runtime && $(MAKE) tags
+
+#setup parts of configuration file not known until compile time
+doc/pcc.conf: doc/pcc.conf.var Makefile.config
+	STD_LIBS="${STD_LIBS}" \
+	MYSQL_LIBS="${MYSQL_LIBS}" \
+	ODBC_LIBS="${ODBC_LIBS}" \
+	SQLITE_LIBS="${SQLITE_LIBS}" \
+	CURL_LIBS="${CURL_LIBS}" \
+	XML_LIBS="${XML_LIBS}" \
+	FCGI_LIBS="${FCGI_LIBS}" \
+	GTK_LIBS="${GTK_LIBS}" \
+	envsubst < doc/pcc.conf.var > doc/pcc.conf
 
 #runtime
 runtime: 

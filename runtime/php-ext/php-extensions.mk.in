@@ -43,8 +43,12 @@ debug: safe
 build-lib: lib$(LIBNAME)_$(SUV).$(SOEXT)
 
 lib$(LIBNAME)_$(SUV).$(SOEXT): $(SOURCE_FILES) $(LIB_INIT_FILE)
-	LD_LIBRARY_PATH="$(LD_LIBRARY_PATH):$(PCC_ROOT)/libs:$(BIGLOO_LIB_PATH)" PCC_CONF="" \
+	@LD_LIBRARY_PATH_VAR@="$(@LD_LIBRARY_PATH_VAR@):$(PCC_ROOT)/libs:$(BIGLOO_LIB_PATH)" PCC_CONF="../../../doc/pcc.conf" \
         $(PCC_ROOT)/compiler/pcc $(PCC_COMMON) -l $(LIBNAME) --lib-init-file $(LIB_INIT_FILE) $(SOURCE_FILES)
+
+lib$(LIBNAME)_$(SUV).a: $(SOURCE_FILES) $(LIB_INIT_FILE)
+	@LD_LIBRARY_PATH_VAR@="$(@LD_LIBRARY_PATH_VAR@):$(PCC_ROOT)/libs:$(BIGLOO_LIB_PATH)" PCC_CONF="../../../doc/pcc.conf" \
+	ar ruv lib$(LIBNAME)_$(SUV).a $(POPULATION)
 
 tags: $(TAGFILE)
 

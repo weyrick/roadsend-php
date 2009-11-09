@@ -8,14 +8,14 @@
 
 ;; DIRECTIVE: include
 ; Include directives add directories to the include file search path
-(include "./")
+(include ".")
 
 ; example of multiple paths 
 ;(include "./" "/usr/local/lib/php/")
 
 ;; DIRECTIVE: library
 ; Library directives add directories to the dynamic-load search path.
-(library "./" "@PCC_LIBS@")
+(library "." "@PCC_LIBS@")
 
 ; this example shows how to list your own library directory
 ; NOTE you might also have to put this directory in /etc/ld.so.conf to
@@ -31,14 +31,14 @@
 (default-commandline-lib @PCC_EXT_LIST@)
 
 ; flags passed to ld while linking a binary that uses the named extension
-(ldflags standard	@STD_LIBS@)
-(ldflags mysql		@MYSQL_LIBS@)
-(ldflags odbc		@ODBC_LIBS@)
-(ldflags sqlite		@SQLITE_LIBS@)
-(ldflags curl   	@CURL_LIBS@)
-(ldflags xml		@XML_LIBS@)
-(ldflags fastcgi	@FCGI_LIBS@)
-;(ldflags gtk		@GTK_LIBS@)
+(ldflags standard	${STD_LIBS})
+(ldflags mysql		${MYSQL_LIBS})
+(ldflags odbc		${ODBC_LIBS})
+(ldflags sqlite		${SQLITE_LIBS})
+(ldflags curl   	${CURL_LIBS})
+(ldflags xml		${XML_LIBS})
+(ldflags fastcgi	${FCGI_LIBS})
+;(ldflags gtk		${GTK_LIBS})
 
 ;; DIRECTIVE: web-libs
 ; these libraries will be loaded by the web modules and
