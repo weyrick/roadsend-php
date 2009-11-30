@@ -58,7 +58,22 @@ function makedb() {
             INSERT INTO mytable VALUES(2, 2.22, 'some short textsome short text', 'some blob data');
             INSERT INTO mytable VALUES(3, 3.333, 'some short textsdsjdhjshdj sdjhs djhs d', 'some blob data');
             INSERT INTO mytable VALUES(4, 4.4444, 'some short text ksdjksdj ksjd ksjdksjd ', 'some blob data');
-            INSERT INTO mytable VALUES(5, NULL, NULL, NULL);";
+            INSERT INTO mytable VALUES(5, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(6, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(7, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(8, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(9, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(10, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(11, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(12, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(13, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(14, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(15, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(16, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(17, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(18, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(19, NULL, NULL, NULL);";
+
 
     $res = sqlite_exec($db, $SQL, $errmsg);    
     if (!$res) {
@@ -106,7 +121,22 @@ function makedbobj() {
             INSERT INTO mytable VALUES(2, 2.22, 'some short textsome short text', 'some blob data');
             INSERT INTO mytable VALUES(3, 3.333, 'some short textsdsjdhjshdj sdjhs djhs d', 'some blob data');
             INSERT INTO mytable VALUES(4, 4.4444, 'some short text ksdjksdj ksjd ksjdksjd ', 'some blob data');
-            INSERT INTO mytable VALUES(5, NULL, NULL, NULL);";
+            INSERT INTO mytable VALUES(5, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(6, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(7, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(8, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(9, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(10, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(11, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(12, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(13, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(14, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(15, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(16, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(17, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(18, NULL, NULL, NULL);
+            INSERT INTO mytable VALUES(19, NULL, NULL, NULL);
+";
 
     $res = $db->queryExec($db, $SQL, $errmsg);    
     if (!$res) {

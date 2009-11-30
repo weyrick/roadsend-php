@@ -237,7 +237,7 @@
 		  (if (= rval R_SQLITE_ROW)
 		      (let ((row-data (make-vector (sqlite-result-num-cols result))))			 
 			 ; increase table size?
-			 (when (> r (vector-length data))
+			 (when (= r (vector-length data))
 			    ; XXX is this too expensive?
 			    (set! data (copy-vector data (* (vector-length data) 2))))
 			 ; get results for this row
