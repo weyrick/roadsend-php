@@ -252,7 +252,7 @@ AC_ARG_WITH([odbc],
   [with_odbc=check])
           
   AS_IF([test "x$with_odbc" != xno],
-	[AC_PATH_PROG(odbcconfig,odbc_config)
+	[AC_PATH_PROG(odbcconfig,odbc_config,iodbc-config)
 	 if test [ -z "$odbcconfig" ]
 	 then
            if test "x$with_odbc" != xcheck; then

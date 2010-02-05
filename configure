@@ -4452,6 +4452,7 @@ done
   done
 IFS=$as_save_IFS
 
+  test -z "$ac_cv_path_odbcconfig" && ac_cv_path_odbcconfig="iodbc-config"
   ;;
 esac
 fi
