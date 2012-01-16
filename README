@@ -1,6 +1,7 @@
 
-For detailed build instructions, visit the Roadsend Compiler Trac server:
-http://code.roadsend.com/pcc/
+This is the original Roadsend PHP code base. It compiles PHP to native
+binaries.
 
-You can find the online forums here:
-http://forums.roadsend.com/
+You can find the C++ rewrite (unfinished) at
+http://github.com/weyrick/roadsend-php-raven
+
